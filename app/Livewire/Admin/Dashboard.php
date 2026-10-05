@@ -31,24 +31,22 @@ class Dashboard extends Component
     /** Today against yesterday, because a number alone says nothing. */
     protected function today(): array
     {
+        // one row per day: the count and the takings come back together, so
+        // there is no second query that can fall out of step with the first
         $rows = DB::table('orders')
             ->selectRaw('date(created_at) as day, count(*) as orders, coalesce(sum(total), 0) as revenue')
             ->whereDate('created_at', '>=', now()->subDay()->toDateString())
             ->groupBy('day')
-            ->pluck('revenue', 'day');
+            ->get()
+            ->keyBy('day');
 
-        $counts = DB::table('orders')
-            ->selectRaw('date(created_at) as day, count(*) as orders')
-            ->whereDate('created_at', '>=', now()->subDay()->toDateString())
-            ->pluck('orders', 'day');
-
-        $today = now()->toDateString();
-        $yesterday = now()->subDay()->toDateString();
+        $today = $rows->get(now()->toDateString());
+        $yesterday = $rows->get(now()->subDay()->toDateString());
 
         return [
-            'orders'           => (int) ($counts[$today] ?? 0),
-            'revenue'          => (float) ($rows[$today] ?? 0),
-            'orders_yesterday' => (int) ($counts[$yesterday] ?? 0),
+            'orders'           => (int) ($today->orders ?? 0),
+            'revenue'          => (float) ($today->revenue ?? 0),
+            'orders_yesterday' => (int) ($yesterday->orders ?? 0),
         ];
     }
 
