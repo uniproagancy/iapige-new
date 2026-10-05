@@ -1,0 +1,96 @@
+@font-face {
+    font-family: 'HelveticaRegular';
+    src: url('../fonts/Linotype-HelveticaNeueLTGEO55Roman.ttf');
+}
+
+@font-face {
+    font-family: 'HelveticaBold';
+    src: url('../fonts/Linotype-HelveticaNeueLTGEO75Bold.ttf');
+}
+
+@font-face {
+    font-family: 'HelveticaGeoCaps';
+    src: url('../fonts/helvetica-neue-lt-geo-55-roman-caps.ttf');
+}
+
+.fc-toolbar-title, .card-title, .btn, .nav-link span, .content-header-title, .modal-header, .alert, .notification-title, .navigation li a, thead, .font-neue, .toast-title {
+    font-family: 'HelveticaGeoCaps';
+}
+
+body, .dropdown-menu, .dropdown-menu a, .font-helvetica {
+    font-family: 'HelveticaRegular';
+}
+
+.navigation li a {
+    font-size: 13px !important;
+}
+
+.fc-event-title {
+    color: #ffffff;
+}
+
+/* ===== product-card თანაბარი სიმაღლე ===== */
+
+/* Swiper slider-ში */
+.swiper-slide {
+    height: auto;
+}
+.swiper-slide > .product-card {
+    height: 100%;
+}
+
+/* Bootstrap col-ში */
+.row > [class*="col"] > .product-card {
+    height: 100%;
+}
+
+/* ===== Card hover ===== */
+.product-card {
+    transition: transform .25s ease, box-shadow .25s ease;
+    border: 1px solid #f0f0f0;
+}
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .08);
+}
+
+/* ===== Wishlist — ნარინჯისფერი #ff6900 ===== */
+.wishlist-btn {
+    background-color: rgba(255, 255, 255, .9);
+    transition: color .2s ease;
+}
+.wishlist-btn:hover,
+.wishlist-btn.active,
+.wishlist-btn.is-active,
+.wishlist-btn[aria-pressed="true"],
+.wishlist-btn.active i,
+.wishlist-btn.is-active i,
+.wishlist-btn[aria-pressed="true"] i {
+    color: #ff6900 !important;
+}
+
+/* ===== Compact (ჰორიზონტალური) კარდი ===== */
+.product-card-compact {
+    padding: 8px;
+    border-radius: 10px;
+    transition: background-color .2s ease;
+}
+.product-card-compact:hover {
+    background-color: rgba(0, 0, 0, .02);
+}
+
+/* სათაური 2 ხაზზე (truncate-ის ნაცვლად) */
+.product-compact-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    max-height: 2.6em;
+    color: inherit;
+    transition: color .2s ease;
+}
+.product-card-compact:hover .product-compact-title {
+    color: #ff6900;
+}

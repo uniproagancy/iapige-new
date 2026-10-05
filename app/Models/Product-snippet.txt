@@ -1,0 +1,26 @@
+<?php
+
+/*
+ * Replace these two methods in App\Models\Product.
+ */
+
+    /**
+     * Whether a shopper may buy this.
+     *
+     * Only the status decides. Supplier stock numbers are too unreliable to
+     * stand between a shopper and a purchase — one supplier reports "in stock"
+     * per shop, another not at all — so stock is information we show, never a
+     * gate we close.
+     *
+     * A pre-order is the single exception: it exists, but it is not here yet.
+     */
+    public function isSellable(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE && ! $this->is_preorder;
+    }
+
+    /** Visible in the shop, whether or not it can go in a cart today. */
+    public function isListed(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }

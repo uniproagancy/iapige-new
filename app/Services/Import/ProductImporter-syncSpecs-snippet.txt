@@ -1,0 +1,14 @@
+<?php
+
+/*
+ * Replace the value block inside ProductImporter::syncSpecs().
+ *
+ * Values are written for EVERY attribute, filterable or not — otherwise
+ * turning a filter on in the admin would need a full re-import before the
+ * sidebar had anything to show.
+ */
+
+            // values are stored regardless: enabling a filter later must be instant
+            if ($value = $this->taxonomy->attributeValue($attribute, $rows->all())) {
+                $valueIds[] = $value->id;
+            }

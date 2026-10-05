@@ -1,0 +1,18 @@
+User-agent: *
+
+# nothing behind a login or a cart has any business in an index
+Disallow: /admin
+Disallow: /account
+Disallow: /checkout
+Disallow: /order/
+Disallow: /invoice/
+Disallow: /payment/
+
+# filtered listings are the same products in a different order
+Disallow: /*?f=
+Disallow: /*?sort=
+Disallow: /*?page=
+
+Allow: /
+
+Sitemap: https://elio.ge/sitemap.xml

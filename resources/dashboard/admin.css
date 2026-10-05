@@ -1,0 +1,104 @@
+/**
+ * ELIO admin — one stylesheet, built by Vite.
+ *
+ * Order matters: bootstrap first, then the template's own layers, then the
+ * plugin skins. The Vuexy "vendors.min.css" bundle is deliberately left out —
+ * it pulls in flag icons, KaTeX and Leaflet artwork this panel never shows.
+ */
+
+/* bootstrap and the template's extensions */
+@import './css/bootstrap.css';
+@import './css/bootstrap-extended.css';
+@import './css/colors.css';
+@import './css/components.css';
+
+/* layout themes */
+@import './css/themes/dark-layout.css';
+@import './css/themes/bordered-layout.css';
+@import './css/themes/semi-dark-layout.css';
+
+/* the horizontal menu the layout uses */
+@import './css/core/menu/horizontal-menu.css';
+
+/* plugin skins */
+@import './css/vendors/toastr.min.css';
+@import './css/vendors/sweetalert2.min.css';
+@import './css/plugins/ext-component-toastr.css';
+@import './css/plugins/ext-component-sweet-alerts.css';
+
+/* the template's own finishing layer, plus the Georgian faces */
+@import './css/style.css';
+
+/* ------------------------------------------------------------------ ELIO */
+
+:root {
+    --elio-orange: #FF6900;
+}
+
+/* the storefront's accent, so the admin does not feel like a different product */
+.btn-primary,
+.badge-primary,
+.bg-primary {
+    background-color: var(--elio-orange) !important;
+    border-color: var(--elio-orange) !important;
+}
+
+.text-primary { color: var(--elio-orange) !important; }
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #E85D00 !important;
+    border-color: #E85D00 !important;
+}
+
+/* a row that needs a human: draft products, unmapped categories */
+.row-attention { background: rgba(255, 105, 0, .06); }
+
+/* ------------------------------------------------------------------ category tree
+   Add to resources/dashboard/admin.css
+*/
+
+.cat-table thead th{
+  font-size:11px;letter-spacing:.4px;text-transform:uppercase;
+  border-bottom-width:1px
+}
+
+.cat-row td{vertical-align:middle}
+.cat-row.is-dimmed{opacity:.55}          /* only present because a child matched */
+
+/* the drag handle is the only draggable spot, so a click never moves a row */
+.cat-grip{
+  width:44px;text-align:center;color:var(--bs-secondary-color, #9aa0ac);
+  cursor:grab;opacity:.35;transition:opacity .15s
+}
+.cat-row:hover .cat-grip{opacity:1}
+.cat-grip:active{cursor:grabbing}
+
+.cat-row--ghost{opacity:.35}
+.cat-row--chosen{background:rgba(255,105,0,.08)}
+
+/* depth reads from the connector, not from indentation alone */
+.cat-branch{
+  width:14px;height:14px;margin-right:6px;flex:none;
+  border-left:1px solid rgba(255,255,255,.18);
+  border-bottom:1px solid rgba(255,255,255,.18);
+  border-bottom-left-radius:6px;
+  margin-top:-10px
+}
+
+.cat-thumb{
+  width:34px;height:34px;border-radius:8px;object-fit:cover;flex:none;
+  background:rgba(255,255,255,.04)
+}
+.cat-thumb--empty{
+  display:inline-flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.35)
+}
+
+.min-w-0{min-width:0}
+
+.map-row--done{opacity:.68}
+.map-row--done:hover{opacity:1}
+
+

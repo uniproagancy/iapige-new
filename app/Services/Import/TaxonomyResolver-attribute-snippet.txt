@@ -1,0 +1,53 @@
+<?php
+
+/*
+ * Replace the attribute() method in App\Services\Import\TaxonomyResolver with
+ * this one: a new attribute is never filterable on its own.
+ */
+
+    /**
+     * Our attribute for a supplier spec name, created on first sight so every
+     * spec reaches the product page.
+     *
+     * It is never filterable to begin with: which specs become filters is a
+     * decision made in the admin, not a side effect of what the source flags.
+     */
+    public function attribute(Supplier $supplier, string $name, bool $filterable = false): ?Attribute
+    {
+        $name = trim($name);
+
+        if ($name === '') {
+            return null;
+        }
+
+        $row = DB::table('supplier_attribute_map')
+            ->where('supplier_id', $supplier->id)
+            ->where('external_name', $name)
+            ->first();
+
+        if ($row?->attribute_id) {
+            return Attribute::find($row->attribute_id);
+        }
+
+        $attribute = Attribute::firstOrCreate(
+            ['code' => $this->attributeCode($name)],
+            [
+                'type'          => Str::contains(Str::lower($name), ['color', 'ფერი']) ? 'color' : 'select',
+                'is_filterable' => false,
+                'is_variant'    => false,
+                // the source's own flag only decides where it lands in the list
+                'sort_order'    => $filterable ? 50 : 100,
+            ],
+        );
+
+        if ($attribute->wasRecentlyCreated) {
+            $attribute->saveTranslations([Language::defaultCode() => ['name' => $name]]);
+        }
+
+        DB::table('supplier_attribute_map')->updateOrInsert(
+            ['supplier_id' => $supplier->id, 'external_name' => $name],
+            ['attribute_id' => $attribute->id, 'updated_at' => now(), 'created_at' => now()],
+        );
+
+        return $attribute;
+    }
