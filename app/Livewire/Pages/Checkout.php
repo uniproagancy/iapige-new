@@ -38,7 +38,11 @@ class Checkout extends Component
 
     public string $comment = '';
 
-    #[Validate('required|string')]
+    /**
+     * A method that exists — the field is a code posted by the browser, so on
+     * its own it would let any string end up in orders.payment.
+     */
+    #[Validate('required|string|exists:payment_methods,code')]
     public string $payment = '';
 
     /** a signed-in customer keeps the address for next time */
@@ -186,6 +190,14 @@ class Checkout extends Component
     public function place()
     {
         $this->validate();
+
+        // `exists` cannot see is_active, and a method switched off while the
+        // page was open must not be the one the order is placed on
+        if (! $this->method()) {
+            $this->addError('payment', __('checkout.payment_unavailable'));
+
+            return null;
+        }
 
         $lines = $this->lines();
 

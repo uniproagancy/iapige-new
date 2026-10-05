@@ -1,47 +1,68 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# ELIO — agent guidelines
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+ქართული ონლაინ-მაღაზია: **Laravel 13 + Livewire 4**, Blade სერვერზე, Vite.
+სრული აღწერა — [README.md](README.md). ქვემოთ მხოლოდ ის, რაც კოდში შესვლამდე
+უნდა იცოდე.
 
-## Prerequisites
+## სტეკი და გარემო
 
-Verify that PHP and Composer are available:
+- PHP **8.3+**, MySQL 8 (dev-ში `.env` → `DB_CONNECTION=mysql`, ბაზა `elio`)
+- Livewire 4 — სერვერზე რენდერებული კომპონენტები, React/Vue არ არის
+- `mcamara/laravel-localization` — ყველა საჯარო მარშრუტი `{locale}` პრეფიქსშია
+- `phpoffice/phpspreadsheet` — მომწოდებლების XLSX ფაილებისთვის
+- UI თემა: ადმინში Bootstrap (`resources/dashboard/`), საიტზე საკუთარი CSS.
+  **Tailwind არ არის — არ დაამატო.**
 
-```sh
-php -v
-composer -V
+```bash
+composer dev            # serve + vite + queue + pail
+php artisan test        # SQLite :memory:
+vendor/bin/pint         # ფორმატი — commit-ამდე აუცილებლად
 ```
 
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
+## სადაც ლოგიკა ცხოვრობს
 
-macOS:
+| ფუნქცია | ადგილი |
+|---|---|
+| კატალოგის query-ები, ბარათის მასივები | `app/Support/Catalog.php` |
+| კალათა / wishlist | `app/Services/Cart.php`, `Wishlist.php` (DB, არა session) |
+| გადახდები | `app/Services/Payments/` — `PaymentManager` + `Drivers/` |
+| მომწოდებლების იმპორტი | `app/Services/Import/` — დრაივერი + Client თითო მომწოდებელზე |
+| მიწოდების ფასი | `app/Services/Delivery/DeliveryCalculator.php` |
+| ჰარდკოდით ტექსტები, სლაიდები, placeholder სურათები | `app/Support/Store.php` |
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
+კონტროლერები თხელია — რეალური სამუშაო Livewire კომპონენტებსა და `Services/`-ში.
 
-Windows PowerShell:
+## წესები, რომლებიც არ უნდა დაარღვიო
 
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
+1. **ფასი ბაზიდან.** კალათის/ფორმის ფასი მომხმარებლის მოთხოვნაა, არა ფაქტი.
+   შეკვეთის შექმნისას ფასი თავიდან იკითხება — იხ. `Checkout::createOrder()`.
+2. **გადახდას ბანკი ადასტურებს, არა callback.** callback მხოლოდ შეხსენებაა;
+   ვერდიქტი ყოველთვის `PaymentDriver::confirm()`-იდან მოდის. `settle()`
+   იდემპოტენტურია — მეორე გამოძახება არაფერს ცვლის.
+3. **ტექსტი არასოდეს კოდში.** `__('file.key')` + ჩანაწერი **ორივე**
+   `lang/ka/` და `lang/en/`-ში. ბაზის `ui_translations` ფაილებს ზემოდან ედება.
+4. **თარგმნადი მოდელები** `HasTranslations`-ს იყენებენ — `withTranslation()`
+   scope-ის გარეშე query N+1-ს აკეთებს.
+5. **ადმინი** `auth` + `can:admin` უკან. ახალ ადმინ-მარშრუტს ჯგუფში ამატებ,
+   არ გაიტან გარეთ.
+6. **ფული** `money()` helper-ით ჩნდება (`app/helpers.php`), ხელით ფორმატირება არა.
+7. **ბრაუზერიდან მოსული კოდი** (payment method, slug, id) ვალიდაციას გადის —
+   `exists:` წესი ან ხელით შემოწმება.
 
-Linux:
+## სიფრთხილის ადგილები
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
+- `Order::$fillable` არ მოიცავს ყველა არსებულ სვეტს — ახალ ველზე წერამდე
+  შეამოწმე, თორემ `update()` ჩუმად ჩააგდებს.
+- `{!! !!}` Blade-ში მხოლოდ იქ, სადაც HTML ჩვენია. პროდუქტის აღწერა
+  მომწოდებლიდან მოდის — სანიტაიზაციის გარეშე არ გამოიტანო.
+- ფაილის ატვირთვაზე `mimes:` მიუთითე, `image` წესი SVG-ს უშვებს.
+- Livewire-ის update route ლოკალიზაციის ჯგუფშია (`routes/web.php`) —
+  მარშრუტების შეხებისას შეამოწმე, რომ POST არ გადამისამართდება.
+- მიგრაციები `2026_*` თარიღებით არის — ახალი ფაილიც იმავე სქემას მიჰყვეს.
 
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
+## კოდის სტილი
 
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+- PSR-12 / Laravel Pint (`pint.json` არ არის — ნაგულისხმევი `laravel` preset).
+- კომენტარი იმას ხსნის **რატომ**, არა რას — არსებული ფაილები ამ ტონს იცავენ,
+  გაიმეორე.
+- namespace-ის იმპორტები ფაილის თავში, არა inline FQCN.

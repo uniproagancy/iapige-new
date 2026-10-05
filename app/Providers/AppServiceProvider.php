@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\Models\Language;
+use App\Models\Order;
+use App\Models\User;
 use App\Support\Translation\DatabaseTranslationLoader;
 use Illuminate\Contracts\Translation\Loader;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Mcamara\LaravelLocalization\LaravelLocalization;
-use Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,8 +27,29 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-		Gate::define('admin', fn (\App\Models\User $user) => $user->is_admin);
+        $this->defineGates();
         $this->useDatabaseLanguages();
+    }
+
+    /**
+     * Who may see what.
+     *
+     * The order gate is shared by the thank-you page and the printable invoice:
+     * both name a person and both hang off a number short enough to guess, so
+     * the rule has to live in one place rather than in two copies that drift.
+     */
+    protected function defineGates(): void
+    {
+        Gate::define('admin', fn (User $user) => (bool) $user->is_admin);
+
+        Gate::define('view-order', function (?User $user, Order $order) {
+            if ($user && ((int) $order->user_id === (int) $user->id || $user->is_admin)) {
+                return true;
+            }
+
+            // a guest sees the order they placed themselves, and no other
+            return in_array($order->id, (array) session('placed_orders', []), true);
+        });
     }
 
     /**

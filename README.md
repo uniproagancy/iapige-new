@@ -1,78 +1,146 @@
-# ELIO — Blade front-end
+# ELIO — ონლაინ ელექტრონიკის მაღაზია
 
-HTML პროტოტიპი გადატანილია Laravel 13-ზე: მონაცემები PHP-შია, მარკაპი Blade კომპონენტებად
-სერვერზე რენდერდება, JS მხოლოდ ქცევას მართავს (Vite, ES modules).
+Laravel 13 + Livewire 4, სერვერზე რენდერებული Blade. ორენოვანი (ka/en), ოთხი
+გადახდის დრაივერი ქართული ბანკებისთვის, ათი მომწოდებლის იმპორტი და საკუთარი
+ადმინ-პანელი.
 
 ## გაშვება
 
-მოთხოვნა: **PHP 8.3+**, Composer, Node 20+.
+მოთხოვნა: **PHP 8.3+**, Composer, Node 20+, MySQL 8 (ან SQLite).
 
 ```bash
-composer setup   # composer install → .env → key → sqlite → migrate → npm install → build
-composer dev     # სერვერი + Vite ერთ ბრძანებაში
+composer setup   # install → .env → key → sqlite → migrate → npm install → build
+composer dev     # artisan serve + Vite + queue + pail ერთ ბრძანებაში
 ```
 
-გახსენი `http://localhost:8000`.
+```bash
+php artisan migrate --seed
+```
 
-ეს უკვე სრული Laravel 13 პროექტია — ELIO-ს ფაილები ჩასმულია, `app/helpers.php`
-`composer.json`-ის autoload-შია, Tailwind და welcome გვერდი ამოღებულია.
+> `composer setup` SQLite-ზე აეწყობა. MySQL-ისთვის `.env`-ში მიუთითე
+> `DB_CONNECTION=mysql` და დანარჩენი `DB_*`, შემდეგ `php artisan migrate --seed`.
+
+სიდერები: ენები, ატრიბუტები, მიწოდების ქალაქები, გადახდის მეთოდები, მომწოდებლები
+და დემო-კატალოგი — იხ. [`database/seeders/DatabaseSeeder.php`](database/seeders/DatabaseSeeder.php).
+
+### ადმინი
+
+ადმინ-პანელი `/admin`-ზეა, `auth` + `can:admin` უკან. მომხმარებელს ხელით მიანიჭე:
+
+```bash
+php artisan tinker --execute="App\Models\User::where('email','you@example.com')->update(['is_admin'=>true]);"
+```
 
 ## მარშრუტები
 
-| URL | route | view |
+ყველა საჯარო მარშრუტი `{locale}` პრეფიქსშია (mcamara/laravel-localization,
+ნაგულისხმევი ენა URL-ში არ ჩანს).
+
+| URL | route | კომპონენტი |
 |---|---|---|
-| `/` | `home` | `pages.home` |
-| `/catalog` | `catalog` | `pages.catalog` |
-| `/product` | `product` | `pages.product` |
-| `/contact` | `contact` | `pages.info` |
-| `/about` | `about` | `pages.info` |
-| `/info/{doc?}` | `info` | `pages.info` — `delivery`, `returns`, `warranty`, `installments` |
+| `/` | `home` | `Livewire\Pages\Home` |
+| `/catalog/{slug?}` | `catalog` | `Livewire\Pages\Catalog` |
+| `/product/{slug}` | `product` | `Livewire\Pages\Product` |
+| `/checkout` | `checkout` | `Livewire\Pages\Checkout` |
+| `/order/{number}` | `order` | `Livewire\Pages\OrderPlaced` |
+| `/account` | `account` | `Livewire\Account\Index` (auth) |
+| `/invoice/{number}` | `invoice` | `InvoiceController` |
+| `/contact`, `/about`, `/info/{doc?}` | `contact`, `about`, `info` | `PageController` |
+| `/password/reset/{token}` | `password.reset` | `Livewire\Auth\ResetPassword` |
+
+ლოკალის გარეშე: `/sitemap.xml`, `/payment/callback/{driver}` (CSRF-ის გარეშე),
+`/payment/return/{number}`, `/payment/bog/installment/{number}`,
+`/payment/credo/{number}`, `/up` (health).
+
+ადმინი: `/admin` — dashboard, categories, brands, products(+form), mapping,
+attributes, orders(+show), callbacks, users(+show).
 
 ## სტრუქტურა
 
 ```
 app/
-  Support/Store.php            ← დემო მონაცემები (ჩაანაცვლე Eloquent-ით)
+  Livewire/
+    Pages/{Home,Catalog,Product,Checkout,OrderPlaced}   ← full-page კომპონენტები
+    Admin/{Dashboard,Categories,Brands,Products,Orders,Users,Attributes,Mapping,Callbacks}
+    Product/{BuyBox,Bundle} · Forms/{CallbackForm,ContactForm,Newsletter}
+    AuthModal · CartDrawer · HeaderSearch · WishlistHeart · WishlistCount
+  Models/                      ← ~35 მოდელი; თარგმანები *Translation ცხრილებში
+    Concerns/HasTranslations.php   ← withTranslation() scope-ი
+  Services/
+    Cart.php · Wishlist.php · InteractionLog.php
+    Payments/     ← PaymentManager + Drivers/{BogCard,BogInstallment,CredoInstallment,TbcInstallment}
+    Import/       ← ImportManager, ProductImporter, TaxonomyResolver, ImageDownloader
+                     Drivers/{Alta,Alneo,Allmarket,Elite,Ingco,Kontakt,Metromart,Midea,Zoommer}
+    Delivery/DeliveryCalculator.php   ← წონა/მოცულობა → ტარიფი ქალაქზე
+    Feeds/FacebookFeed.php
+  Support/
+    Catalog.php                ← კატალოგის query-ები და ბარათის მასივები (view-ების კონტრაქტი)
+    Store.php                  ← ჯერ კიდევ ჰარდკოდით: info-გვერდები, სლაიდები, ბანერები, placeholder სურათები
+    Translation/DatabaseTranslationLoader.php
+    XlsxReader.php · Slug.php
   helpers.php                  ← money(4780) → "4 780 ₾"
+  Console/Commands/            ← იხ. ქვემოთ
+lang/{ka,en}/                  ← ფაილები; `ui_translations` ცხრილი ზემოდან ედება
 resources/
-  css/app.css                  ← ტოკენები, reset, ჰედერი, კარტები, drawer-ები, ფუტერი, მთავარი, მობაილი
-  css/pages/{catalog,product,info}.css
-  js/core.js                   ← საერთო მდგომარეობა: კალათა, wishlist, პანელები, toast
-  js/app.js                    ← ყველა გვერდის ქცევა
-  js/pages/{home,catalog,product,info}.js
-  views/
-    layouts/app.blade.php
-    pages/{home,catalog,product,info}.blade.php
-    components/
-      icon · product-card · page-bar
-      icons/sprite                           ← Phosphor (MIT), 33 სიმბოლო
-      layout/{topbar,header,nav,footer,tabbar,cookies,auth-modal,auth-socials}
-      drawers/{catalog,cart}
-      home/{hero,promo,category-section,editorial,brands,perks}
-      catalog/{sidebar,filter-group,chips}
-      product/{gallery,info,bundle,buy-card,buy-row,tabs,consult}
-      info/{tabs,contact,about,document}
-public/
-  fonts/HNGEO.woff2, HNGEOCaps.woff2
-  img/brands/*.png                           ← 20 ლოგო
+  css/app.css + css/pages/{catalog,product,checkout,info}.css
+  dashboard/                   ← ადმინის Bootstrap-ზე დაფუძნებული თემა
+  js/core.js · js/app.js · js/ui.js · js/pages/*
+  views/livewire/** · views/components/** · views/emails/** · views/invoices/**
+```
+
+## ენები
+
+ორშრიანი: `lang/{locale}/*.php` ფაილები, ზემოდან — `ui_translations` ცხრილის
+სტრიქონები ([`DatabaseTranslationLoader`](app/Support/Translation/DatabaseTranslationLoader.php)),
+ანუ ტექსტი ადმინიდანაც იცვლება კოდის შეხების გარეშე. აქტიური ენები `languages`
+ცხრილშია და `AppServiceProvider::useDatabaseLanguages()` მათ localization-ის
+პაკეტს აწვდის — `config/laravellocalization.php` მხოლოდ ცარიელ ბაზაზე მუშაობს.
+
+## გადახდები
+
+`PaymentManager` ირჩევს დრაივერს `payment_methods.driver`-ის მიხედვით:
+
+| driver | რა არის |
+|---|---|
+| `bog-card` | BOG ბარათით — redirect ბანკის გვერდზე |
+| `bog-installment` | BOG განვადება — ბანკის კალკულატორი მოდალში |
+| `credo-installment` | Credo განვადება |
+| `tbc-installment` | TBC განვადება |
+
+callback მხოლოდ „შეხსენებაა" — ვერდიქტს ყოველთვის ბანკს თვითონ ვეკითხებით
+(`PaymentDriver::confirm()`), ასე რომ გაყალბებული POST შეკვეთას გადახდილად ვერ
+აქცევს. `payments:check` ქრონი ყოველ 5 წუთში გადაამოწმებს დაკარგულ callback-ებს.
+
+კონფიგი: `config/{bog,tbc,credo}.php`, გასაღებები `.env`-ში.
+
+## ბრძანებები
+
+```bash
+php artisan payments:check [--hours=48]   # დაუდასტურებელი გადახდების გადამოწმება (დაგეგმილია)
+php artisan import:all                    # ყველა მომწოდებლის სრული იმპორტი
+php artisan import:run                    # ერთი მომწოდებელი
+php artisan import:stock [supplier] [--all]
+php artisan import:sync-stock {supplier}
+php artisan import:file                   # XLSX/CSV ფაილიდან
+php artisan import:stock-file
+php artisan feed:generate [--facebook]    # Facebook/Meta პროდუქტ-ფიდი
 ```
 
 ## კონვენციები
 
-- **აიქონი:** `<x-icon name="shopping-bag" size="18" />` — ფერი `currentColor`-იდან მოდის.
-- **პროდუქტის კარტი:** `<x-product-card :product="$p" />` (ან `variant="deal"`).
-  დამატებითი ატრიბუტები (`data-brand` …) პირდაპირ `<article>`-ზე გადადის.
-- **გვერდის CSS/JS:** `@push('styles') @vite('resources/css/pages/x.css') @endpush`,
-  იგივე `@push('scripts')`-ით. ახალი entry `vite.config.js`-შიც დაამატე.
-- **ფორმატი:** მასივების ფორმა `Store::product()`-შია აღწერილი — Eloquent-ზე გადასვლისას
-  resource/DTO-მ იგივე გასაღებები დააბრუნოს და view-ები არ შეიცვლება.
+- **აიქონი:** `<x-icon name="shopping-bag" size="18" />` — ფერი `currentColor`-იდან.
+- **პროდუქტის ბარათი:** `<x-product-card :product="$p" />` (ან `variant="deal"`).
+- **ბარათის მასივი:** view-ები `Support\Catalog::card()`-ის გასაღებებს ენდობიან —
+  ახალი წყარო იგივე ფორმა უნდა დააბრუნოს.
+- **გვერდის CSS/JS:** `@push('styles') @vite('resources/css/pages/x.css') @endpush`;
+  ახალი entry `vite.config.js`-შიც დაამატე.
+- **ფასები:** კალათის ფასი მხოლოდ მინიშნებაა — შეკვეთის შექმნისას ფასი ბაზიდან
+  თავიდან იკითხება (`Checkout::createOrder()`).
+- **ფორმატი:** `vendor/bin/pint` commit-ამდე.
 
-## Livewire-ზე გადასატანი ადგილები
+## ტესტები
 
-| დღეს (JS) | სად | რად უნდა იქცეს |
-|---|---|---|
-| კალათა `localStorage`-ში | `core.js` → `cart` | `Livewire\Cart` + session/DB |
-| wishlist `localStorage`-ში | `core.js` → `wishlist` | ავტორიზებული მომხმარებლის ცხრილი |
-| კატალოგის ფილტრები DOM-ზე | `pages/catalog.js` | Livewire კომპონენტი query-string-ით |
-| ძებნა `window.ELIO.search`-ზე | `app.js` | Scout / DB ძებნა |
-| ავტორიზაცია / საკონტაქტო ფორმა | `auth-modal`, `info/contact` | ფორმები უკვე `@csrf`-ით და `name`-ებით |
+```bash
+php artisan test        # SQLite :memory:
+vendor/bin/pint --test  # ფორმატის შემოწმება
+```

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * The printable invoice.
@@ -18,21 +19,12 @@ class InvoiceController extends Controller
         $order = Order::with('items')->where('number', $number)->firstOrFail();
 
         // an order number is short enough to guess, and this page names a person
-        abort_unless($this->mayView($order), 404);
+        abort_unless(Gate::allows('view-order', $order), 404);
 
         return view('invoices.show', [
             'order'   => $order,
             'company' => config('shop.company'),
             'dueAt'   => $order->created_at->copy()->addDays((int) config('shop.invoice_valid_days', 3)),
         ]);
-    }
-
-    protected function mayView(Order $order): bool
-    {
-        if (auth()->check() && ($order->user_id === auth()->id() || auth()->user()->is_admin)) {
-            return true;
-        }
-
-        return in_array($order->id, (array) session('placed_orders', []), true);
     }
 }

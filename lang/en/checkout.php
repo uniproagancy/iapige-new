@@ -49,5 +49,6 @@ return [
     'preorder_in_cart' => ':name is a pre-order and cannot be bought yet',
     'pick_city'        => 'Choose a city',
     'pick_payment'     => 'Choose how to pay',
+    'payment_unavailable' => 'That payment method is unavailable just now — please choose another',
 
 ];
