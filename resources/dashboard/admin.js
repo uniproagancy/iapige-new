@@ -6,17 +6,19 @@
  * own scripts, and any inline snippet in a Blade view, reach for them there.
  */
 
-import './js/vendors/vendors.min.js';        // jQuery + the plugins the template expects
+import './js/jquery-global.js';              // $ and jQuery on the window, first
+import './js/vendors/vendors.min.js';        // the plugins the template expects
 import './js/vendors/jquery.sticky.js';
-import './js/vendors/feather-icons.min.js';
-import './js/vendors/toastr.min.js';
-import './js/vendors/sweetalert2.all.min.js';
+
+// bundled, these export rather than leak a global — so we name what they give
+import feather from './js/vendors/feather-icons.min.js';
+import toastr from './js/vendors/toastr.min.js';
+import Swal from './js/vendors/sweetalert2.all.min.js';
 
 import './js/core/app-menu.js';
 import './js/core/app.js';
 
 /* the template and our Blade views both call these by name */
-window.$ = window.jQuery = window.jQuery ?? jQuery;
 window.feather = window.feather ?? feather;
 window.toastr = window.toastr ?? toastr;
 window.Swal = window.Swal ?? Swal;
