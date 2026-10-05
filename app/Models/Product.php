@@ -15,15 +15,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $slug
  * @property string|null $summary
  * @property string|null $description
- * @property string      $price       decimal:2
- * @property string|null $old_price   decimal:2
+ * @property string $price decimal:2
+ * @property string|null $old_price decimal:2
  */
 class Product extends Model
 {
     use HasTranslations, SoftDeletes;
 
-    public const STATUS_DRAFT    = 'draft';
-    public const STATUS_ACTIVE   = 'active';
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_ACTIVE = 'active';
+
     public const STATUS_ARCHIVED = 'archived';
 
     protected array $translatable = ['name', 'slug', 'summary', 'description', 'meta_title', 'meta_description'];
@@ -31,23 +33,23 @@ class Product extends Model
     protected $fillable = [
         'category_id', 'brand_id', 'sku', 'price', 'old_price', 'stock', 'status',
         'is_new', 'is_featured', 'rating', 'reviews_count', 'sales_count', 'published_at',
-		'weight', 'length', 'width', 'height', 'is_bulky','variant_group', 'is_preorder', 'release_date', 'prepay_percent'
+        'weight', 'length', 'width', 'height', 'is_bulky', 'variant_group', 'is_preorder', 'release_date', 'prepay_percent',
     ];
 
     protected function casts(): array
     {
         return [
-            'price'         => 'decimal:2',
-            'old_price'     => 'decimal:2',
-            'stock'         => 'integer',
-            'is_new'        => 'boolean',
-            'is_featured'   => 'boolean',
-            'rating'        => 'decimal:1',
+            'price' => 'decimal:2',
+            'old_price' => 'decimal:2',
+            'stock' => 'integer',
+            'is_new' => 'boolean',
+            'is_featured' => 'boolean',
+            'rating' => 'decimal:1',
             'reviews_count' => 'integer',
-            'sales_count'   => 'integer',
-            'published_at'  => 'datetime',
-			'is_preorder'    => 'boolean',
-            'release_date'   => 'date',
+            'sales_count' => 'integer',
+            'published_at' => 'datetime',
+            'is_preorder' => 'boolean',
+            'release_date' => 'date',
             'prepay_percent' => 'integer',
         ];
     }
@@ -90,6 +92,31 @@ class Product extends Model
             ->where(fn (Builder $q) => $q->whereNull('published_at')->orWhere('published_at', '<=', now()));
     }
 
+    /**
+     * Has everything publishing requires: a category, a name and a price.
+     *
+     * These are exactly what the admin's publish button refuses without, so the
+     * rule lives here once and both the button and the list's filter read it
+     * from this one place. Two copies would mean a filter that counts products
+     * the button then rejects.
+     *
+     * No status condition: publishing an archived product is a decision the
+     * admin is allowed to make. The list's "ready" filter adds `draft` itself,
+     * because there the question is what is still waiting.
+     */
+    public function scopeReadyToPublish(Builder $query): Builder
+    {
+        $locales = array_values(array_unique([app()->getLocale(), Language::defaultCode()]));
+
+        return $query->whereNotNull('category_id')
+            ->where('price', '>', 0)
+            // $product->name falls back from the current locale to the default one
+            ->whereHas('translations', fn (Builder $q) => $q
+                ->whereIn('locale', $locales)
+                ->whereNotNull('name')
+                ->where('name', '!=', ''));
+    }
+
     /** Products carrying an attribute value, e.g. ->withAttributeValue('ram', ['16gb', '32gb']). */
     public function scopeWithAttributeValue(Builder $query, string $attribute, string|array $codes): Builder
     {
@@ -118,13 +145,13 @@ class Product extends Model
     {
         return $this->stock > 0;
     }
-	
-	public function offers(): hasMany
+
+    public function offers(): HasMany
     {
         return $this->hasMany(ProductOffer::class);
     }
-	
-	public function isSellable(): bool
+
+    public function isSellable(): bool
     {
         return $this->status === self::STATUS_ACTIVE && ! $this->is_preorder;
     }

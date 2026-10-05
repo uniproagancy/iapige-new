@@ -122,6 +122,10 @@ return [
     'sort_stock'               => 'Stock ↑',
     'sort_sales'               => 'Sales ↓',
 
+    /* ------------------------------------------------------------ ready */
+    'ready_to_publish'         => 'Ready to publish',
+    'not_ready'                => 'Not ready to publish',
+
     /* ------------------------------------------------------------ problems */
     'no_photo'                 => 'No photo',
     'no_weight'                => 'No weight',

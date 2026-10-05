@@ -37,7 +37,7 @@ class Index extends Component
     #[Url(as: 'supplier', except: null)]
     public ?int $supplierId = null;
 
-    /** '' | nocat | nobrand | nophoto | noprice | out | preorder | noweight */
+    /** '' | ready | nocat | nobrand | nophoto | noprice | out | preorder | noweight */
     #[Url(as: 'issue', except: '')]
     public string $issue = '';
 
@@ -90,6 +90,8 @@ class Index extends Component
             ))
             ->when($this->brandId, fn ($q) => $q->where('brand_id', $this->brandId))
             ->when($this->supplierId, fn ($q) => $q->whereHas('offers', fn ($o) => $o->where('supplier_id', $this->supplierId)))
+            // a draft the publish button would accept: nothing left to fix on it
+            ->when($this->issue === 'ready', fn ($q) => $q->readyToPublish()->where('status', Product::STATUS_DRAFT))
             ->when($this->issue === 'nocat', fn ($q) => $q->whereNull('category_id'))
             ->when($this->issue === 'nobrand', fn ($q) => $q->whereNull('brand_id'))
             ->when($this->issue === 'nophoto', fn ($q) => $q->whereDoesntHave('images'))
@@ -163,6 +165,8 @@ class Index extends Component
             'out' => (int) ($row->out ?? 0),
             'noweight' => (int) ($row->noweight ?? 0),
             'nophoto' => Product::whereDoesntHave('images')->count(),
+            // its own query: the rule reaches into product_translations
+            'ready' => Product::readyToPublish()->where('status', Product::STATUS_DRAFT)->count(),
         ];
     }
 
@@ -239,25 +243,24 @@ class Index extends Component
 
     /* ------------------------------------------------------------------ bulk */
 
+    /**
+     * Publishes everything selected that is ready, in two statements.
+     *
+     * Asked product by product this read $product->name, which lazy-loads the
+     * translations — one query per product, so publishing a page of a hundred
+     * cost a hundred and one. The rule is a scope, so the database can answer
+     * for the whole selection at once.
+     */
     public function bulkPublish(): void
     {
-        $published = 0;
-        $skipped = 0;
+        $ready = Product::readyToPublish()->whereKey($this->selected)->pluck('id');
 
-        foreach (Product::whereKey($this->selected)->get() as $product) {
-            if (! $this->readyToPublish($product, silent: true)) {
-                $skipped++;
+        // first, or the status update makes "never published" indistinguishable
+        Product::whereKey($ready)->whereNull('published_at')->update(['published_at' => now()]);
+        Product::whereKey($ready)->update(['status' => Product::STATUS_ACTIVE]);
 
-                continue;
-            }
-
-            $product->update([
-                'status' => Product::STATUS_ACTIVE,
-                'published_at' => $product->published_at ?? now(),
-            ]);
-
-            $published++;
-        }
+        $published = $ready->count();
+        $skipped = count($this->selected) - $published;
 
         $this->clearSelection();
         $this->dispatch('toast', message: __('admin.bulk_published', ['published' => $published, 'skipped' => $skipped]));
@@ -346,9 +349,18 @@ class Index extends Component
     /**
      * A product with no category, name or price would be invisible or broken on
      * the storefront, so publishing it is refused rather than half-done.
+     *
+     * The verdict comes from the scope, never from a second copy of the rule
+     * here — otherwise the "ready" filter and this button could disagree about
+     * the same product. The checks below only name what is missing, for the
+     * message, and are reached when the answer is already no.
      */
-    protected function readyToPublish(Product $product, bool $silent = false): bool
+    protected function readyToPublish(Product $product): bool
     {
+        if (Product::readyToPublish()->whereKey($product->id)->exists()) {
+            return true;
+        }
+
         $problems = [];
 
         if (! $product->category_id) {
@@ -363,13 +375,9 @@ class Index extends Component
             $problems[] = __('admin.no_price');
         }
 
-        if (! $problems) {
-            return true;
-        }
-
-        if (! $silent) {
-            $this->dispatch('toast', message: $product->sku.': '.implode(', ', $problems), type: 'error');
-        }
+        $this->dispatch('toast', type: 'error', message: $product->sku.': '.($problems
+            ? implode(', ', $problems)
+            : __('admin.not_ready')));
 
         return false;
     }

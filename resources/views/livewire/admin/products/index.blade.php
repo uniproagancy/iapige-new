@@ -26,9 +26,11 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ what needs work --}}
+    {{-- ------------------------------------------------------------ what needs work
+         "ready" leads and is the only green one: that pile wants a click, not a fix --}}
     <div class="d-flex flex-wrap gap-1 mb-2">
         @foreach ([
+            'ready'    => ['label' => __('admin.ready_to_publish'), 'tone' => 'success'],
             'nocat'    => ['label' => __('admin.no_category'), 'tone' => 'danger'],
             'nobrand'  => ['label' => __('admin.no_brand'),    'tone' => 'warning'],
             'nophoto'  => ['label' => __('admin.no_photo'),    'tone' => 'warning'],
