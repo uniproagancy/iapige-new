@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
 
-    <title>{{ ($title ?? __('admin.dashboard')).' — ELIO' }}</title>
+    <title>{{ ($title ?? __('admin.dashboard')).' — IAPI.GE' }}</title>
 
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('dashboard-assets/images/ico/favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,7 +91,7 @@
 
 <script>
     /* the confirm dialog in admin.js reads its button labels from here */
-    window.ELIO_ADMIN = @json([
+    window.IAPI_ADMIN = @json([
         'yes'    => __('admin.yes'),
         'cancel' => __('admin.cancel'),
     ]);

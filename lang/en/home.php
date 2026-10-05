@@ -18,7 +18,7 @@ return [
     'm_banner_title'         => '0% instalments up to 12 months',
     'm_banner_text'          => 'Approved in 3 minutes — online, no bank visit.',
     'learn_more'             => 'Learn more',
-    'editorial_alt'          => 'The ELIO store',
+    'editorial_alt'          => 'The IAPI.GE store',
     'editorial_title'        => 'Tech that doesn\'t narrow your choice',
     'editorial_text'         => 'Every product is hand-picked — 2-year warranty, authorised service and 30-day returns.',
     'brands'                 => 'Brands',

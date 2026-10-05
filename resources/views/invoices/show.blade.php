@@ -51,7 +51,7 @@
     <div class="sheet">
         <header class="head">
             <div>
-                <div class="logo">ELIO</div>
+                <div class="logo">IAPI.GE</div>
                 <div class="muted">{{ $company['name'] }}</div>
                 @if ($company['tax_id'])
                     <div class="muted">{{ __('invoice.tax_id') }}: {{ $company['tax_id'] }}</div>

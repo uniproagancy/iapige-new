@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('catalog.index_title').' — ELIO')
+@section('title', __('catalog.index_title').' — IAPI.GE')
 @section('description', __('catalog.index_lead'))
 @section('page', 'catalog')
 @section('nav', 'catalog')

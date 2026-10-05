@@ -1,10 +1,10 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "elio/store",
+    "name": "iapi-ge/store",
     "type": "project",
-    "description": "ELIO — online electronics store",
+    "description": "IAPI.GE — online electronics store",
     "keywords": [
-        "elio",
+        "iapi-ge",
         "laravel",
         "e-commerce"
     ],

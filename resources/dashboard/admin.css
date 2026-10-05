@@ -1,5 +1,5 @@
 /**
- * ELIO admin — one stylesheet, built by Vite.
+ * IAPI.GE admin — one stylesheet, built by Vite.
  *
  * Order matters: bootstrap first, then the template's own layers, then the
  * plugin skins. The Vuexy "vendors.min.css" bundle is deliberately left out —
@@ -29,21 +29,21 @@
 /* the template's own finishing layer, plus the Georgian faces */
 @import './css/style.css';
 
-/* ------------------------------------------------------------------ ELIO */
+/* ------------------------------------------------------------------ IAPI.GE */
 
 :root {
-    --elio-orange: #FF6900;
+    --iapi-orange: #FF6900;
 }
 
 /* the storefront's accent, so the admin does not feel like a different product */
 .btn-primary,
 .badge-primary,
 .bg-primary {
-    background-color: var(--elio-orange) !important;
-    border-color: var(--elio-orange) !important;
+    background-color: var(--iapi-orange) !important;
+    border-color: var(--iapi-orange) !important;
 }
 
-.text-primary { color: var(--elio-orange) !important; }
+.text-primary { color: var(--iapi-orange) !important; }
 
 .btn-primary:hover,
 .btn-primary:focus,

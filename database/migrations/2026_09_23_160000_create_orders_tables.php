@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('number', 20)->unique();              // ELIO-260923-0042
+            $table->string('number', 20)->unique();              // IAPI-260923-0042
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('cart_id')->nullable()->constrained()->nullOnDelete();
             $table->string('status', 24)->default('new');        // new | confirmed | shipped | done | cancelled

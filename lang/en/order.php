@@ -37,4 +37,7 @@ return [
         'returned'  => 'Returned',
     ],
 
+    'paid_via'             => 'Paid via :driver',
+    'payment_start_failed' => 'The payment could not be started',
+
 ];

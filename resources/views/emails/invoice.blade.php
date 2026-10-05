@@ -18,7 +18,7 @@
 
                     <tr>
                         <td style="padding:24px 28px;border-bottom:1px solid #E9EBED">
-                            <div style="font-size:19px;font-weight:bold;letter-spacing:.14em">ELIO</div>
+                            <div style="font-size:19px;font-weight:bold;letter-spacing:.14em">IAPI.GE</div>
                             <div style="font-size:12px;color:#6E747B;margin-top:2px">{{ $company['name'] }}</div>
                         </td>
                     </tr>

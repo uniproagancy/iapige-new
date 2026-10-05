@@ -27,7 +27,7 @@ and get 5% off',
     'password_ph'      => 'At least 8 characters',
     'terms'            => 'I accept the terms and conditions',
     'submit_register'  => 'Create account',
-    'register_note'    => 'By registering you accept ELIO\'s privacy policy.',
+    'register_note'    => 'By registering you accept IAPI.GE\'s privacy policy.',
     'or'               => 'or',
     'logged_in'        => 'Signed in — demo mode',
     'registered'       => 'Account created — demo mode',
@@ -63,4 +63,7 @@ and get 5% off',
         'Live tracking on every order',
         'Support that knows your history',
     ],
+
+    'sign_in' => 'Sign in',
+
 ];

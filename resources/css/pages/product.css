@@ -19,7 +19,7 @@
 /* ---- gallery ---- */
 .gal{align-self:start;position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
 .gal__main{position:relative;height:470px;border-radius:22px;background:var(--soft-2);overflow:hidden}
-.gal__img{width:100%;height:100%;object-fit:cover;animation:elioFade .32s ease-out both}
+.gal__img{width:100%;height:100%;object-fit:cover;animation:iapiFade .32s ease-out both}
 .gal__img.is-broken{opacity:0}
 .gal__ph{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--muted-4)}
 .gal__img.is-broken + .gal__ph{display:flex}
@@ -172,8 +172,8 @@
   white-space:nowrap;box-shadow:0 10px 24px rgba(255,105,0,.28);transition:background .22s,box-shadow .22s
 }
 .btn-main:hover{background:var(--red-dark)}
-.btn-main.is-added{background:var(--ink);box-shadow:0 10px 24px rgba(22,24,28,.24);animation:elioBump .46s var(--spring) both}
-.btn-main .ic-check{animation:elioPop .42s var(--spring) both}
+.btn-main.is-added{background:var(--ink);box-shadow:0 10px 24px rgba(22,24,28,.24);animation:iapiBump .46s var(--spring) both}
+.btn-main .ic-check{animation:iapiPop .42s var(--spring) both}
 .btn-side{
   width:48px;height:48px;border-radius:50%;background:var(--soft-2);border:1px solid var(--line);
   display:flex;align-items:center;justify-content:center;flex:none;color:#6E747B;
@@ -216,8 +216,8 @@
 .tabbar-pills::-webkit-scrollbar{display:none}
 .tabpill{padding:11px 24px;border-radius:var(--r-pill);color:var(--muted);font-size:14px;font-weight:600;white-space:nowrap;transition:background .22s,color .22s}
 .tabpill.is-on{background:var(--ink);color:#fff}
-.tabpanel{animation:elioTabIn .32s cubic-bezier(.22,.9,.24,1) both}
-@keyframes elioTabIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.tabpanel{animation:iapiTabIn .32s cubic-bezier(.22,.9,.24,1) both}
+@keyframes iapiTabIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .specgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
 .srow{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:15px 4px;border-bottom:1px solid #F1F2F4}
 .srow__k{font-size:13px;color:var(--muted-2)}

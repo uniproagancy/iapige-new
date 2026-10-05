@@ -20,4 +20,6 @@ return [
     'preorder'      => 'Pre-order',
     'clear_confirm' => 'The cart will be emptied. Continue?',
 
+    'clear' => 'Clear the cart',
+
 ];

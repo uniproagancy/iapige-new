@@ -41,9 +41,9 @@ class AlneoSupplierSeeder extends Seeder
                 ['percent' => 15],
             ],
 			'replace' => [
-				'alneo.com.ge' => 'elio.ge',
-				'alneo.ge'     => 'elio.ge',
-				'Alneo'        => 'ELIO',
+				'alneo.com.ge' => 'iapi.ge',
+				'alneo.ge'     => 'iapi.ge',
+				'Alneo'        => 'IAPI.GE',
 			],
         ]);
     }

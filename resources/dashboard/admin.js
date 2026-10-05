@@ -1,5 +1,5 @@
 /**
- * ELIO admin — one bundle, built by Vite.
+ * IAPI.GE admin — one bundle, built by Vite.
  *
  * The Vuexy template is jQuery-based, so the vendor bundle has to run before
  * app.js and app-menu.js and its globals must stay on window: the template's
@@ -82,8 +82,8 @@ document.addEventListener('click', (e) => {
         text: button.dataset.confirmTitle ? button.dataset.confirm : undefined,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: window.ELIO_ADMIN?.yes ?? 'დიახ',
-        cancelButtonText: window.ELIO_ADMIN?.cancel ?? 'გაუქმება',
+        confirmButtonText: window.IAPI_ADMIN?.yes ?? 'დიახ',
+        cancelButtonText: window.IAPI_ADMIN?.cancel ?? 'გაუქმება',
         reverseButtons: true,
         focusCancel: true,
         customClass: {

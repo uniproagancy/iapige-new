@@ -1,5 +1,5 @@
 /**
- * ELIO — behaviour shared by every page.
+ * IAPI.GE — behaviour shared by every page.
  * Page-specific code lives in resources/js/pages/*.js.
  */
 import {
@@ -53,7 +53,7 @@ function focusSearch() {
         return;
     }
 
-    window.location.href = `${window.ELIO?.homeUrl ?? '/'}#search`;
+    window.location.href = `${window.IAPI?.homeUrl ?? '/'}#search`;
 }
 
 if (location.hash === '#search') {
@@ -106,7 +106,7 @@ function setAuthMode(mode) {
 
 /* ------------------------------------------------------------------ cookie bar */
 
-const COOKIE_KEY = 'elio_cookie_consent';
+const COOKIE_KEY = 'iapi_cookie_consent';
 
 function showCookieBar() {
     const bar = document.getElementById('cookies');
@@ -293,4 +293,4 @@ bindRails();
 showCookieBar();
 
 /* a message flashed by the server (signed in, signed out, password changed) */
-if (window.ELIO?.flash) toast(window.ELIO.flash);
+if (window.IAPI?.flash) toast(window.IAPI.flash);

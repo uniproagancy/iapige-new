@@ -405,7 +405,7 @@ class Index extends Component
 
             $user->update([
                 'name'              => __('account.deleted_user'),
-                'email'             => 'deleted-'.$user->id.'@elio.local',
+                'email'             => 'deleted-'.$user->id.'@iapi.local',
                 'phone'             => null,
                 'accepts_marketing' => false,
                 'password'          => Hash::make(str()->random(40)),

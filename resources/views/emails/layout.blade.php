@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'ELIO' }}</title>
+    <title>{{ $title ?? 'IAPI.GE' }}</title>
 </head>
 {{--
     One table, inline styles, no stylesheet: mail clients strip anything
@@ -19,7 +19,7 @@
                     <tr>
                         <td style="padding:22px 28px;border-bottom:1px solid #E9EBED">
                             <a href="{{ route('home') }}" style="text-decoration:none;color:#1A1D21">
-                                <span style="font-size:19px;font-weight:bold;letter-spacing:.14em">ELIO</span>
+                                <span style="font-size:19px;font-weight:bold;letter-spacing:.14em">IAPI.GE</span>
                             </a>
                         </td>
                     </tr>

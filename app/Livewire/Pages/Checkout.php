@@ -508,7 +508,7 @@ class Checkout extends Component
             'nav'     => 'catalog',
             'tab'     => '',
             'pageCss' => 'checkout',
-            'title'   => __('checkout.title').' — ELIO',
+            'title'   => __('checkout.title').' — IAPI.GE',
         ])->section('content');
     }
 }

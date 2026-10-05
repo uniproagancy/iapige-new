@@ -2,7 +2,7 @@
 
     <div class="auth__aside">
         <span class="auth__ghost" aria-hidden="true">%</span>
-        <div class="auth__logo"><div aria-hidden="true">E</div><span>ELIO</span></div>
+        <div class="auth__logo"><div aria-hidden="true">I</div><span>IAPI.GE</span></div>
         @php $side = $mode === 'forgot' ? 'login' : $mode; @endphp
         <div class="auth__hero">
             <h2 class="auth__heroTitle" id="authHeroTitle">{{ __("auth.{$side}_title") }}</h2>

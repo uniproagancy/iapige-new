@@ -10,7 +10,7 @@
     $seoImage = $seo['image'] ?? asset('img/og-default.jpg');
 @endphp
 
-<meta property="og:site_name" content="ELIO">
+<meta property="og:site_name" content="IAPI.GE">
 <meta property="og:type" content="{{ $seo['type'] ?? 'website' }}">
 <meta property="og:title" content="{{ $seoTitle }}">
 <meta property="og:description" content="{{ $seoDescription }}">

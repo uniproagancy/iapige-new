@@ -91,7 +91,7 @@ class DemoCatalogSeeder extends Seeder
         $category = Category::whereTranslation('slug', Slug::make($ka), 'ka')->first() ?? new Category;
         $category->fill([
             'parent_id'    => $parent?->id,
-            'image'        => "https://picsum.photos/seed/elio-cat-{$key}/152/152",
+            'image'        => "https://picsum.photos/seed/iapi-cat-{$key}/152/152",
             'is_active'    => true,
             'show_on_home' => $home,
             'sort_order'   => $sort,
@@ -171,7 +171,7 @@ class DemoCatalogSeeder extends Seeder
         }
 
         // the demo products' own brands
-        foreach (['NORDA', 'VELTA', 'MIRO', 'NEXA', 'AVERA', 'ELIO', 'SONARA', 'KIRA', 'TRIPOD',
+        foreach (['NORDA', 'VELTA', 'MIRO', 'NEXA', 'AVERA', 'IAPI.GE', 'SONARA', 'KIRA', 'TRIPOD',
                   'LUMEE', 'KRAFT', 'SEATO', 'GUARDA', 'KLIMA', 'CASEO'] as $i => $name) {
             Brand::updateOrCreate(['slug' => Slug::make($name)], [
                 'name' => $name, 'is_active' => true, 'is_featured' => false, 'sort_order' => 100 + $i,
@@ -216,11 +216,11 @@ class DemoCatalogSeeder extends Seeder
             ['AVR-FX',   'foldables',   'AVERA', ['Fold X დასაკეცი', 'Fold X Foldable'], ['12GB · 512GB'], 5690, null, '', 3, ['12gb', null]],
             ['MRO-R2',   'rugged',      'MIRO',  ['Rugged R2', 'Rugged R2'], ['6GB · 128GB · IP68'], 1450, 1690, '', 8, ['6gb', null]],
             // audio
-            ['ELO-S1',   'headphones', 'ELIO',   ['Studio One ყურსასმენი', 'Studio One Headphones'], ['ANC −42dB · 40სთ', 'ANC −42dB · 40h'], 1190, 1400, 'f', 7, [null, null]],
-            ['ELO-BM',   'headphones', 'ELIO',   ['Buds Mini ყურსასმენი', 'Buds Mini Earbuds'], ['TWS · ANC · 28სთ', 'TWS · ANC · 28h'], 320, 420, 'f', 24, [null, null]],
+            ['ELO-S1',   'headphones', 'IAPI.GE',   ['Studio One ყურსასმენი', 'Studio One Headphones'], ['ANC −42dB · 40სთ', 'ANC −42dB · 40h'], 1190, 1400, 'f', 7, [null, null]],
+            ['ELO-BM',   'headphones', 'IAPI.GE',   ['Buds Mini ყურსასმენი', 'Buds Mini Earbuds'], ['TWS · ANC · 28სთ', 'TWS · ANC · 28h'], 320, 420, 'f', 24, [null, null]],
             ['SNR-W300', 'speakers',   'SONARA', ['Wave 300 დინამიკი', 'Wave 300 Speaker'], ['60W · IP67 · 24სთ', '60W · IP67 · 24h'], 590, null, '', 12, [null, null]],
             ['SNR-CB51', 'speakers',   'SONARA', ['Cinema Bar 5.1', 'Cinema Bar 5.1'], ['Soundbar · Dolby'], 1890, null, 'n', 5, [null, null]],
-            ['ELO-MIC',  'studio',     'ELIO',   ['Mic Pro USB', 'Mic Pro USB'], ['სტუდიური · 24bit', 'Studio · 24-bit'], 440, 520, '', 15, [null, null]],
+            ['ELO-MIC',  'studio',     'IAPI.GE',   ['Mic Pro USB', 'Mic Pro USB'], ['სტუდიური · 24bit', 'Studio · 24-bit'], 440, 520, '', 15, [null, null]],
             // photo & video
             ['KRA-V4K',  'cameras',      'KIRA',   ['Vision 4K კამერა', 'Vision 4K Camera'], ['Mirrorless · 33MP'], 2890, 3450, 'f', 3, [null, null]],
             ['KRA-A5P',  'cameras',      'KIRA',   ['Action 5 Pro', 'Action 5 Pro'], ['5.3K · 60fps'], 1190, 1340, '', 9, [null, null]],
@@ -240,12 +240,12 @@ class DemoCatalogSeeder extends Seeder
             ['GRD-SK',   'security', 'GUARDA', ['Sensor Kit', 'Sensor Kit'], ['კარი · მოძრაობა', 'Door · Motion'], 180, null, '', 20, [null, null]],
             ['KLM-W2',   'climate',  'KLIMA',  ['Thermo W2', 'Thermo W2'], ['ჭკვიანი თერმოსტატი', 'Smart thermostat'], 340, 399, '', 9, [null, null]],
             // accessories
-            ['ELO-D11',  'docks',    'ELIO',  ['Dock USB-C 11-in-1', 'Dock USB-C 11-in-1'], ['HDMI · SD · PD100W'], 240, 290, '', 30, [null, null]],
-            ['ELO-C65',  'chargers', 'ELIO',  ['Charger 65W GaN', 'Charger 65W GaN'], ['3 პორტი · კომპაქტი', '3 ports · compact'], 120, null, '', 45, [null, null]],
-            ['ELO-PB20', 'chargers', 'ELIO',  ['PowerBank 20K', 'PowerBank 20K'], ['20000mAh · 65W'], 180, null, 'n', 35, [null, null]],
+            ['ELO-D11',  'docks',    'IAPI.GE',  ['Dock USB-C 11-in-1', 'Dock USB-C 11-in-1'], ['HDMI · SD · PD100W'], 240, 290, '', 30, [null, null]],
+            ['ELO-C65',  'chargers', 'IAPI.GE',  ['Charger 65W GaN', 'Charger 65W GaN'], ['3 პორტი · კომპაქტი', '3 ports · compact'], 120, null, '', 45, [null, null]],
+            ['ELO-PB20', 'chargers', 'IAPI.GE',  ['PowerBank 20K', 'PowerBank 20K'], ['20000mAh · 65W'], 180, null, 'n', 35, [null, null]],
             ['CSO-S14',  'bags',     'CASEO', ['Sleeve 14 ჩანთა', 'Sleeve 14 Bag'], ['წყალგამძლე', 'Water-resistant'], 95, 129, '', 25, [null, null]],
-            ['ELO-CB2',  'chargers', 'ELIO',  ['Cable USB-C 2m', 'Cable USB-C 2m'], ['240W · ნაქსოვი', '240W · braided'], 35, 45, '', 80, [null, null]],
-            ['ELO-WS',   'watches',  'ELIO',  ['Watch Solis ჭკვიანი საათი', 'Watch Solis Smartwatch'], ['AMOLED · GPS · 7 დღე', 'AMOLED · GPS · 7 days'], 890, 1090, 'f', 9, [null, null]],
+            ['ELO-CB2',  'chargers', 'IAPI.GE',  ['Cable USB-C 2m', 'Cable USB-C 2m'], ['240W · ნაქსოვი', '240W · braided'], 35, 45, '', 80, [null, null]],
+            ['ELO-WS',   'watches',  'IAPI.GE',  ['Watch Solis ჭკვიანი საათი', 'Watch Solis Smartwatch'], ['AMOLED · GPS · 7 დღე', 'AMOLED · GPS · 7 days'], 890, 1090, 'f', 9, [null, null]],
         ];
 
         $sales = count($rows) * 10;

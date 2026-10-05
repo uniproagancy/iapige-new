@@ -44,7 +44,7 @@
 .fgroup__chev{color:var(--muted-3);transition:transform .2s ease}
 .fgroup.is-open .fgroup__chev{transform:rotate(180deg)}
 .fgroup__body{display:none}
-.fgroup.is-open .fgroup__body{display:block;animation:elioFade .2s ease-out both}
+.fgroup.is-open .fgroup__body{display:block;animation:iapiFade .2s ease-out both}
 /* ---- category navigation above the filters ---- */
 .sidenav{display:flex;flex-direction:column;gap:12px}
 .sidenav__back{
@@ -197,7 +197,7 @@
     max-height:86vh;overflow-y:auto;background:#fff;
     border-radius:28px 28px 0 0;box-shadow:0 -12px 40px rgba(22,24,28,.18);
     padding:10px 16px calc(20px + env(safe-area-inset-bottom,0px));gap:16px;
-    animation:elioSheetUp .34s var(--ease) both
+    animation:iapiSheetUp .34s var(--ease) both
   }
   .filters[hidden]{display:none}
   .filters__grip{display:block;align-self:center;width:44px;height:5px;border-radius:var(--r-pill);background:#E1E4E7;flex:none}
@@ -209,7 +209,7 @@
     box-shadow:0 10px 24px rgba(255,105,0,.28);flex:none
   }
 }
-@keyframes elioSheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes iapiSheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 
 /* ============================================================
    CATALOG LANDING (/catalog)

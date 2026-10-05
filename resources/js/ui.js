@@ -16,13 +16,13 @@ export async function confirm(message, options = {}) {
         text: options.title ? message : undefined,
         icon: options.icon ?? 'warning',
         showCancelButton: true,
-        confirmButtonText: options.confirmText ?? window.ELIO?.i18n?.yes ?? 'დიახ',
-        cancelButtonText: options.cancelText ?? window.ELIO?.i18n?.cancel ?? 'გაუქმება',
+        confirmButtonText: options.confirmText ?? window.IAPI?.i18n?.yes ?? 'დიახ',
+        cancelButtonText: options.cancelText ?? window.IAPI?.i18n?.cancel ?? 'გაუქმება',
         confirmButtonColor: brand,
         cancelButtonColor: '#E3E6E9',
         reverseButtons: true,
         focusCancel: true,
-        customClass: { popup: 'elio-swal' },
+        customClass: { popup: 'iapi-swal' },
     });
 
     return result.isConfirmed;

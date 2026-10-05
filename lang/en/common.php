@@ -34,4 +34,6 @@ return [
     'save'        => 'Save',
     'cancel'      => 'Cancel',
 
+    'products' => 'products',
+
 ];

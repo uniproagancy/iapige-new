@@ -3,7 +3,7 @@
 return [
 
     'phone'         => env('SHOP_PHONE', '032 212 10 28'),
-    'email'         => env('SHOP_EMAIL', 'info@elio.ge'),
+    'email'         => env('SHOP_EMAIL', 'info@iapi.ge'),
     'delivery_days' => (int) env('SHOP_DELIVERY_DAYS', 2),
 
     /*
@@ -11,7 +11,7 @@ return [
      | printed on the invoice, so an empty one is a payment that will not arrive.
      */
     'company' => [
-        'name'    => env('SHOP_COMPANY', 'შპს ELIO'),
+        'name'    => env('SHOP_COMPANY', 'შპს IAPI.GE'),
         'tax_id'  => env('SHOP_TAX_ID'),
         'address' => env('SHOP_ADDRESS', 'თბილისი, ჭავჭავაძის 42'),
         'bank'    => env('SHOP_BANK', 'საქართველოს ბანკი'),

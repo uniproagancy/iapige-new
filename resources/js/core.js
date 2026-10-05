@@ -1,5 +1,5 @@
 /**
- * ELIO — shared state and helpers.
+ * IAPI.GE — shared state and helpers.
  *
  * Imported by app.js and by every page module. ES modules are singletons, so
  * the panel registry exists exactly once per page.
@@ -108,9 +108,9 @@ export function closePanels(silent = false) {
 
 /* ------------------------------------------------------------------ i18n */
 
-/** Interface string from window.ELIO.i18n (rendered by the layout in the page language). */
+/** Interface string from window.IAPI.i18n (rendered by the layout in the page language). */
 export function t(key, params = {}) {
-    let text = window.ELIO?.i18n?.[key] ?? key;
+    let text = window.IAPI?.i18n?.[key] ?? key;
     Object.entries(params).forEach(([name, value]) => { text = text.replaceAll(`:${name}`, value); });
     return text;
 }

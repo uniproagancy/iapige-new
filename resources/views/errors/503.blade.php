@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ELIO</title>
+    <title>IAPI.GE</title>
     <style>
         body{
             margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -17,7 +17,7 @@
 {{-- shown while deploying, so it carries no Blade helpers that need the app --}}
 <body>
     <div>
-        <div class="logo">ELIO</div>
+        <div class="logo">IAPI.GE</div>
         <p>საიტი მოკლე ხნით მიუწვდომელია.<br>რამდენიმე წუთში დავბრუნდებით.</p>
         <a href="tel:0322121028">032 212 10 28</a>
     </div>

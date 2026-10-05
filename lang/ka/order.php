@@ -38,4 +38,7 @@ return [
         'returned'  => 'დაბრუნებული',
     ],
 
+    'paid_via'             => 'გადახდილია — :driver',
+    'payment_start_failed' => 'გადახდის დაწყება ვერ მოხერხდა',
+
 ];

@@ -46,6 +46,6 @@ class Order extends Model
         $today = now()->format('ymd');
         $count = static::whereDate('created_at', today())->count() + 1;
 
-        return sprintf('ELIO-%s-%04d', $today, $count);
+        return sprintf('IAPI-%s-%04d', $today, $count);
     }
 }

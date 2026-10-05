@@ -234,7 +234,7 @@ class Catalog
         return $roots->map(fn (Category $root) => [
             'name'  => $root->name,
             'url'   => route('catalog', $root->slug),
-            'image' => $root->imageUrl() ?? Store::img('elio-cat-'.$root->id, 0, 76, 76),
+            'image' => $root->imageUrl() ?? Store::img('iapi-cat-'.$root->id, 0, 76, 76),
             'count' => __('common.products_count', ['count' => $count($root)]),
             'subs'  => $root->children->map(fn (Category $sub) => [
                 'name'   => $sub->name,
@@ -295,7 +295,7 @@ class Catalog
             'id'    => $root->id,
             'name'  => $root->name,
             'url'   => route('catalog', $root->slug),
-            'image' => $root->imageUrl() ?? Store::img('elio-cat-'.$root->id, 0, 320, 240),
+            'image' => $root->imageUrl() ?? Store::img('iapi-cat-'.$root->id, 0, 320, 240),
             'total' => $count($root),
             'subs'  => $root->children
                 ->map(fn (Category $sub) => [
@@ -389,7 +389,7 @@ class Catalog
                     'id'    => $c->id,
                     'name'  => $c->name,
                     'url'   => route('catalog', $c->slug),
-                    'image' => $c->imageUrl() ?? Store::img('elio-cat-'.$c->id, 0, 320, 240),
+                    'image' => $c->imageUrl() ?? Store::img('iapi-cat-'.$c->id, 0, 320, 240),
                     'total' => collect($c->descendantAndSelfIds())->sum(fn ($id) => $childCounts[$id] ?? 0),
                 ])
                     ->filter(fn ($sub) => $sub['total'] > 0)   // an empty sub-category helps nobody

@@ -1,4 +1,4 @@
-# ELIO — agent guidelines
+# IAPI.GE — agent guidelines
 
 ქართული ონლაინ-მაღაზია: **Laravel 13 + Livewire 4**, Blade სერვერზე, Vite.
 სრული აღწერა — [README.md](README.md). ქვემოთ მხოლოდ ის, რაც კოდში შესვლამდე
@@ -6,7 +6,7 @@
 
 ## სტეკი და გარემო
 
-- PHP **8.3+**, MySQL 8 (dev-ში `.env` → `DB_CONNECTION=mysql`, ბაზა `elio`)
+- PHP **8.3+**, MySQL 8 (ბაზის სახელი `.env`-ის `DB_DATABASE`-შია — dev-სა და prod-ზე სხვადასხვაა)
 - Livewire 4 — სერვერზე რენდერებული კომპონენტები, React/Vue არ არის
 - `mcamara/laravel-localization` — ყველა საჯარო მარშრუტი `{locale}` პრეფიქსშია
 - `phpoffice/phpspreadsheet` — მომწოდებლების XLSX ფაილებისთვის

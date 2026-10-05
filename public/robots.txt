@@ -15,4 +15,4 @@ Disallow: /*?page=
 
 Allow: /
 
-Sitemap: https://elio.ge/sitemap.xml
+Sitemap: https://iapi.ge/sitemap.xml

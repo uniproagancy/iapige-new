@@ -9,8 +9,8 @@ return [
      | costs nothing, but an advert pointing at an empty page costs money.
      */
     'facebook' => [
-        'title'       => env('FEED_TITLE', 'ELIO'),
-        'description' => env('FEED_DESCRIPTION', 'ELIO product feed'),
+        'title'       => env('FEED_TITLE', 'IAPI.GE'),
+        'description' => env('FEED_DESCRIPTION', 'IAPI.GE product feed'),
         'currency'    => 'GEL',
         'locale'      => 'ka',
 

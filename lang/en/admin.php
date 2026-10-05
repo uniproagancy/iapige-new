@@ -245,4 +245,59 @@ return [
     'marked_paid'          => 'Marked as paid',
     'registered_customer'  => 'Registered customer',
 
+    /* ------------------------------------------------------------ dashboard */
+
+    'orders_today'          => 'Orders today',
+    'yesterday'             => 'Yesterday',
+    'revenue_today'         => 'Revenue today',
+    'week_revenue'          => 'Revenue this week',
+    'recent_orders'         => 'Recent orders',
+    'waiting'               => 'Waiting on you',
+    'awaiting_call'         => 'Awaiting a call',
+    'packing'               => 'Being packed',
+    'callbacks'             => 'Callback requests',
+    'catalogue_health'      => 'Catalogue health',
+    'all_clear'             => 'All clear',
+
+    /* ------------------------------------------------------------ users */
+
+    'users_search'          => 'Search by name, email or phone…',
+    'admin'                 => 'Admin',
+    'admins'                => 'Admins',
+    'subscribed'            => 'Subscribed',
+    'contacts'              => 'Contacts',
+    'spent'                 => 'Spent',
+    'registered'            => 'Registered',
+    'last_order'            => 'Last order',
+    'sort_spent'            => 'By amount spent',
+    'sort_orders'           => 'By number of orders',
+    'sort_name'             => 'By name',
+    'make_admin'            => 'Make admin',
+    'revoke_admin'          => 'Revoke admin',
+    'cannot_demote_self'    => 'You cannot revoke your own admin role',
+    'cannot_delete_admin'   => 'You cannot close an admin account — revoke the admin role first',
+    'close_account'         => 'Close the account',
+    'close_account_hint'    => 'The orders stay — they are accounting records. Only the personal data is erased.',
+    'close_account_confirm' => 'The account will be closed and its personal data erased. Continue?',
+
+    /* ------------------------------------------------------------ callback requests */
+
+    'cb_search'             => 'Search by name or phone…',
+    'cb_when'               => 'When',
+    'cb_product'            => 'Product',
+    'cb_new'                => 'New',
+    'cb_called'             => 'Called',
+    'cb_closed'             => 'Closed',
+    'cb_mark_called'        => 'Mark as called',
+    'cb_close'              => 'Close',
+    'cb_comment'            => 'Comment',
+    'cb_page'               => 'The page it was asked from',
+    'cb_handled_by'         => 'Handled by :name — :when',
+    'cb_note'               => 'Internal note…',
+
+    /* ------------------------------------------------------------ brands */
+
+    'brands_empty'          => 'Without products',
+    'logo'                  => 'Logo',
+
 ];

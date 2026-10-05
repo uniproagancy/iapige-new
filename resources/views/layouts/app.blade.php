@@ -86,7 +86,7 @@
 @stack('overlays')
 
 <script>
-    window.ELIO = {
+    window.IAPI = {
         locale: @json(app()->getLocale()),
         homeUrl: @json(route('home')),
         catalogUrl: @json(route('catalog')),

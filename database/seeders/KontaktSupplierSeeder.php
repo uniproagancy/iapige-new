@@ -32,8 +32,8 @@ class KontaktSupplierSeeder extends Seeder
 
                 // their shop out of our copy
                 'replace' => [
-                    'www.kontakt.ge' => 'elio.ge',
-                    'kontakt.ge'     => 'elio.ge',
+                    'www.kontakt.ge' => 'iapi.ge',
+                    'kontakt.ge'     => 'iapi.ge',
                     'შიდა განვადება' => '',
                 ],
             ],

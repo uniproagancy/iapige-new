@@ -51,7 +51,7 @@ class Product extends Component
                 'tab'         => 'catalog',
                 'pageCss'     => 'product',
                 'pageJs'      => 'product',
-                'title'       => $data['product']['brand'].' '.$data['product']['name'].' — ELIO',
+                'title'       => $data['product']['brand'].' '.$data['product']['name'].' — IAPI.GE',
                 'description' => $data['product']['brand'].' '.$data['product']['name'].' — '
                     .money($data['product']['price']).'. '.__('layout.description'),
             ])

@@ -14,7 +14,7 @@
             <ul class="nav navbar-nav flex-row">
                 <li class="nav-item me-auto">
                     <a class="navbar-brand" href="{{ route('admin.dashboard') }}">
-                        <h2 class="brand-text mb-0">ELIO</h2>
+                        <h2 class="brand-text mb-0">IAPI.GE</h2>
                     </a>
                 </li>
             </ul>

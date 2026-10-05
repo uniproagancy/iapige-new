@@ -35,7 +35,7 @@
 
             <div class="doc__foot">
                 <span>{{ __('info.doc_questions') }}</span>
-                <a class="doc__mail" href="mailto:legal@elio.ge">legal@elio.ge</a>
+                <a class="doc__mail" href="mailto:legal@iapi.ge">legal@iapi.ge</a>
             </div>
         </article>
     </div>

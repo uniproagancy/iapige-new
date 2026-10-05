@@ -5,7 +5,7 @@
     $heading = $view === 'text' ? $docs[$doc]['title'] : $titles[$view];
 @endphp
 
-@section('title', $heading.' — ELIO')
+@section('title', $heading.' — IAPI.GE')
 @section('description', __('info.description'))
 @section('page', 'info')
 @section('nav', $view === 'about' ? 'about' : 'contact')

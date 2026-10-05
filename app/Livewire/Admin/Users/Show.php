@@ -110,7 +110,7 @@ class Show extends Component
 
             $this->user->update([
                 'name'              => __('account.deleted_user'),
-                'email'             => 'deleted-'.$this->user->id.'@elio.local',
+                'email'             => 'deleted-'.$this->user->id.'@iapi.local',
                 'phone'             => null,
                 'accepts_marketing' => false,
             ]);
