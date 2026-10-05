@@ -17,7 +17,9 @@ class ContactForm extends Component
     public string $message = '';
 
     public string $topic = '';
+
     public array $topics = [];
+
     public bool $sent = false;
 
     public function mount(array $topics = []): void

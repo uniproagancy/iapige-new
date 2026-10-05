@@ -44,7 +44,7 @@ class CartDrawer extends Component
             return;
         }
 
-        $this->dispatch('pixel', ...app(Pixel::class)->addToCart([
+        $this->dispatch('pixel', app(Pixel::class)->addToCart([
             // the numeric id, because that is what the feed publishes as g:id
             'id' => $product->id,
             'brand' => $product->brand?->name ?? '',

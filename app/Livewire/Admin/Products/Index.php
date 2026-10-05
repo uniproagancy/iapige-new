@@ -49,10 +49,12 @@ class Index extends Component
 
     /** @var array<int, int> ids ticked for a bulk action */
     public array $selected = [];
+
     public bool $selectPage = false;
 
     /* ---- bulk pickers ---- */
     public ?int $bulkCategory = null;
+
     public ?int $bulkBrand = null;
 
     public function updated($property): void
@@ -107,16 +109,16 @@ class Index extends Component
     public function render()
     {
         return view('livewire.admin.products.index', [
-            'products'   => $this->query()->paginate($this->perPage),
+            'products' => $this->query()->paginate($this->perPage),
             'categories' => $this->categoryOptions(),
-            'brands'     => Brand::orderBy('name')->get(['id', 'name']),
-            'suppliers'  => Supplier::orderBy('name')->get(['id', 'name']),
-            'statuses'   => [
-                Product::STATUS_DRAFT    => __('admin.status_draft'),
-                Product::STATUS_ACTIVE   => __('admin.status_active'),
+            'brands' => Brand::orderBy('name')->get(['id', 'name']),
+            'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
+            'statuses' => [
+                Product::STATUS_DRAFT => __('admin.status_draft'),
+                Product::STATUS_ACTIVE => __('admin.status_active'),
                 Product::STATUS_ARCHIVED => __('admin.status_archived'),
             ],
-            'issues'     => $this->issueCounts(),
+            'issues' => $this->issueCounts(),
         ])->layout('layouts.admin', ['title' => __('admin.products')]);
     }
 
@@ -154,13 +156,13 @@ class Index extends Component
             ->first();
 
         return [
-            'drafts'   => (int) ($row->drafts ?? 0),
-            'nocat'    => (int) ($row->nocat ?? 0),
-            'nobrand'  => (int) ($row->nobrand ?? 0),
-            'noprice'  => (int) ($row->noprice ?? 0),
-            'out'      => (int) ($row->out ?? 0),
+            'drafts' => (int) ($row->drafts ?? 0),
+            'nocat' => (int) ($row->nocat ?? 0),
+            'nobrand' => (int) ($row->nobrand ?? 0),
+            'noprice' => (int) ($row->noprice ?? 0),
+            'out' => (int) ($row->out ?? 0),
             'noweight' => (int) ($row->noweight ?? 0),
-            'nophoto'  => Product::whereDoesntHave('images')->count(),
+            'nophoto' => Product::whereDoesntHave('images')->count(),
         ];
     }
 
@@ -212,7 +214,7 @@ class Index extends Component
         }
 
         $product->update([
-            'status'       => Product::STATUS_ACTIVE,
+            'status' => Product::STATUS_ACTIVE,
             'published_at' => $product->published_at ?? now(),
         ]);
 
@@ -250,7 +252,7 @@ class Index extends Component
             }
 
             $product->update([
-                'status'       => Product::STATUS_ACTIVE,
+                'status' => Product::STATUS_ACTIVE,
                 'published_at' => $product->published_at ?? now(),
             ]);
 

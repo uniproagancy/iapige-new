@@ -6,6 +6,7 @@ use App\Models\Attribute;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Support\Slug;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Url;
@@ -82,11 +83,11 @@ class Index extends Component
             ->paginate($this->perPage);
 
         return view('livewire.admin.mapping.index', [
-            'rows'      => $rows,
+            'rows' => $rows,
             'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
-            'targets'   => $this->targets(),
-            'pending'   => $this->pendingCounts(),
-            'impact'    => $this->showImpact ? $this->impact($rows) : [],
+            'targets' => $this->targets(),
+            'pending' => $this->pendingCounts(),
+            'impact' => $this->showImpact ? $this->impact($rows) : [],
             'canRelink' => $this->canRelink(),
         ])->layout('layouts.admin', ['title' => __('admin.mapping')]);
     }
@@ -129,14 +130,13 @@ class Index extends Component
      * How many products each unmapped category name is holding up — the number
      * that turns "47 names to map" into "these three are worth doing first".
      *
-     * @return array<string, int>  external_name => products
+     * @return array<string, int> external_name => products
      */
     protected function impact($rows): array
     {
         if ($this->tab !== 'categories' || ! $this->canRelink()) {
             return [];
         }
-
 
         $names = collect($rows->items())->pluck('external_name')->all();
 
@@ -168,7 +168,7 @@ class Index extends Component
 
         DB::table($this->table())->where('id', $id)->update([
             $this->column() => $targetId,
-            'updated_at'    => now(),
+            'updated_at' => now(),
         ]);
 
         if ($targetId) {
@@ -188,7 +188,7 @@ class Index extends Component
 
             DB::table($this->table())->where('id', (int) $id)->update([
                 $this->column() => (int) $targetId,
-                'updated_at'    => now(),
+                'updated_at' => now(),
             ]);
 
             $saved++;
@@ -251,15 +251,15 @@ class Index extends Component
 
         $category = DB::transaction(function () use ($row, $parentId) {
             $category = Category::create([
-                'parent_id'  => $parentId,
-                'is_active'  => true,
+                'parent_id' => $parentId,
+                'is_active' => true,
                 'sort_order' => (int) Category::where('parent_id', $parentId)->max('sort_order') + 1,
             ]);
 
             $category->saveTranslations([
                 app()->getLocale() => [
                     'name' => $row->external_name,
-                    'slug' => \App\Support\Slug::make($row->external_name).'-'.$category->id,
+                    'slug' => Slug::make($row->external_name).'-'.$category->id,
                 ],
             ]);
 

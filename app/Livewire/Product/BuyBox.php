@@ -12,13 +12,18 @@ use Livewire\Component;
 class BuyBox extends Component
 {
     public int $productId;
+
     public int $qty = 1;
+
     public ?string $color = null;
+
     public ?string $config = null;
+
     public bool $added = false;
 
     /** @var array<int, array{code:string,label:string,hex:?string}> */
     public array $colors = [];
+
     /** @var array<int, array{code:string,label:string,note:?string}> */
     public array $configs = [];
 

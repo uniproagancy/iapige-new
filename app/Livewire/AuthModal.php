@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\User;
+use App\Services\Facebook\Pixel;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
@@ -20,12 +21,19 @@ class AuthModal extends Component
     public string $mode = 'login';        // login | register | forgot
 
     public string $login = '';
+
     public string $password = '';
+
     public string $name = '';
+
     public string $email = '';
+
     public string $phone = '';
+
     public bool $remember = false;
+
     public bool $terms = false;
+
     public string $status = '';
 
     public function setMode(string $mode): void
@@ -41,15 +49,15 @@ class AuthModal extends Component
     {
         match ($this->mode) {
             'register' => $this->register(),
-            'forgot'   => $this->sendResetLink(),
-            default    => $this->signIn(),
+            'forgot' => $this->sendResetLink(),
+            default => $this->signIn(),
         };
     }
 
     protected function signIn(): void
     {
         $this->validate([
-            'login'    => ['required', 'string'],
+            'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
@@ -108,11 +116,11 @@ class AuthModal extends Component
     protected function register(): void
     {
         $data = $this->validate([
-            'name'     => ['required', 'string', 'min:2', 'max:80'],
-            'email'    => ['required', 'email', 'max:120', 'unique:users,email'],
-            'phone'    => ['required', 'string', 'min:9', 'max:32'],
+            'name' => ['required', 'string', 'min:2', 'max:80'],
+            'email' => ['required', 'email', 'max:120', 'unique:users,email'],
+            'phone' => ['required', 'string', 'min:9', 'max:32'],
             'password' => ['required', 'string', 'min:8'],
-            'terms'    => ['accepted'],
+            'terms' => ['accepted'],
         ]);
 
         // the phone is stored digits-only, so check it in the same shape
@@ -123,9 +131,9 @@ class AuthModal extends Component
         }
 
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => Str::lower($data['email']),
-            'phone'    => $phone,
+            'name' => $data['name'],
+            'email' => Str::lower($data['email']),
+            'phone' => $phone,
             'password' => $data['password'],   // hashed by the model cast
         ]);
 
@@ -134,7 +142,7 @@ class AuthModal extends Component
         Auth::login($user, true);
         session()->regenerate();
 
-        $this->dispatch('pixel', ...app(\App\Services\Facebook\Pixel::class)->completeRegistration($user));
+        $this->dispatch('pixel', app(Pixel::class)->completeRegistration($user));
 
         $this->finish(__('auth.welcome', ['name' => $user->firstName()]));
     }

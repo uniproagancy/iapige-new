@@ -6,6 +6,7 @@ use App\Models\DeliveryCity;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\UserAddress;
+use App\Support\Catalog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -36,29 +37,44 @@ class Index extends Component
 
     /* ---- profile ---- */
     public string $name = '';
+
     public string $phone = '';
+
     public string $email = '';
+
     public bool $accepts_marketing = false;
 
     /* ---- password ---- */
     public string $current_password = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
 
     /* ---- sessions / deletion ---- */
     public string $session_password = '';
+
     public string $delete_password = '';
+
     public bool $confirmDelete = false;
 
     /* ---- address form ---- */
     public bool $showAddress = false;
+
     public ?int $addressId = null;
+
     public ?int $city_id = null;
+
     public string $a_label = '';
+
     public string $a_name = '';
+
     public string $a_phone = '';
+
     public string $a_address = '';
+
     public string $a_note = '';
+
     public bool $a_default = false;
 
     /** the order opened in place, so the list keeps its scroll */
@@ -89,18 +105,18 @@ class Index extends Component
         $user = auth()->user();
 
         return view('livewire.account.index', [
-            'user'      => $user,
-            'active'    => $this->activeOrder(),
-            'orders'    => $this->orders(),
-            'hasMore'   => $this->ordersQuery()->count() > $this->perPage,
+            'user' => $user,
+            'active' => $this->activeOrder(),
+            'orders' => $this->orders(),
+            'hasMore' => $this->ordersQuery()->count() > $this->perPage,
             'addresses' => UserAddress::where('user_id', $user->id)->with('city')
                 ->orderByDesc('is_default')->get(),
-            'wishlist'  => $this->wishlist(),
-            'cities'    => DeliveryCity::active()->withTranslation()->orderBy('sort_order')->get(),
-            'stats'     => $this->stats($user->id),
+            'wishlist' => $this->wishlist(),
+            'cities' => DeliveryCity::active()->withTranslation()->orderBy('sort_order')->get(),
+            'stats' => $this->stats($user->id),
         ])->layout('layouts.app', [
             'title' => __('account.title'),
-            'seo'   => ['robots' => 'noindex, nofollow'],
+            'seo' => ['robots' => 'noindex, nofollow'],
         ]);
     }
 
@@ -147,8 +163,8 @@ class Index extends Component
             return [];
         }
 
-        return \App\Support\Catalog::cards(
-            \App\Support\Catalog::productQuery()->whereIn('id', $ids)->get()
+        return Catalog::cards(
+            Catalog::productQuery()->whereIn('id', $ids)->get()
         );
     }
 
@@ -167,7 +183,7 @@ class Index extends Component
         return [
             'orders' => (int) ($row->total ?? 0),
             'active' => (int) ($row->active ?? 0),
-            'spent'  => (float) ($row->spent ?? 0),
+            'spent' => (float) ($row->spent ?? 0),
         ];
     }
 
@@ -237,10 +253,10 @@ class Index extends Component
 
             $order->events()->create([
                 'user_id' => auth()->id(),
-                'type'    => 'status',
-                'from'    => $from,
-                'to'      => 'cancelled',
-                'note'    => __('account.cancelled_by_customer'),
+                'type' => 'status',
+                'from' => $from,
+                'to' => 'cancelled',
+                'note' => __('account.cancelled_by_customer'),
             ]);
         });
 
@@ -277,22 +293,22 @@ class Index extends Component
     public function saveAddress(): void
     {
         $this->validate([
-            'city_id'   => ['required', 'exists:delivery_cities,id'],
-            'a_name'    => ['required', 'string', 'max:120'],
-            'a_phone'   => ['required', 'string', 'max:32'],
+            'city_id' => ['required', 'exists:delivery_cities,id'],
+            'a_name' => ['required', 'string', 'max:120'],
+            'a_phone' => ['required', 'string', 'max:32'],
             'a_address' => ['required', 'string', 'max:255'],
-            'a_label'   => ['nullable', 'string', 'max:40'],
+            'a_label' => ['nullable', 'string', 'max:40'],
         ]);
 
         $address = UserAddress::updateOrCreate(
             ['id' => $this->addressId, 'user_id' => auth()->id()],
             [
                 'city_id' => $this->city_id,
-                'label'   => $this->a_label ?: null,
-                'name'    => $this->a_name,
-                'phone'   => $this->a_phone,
+                'label' => $this->a_label ?: null,
+                'name' => $this->a_name,
+                'phone' => $this->a_phone,
                 'address' => $this->a_address,
-                'note'    => $this->a_note ?: null,
+                'note' => $this->a_note ?: null,
             ],
         );
 
@@ -336,15 +352,15 @@ class Index extends Component
         $user = auth()->user();
 
         $this->validate([
-            'name'  => ['required', 'string', 'max:120'],
+            'name' => ['required', 'string', 'max:120'],
             'phone' => ['required', 'string', 'max:32'],
             'email' => ['required', 'email', 'max:190', Rule::unique('users', 'email')->ignore($user->id)],
         ]);
 
         $user->update([
-            'name'              => $this->name,
-            'phone'             => $this->phone,
-            'email'             => $this->email,
+            'name' => $this->name,
+            'phone' => $this->phone,
+            'email' => $this->email,
             'accepts_marketing' => $this->accepts_marketing,
         ]);
 
@@ -355,7 +371,7 @@ class Index extends Component
     {
         $this->validate([
             'current_password' => ['required'],
-            'password'         => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         if (! Hash::check($this->current_password, auth()->user()->password)) {
@@ -407,11 +423,11 @@ class Index extends Component
             UserAddress::where('user_id', $user->id)->delete();
 
             $user->update([
-                'name'              => __('account.deleted_user'),
-                'email'             => 'deleted-'.$user->id.'@iapi.local',
-                'phone'             => null,
+                'name' => __('account.deleted_user'),
+                'email' => 'deleted-'.$user->id.'@iapi.local',
+                'phone' => null,
                 'accepts_marketing' => false,
-                'password'          => Hash::make(str()->random(40)),
+                'password' => Hash::make(str()->random(40)),
             ]);
 
             $user->delete();

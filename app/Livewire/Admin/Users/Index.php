@@ -41,10 +41,10 @@ class Index extends Component
     public function render()
     {
         return view('livewire.admin.users.index', [
-            'users'  => $this->query()->paginate(25),
+            'users' => $this->query()->paginate(25),
             'counts' => [
-                'total'      => User::count(),
-                'admins'     => User::where('is_admin', true)->count(),
+                'total' => User::count(),
+                'admins' => User::where('is_admin', true)->count(),
                 'subscribed' => User::where('accepts_marketing', true)->count(),
             ],
         ])->layout('layouts.admin', ['title' => __('admin.customers')]);

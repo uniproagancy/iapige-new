@@ -10,6 +10,7 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\UserAddress;
 use App\Services\Cart;
+use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Facebook\Pixel;
 use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\PaymentManager;
@@ -49,6 +50,7 @@ class Checkout extends Component
 
     /** a signed-in customer keeps the address for next time */
     public bool $saveAddress = true;
+
     public ?int $addressId = null;
 
     /** set once the order exists, so the page can speak about it */
@@ -106,13 +108,13 @@ class Checkout extends Component
         $browser = $pixel->browserData();
 
         return OrderPixelData::updateOrCreate(['order_id' => $order->id], [
-            'event_id'   => Pixel::eventId('pu'),
-            'fbp'        => $browser['fbp'] ?? null,
-            'fbc'        => $browser['fbc'] ?? null,
-            'ip'         => $browser['client_ip_address'] ?? null,
+            'event_id' => Pixel::eventId('pu'),
+            'fbp' => $browser['fbp'] ?? null,
+            'fbc' => $browser['fbc'] ?? null,
+            'ip' => $browser['client_ip_address'] ?? null,
             'user_agent' => $browser['client_user_agent'] ?? null,
             'source_url' => route('order', $order->number),
-            'consented'  => $pixel->consented(),
+            'consented' => $pixel->consented(),
         ]);
     }
 
@@ -127,7 +129,7 @@ class Checkout extends Component
 
         $subtotal = array_sum(array_column($lines, 'sum'));
 
-        $this->dispatch('pixel', ...app(Pixel::class)->initiateCheckout($lines, $subtotal + $this->shipping()));
+        $this->dispatch('pixel', app(Pixel::class)->initiateCheckout($lines, $subtotal + $this->shipping()));
     }
 
     /** The address the customer used last time, so the form opens filled in. */
@@ -183,7 +185,7 @@ class Checkout extends Component
         $city = $this->deliveryCity();
 
         return $city
-            ? app(\App\Services\Delivery\DeliveryCalculator::class)->fee($city, $this->lines())
+            ? app(DeliveryCalculator::class)->fee($city, $this->lines())
             : 0.0;
     }
 
@@ -313,33 +315,33 @@ class Checkout extends Component
 
             $items[] = [
                 'product_id' => $product->id,
-                'name'       => $line['name'],
-                'price'      => $price,
-                'qty'        => $qty,
-                'sum'        => $price * $qty,
+                'name' => $line['name'],
+                'price' => $price,
+                'qty' => $qty,
+                'sum' => $price * $qty,
             ];
         }
 
         $shipping = $this->shipping();
 
         $order = Order::create([
-            'number'           => Order::nextNumber(),
-            'user_id'          => Auth::id(),
-            'cart_id'          => $this->openCartId(),
-            'name'             => $this->name,
-            'phone'            => $this->phone,
-            'email'            => $this->email ?: null,
-            'delivery'         => 'courier',
+            'number' => Order::nextNumber(),
+            'user_id' => Auth::id(),
+            'cart_id' => $this->openCartId(),
+            'name' => $this->name,
+            'phone' => $this->phone,
+            'email' => $this->email ?: null,
+            'delivery' => 'courier',
             'delivery_city_id' => $this->cityId,
-            'city'             => $this->deliveryCity()?->name,
-            'address'          => $this->address,
-            'comment'          => $this->comment ?: null,
-            'payment'          => $this->payment,
-            'payment_status'   => 'pending',
-            'is_paid'          => false,
-            'subtotal'         => $subtotal,
-            'shipping'         => $shipping,
-            'total'            => $subtotal + $shipping,
+            'city' => $this->deliveryCity()?->name,
+            'address' => $this->address,
+            'comment' => $this->comment ?: null,
+            'payment' => $this->payment,
+            'payment_status' => 'pending',
+            'is_paid' => false,
+            'subtotal' => $subtotal,
+            'shipping' => $shipping,
+            'total' => $subtotal + $shipping,
         ]);
 
         $order->items()->createMany($items);
@@ -355,9 +357,9 @@ class Checkout extends Component
 
         $order->events()->create([
             'user_id' => Auth::id(),
-            'type'    => 'status',
-            'to'      => 'new',
-            'note'    => __('order.placed_by_customer'),
+            'type' => 'status',
+            'to' => 'new',
+            'note' => __('order.placed_by_customer'),
         ]);
 
         // the basket becomes history rather than an abandoned cart
@@ -480,9 +482,9 @@ class Checkout extends Component
                 'address' => $this->address,
             ],
             [
-                'name'  => $this->name,
+                'name' => $this->name,
                 'phone' => $this->phone,
-                'note'  => $this->comment ?: null,
+                'note' => $this->comment ?: null,
             ],
         );
 
@@ -503,17 +505,17 @@ class Checkout extends Component
         $card = Catalog::card($product);
 
         return [[
-            'id'       => $product->id,
-            'name'     => trim($card['brand'].' '.$card['name']),
-            'cat'      => $card['cat'],
-            'img'      => $card['thumb'],
-            'price'    => (float) $product->price,
-            'qty'      => $this->qty,
-            'sum'      => (float) $product->price * $this->qty,
-            'weight'   => $product->weight,
-            'length'   => $product->length,
-            'width'    => $product->width,
-            'height'   => $product->height,
+            'id' => $product->id,
+            'name' => trim($card['brand'].' '.$card['name']),
+            'cat' => $card['cat'],
+            'img' => $card['thumb'],
+            'price' => (float) $product->price,
+            'qty' => $this->qty,
+            'sum' => (float) $product->price * $this->qty,
+            'weight' => $product->weight,
+            'length' => $product->length,
+            'width' => $product->width,
+            'height' => $product->height,
             'is_bulky' => (bool) $product->is_bulky,
         ]];
     }
@@ -542,25 +544,25 @@ class Checkout extends Component
         $total = $subtotal + $shipping;
 
         return view('livewire.pages.checkout', [
-            'lines'    => $lines,
+            'lines' => $lines,
             'subtotal' => $subtotal,
             'shipping' => $shipping,
-            'total'    => $total,
-            'cities'   => DeliveryCity::active()->withTranslation()->get(),
-            'methods'  => PaymentMethod::active()->withTranslation()->get()
+            'total' => $total,
+            'cities' => DeliveryCity::active()->withTranslation()->get(),
+            'methods' => PaymentMethod::active()->withTranslation()->get()
                 ->filter(fn (PaymentMethod $m) => $m->fitsTotal($total))
                 ->values(),
             'addresses' => Auth::check()
                 ? UserAddress::where('user_id', Auth::id())->with('city')->orderByDesc('is_default')->get()
                 : collect(),
         ])->extends('layouts.app', [
-            'page'    => 'checkout',
-            'nav'     => 'catalog',
-            'tab'     => '',
+            'page' => 'checkout',
+            'nav' => 'catalog',
+            'tab' => '',
             'pageCss' => 'checkout',
-            'title'   => __('checkout.title').' — IAPI.GE',
+            'title' => __('checkout.title').' — IAPI.GE',
             // a cart is one person's session, never an index entry
-            'seo'     => ['robots' => 'noindex, nofollow'],
+            'seo' => ['robots' => 'noindex, nofollow'],
         ])->section('content');
     }
 }

@@ -24,10 +24,10 @@ class Product extends Component
 
         // in mount rather than render: switching a colour re-renders the page,
         // and that is the same visit rather than a second look at the product
-        $this->dispatch('pixel', ...app(Pixel::class)->viewContent([
-            'id'    => $product->id,
+        $this->dispatch('pixel', app(Pixel::class)->viewContent([
+            'id' => $product->id,
             'brand' => $product->brand?->name ?? '',
-            'name'  => $product->name,
+            'name' => $product->name,
             'price' => (float) $product->price,
         ]));
     }

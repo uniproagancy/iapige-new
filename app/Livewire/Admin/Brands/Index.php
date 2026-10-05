@@ -23,20 +23,29 @@ class Index extends Component
     public string $search = '';
 
     public bool $showForm = false;
+
     public ?int $editingId = null;
 
     /* ---- form ---- */
     public string $name = '';
+
     public string $slug = '';
+
     public bool $is_active = true;
+
     public bool $is_featured = false;
+
     public int $sort_order = 0;
+
     public $logo = null;
+
     public ?string $currentLogo = null;
 
     /* ---- merge ---- */
     public bool $showMerge = false;
+
     public ?int $mergeFrom = null;
+
     public ?int $mergeInto = null;
 
     public function updatedSearch(): void
@@ -54,7 +63,7 @@ class Index extends Component
 
         return view('livewire.admin.brands.index', [
             'brands' => $brands,
-            'all'    => Brand::orderBy('name')->get(['id', 'name']),
+            'all' => Brand::orderBy('name')->get(['id', 'name']),
         ])->layout('layouts.admin', ['title' => __('admin.brands')]);
     }
 
@@ -92,20 +101,20 @@ class Index extends Component
     public function save(): void
     {
         $data = $this->validate([
-            'name'       => ['required', 'string', 'max:80'],
-            'slug'       => ['required', 'string', 'max:80', 'unique:brands,slug'.($this->editingId ? ",{$this->editingId}" : '')],
+            'name' => ['required', 'string', 'max:80'],
+            'slug' => ['required', 'string', 'max:80', 'unique:brands,slug'.($this->editingId ? ",{$this->editingId}" : '')],
             'sort_order' => ['integer', 'min:0'],
-            'logo'       => ['nullable', 'image', 'max:1024'],
+            'logo' => ['nullable', 'image', 'max:1024'],
         ]);
 
         $brand = $this->editingId ? Brand::findOrFail($this->editingId) : new Brand;
 
         $brand->fill([
-            'name'        => $data['name'],
-            'slug'        => $data['slug'],
-            'is_active'   => $this->is_active,
+            'name' => $data['name'],
+            'slug' => $data['slug'],
+            'is_active' => $this->is_active,
             'is_featured' => $this->is_featured,
-            'sort_order'  => $this->sort_order,
+            'sort_order' => $this->sort_order,
         ]);
 
         if ($this->logo) {

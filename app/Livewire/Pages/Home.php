@@ -11,15 +11,15 @@ class Home extends Component
     public function render()
     {
         return view('livewire.pages.home', [
-            'slides'   => Store::slides(),
-            'deals'    => Catalog::deals(),
+            'slides' => Store::slides(),
+            'deals' => Catalog::deals(),
             'sections' => Catalog::sections(),
-            'brands'   => Catalog::brands(),
+            'brands' => Catalog::brands(),
         ])
             ->extends('layouts.app', [
-                'page'   => 'home',
-                'nav'    => 'home',
-                'tab'    => 'home',
+                'page' => 'home',
+                'nav' => 'home',
+                'tab' => 'home',
                 'pageJs' => 'home',
             ])
             ->section('content');

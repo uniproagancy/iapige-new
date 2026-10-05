@@ -20,11 +20,11 @@ class Dashboard extends Component
     public function render()
     {
         return view('livewire.admin.dashboard.index', [
-            'today'     => $this->today(),
-            'waiting'   => $this->waiting(),
-            'problems'  => $this->problems(),
-            'recent'    => Order::with('items')->latest('id')->take(8)->get(),
-            'week'      => $this->week(),
+            'today' => $this->today(),
+            'waiting' => $this->waiting(),
+            'problems' => $this->problems(),
+            'recent' => Order::with('items')->latest('id')->take(8)->get(),
+            'week' => $this->week(),
         ])->layout('layouts.admin', ['title' => __('admin.dashboard')]);
     }
 
@@ -44,8 +44,8 @@ class Dashboard extends Component
         $yesterday = $rows->get(now()->subDay()->toDateString());
 
         return [
-            'orders'           => (int) ($today->orders ?? 0),
-            'revenue'          => (float) ($today->revenue ?? 0),
+            'orders' => (int) ($today->orders ?? 0),
+            'revenue' => (float) ($today->revenue ?? 0),
             'orders_yesterday' => (int) ($yesterday->orders ?? 0),
         ];
     }
@@ -55,11 +55,11 @@ class Dashboard extends Component
     {
         return [
             'new_orders' => Order::where('status', 'new')->count(),
-            'packing'    => Order::whereIn('status', ['confirmed', 'packed'])->count(),
-            'unpaid'     => Order::where('is_paid', false)
+            'packing' => Order::whereIn('status', ['confirmed', 'packed'])->count(),
+            'unpaid' => Order::where('is_paid', false)
                 ->whereIn('status', ['new', 'confirmed', 'packed', 'shipped'])
                 ->count(),
-            'callbacks'  => CallbackRequest::where('status', 'new')->count(),
+            'callbacks' => CallbackRequest::where('status', 'new')->count(),
         ];
     }
 
@@ -76,8 +76,8 @@ class Dashboard extends Component
             ->first();
 
         return [
-            'drafts'  => (int) ($row->drafts ?? 0),
-            'nocat'   => (int) ($row->nocat ?? 0),
+            'drafts' => (int) ($row->drafts ?? 0),
+            'nocat' => (int) ($row->nocat ?? 0),
             'noprice' => (int) ($row->noprice ?? 0),
             'nophoto' => Product::whereDoesntHave('images')->count(),
         ];
@@ -99,7 +99,7 @@ class Dashboard extends Component
             $date = now()->subDays($i);
 
             $days[] = [
-                'label'   => $date->translatedFormat('D'),
+                'label' => $date->translatedFormat('D'),
                 'revenue' => (float) ($rows[$date->toDateString()] ?? 0),
             ];
         }

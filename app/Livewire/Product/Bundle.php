@@ -14,6 +14,7 @@ class Bundle extends Component
 {
     /** @var array<int, int> product ids, the first one being the page's product */
     public array $ids = [];
+
     public array $selected = [];
 
     public function mount(array $ids): void
@@ -49,16 +50,16 @@ class Bundle extends Component
 
         $rows = $products->map(fn (Product $p) => Catalog::card($p) + [
             'selected' => in_array($p->id, $this->selected, true),
-            'fixed'    => $p->id === ($this->ids[0] ?? null),
+            'fixed' => $p->id === ($this->ids[0] ?? null),
         ])->all();
 
         $chosen = array_filter($rows, fn ($r) => $r['selected']);
 
         return view('livewire.product.bundle', [
-            'rows'  => $rows,
+            'rows' => $rows,
             'count' => count($chosen),
             'total' => array_sum(array_column($chosen, 'price')),
-            'old'   => array_sum(array_map(fn ($r) => $r['old'] ?: $r['price'], $chosen)),
+            'old' => array_sum(array_map(fn ($r) => $r['old'] ?: $r['price'], $chosen)),
         ]);
     }
 }

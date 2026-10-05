@@ -16,6 +16,7 @@ class Show extends Component
     public Order $order;
 
     public string $status = '';
+
     public string $note = '';
 
     /** Cancelling can put the goods back; it is a decision, so it is asked. */
@@ -31,7 +32,7 @@ class Show extends Component
     {
         return view('livewire.admin.orders.show', [
             'statuses' => (new Index)->statuses(),
-            'events'   => $this->order->events()->with('user')->latest()->get(),
+            'events' => $this->order->events()->with('user')->latest()->get(),
         ])->layout('layouts.admin', [
             'title' => __('admin.order').' #'.$this->order->number,
         ]);
@@ -52,10 +53,10 @@ class Show extends Component
 
             $this->order->events()->create([
                 'user_id' => auth()->id(),
-                'type'    => 'status',
-                'from'    => $from,
-                'to'      => $this->status,
-                'note'    => $this->note ?: null,
+                'type' => 'status',
+                'from' => $from,
+                'to' => $this->status,
+                'note' => $this->note ?: null,
             ]);
 
             // the goods only come back when someone says they did
@@ -78,8 +79,8 @@ class Show extends Component
 
         $this->order->events()->create([
             'user_id' => auth()->id(),
-            'type'    => 'note',
-            'note'    => __('admin.restocked'),
+            'type' => 'note',
+            'note' => __('admin.restocked'),
         ]);
     }
 
@@ -91,8 +92,8 @@ class Show extends Component
 
         $this->order->events()->create([
             'user_id' => auth()->id(),
-            'type'    => 'note',
-            'note'    => trim($this->note),
+            'type' => 'note',
+            'note' => trim($this->note),
         ]);
 
         $this->note = '';
@@ -112,8 +113,8 @@ class Show extends Component
 
         $this->order->events()->create([
             'user_id' => auth()->id(),
-            'type'    => 'payment',
-            'note'    => __('admin.marked_paid'),
+            'type' => 'payment',
+            'note' => __('admin.marked_paid'),
         ]);
 
         $this->order->refresh()->load('events.user');

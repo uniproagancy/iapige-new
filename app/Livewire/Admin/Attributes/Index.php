@@ -38,11 +38,17 @@ class Index extends Component
 
     /* ---- editing one attribute ---- */
     public bool $showForm = false;
+
     public ?int $editingId = null;
+
     public string $code = '';
+
     public string $type = 'select';
+
     public int $sort_order = 100;
+
     public bool $is_filterable = false;
+
     public bool $is_variant = false;
 
     /** ['ka' => ['name' => …], 'en' => …] */
@@ -93,15 +99,15 @@ class Index extends Component
         }
 
         return view('livewire.admin.attributes.index', [
-            'rows'      => $rows,
-            'usage'     => $usage,
+            'rows' => $rows,
+            'usage' => $usage,
             'languages' => Language::active(),
-            'reserved'  => self::RESERVED,
-            'counts'    => [
+            'reserved' => self::RESERVED,
+            'counts' => [
                 'total' => Attribute::count(),
-                'on'    => Attribute::where('is_filterable', true)->count(),
+                'on' => Attribute::where('is_filterable', true)->count(),
             ],
-            'values'    => $this->valuesFor
+            'values' => $this->valuesFor
                 ? AttributeValue::where('attribute_id', $this->valuesFor)
                     ->withTranslation()->orderBy('sort_order')->orderBy('code')->get()
                 : collect(),
@@ -211,20 +217,20 @@ class Index extends Component
         $default = Language::defaultCode();
 
         $this->validate([
-            'code'                         => ['required', 'string', 'max:60', 'unique:attributes,code,'.$this->editingId],
+            'code' => ['required', 'string', 'max:60', 'unique:attributes,code,'.$this->editingId],
             "translations.{$default}.name" => ['required', 'string', 'max:120'],
-            'sort_order'                   => ['integer', 'min:0'],
+            'sort_order' => ['integer', 'min:0'],
         ]);
 
         $attribute = Attribute::findOrFail($this->editingId);
 
         $attribute->update([
-            'code'          => $this->code,
-            'type'          => $this->type,
-            'sort_order'    => $this->sort_order,
+            'code' => $this->code,
+            'type' => $this->type,
+            'sort_order' => $this->sort_order,
             // a reserved code can never be a filter, whatever the form says
             'is_filterable' => in_array($this->code, self::RESERVED, true) ? false : $this->is_filterable,
-            'is_variant'    => $this->is_variant,
+            'is_variant' => $this->is_variant,
         ]);
 
         $attribute->saveTranslations(

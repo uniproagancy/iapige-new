@@ -43,14 +43,21 @@ class Index extends Component
 
     /* ---- form ---- */
     public bool $showForm = false;
+
     public ?int $editingId = null;
 
     public ?int $parent_id = null;
+
     public bool $is_active = true;
+
     public bool $show_on_home = false;
+
     public bool $show_in_menu = false;
+
     public int $sort_order = 0;
+
     public $image = null;
+
     public ?string $currentImage = null;
 
     /** ['ka' => ['name' => …, 'slug' => …, 'description' => …], 'en' => …] */
@@ -58,10 +65,15 @@ class Index extends Component
 
     /* ---- delete ---- */
     public bool $showDelete = false;
+
     public ?int $deletingId = null;
+
     public ?string $deletingName = null;
+
     public int $deletingChildren = 0;
+
     public int $deletingProducts = 0;
+
     public ?int $moveTo = null;
 
     public function mount(): void
@@ -76,11 +88,11 @@ class Index extends Component
         $counts = Product::selectRaw('category_id, count(*) as n')->groupBy('category_id')->pluck('n', 'category_id');
 
         return view('livewire.admin.categories.index', [
-            'tree'      => $this->tree($counts),
-            'options'   => $this->options(),
-            'roots'     => Category::withTranslation()->whereNull('parent_id')->orderBy('sort_order')->get(),
+            'tree' => $this->tree($counts),
+            'options' => $this->options(),
+            'roots' => Category::withTranslation()->whereNull('parent_id')->orderBy('sort_order')->get(),
             'languages' => Language::active(),
-            'total'     => Category::count(),
+            'total' => Category::count(),
         ])->layout('layouts.admin', ['title' => __('admin.categories')]);
     }
 
@@ -116,18 +128,18 @@ class Index extends Component
                 }
 
                 $rows[$position] = [
-                    'id'       => $category->id,
-                    'name'     => $category->name,
-                    'depth'    => $depth,
-                    'parent'   => $category->parent_id,
-                    'image'    => $category->imageUrl(),
-                    'active'   => (bool) $category->is_active,
-                    'system'   => (bool) ($category->is_system ?? false),
-                    'home'     => (bool) $category->show_on_home,
-                    'menu'     => (bool) ($category->show_in_menu ?? false),
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'depth' => $depth,
+                    'parent' => $category->parent_id,
+                    'image' => $category->imageUrl(),
+                    'active' => (bool) $category->is_active,
+                    'system' => (bool) ($category->is_system ?? false),
+                    'home' => (bool) $category->show_on_home,
+                    'menu' => (bool) ($category->show_in_menu ?? false),
                     'children' => ($byParent[$category->id] ?? collect())->count(),
                     'products' => (int) ($counts[$category->id] ?? 0),
-                    'dimmed'   => ! $own,   // only here because a child matched
+                    'dimmed' => ! $own,   // only here because a child matched
                 ];
 
                 $branchMatched = true;
@@ -257,8 +269,8 @@ class Index extends Component
 
         $this->translations = Language::active()->mapWithKeys(fn (Language $l) => [
             $l->code => [
-                'name'        => $category->translate($l->code, false)?->name ?? '',
-                'slug'        => $category->translate($l->code, false)?->slug ?? '',
+                'name' => $category->translate($l->code, false)?->name ?? '',
+                'slug' => $category->translate($l->code, false)?->slug ?? '',
                 'description' => $category->translate($l->code, false)?->description ?? '',
             ],
         ])->all();
@@ -272,8 +284,8 @@ class Index extends Component
 
         $this->validate([
             "translations.{$default}.name" => ['required', 'string', 'max:120'],
-            'parent_id'                    => ['nullable', 'exists:categories,id'],
-            'image'                        => ['nullable', 'image', 'max:2048'],
+            'parent_id' => ['nullable', 'exists:categories,id'],
+            'image' => ['nullable', 'image', 'max:2048'],
         ]);
 
         if ($this->editingId && $this->parent_id) {
@@ -290,8 +302,8 @@ class Index extends Component
             $category = $this->editingId ? Category::findOrFail($this->editingId) : new Category;
 
             $category->fill([
-                'parent_id'    => $this->parent_id,
-                'is_active'    => $this->is_active,
+                'parent_id' => $this->parent_id,
+                'is_active' => $this->is_active,
                 'show_on_home' => $this->show_on_home,
                 'show_in_menu' => $this->show_in_menu,
             ]);
@@ -315,8 +327,8 @@ class Index extends Component
                 }
 
                 $rows[$locale] = [
-                    'name'        => $fields['name'],
-                    'slug'        => $fields['slug'] ?: Slug::make($fields['name']).'-'.$category->id,
+                    'name' => $fields['name'],
+                    'slug' => $fields['slug'] ?: Slug::make($fields['name']).'-'.$category->id,
                     'description' => $fields['description'] ?? null,
                 ];
             }

@@ -29,27 +29,40 @@ class Form extends Component
 
     /* ---- identity ---- */
     public string $sku = '';
+
     public string $status = Product::STATUS_DRAFT;
+
     public ?int $category_id = null;
+
     public ?int $brand_id = null;
+
     public bool $taxonomy_lock = false;
 
     /* ---- money ---- */
     public ?string $price = null;
+
     public ?string $old_price = null;
+
     public ?string $cost_price = null;
+
     public bool $price_lock = false;
 
     /* ---- availability ---- */
     public int $stock = 0;
+
     public bool $is_preorder = false;
+
     public ?string $release_date = null;
 
     /* ---- shipping ---- */
     public ?string $weight = null;
+
     public ?string $length = null;
+
     public ?string $width = null;
+
     public ?string $height = null;
+
     public bool $is_bulky = false;
 
     /** ['ka' => ['name' =>, 'slug' =>, 'summary' =>, 'description' =>], …] */
@@ -60,6 +73,7 @@ class Form extends Component
 
     /** a spec being added by hand */
     public ?int $newAttribute = null;
+
     public string $newValue = '';
 
     public $upload = [];
@@ -102,9 +116,9 @@ class Form extends Component
 
         $this->translations = Language::active()->mapWithKeys(fn (Language $l) => [
             $l->code => [
-                'name'        => $product->translate($l->code, false)?->name ?? '',
-                'slug'        => $product->translate($l->code, false)?->slug ?? '',
-                'summary'     => $product->translate($l->code, false)?->summary ?? '',
+                'name' => $product->translate($l->code, false)?->name ?? '',
+                'slug' => $product->translate($l->code, false)?->slug ?? '',
+                'summary' => $product->translate($l->code, false)?->summary ?? '',
                 'description' => $product->translate($l->code, false)?->description ?? '',
             ],
         ])->all();
@@ -124,18 +138,18 @@ class Form extends Component
     public function render()
     {
         return view('livewire.admin.products.form', [
-            'languages'  => Language::active(),
+            'languages' => Language::active(),
             'categories' => $this->categoryOptions(),
-            'brands'     => Brand::orderBy('name')->get(['id', 'name']),
-            'statuses'   => [
-                Product::STATUS_DRAFT    => __('admin.status_draft'),
-                Product::STATUS_ACTIVE   => __('admin.status_active'),
+            'brands' => Brand::orderBy('name')->get(['id', 'name']),
+            'statuses' => [
+                Product::STATUS_DRAFT => __('admin.status_draft'),
+                Product::STATUS_ACTIVE => __('admin.status_active'),
                 Product::STATUS_ARCHIVED => __('admin.status_archived'),
             ],
-            'images'     => $this->product?->images()->orderBy('sort_order')->get() ?? collect(),
-            'specRows'   => $this->product?->specs()->with('attribute')->orderBy('sort_order')->get() ?? collect(),
+            'images' => $this->product?->images()->orderBy('sort_order')->get() ?? collect(),
+            'specRows' => $this->product?->specs()->with('attribute')->orderBy('sort_order')->get() ?? collect(),
             'attributes' => Attribute::withTranslation()->orderBy('sort_order')->get(),
-            'offers'     => $this->product?->offers()->with('supplier')->get() ?? collect(),
+            'offers' => $this->product?->offers()->with('supplier')->get() ?? collect(),
         ])->layout('layouts.admin', [
             'title' => $this->product ? __('admin.edit_product') : __('admin.new_product'),
         ]);
@@ -165,37 +179,37 @@ class Form extends Component
         $default = Language::defaultCode();
 
         $this->validate([
-            'sku'                          => ['required', 'string', 'max:64'],
+            'sku' => ['required', 'string', 'max:64'],
             "translations.{$default}.name" => ['required', 'string', 'max:255'],
-            'price'                        => ['required', 'numeric', 'min:0'],
-            'old_price'                    => ['nullable', 'numeric', 'min:0'],
-            'stock'                        => ['integer', 'min:0'],
-            'category_id'                  => ['nullable', 'exists:categories,id'],
-            'brand_id'                     => ['nullable', 'exists:brands,id'],
-            'release_date'                 => ['nullable', 'date'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'old_price' => ['nullable', 'numeric', 'min:0'],
+            'stock' => ['integer', 'min:0'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'brand_id' => ['nullable', 'exists:brands,id'],
+            'release_date' => ['nullable', 'date'],
         ]);
 
         DB::transaction(function () use ($andPublish, $default) {
             $product = $this->product ?? new Product;
 
             $product->fill([
-                'sku'           => $this->sku,
-                'category_id'   => $this->category_id,
-                'brand_id'      => $this->brand_id,
+                'sku' => $this->sku,
+                'category_id' => $this->category_id,
+                'brand_id' => $this->brand_id,
                 'taxonomy_lock' => $this->taxonomy_lock,
-                'price'         => (float) $this->price,
-                'old_price'     => $this->old_price !== null && $this->old_price !== '' ? (float) $this->old_price : null,
-                'cost_price'    => $this->cost_price !== null && $this->cost_price !== '' ? (float) $this->cost_price : null,
-                'price_lock'    => $this->price_lock,
-                'stock'         => $this->stock,
-                'is_preorder'   => $this->is_preorder,
-                'release_date'  => $this->release_date ?: null,
-                'weight'        => $this->weight !== null && $this->weight !== '' ? (int) $this->weight : null,
-                'length'        => $this->length !== null && $this->length !== '' ? (int) $this->length : null,
-                'width'         => $this->width !== null && $this->width !== '' ? (int) $this->width : null,
-                'height'        => $this->height !== null && $this->height !== '' ? (int) $this->height : null,
-                'is_bulky'      => $this->is_bulky,
-                'status'        => $andPublish ? Product::STATUS_ACTIVE : $this->status,
+                'price' => (float) $this->price,
+                'old_price' => $this->old_price !== null && $this->old_price !== '' ? (float) $this->old_price : null,
+                'cost_price' => $this->cost_price !== null && $this->cost_price !== '' ? (float) $this->cost_price : null,
+                'price_lock' => $this->price_lock,
+                'stock' => $this->stock,
+                'is_preorder' => $this->is_preorder,
+                'release_date' => $this->release_date ?: null,
+                'weight' => $this->weight !== null && $this->weight !== '' ? (int) $this->weight : null,
+                'length' => $this->length !== null && $this->length !== '' ? (int) $this->length : null,
+                'width' => $this->width !== null && $this->width !== '' ? (int) $this->width : null,
+                'height' => $this->height !== null && $this->height !== '' ? (int) $this->height : null,
+                'is_bulky' => $this->is_bulky,
+                'status' => $andPublish ? Product::STATUS_ACTIVE : $this->status,
             ]);
 
             if ($product->status === Product::STATUS_ACTIVE && ! $product->published_at) {
@@ -212,9 +226,9 @@ class Form extends Component
                 }
 
                 $rows[$locale] = [
-                    'name'        => $fields['name'],
-                    'slug'        => $fields['slug'] ?: Slug::make($fields['name']).'-'.$product->id,
-                    'summary'     => $fields['summary'] ?: null,
+                    'name' => $fields['name'],
+                    'slug' => $fields['slug'] ?: Slug::make($fields['name']).'-'.$product->id,
+                    'summary' => $fields['summary'] ?: null,
                     'description' => $fields['description'] ?: null,
                 ];
             }
@@ -309,7 +323,7 @@ class Form extends Component
         foreach ($this->upload as $file) {
             ProductImage::create([
                 'product_id' => $this->product->id,
-                'path'       => $file->store("products/{$this->product->id}", 'public'),
+                'path' => $file->store("products/{$this->product->id}", 'public'),
                 'sort_order' => ++$order,
             ]);
         }

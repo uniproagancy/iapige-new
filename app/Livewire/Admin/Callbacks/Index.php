@@ -26,6 +26,7 @@ class Index extends Component
 
     /** the request opened in place */
     public ?int $open = null;
+
     public string $note = '';
 
     public function updated($property): void
@@ -52,9 +53,9 @@ class Index extends Component
                 })
                 ->latest('id')
                 ->paginate(25),
-            'counts'   => $this->counts(),
+            'counts' => $this->counts(),
             'statuses' => [
-                CallbackRequest::NEW    => __('admin.cb_new'),
+                CallbackRequest::NEW => __('admin.cb_new'),
                 CallbackRequest::CALLED => __('admin.cb_called'),
                 CallbackRequest::CLOSED => __('admin.cb_closed'),
             ],
@@ -87,8 +88,8 @@ class Index extends Component
         $request = CallbackRequest::findOrFail($id);
 
         $request->update([
-            'status'     => $status,
-            'note'       => $this->note ?: $request->note,
+            'status' => $status,
+            'note' => $this->note ?: $request->note,
             'handled_by' => auth()->id(),
             'handled_at' => now(),
         ]);

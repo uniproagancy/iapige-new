@@ -13,8 +13,11 @@ use Livewire\Component;
 class ResetPassword extends Component
 {
     public string $token = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
 
     public function mount(string $token): void
@@ -26,16 +29,16 @@ class ResetPassword extends Component
     public function submit(): void
     {
         $this->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         $status = Password::reset(
             [
-                'email'                 => Str::lower($this->email),
-                'password'              => $this->password,
+                'email' => Str::lower($this->email),
+                'password' => $this->password,
                 'password_confirmation' => $this->password_confirmation,
-                'token'                 => $this->token,
+                'token' => $this->token,
             ],
             function ($user) {
                 $user->forceFill(['password' => $this->password, 'remember_token' => Str::random(60)])->save();

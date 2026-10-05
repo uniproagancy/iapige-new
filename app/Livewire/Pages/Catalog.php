@@ -36,7 +36,7 @@ class Catalog extends Component
 
     protected int $step = 8;
 
-     public function mount(?string $slug = null)
+    public function mount(?string $slug = null)
     {
         if ($slug === null) {
             // /catalog?f[brand][]=apple → a filtered listing across every category
@@ -148,10 +148,10 @@ class Catalog extends Component
     protected function sorted(Builder $query): Builder
     {
         return match ($this->sort) {
-            'price-asc'  => $query->orderBy('price'),
+            'price-asc' => $query->orderBy('price'),
             'price-desc' => $query->orderByDesc('price'),
-            'new'        => $query->orderByDesc('published_at')->orderByDesc('id'),
-            default      => $query->orderByDesc('sales_count')->orderByDesc('id'),
+            'new' => $query->orderByDesc('published_at')->orderByDesc('id'),
+            default => $query->orderByDesc('sales_count')->orderByDesc('id'),
         };
     }
 
@@ -189,11 +189,11 @@ class Catalog extends Component
 
         return view('livewire.pages.catalog', $data)
             ->extends('layouts.app', [
-                'page'    => 'catalog',
-                'nav'     => 'catalog',
-                'tab'     => 'catalog',
+                'page' => 'catalog',
+                'nav' => 'catalog',
+                'tab' => 'catalog',
                 'pageCss' => 'catalog',
-                'seo'     => $this->seo($data),
+                'seo' => $this->seo($data),
             ])->section('content');
     }
 
@@ -223,12 +223,12 @@ class Catalog extends Component
 
         return [
             // the admin may write its own meta; otherwise it is composed
-            'title'       => $category?->meta_title ?: $title.' — '.config('app.name'),
+            'title' => $category?->meta_title ?: $title.' — '.config('app.name'),
             'description' => $category?->meta_description
                 ?: ($category?->description ?: __('catalog.index_lead')),
-            'canonical'   => $category ? route('catalog', $category->slug) : route('catalog'),
-            'robots'      => $narrowed ? 'noindex, follow' : 'index, follow',
-            'schema'      => [
+            'canonical' => $category ? route('catalog', $category->slug) : route('catalog'),
+            'robots' => $narrowed ? 'noindex, follow' : 'index, follow',
+            'schema' => [
                 Seo::breadcrumbs($crumbs),
                 Seo::itemList($data['products'] ?? [], $title),
             ],
@@ -237,19 +237,19 @@ class Catalog extends Component
 
     protected function listingData(): array
     {
-		$listing = CatalogData::listing($this->categoryId ? $this->category() : null);
+        $listing = CatalogData::listing($this->categoryId ? $this->category() : null);
 
         $query = $this->sorted($this->query());
         $total = (clone $query)->reorder()->count();
         $products = CatalogData::cards($query->with(['brand', 'images'])->limit($this->perPage)->get());
 
         return [
-            'listing'  => $listing,
+            'listing' => $listing,
             'products' => $products,
-            'total'    => $total,
-            'left'     => max(0, $total - count($products)),
-            'facets'   => $this->facets($listing['groups']),
-            'active'   => $this->activeFilters(),
+            'total' => $total,
+            'left' => max(0, $total - count($products)),
+            'facets' => $this->facets($listing['groups']),
+            'active' => $this->activeFilters(),
         ];
     }
 }

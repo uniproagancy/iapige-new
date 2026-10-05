@@ -36,7 +36,7 @@ class WishlistHeart extends Component
 
         // only the adding half is an event; removing one is not interest
         if ($this->on && ($product = Product::withTranslation()->with('brand')->find($this->productId))) {
-            $this->dispatch('pixel', ...app(Pixel::class)->addToWishlist([
+            $this->dispatch('pixel', app(Pixel::class)->addToWishlist([
                 'id' => $product->id,
                 'brand' => $product->brand?->name ?? '',
                 'name' => $product->name,

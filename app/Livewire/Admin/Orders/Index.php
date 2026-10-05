@@ -76,10 +76,10 @@ class Index extends Component
     public function render()
     {
         return view('livewire.admin.orders.index', [
-            'orders'   => $this->query()->paginate($this->perPage),
-            'counts'   => $this->statusCounts(),
+            'orders' => $this->query()->paginate($this->perPage),
+            'counts' => $this->statusCounts(),
             'statuses' => $this->statuses(),
-            'totals'   => $this->totals(),
+            'totals' => $this->totals(),
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
     }
 
@@ -87,13 +87,13 @@ class Index extends Component
     public function statuses(): array
     {
         return [
-            'new'       => __('order.status.new'),
+            'new' => __('order.status.new'),
             'confirmed' => __('order.status.confirmed'),
-            'packed'    => __('order.status.packed'),
-            'shipped'   => __('order.status.shipped'),
+            'packed' => __('order.status.packed'),
+            'shipped' => __('order.status.shipped'),
             'completed' => __('order.status.completed'),
             'cancelled' => __('order.status.cancelled'),
-            'returned'  => __('order.status.returned'),
+            'returned' => __('order.status.returned'),
         ];
     }
 
@@ -114,7 +114,7 @@ class Index extends Component
             ->first();
 
         return [
-            'orders'  => (int) ($row->orders ?? 0),
+            'orders' => (int) ($row->orders ?? 0),
             'revenue' => (float) ($row->revenue ?? 0),
         ];
     }
@@ -170,9 +170,9 @@ class Index extends Component
 
             $order->events()->create([
                 'user_id' => auth()->id(),
-                'type'    => 'status',
-                'from'    => $from,
-                'to'      => $status,
+                'type' => 'status',
+                'from' => $from,
+                'to' => $status,
             ]);
         });
 

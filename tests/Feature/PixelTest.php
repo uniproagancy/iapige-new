@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Services\Facebook\Pixel;
 use Illuminate\Support\Facades\Http;
+use Livewire\Component;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PixelTest extends TestCase
@@ -130,9 +132,47 @@ class PixelTest extends TestCase
         $this->assertFalse(app(Pixel::class)->send('Purchase', [], 'pu_1'));
     }
 
+    /**
+     * A component can hand a payload straight to the browser half.
+     *
+     * The obvious way to write this call is to spread the payload, and the
+     * obvious way is wrong: Livewire's dispatch() names its own first parameter
+     * $event, so an "event" key arriving as a named argument is a fatal error.
+     * Every pixel event in the shop goes out this way, and nothing else here
+     * crosses the Livewire boundary — so it is tested at the boundary.
+     */
+    public function test_a_component_dispatches_the_payload_as_one_argument(): void
+    {
+        $this->withConsent();
+
+        Livewire::test(PixelProbe::class)->assertDispatched('pixel', function ($name, $params) {
+            $payload = $params[0];
+
+            return $payload['event'] === 'AddToCart'
+                && str_starts_with($payload['id'], 'atc_')
+                && $payload['data']['content_ids'] === ['142'];
+        });
+    }
+
     protected function withConsent(): void
     {
         request()->cookies->set('cookie_consent', 'all');
         $this->fakeMeta();
+    }
+}
+
+/** The smallest component that fires a pixel event, used by the test above. */
+class PixelProbe extends Component
+{
+    public function mount(): void
+    {
+        $this->dispatch('pixel', app(Pixel::class)->addToCart([
+            'id' => 142, 'brand' => 'NORDA', 'name' => 'Pro 14', 'price' => 4780.0, 'qty' => 1,
+        ]));
+    }
+
+    public function render(): string
+    {
+        return '<div></div>';
     }
 }

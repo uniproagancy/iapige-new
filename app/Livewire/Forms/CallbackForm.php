@@ -4,6 +4,7 @@ namespace App\Livewire\Forms;
 
 use App\Models\CallbackRequest;
 use App\Models\Product;
+use App\Services\Facebook\Pixel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Validate;
@@ -59,20 +60,20 @@ class CallbackForm extends Component
         RateLimiter::hit($key, 3600);
 
         CallbackRequest::create([
-            'user_id'    => Auth::id(),
+            'user_id' => Auth::id(),
             'product_id' => $this->productId,
-            'name'       => $this->name,
-            'phone'      => $this->phone,
-            'comment'    => $this->comment ?: null,
-            'page'       => url()->previous(),
+            'name' => $this->name,
+            'phone' => $this->phone,
+            'comment' => $this->comment ?: null,
+            'page' => url()->previous(),
         ]);
 
         $this->sent = true;
 
         // a phone number left on purpose is the definition of a lead
-        $this->dispatch('pixel', ...app(\App\Services\Facebook\Pixel::class)->lead([
+        $this->dispatch('pixel', app(Pixel::class)->lead([
             'phone' => $this->phone,
-            'name'  => $this->name,
+            'name' => $this->name,
         ]));
 
         $this->reset('comment');

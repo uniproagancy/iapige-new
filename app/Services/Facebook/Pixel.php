@@ -80,9 +80,14 @@ class Pixel
     /*
      | Each of these sends the server half and hands back what the browser half
      | should fire — one payload, built once, so the two halves can never
-     | describe different things. A component passes the result straight on:
+     | describe different things. A component passes the result straight on, as
+     | one argument:
      |
-     |     $this->dispatch('pixel', ...app(Pixel::class)->addToCart($line));
+     |     $this->dispatch('pixel', app(Pixel::class)->addToCart($line));
+     |
+     | Not spread. Livewire's signature is dispatch($event, ...$params), and the
+     | "event" key here would arrive as a named argument for that first
+     | parameter — "Named parameter $event overwrites previous argument".
      */
 
     /** @param  array<string, mixed>  $card  a Catalog::card() array */

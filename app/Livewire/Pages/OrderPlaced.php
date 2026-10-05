@@ -58,11 +58,11 @@ class OrderPlaced extends Component
             return;
         }
 
-        $this->dispatch('pixel',
-            event: 'Purchase',
-            id: $snapshot->event_id,
-            data: app(Pixel::class)->purchaseData($order->loadMissing('items')),
-        );
+        $this->dispatch('pixel', [
+            'event' => 'Purchase',
+            'id' => $snapshot->event_id,
+            'data' => app(Pixel::class)->purchaseData($order->loadMissing('items')),
+        ]);
     }
 
     public function render()
@@ -71,7 +71,7 @@ class OrderPlaced extends Component
             ->layout('layouts.app', [
                 'title' => __('order.placed_title', ['number' => $this->order->number]),
                 // names a person and their address: never an index entry
-                'seo'   => ['robots' => 'noindex, nofollow'],
+                'seo' => ['robots' => 'noindex, nofollow'],
             ]);
     }
 }
