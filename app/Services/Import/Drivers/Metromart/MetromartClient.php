@@ -20,11 +20,10 @@ class MetromartClient
     protected const BASE = 'https://metromart.ge';
 
     protected ?CookieJar $jar = null;
+
     protected ?string $token = null;
 
-    public function __construct(protected array $config = [])
-    {
-    }
+    public function __construct(protected array $config = []) {}
 
     /** The product page for a model code, or null when the shop has none. */
     public function findUrl(string $model): ?string
@@ -34,23 +33,23 @@ class MetromartClient
         }
 
         $response = Http::withOptions([
-            'cookies'          => $this->jar,
+            'cookies' => $this->jar,
             'force_ip_resolve' => 'v4',
         ])
             ->timeout($this->config['timeout'] ?? 30)
             ->withHeaders([
-                'Content-Type'     => 'application/json',
-                'Accept'           => 'application/json, text/javascript, */*; q=0.01',
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json, text/javascript, */*; q=0.01',
                 'X-Requested-With' => 'XMLHttpRequest',
-                'User-Agent'       => $this->agent(),
-                'Referer'          => self::BASE.'/ka_GE/',
-                'Origin'           => self::BASE,
+                'User-Agent' => $this->agent(),
+                'Referer' => self::BASE.'/ka_GE/',
+                'Origin' => self::BASE,
             ])
             ->post(self::BASE.'/find-products-suggestions', [
                 'jsonrpc' => '2.0',
-                'method'  => 'call',
-                'params'  => [
-                    'search'     => $this->normalise($model),
+                'method' => 'call',
+                'params' => [
+                    'search' => $this->normalise($model),
                     'csrf_token' => $this->token,
                 ],
                 'id' => random_int(100000000, 999999999),
@@ -58,7 +57,7 @@ class MetromartClient
 
         if (! $response->successful()) {
             Log::channel('import')->warning('metromart search refused', [
-                'model'  => $model,
+                'model' => $model,
                 'status' => $response->status(),
             ]);
 
@@ -93,13 +92,13 @@ class MetromartClient
         }
 
         return [
-            'name'     => $name,
-            'brand'    => $this->attr($xpath, '//meta[@itemprop="brand"]', 'content'),
-            'price'    => (float) ($this->meta($xpath, 'product:price:amount') ?? 0),
-            'sale'     => (float) ($this->meta($xpath, 'product:sale_price:amount') ?? 0),
+            'name' => $name,
+            'brand' => $this->attr($xpath, '//meta[@itemprop="brand"]', 'content'),
+            'price' => (float) ($this->meta($xpath, 'product:price:amount') ?? 0),
+            'sale' => (float) ($this->meta($xpath, 'product:sale_price:amount') ?? 0),
             'in_stock' => $this->availableToday($xpath),
-            'images'   => $this->images($xpath, $url),
-            'specs'    => $this->specs($xpath),
+            'images' => $this->images($xpath, $url),
+            'specs' => $this->specs($xpath),
         ];
     }
 
@@ -201,7 +200,7 @@ class MetromartClient
         $this->jar = new CookieJar;
 
         $response = Http::withOptions([
-            'cookies'          => $this->jar,
+            'cookies' => $this->jar,
             'force_ip_resolve' => 'v4',
         ])
             ->timeout(20)
@@ -231,10 +230,10 @@ class MetromartClient
             ->connectTimeout(15)
             ->retry(2, 1500, throw: false)
             ->withHeaders([
-                'User-Agent'      => $this->agent(),
-                'Accept'          => 'text/html,application/xhtml+xml,*/*;q=0.8',
+                'User-Agent' => $this->agent(),
+                'Accept' => 'text/html,application/xhtml+xml,*/*;q=0.8',
                 'Accept-Language' => 'ka,en;q=0.9',
-                'Referer'         => self::BASE.'/',
+                'Referer' => self::BASE.'/',
             ])
             ->get($url);
 

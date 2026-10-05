@@ -1,4 +1,4 @@
-@props(['cards', 'branches', 'topics'])
+@props(['cards', 'topics'])
 
 <section class="pview" aria-label="{{ __('info.contact') }}">
     <div class="ccards">

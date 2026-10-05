@@ -101,28 +101,28 @@ class AlneoDriver implements SupplierDriver
         }
 
         $specs = array_map(fn ($spec) => [
-            'name'   => $spec['name'],
-            'value'  => $spec['value'],
+            'name' => $spec['name'],
+            'value' => $spec['value'],
             'locale' => $locale,
-            'key'    => false,
+            'key' => false,
             // nothing is filterable on arrival; that is decided in the admin
             'filterable' => false,
-            'color'      => null,
+            'color' => null,
         ], $page['specs'] ?? []);
 
         return new ProductPayload(
-            externalId:   $code,
-            sku:          $this->supplier->code.'-'.$code,
-            costPrice:    $price,
+            externalId: $code,
+            sku: $this->supplier->code.'-'.$code,
+            costPrice: $price,
             oldCostPrice: $old > $price ? $old : null,
-            stock:        (int) $row->quantity,
-            brandName:    $this->supplier->config['brand'] ?? null,
+            stock: (int) $row->quantity,
+            brandName: $this->supplier->config['brand'] ?? null,
             categoryName: $data['category'] ?? null,
             translations: [$locale => [
-                'name'        => $name,
+                'name' => $name,
                 'description' => $page['description'] ?? null,
             ]],
-            specs:  $specs,
+            specs: $specs,
             images: $page['images'] ?? [],
         );
     }

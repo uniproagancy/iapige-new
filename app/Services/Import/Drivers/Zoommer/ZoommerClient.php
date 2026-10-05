@@ -14,6 +14,7 @@ use GuzzleHttp\Psr7\Request;
 class ZoommerClient
 {
     protected Client $client;
+
     protected string $apiUrl;
 
     public function __construct(protected array $config = [])
@@ -21,13 +22,13 @@ class ZoommerClient
         $this->apiUrl = rtrim((string) config('services.zoommer.api_url'), '/').'/';
 
         $this->client = new Client([
-            'timeout'           => $config['timeout'] ?? 30,
-            'connect_timeout'   => 10,
-            'http_errors'       => false,
-            'verify'            => false,
-            'force_ip_resolve'  => 'v4',
-            'headers'           => $this->headers(),
-            'curl'              => [
+            'timeout' => $config['timeout'] ?? 30,
+            'connect_timeout' => 10,
+            'http_errors' => false,
+            'verify' => false,
+            'force_ip_resolve' => 'v4',
+            'headers' => $this->headers(),
+            'curl' => [
                 CURLOPT_DNS_CACHE_TIMEOUT => 300,
             ],
         ]);
@@ -36,18 +37,18 @@ class ZoommerClient
     protected function headers(): array
     {
         return array_filter([
-            'Accept'             => 'application/json, text/plain, */*',
-            'Accept-Encoding'    => 'gzip, deflate, br',
-            'Referer'            => config('services.zoommer.site'),
-            'User-Agent'         => config('services.zoommer.user_agent'),
-            'os'                 => 'web',
-            'sec-ch-ua'          => config('services.zoommer.sec_ch_ua'),
-            'sec-ch-ua-mobile'   => '?0',
+            'Accept' => 'application/json, text/plain, */*',
+            'Accept-Encoding' => 'gzip, deflate, br',
+            'Referer' => config('services.zoommer.site'),
+            'User-Agent' => config('services.zoommer.user_agent'),
+            'os' => 'web',
+            'sec-ch-ua' => config('services.zoommer.sec_ch_ua'),
+            'sec-ch-ua-mobile' => '?0',
             'sec-ch-ua-platform' => '"Windows"',
-            'sec-fetch-dest'     => 'empty',
-            'sec-fetch-mode'     => 'cors',
-            'sec-fetch-site'     => 'same-origin',
-            'Cookie'             => $this->cookie(),
+            'sec-fetch-dest' => 'empty',
+            'sec-fetch-mode' => 'cors',
+            'sec-fetch-site' => 'same-origin',
+            'Cookie' => $this->cookie(),
         ]);
     }
 
@@ -69,7 +70,7 @@ class ZoommerClient
     /**
      * One product in every language we keep.
      *
-     * @return array<string, array>  locale => raw payload
+     * @return array<string, array> locale => raw payload
      */
     public function fetch(string $id, array $locales = ['ka', 'en']): array
     {
@@ -100,7 +101,7 @@ class ZoommerClient
      * Used by the driver to find which ids exist before queueing them.
      *
      * @param  array<int, int|string>  $ids
-     * @return array<int|string, array>  id => raw payload (ka only)
+     * @return array<int|string, array> id => raw payload (ka only)
      */
     public function fetchMany(array $ids, int $concurrency = 10): array
     {
@@ -116,7 +117,7 @@ class ZoommerClient
 
         (new Pool($this->client, $requests(), [
             'concurrency' => $concurrency,
-            'fulfilled'   => function ($response, $id) use (&$found) {
+            'fulfilled' => function ($response, $id) use (&$found) {
                 if ($response->getStatusCode() !== 200) {
                     return;
                 }

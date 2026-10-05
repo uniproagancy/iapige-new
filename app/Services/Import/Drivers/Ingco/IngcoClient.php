@@ -17,15 +17,13 @@ class IngcoClient
 {
     protected const BASE = 'https://ingco.ge';
 
-    public function __construct(protected array $config = [])
-    {
-    }
+    public function __construct(protected array $config = []) {}
 
     /** The product page for a model code, or null when the site has none. */
     public function findUrl(string $model): ?string
     {
         $response = $this->get(self::BASE.'/ka/catalog/searchtermautocomplete', [
-            'term'      => $model,
+            'term' => $model,
             'pageIndex' => 0,
         ], ['X-Requested-With' => 'XMLHttpRequest']);
 
@@ -66,11 +64,11 @@ class IngcoClient
         }
 
         return [
-            'name'        => $name,
+            'name' => $name,
             'description' => $this->description($json, $xpath, $html),
-            'images'      => $this->images($json, $html),
-            'specs'       => $this->specs($xpath),
-            'in_stock'    => ! isset($json['offers']['availability'])
+            'images' => $this->images($json, $html),
+            'specs' => $this->specs($xpath),
+            'in_stock' => ! isset($json['offers']['availability'])
                 || str_contains((string) $json['offers']['availability'], 'InStock'),
         ];
     }
@@ -170,7 +168,7 @@ class IngcoClient
                     [$name, $value] = $cells;
                 }
 
-                $name = trim($name, " :：");
+                $name = trim($name, ' :：');
 
                 if ($name !== '' && $value !== '' && $value !== '-') {
                     $specs[$name] = ['name' => $name, 'value' => $value];
@@ -193,10 +191,10 @@ class IngcoClient
             ->connectTimeout(10)
             ->retry(2, 1500, throw: false)
             ->withHeaders($headers + [
-                'User-Agent'      => config('services.ingco.user_agent', 'Mozilla/5.0'),
-                'Accept'          => 'text/html,application/xhtml+xml,*/*;q=0.8',
+                'User-Agent' => config('services.ingco.user_agent', 'Mozilla/5.0'),
+                'Accept' => 'text/html,application/xhtml+xml,*/*;q=0.8',
                 'Accept-Language' => 'ka,en;q=0.9',
-                'Referer'         => self::BASE.'/',
+                'Referer' => self::BASE.'/',
             ])
             ->get($url, $query);
 

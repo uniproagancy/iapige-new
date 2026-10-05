@@ -69,13 +69,13 @@ class EliteDriver implements SupplierDriver
                 }
 
                 $specs[] = [
-                    'name'       => trim($spec['specificationName'] ?? ''),
-                    'value'      => trim($spec['specificationMeaning'] ?? ''),
-                    'locale'     => $locale,
-                    'group'      => trim($group['groupName'] ?? ''),
-                    'key'        => (bool) ($spec['isMainSpecification'] ?? false),
+                    'name' => trim($spec['specificationName'] ?? ''),
+                    'value' => trim($spec['specificationMeaning'] ?? ''),
+                    'locale' => $locale,
+                    'group' => trim($group['groupName'] ?? ''),
+                    'key' => (bool) ($spec['isMainSpecification'] ?? false),
                     'filterable' => filled($spec['specificationLinkedUrl'] ?? null),
-                    'color'      => ($spec['isColor'] ?? false) ? ($spec['colorValue'] ?? null) : null,
+                    'color' => ($spec['isColor'] ?? false) ? ($spec['colorValue'] ?? null) : null,
                 ];
             }
         }
@@ -86,20 +86,20 @@ class EliteDriver implements SupplierDriver
         ));
 
         return new ProductPayload(
-            externalId:   $externalId,
+            externalId: $externalId,
             // the barcode is the identity here: it is what the stock file speaks
-            sku:          $this->supplier->code.'-'.$barcode,
-            costPrice:    (float) ($p['previousPrice'] ?? $p['price'] ?? 0),
+            sku: $this->supplier->code.'-'.$barcode,
+            costPrice: (float) ($p['previousPrice'] ?? $p['price'] ?? 0),
             oldCostPrice: isset($p['previousPrice']) ? (float) $p['price'] : null,
-            stock:        $this->stockFor($barcode),
-            brandName:    $this->brand($p),
+            stock: $this->stockFor($barcode),
+            brandName: $this->brand($p),
             categoryName: $p['categoryName'] ?? null,
             translations: [$locale => [
-                'name'        => $p['name'] ?? null,
+                'name' => $p['name'] ?? null,
                 'description' => $p['description'] ?? null,
             ]],
-            specs:        $specs,
-            images:       array_values(array_filter($p['images'] ?? [])),
+            specs: $specs,
+            images: array_values(array_filter($p['images'] ?? [])),
         );
     }
 

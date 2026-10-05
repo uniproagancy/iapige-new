@@ -28,6 +28,20 @@
         'sent'         => __('info.sent'),
         'send'         => __('info.send'),
     ];
+
+    /*
+     | The page's own meta, whichever way it was handed over: pages either pass
+     | a `seo` array, or `title` / `description` as variables, or set them as
+     | sections. All three are merged here so a page cannot be half-described —
+     | and so <title> and og:title can never drift apart.
+     */
+    $seo = \App\Support\Seo::meta(array_merge(
+        [
+            'title'       => trim($__env->yieldContent('title')) ?: ($title ?? null),
+            'description' => trim($__env->yieldContent('description')) ?: ($description ?? null),
+        ],
+        array_filter($seo ?? [], fn ($v) => $v !== null && $v !== ''),
+    ));
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -35,15 +49,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', __('layout.title'))</title>
-    <meta name="description" content="@yield('description', __('layout.description'))">
+    <title>{{ $seo['title'] }}</title>
+    <meta name="description" content="{{ $seo['description'] }}">
     <meta name="theme-color" content="#FF6900">
-	
-	@include('partials.seo')
 
-    @foreach (LaravelLocalization::getSupportedLocales() as $code => $locale)
-        <link rel="alternate" hreflang="{{ $code }}" href="{{ LaravelLocalization::getLocalizedURL($code, null, [], true) }}">
-    @endforeach
+    @include('partials.seo')
+    @include('partials.schema')
+    @include('partials.pixel')
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

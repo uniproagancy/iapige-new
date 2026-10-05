@@ -142,6 +142,13 @@ return [
             'days'   => 7,
             'replace_placeholders' => true,
         ],
+		'pixel' => [
+            'driver' => 'daily',
+            'path'   => storage_path('logs/pixel.log'),
+            'level'  => 'debug',
+            'days'   => 14,
+        ],
+
 		'payments' => [
             'driver' => 'daily',
             'path'   => storage_path('logs/payments.log'),

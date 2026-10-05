@@ -81,29 +81,29 @@ class IngcoDriver implements SupplierDriver
         [$price, $old] = $sale > 0 && $sale < $cost ? [$sale, $cost] : [$cost, null];
 
         $specs = array_map(fn ($spec) => [
-            'name'   => $spec['name'],
-            'value'  => $spec['value'],
+            'name' => $spec['name'],
+            'value' => $spec['value'],
             'locale' => $locale,
-            'key'    => false,
+            'key' => false,
             // nothing is filterable on arrival; that is decided in the admin
             'filterable' => false,
-            'color'      => null,
+            'color' => null,
         ], $page['specs'] ?? []);
 
         return new ProductPayload(
-            externalId:   $model,
-            sku:          $this->supplier->code.'-'.$model,
-            costPrice:    $price,
+            externalId: $model,
+            sku: $this->supplier->code.'-'.$model,
+            costPrice: $price,
             oldCostPrice: $old,
             // the price list carries no quantity, so presence on the site decides
-            stock:        ($page['in_stock'] ?? true) ? max(1, (int) $row->quantity) : 0,
-            brandName:    $this->supplier->config['brand'] ?? 'INGCO',
+            stock: ($page['in_stock'] ?? true) ? max(1, (int) $row->quantity) : 0,
+            brandName: $this->supplier->config['brand'] ?? 'INGCO',
             categoryName: $data['category'] ?? null,
             translations: [$locale => [
-                'name'        => $page['name'],
+                'name' => $page['name'],
                 'description' => $page['description'] ?? null,
             ]],
-            specs:  $specs,
+            specs: $specs,
             images: $page['images'] ?? [],
         );
     }

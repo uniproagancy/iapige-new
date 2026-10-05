@@ -98,7 +98,10 @@ class Index extends Component
             'wishlist'  => $this->wishlist(),
             'cities'    => DeliveryCity::active()->withTranslation()->orderBy('sort_order')->get(),
             'stats'     => $this->stats($user->id),
-        ])->layout('layouts.app', ['title' => __('account.title')]);
+        ])->layout('layouts.app', [
+            'title' => __('account.title'),
+            'seo'   => ['robots' => 'noindex, nofollow'],
+        ]);
     }
 
     /** The one order a customer is actually waiting on. */

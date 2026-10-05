@@ -41,4 +41,7 @@ return [
     'write'               => 'მოგვწერე',
     'message_placeholder' => 'შეტყობინება…',
 
+    // the parent crumb above a single document page
+    'breadcrumb'          => 'ინფორმაცია',
+
 ];

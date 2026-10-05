@@ -26,6 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'localeViewPath'        => LaravelLocalizationViewPath::class,
         ]);
 		$middleware->redirectGuestsTo(fn () => route('home'));
+
+        // the server half of the Meta pixel; it mints the id the browser reuses
+        $middleware->web(append: [\App\Http\Middleware\TrackPageView::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

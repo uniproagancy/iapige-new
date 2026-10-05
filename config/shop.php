@@ -7,6 +7,18 @@ return [
     'delivery_days' => (int) env('SHOP_DELIVERY_DAYS', 2),
 
     /*
+     | The shop's own profiles, published as schema.org sameAs. Google uses them
+     | to tie the site to the brand it already knows; a wrong one ties it to
+     | somebody else, so an unset line is left out rather than guessed.
+     */
+    'social' => array_filter([
+        env('SHOP_FACEBOOK'),
+        env('SHOP_INSTAGRAM'),
+        env('SHOP_YOUTUBE'),
+        env('SHOP_LINKEDIN'),
+    ]),
+
+    /*
      | What a customer paying by transfer needs in front of them. Every line is
      | printed on the invoice, so an empty one is a payment that will not arrive.
      */

@@ -133,12 +133,12 @@ class MideaDriver implements SupplierDriver
         // so only the site's "label: value" pairs become specs
         foreach (array_merge($card['specs'] ?? [], $this->specsFromRow($data)) as $spec) {
             $specs[$spec['name']] = [
-                'name'       => $spec['name'],
-                'value'      => $spec['value'],
-                'locale'     => $locale,
-                'key'        => false,
+                'name' => $spec['name'],
+                'value' => $spec['value'],
+                'locale' => $locale,
+                'key' => false,
                 'filterable' => false,   // filters are chosen in the admin
-                'color'      => null,
+                'color' => null,
             ];
         }
 
@@ -148,12 +148,12 @@ class MideaDriver implements SupplierDriver
 
         foreach ($page['specs'] ?? [] as $spec) {
             $specs[$spec['name']] ??= [
-                'name'       => $spec['name'],
-                'value'      => $spec['value'],
-                'locale'     => $locale,
-                'key'        => false,
+                'name' => $spec['name'],
+                'value' => $spec['value'],
+                'locale' => $locale,
+                'key' => false,
                 'filterable' => false,
-                'color'      => null,
+                'color' => null,
             ];
         }
 
@@ -163,20 +163,20 @@ class MideaDriver implements SupplierDriver
         ))));
 
         return new ProductPayload(
-            externalId:   $barcode,
+            externalId: $barcode,
             // the barcode is the supplier's own identity and never changes
-            sku:          $this->supplier->code.'-'.$barcode,
-            costPrice:    $price,
+            sku: $this->supplier->code.'-'.$barcode,
+            costPrice: $price,
             oldCostPrice: $old,
-            stock:        (int) $row->quantity,
-            brandName:    $this->supplier->config['brand'] ?? 'Midea',
+            stock: (int) $row->quantity,
+            brandName: $this->supplier->config['brand'] ?? 'Midea',
             categoryName: $data['category'] ?? null,
             translations: [$locale => [
-                'name'        => $name,
-                'summary'     => $data['description'] ?? null,
+                'name' => $name,
+                'summary' => $data['description'] ?? null,
                 'description' => $page['description'] ?? $data['description'] ?? null,
             ]],
-            specs:  array_values($specs),
+            specs: array_values($specs),
             images: $images,
             weight: null,
         );

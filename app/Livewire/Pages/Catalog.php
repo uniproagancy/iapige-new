@@ -5,6 +5,7 @@ namespace App\Livewire\Pages;
 use App\Models\Category;
 use App\Models\Product;
 use App\Support\Catalog as CatalogData;
+use App\Support\Seo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
@@ -192,7 +193,46 @@ class Catalog extends Component
                 'nav'     => 'catalog',
                 'tab'     => 'catalog',
                 'pageCss' => 'catalog',
+                'seo'     => $this->seo($data),
             ])->section('content');
+    }
+
+    /**
+     * What this listing tells a crawler.
+     *
+     * Filters, sorting and "show more" all produce the same products in a
+     * different order, so they are pointed back at the clean category URL and
+     * kept out of the index — otherwise one category competes with a dozen
+     * copies of itself.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function seo(array $data): array
+    {
+        $narrowed = $this->picked || $this->max !== null || $this->sub !== null || $this->sort !== 'popular';
+        $category = $this->categoryId ? $this->category() : null;
+
+        $title = $category?->name ?? __('catalog.index_title');
+        $crumbs = $category
+            ? array_map(
+                fn (Category $c) => ['name' => $c->name, 'url' => route('catalog', $c->slug)],
+                $category->ancestorsAndSelf(),
+            )
+            : [['name' => __('catalog.index_title'), 'url' => route('catalog')]];
+
+        return [
+            // the admin may write its own meta; otherwise it is composed
+            'title'       => $category?->meta_title ?: $title.' — '.config('app.name'),
+            'description' => $category?->meta_description
+                ?: ($category?->description ?: __('catalog.index_lead')),
+            'canonical'   => $category ? route('catalog', $category->slug) : route('catalog'),
+            'robots'      => $narrowed ? 'noindex, follow' : 'index, follow',
+            'schema'      => [
+                Seo::breadcrumbs($crumbs),
+                Seo::itemList($data['products'] ?? [], $title),
+            ],
+        ];
     }
 
     protected function listingData(): array

@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Models\Product;
 use App\Services\Cart;
+use App\Services\Facebook\Pixel;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -22,9 +24,34 @@ class CartDrawer extends Component
     {
         if (! $this->cart()->add($productId, $qty)) {
             $this->dispatch('toast', message: __('cart.unavailable'), type: 'error');
+        } else {
+            $this->trackAdd($productId, $qty);
         }
 
         $this->broadcast();
+    }
+
+    /**
+     * Every add-to-cart in the shop funnels through here, so this is the only
+     * place the event has to be raised — the product page, the cards and the
+     * bundle all dispatch `cart-add` rather than touching the cart themselves.
+     */
+    protected function trackAdd(int $productId, int $qty): void
+    {
+        $product = Product::withTranslation()->with('brand')->find($productId);
+
+        if (! $product) {
+            return;
+        }
+
+        $this->dispatch('pixel', ...app(Pixel::class)->addToCart([
+            // the numeric id, because that is what the feed publishes as g:id
+            'id' => $product->id,
+            'brand' => $product->brand?->name ?? '',
+            'name' => $product->name,
+            'price' => (float) $product->price,
+            'qty' => $qty,
+        ]));
     }
 
     public function increment(int $productId): void
@@ -79,7 +106,7 @@ class CartDrawer extends Component
     public function render()
     {
         return view('livewire.cart-drawer', [
-            'lines'   => $this->cart()->lines(),
+            'lines' => $this->cart()->lines(),
             'summary' => $this->cart()->summary(),
         ]);
     }

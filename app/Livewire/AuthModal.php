@@ -134,6 +134,8 @@ class AuthModal extends Component
         Auth::login($user, true);
         session()->regenerate();
 
+        $this->dispatch('pixel', ...app(\App\Services\Facebook\Pixel::class)->completeRegistration($user));
+
         $this->finish(__('auth.welcome', ['name' => $user->firstName()]));
     }
 

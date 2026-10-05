@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Http;
  */
 class KontaktClient
 {
-    public function __construct(protected array $config = [])
-    {
-    }
+    public function __construct(protected array $config = []) {}
 
     /**
      * @return array{name:?string, description:?string, brand:?string, image:?string, specs:array, in_stock:bool, price:float}|null
@@ -35,40 +33,40 @@ class KontaktClient
         }
 
         return [
-            'name'        => $this->title((string) ($json['name'] ?? '')),
+            'name' => $this->title((string) ($json['name'] ?? '')),
             'description' => $this->clean((string) ($json['description'] ?? '')) ?: null,
-            'brand'       => $json['brand']['name'] ?? null,
-            'images'      => $this->images($json, $html),
-            'specs'       => $this->specs($html),
-            'in_stock'    => str_contains((string) ($json['offers']['availability'] ?? ''), 'InStock'),
-            'price'       => (float) ($json['offers']['price'] ?? 0),
+            'brand' => $json['brand']['name'] ?? null,
+            'images' => $this->images($json, $html),
+            'specs' => $this->specs($html),
+            'in_stock' => str_contains((string) ($json['offers']['availability'] ?? ''), 'InStock'),
+            'price' => (float) ($json['offers']['price'] ?? 0),
         ];
     }
-	
-	protected function images(array $json, string $html): array
+
+    protected function images(array $json, string $html): array
     {
         $images = [];
- 
+
         foreach ($this->galleryItems($html) as $item) {
             // "full" is the original; "img" is what the gallery displays
             $url = $item['full'] ?? $item['img'] ?? null;
- 
+
             if (is_string($url) && $url !== '') {
                 $images[] = $url;
             }
         }
- 
+
         // the structured data names the main picture, for pages with no gallery
         if (! $images) {
             foreach ((array) ($json['image'] ?? []) as $image) {
                 $url = is_string($image) ? $image : ($image['url'] ?? null);
- 
+
                 if ($url) {
                     $images[] = $url;
                 }
             }
         }
- 
+
         /*
          * Every link in the gallery is a cached thumbnail. The original sits at
          * the same path without the cache segment and is about twice the size,
@@ -79,10 +77,10 @@ class KontaktClient
             fn ($url) => preg_replace('#/cache/[0-9a-f]{32}/#i', '/', $url),
             $images,
         );
- 
+
         return array_values(array_unique(array_filter($images)));
     }
- 
+
     /**
      * The gallery's JSON array.
      *
@@ -95,33 +93,33 @@ class KontaktClient
     protected function galleryItems(string $html): array
     {
         $start = strpos($html, '"mage/gallery/gallery"');
- 
+
         if ($start === false) {
             return [];
         }
- 
+
         $open = strpos($html, '[', $start);
- 
+
         if ($open === false) {
             return [];
         }
- 
+
         $depth = 0;
- 
+
         for ($i = $open, $length = strlen($html); $i < $length; $i++) {
             if ($html[$i] === '[') {
                 $depth++;
             } elseif ($html[$i] === ']') {
                 $depth--;
- 
+
                 if ($depth === 0) {
                     $items = json_decode(substr($html, $open, $i - $open + 1), true);
- 
+
                     return is_array($items) ? $items : [];
                 }
             }
         }
- 
+
         return [];
     }
 
@@ -181,7 +179,7 @@ class KontaktClient
                 continue;
             }
 
-            $specs[$name] = ['name' => trim($name, " :："), 'value' => $value];
+            $specs[$name] = ['name' => trim($name, ' :：'), 'value' => $value];
         }
 
         return array_values($specs);
@@ -199,7 +197,7 @@ class KontaktClient
             ->retry(2, 1500, throw: false)
             ->withOptions(['force_ip_resolve' => 'v4'])
             ->withHeaders([
-                'User-Agent'      => config('services.kontakt.user_agent', 'Mozilla/5.0'),
+                'User-Agent' => config('services.kontakt.user_agent', 'Mozilla/5.0'),
                 'Accept-Language' => 'ka',
             ])
             ->get($url);

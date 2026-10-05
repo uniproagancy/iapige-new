@@ -11,8 +11,8 @@ class ProductPayload
 {
     /**
      * @param  array<string, array{name?:string, summary?:string, description?:string}>  $translations
-     * @param  array<int, array{name:string, value:string, locale:string, key?:bool}>    $specs
-     * @param  array<int, string>                                                        $images
+     * @param  array<int, array{name:string, value:string, locale:string, key?:bool}>  $specs
+     * @param  array<int, string>  $images
      */
     public function __construct(
         public readonly string $externalId,
@@ -26,9 +26,8 @@ class ProductPayload
         public readonly array $specs = [],
         public readonly array $images = [],
         public readonly ?int $weight = null,
-		public readonly ?string $variantGroup = null,
-		public readonly bool $isPreorder = false,
+        public readonly ?string $variantGroup = null,
+        public readonly bool $isPreorder = false,
         public readonly ?string $releaseDate = null,
-    ) {
-    }
+    ) {}
 }

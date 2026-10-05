@@ -70,13 +70,13 @@ class KontaktDriver implements SupplierDriver
         [$price, $old] = $sale > 0 && $sale < $cost ? [$sale, $cost] : [$cost, null];
 
         $specs = array_map(fn ($spec) => [
-            'name'   => $spec['name'],
-            'value'  => $spec['value'],
+            'name' => $spec['name'],
+            'value' => $spec['value'],
             'locale' => $locale,
-            'key'    => false,
+            'key' => false,
             // nothing is filterable on arrival; that is decided in the admin
             'filterable' => false,
-            'color'      => null,
+            'color' => null,
         ], $page['specs'] ?? []);
 
         /*
@@ -87,18 +87,18 @@ class KontaktDriver implements SupplierDriver
         $stock = $page['in_stock'] ? max(1, (int) $row->quantity) : 0;
 
         return new ProductPayload(
-            externalId:   $model,
-            sku:          $this->supplier->code.'-'.$model,
-            costPrice:    $price,
+            externalId: $model,
+            sku: $this->supplier->code.'-'.$model,
+            costPrice: $price,
             oldCostPrice: $old,
-            stock:        $stock,
-            brandName:    $page['brand'] ?? null,
+            stock: $stock,
+            brandName: $page['brand'] ?? null,
             categoryName: $data['category'] ?? null,
             translations: [$locale => [
-                'name'        => $this->rewrite($page['name']),
+                'name' => $this->rewrite($page['name']),
                 'description' => $this->rewrite($page['description']),
             ]],
-            specs:  $specs,
+            specs: $specs,
             images: $page['images'] ?? [],
         );
     }

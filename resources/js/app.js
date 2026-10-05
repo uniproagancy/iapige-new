@@ -108,11 +108,29 @@ function setAuthMode(mode) {
 
 const COOKIE_KEY = 'iapi_cookie_consent';
 
+/*
+ * The answer is mirrored into a cookie as well as localStorage: the server
+ * decides whether to send Conversions API events, and it can only read cookies.
+ */
+function rememberConsent(choice) {
+    storage.set(COOKIE_KEY, choice);
+    document.cookie = `cookie_consent=${choice}; path=/; max-age=31536000; samesite=lax`;
+
+    if (choice === 'all') window.dispatchEvent(new Event('consent:all'));
+}
+
 function showCookieBar() {
     const bar = document.getElementById('cookies');
+    const choice = storage.get(COOKIE_KEY, null);
+
+    // answered on an earlier visit, before the cookie existed
+    if (choice && !document.cookie.split('; ').includes(`cookie_consent=${choice}`)) {
+        rememberConsent(choice);
+    }
+
     if (!bar) return;
 
-    if (!storage.get(COOKIE_KEY, null)) {
+    if (!choice) {
         bar.hidden = false;
         document.body.classList.add('has-cookies');
     }
@@ -227,7 +245,7 @@ document.addEventListener('click', (e) => {
 
     const consent = el.closest('[data-cookies]');
     if (consent) {
-        storage.set(COOKIE_KEY, consent.dataset.cookies);
+        rememberConsent(consent.dataset.cookies);
         const bar = document.getElementById('cookies');
         if (bar) bar.hidden = true;
         document.body.classList.remove('has-cookies');

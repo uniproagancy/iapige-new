@@ -18,9 +18,7 @@ class AlneoClient
 {
     protected const INDEX_KEY = 'import:alneo:index';
 
-    public function __construct(protected array $config = [])
-    {
-    }
+    public function __construct(protected array $config = []) {}
 
     /**
      * Every product URL in the shop, keyed by SKU.
@@ -147,13 +145,13 @@ class AlneoClient
         [$price, $old] = $this->prices($json);
 
         return [
-            'sku'         => trim((string) ($json['sku'] ?? '')),
-            'name'        => $this->clean((string) ($json['name'] ?? '')),
+            'sku' => trim((string) ($json['sku'] ?? '')),
+            'name' => $this->clean((string) ($json['name'] ?? '')),
             'description' => $this->description($html),
-            'images'      => $this->images($json, $html),
-            'specs'       => $this->specs($html),
-            'price'       => $price,
-            'old'         => $old,
+            'images' => $this->images($json, $html),
+            'specs' => $this->specs($html),
+            'price' => $price,
+            'old' => $old,
         ];
     }
 
@@ -302,7 +300,7 @@ class AlneoClient
 
     protected function addSpec(array &$specs, string $name, string $value): void
     {
-        $name = trim($this->clean(strip_tags($name)), " :：");
+        $name = trim($this->clean(strip_tags($name)), ' :：');
         $value = $this->clean(strip_tags($value));
 
         if ($name !== '' && $value !== '' && $value !== '-' && ! isset($specs[$name])) {
@@ -323,7 +321,7 @@ class AlneoClient
             ])
             ->withHeaders([
                 'User-Agent' => config('services.alneo.user_agent', 'Mozilla/5.0'),
-                'Accept'     => 'text/html,application/xhtml+xml,*/*;q=0.8',
+                'Accept' => 'text/html,application/xhtml+xml,*/*;q=0.8',
             ])
             ->get($url);
 

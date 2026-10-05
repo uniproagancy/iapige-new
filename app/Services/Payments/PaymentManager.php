@@ -3,7 +3,9 @@
 namespace App\Services\Payments;
 
 use App\Models\Order;
+use App\Models\OrderPixelData;
 use App\Models\PaymentTransaction;
+use App\Services\Facebook\Pixel;
 use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\Drivers\BogCard;
 use App\Services\Payments\Drivers\CredoInstallment;
@@ -100,6 +102,28 @@ class PaymentManager
                 'driver'      => $transaction->driver,
                 'transaction' => $transaction->id,
             ]);
+
+            $this->reportPurchase($order->fresh('items'));
+        }
+    }
+
+    /**
+     * Tells Meta about the sale, once.
+     *
+     * This runs from a bank callback or from payments:check, with no browser
+     * anywhere — so the cookies and the address come from the snapshot taken
+     * at checkout. Banks resend callbacks, hence sent_at.
+     */
+    protected function reportPurchase(?Order $order): void
+    {
+        $snapshot = $order ? OrderPixelData::where('order_id', $order->id)->first() : null;
+
+        if (! $order || ! $snapshot || $snapshot->alreadySent()) {
+            return;
+        }
+
+        if (app(Pixel::class)->purchase($order, $snapshot->event_id, $snapshot)) {
+            $snapshot->markSent();
         }
     }
 }

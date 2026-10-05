@@ -18,9 +18,19 @@ class AllmarketClient
 {
     protected const CACHE_KEY = 'import:allmarket:feed';
 
-    public function __construct(protected array $config = [])
-    {
-    }
+    public function __construct(protected array $config = []) {}
+
+    /**
+     * The whole feed, held for the life of this worker process.
+     *
+     * product() answers from the feed, and one import job per product meant one
+     * read of the entire catalogue out of the cache table — plus unserialising
+     * it — for every single product. Thousands of products turned a few
+     * megabytes of feed into gigabytes of pointless work.
+     *
+     * @var array<string, array>|null
+     */
+    protected static ?array $memo = null;
 
     /**
      * Every product the supplier offers, keyed by product code.
@@ -31,13 +41,18 @@ class AllmarketClient
     {
         if ($fresh) {
             Cache::forget(self::CACHE_KEY);
+            self::$memo = null;
         }
 
-        return Cache::remember(self::CACHE_KEY, now()->addHours(6), function () {
+        if (self::$memo !== null) {
+            return self::$memo;
+        }
+
+        return self::$memo = Cache::remember(self::CACHE_KEY, now()->addHours(6), function () {
             $response = Http::withHeaders([
-                'AppSecret'    => config('services.allmarket.app_secret'),
+                'AppSecret' => config('services.allmarket.app_secret'),
                 'Content-Type' => 'application/json',
-                'Accept'       => 'application/json',
+                'Accept' => 'application/json',
             ])
                 ->timeout($this->config['timeout'] ?? 60)
                 ->retry(2, 2000, throw: false)
@@ -46,7 +61,7 @@ class AllmarketClient
             if (! $response->successful()) {
                 Log::channel('import')->error('allmarket feed unavailable', [
                     'status' => $response->status(),
-                    'body'   => mb_substr($response->body(), 0, 300),
+                    'body' => mb_substr($response->body(), 0, 300),
                 ]);
 
                 throw new RuntimeException('Allmarket did not answer.');
@@ -84,5 +99,6 @@ class AllmarketClient
     public function forget(): void
     {
         Cache::forget(self::CACHE_KEY);
+        self::$memo = null;
     }
 }

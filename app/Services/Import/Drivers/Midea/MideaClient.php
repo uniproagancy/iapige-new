@@ -17,16 +17,14 @@ class MideaClient
     /** Listing card: /ka/product/<slug>/<id> */
     protected const PRODUCT_URL = '#/product/[^/]+/(\d+)$#';
 
-    public function __construct(protected array $config = [])
-    {
-    }
+    public function __construct(protected array $config = []) {}
 
     /* ------------------------------------------------------------------ listing */
 
     /**
      * Every product card on one listing page.
      *
-     * @return array<int, array>  keyed by the supplier's product id
+     * @return array<int, array> keyed by the supplier's product id
      */
     public function listing(string $url): array
     {
@@ -49,15 +47,15 @@ class MideaClient
             $id = $m[1];
 
             $cards[$id] = [
-                'id'          => $id,
-                'url'         => $this->absolute($href),
-                'name'        => $this->text($xpath, './/*[contains(@class,"products-item-title-text")]', $node),
-                'model'       => $this->text($xpath, './/*[contains(@class,"products-item-model-value")]', $node),
-                'price'       => $this->money($this->text($xpath, './/*[contains(@class,"products-item-price-value")]', $node)),
-                'old_price'   => $this->money($this->text($xpath, './/*[contains(@class,"products-item-price-old")]', $node)),
-                'image'       => $this->backgroundImage($xpath, $node),
+                'id' => $id,
+                'url' => $this->absolute($href),
+                'name' => $this->text($xpath, './/*[contains(@class,"products-item-title-text")]', $node),
+                'model' => $this->text($xpath, './/*[contains(@class,"products-item-model-value")]', $node),
+                'price' => $this->money($this->text($xpath, './/*[contains(@class,"products-item-price-value")]', $node)),
+                'old_price' => $this->money($this->text($xpath, './/*[contains(@class,"products-item-price-old")]', $node)),
+                'image' => $this->backgroundImage($xpath, $node),
                 // the card's summary is a <br>-separated list of "label: value"
-                'specs'       => $this->specsFromSummary($xpath, $node),
+                'specs' => $this->specsFromSummary($xpath, $node),
             ];
         }
 
@@ -88,8 +86,8 @@ class MideaClient
 
         return [
             'description' => $this->text($xpath, '//*[contains(@class,"product-description")] | //*[contains(@class,"description-text")]'),
-            'specs'       => $this->specsFromPage($xpath),
-            'images'      => $this->galleryImages($xpath),
+            'specs' => $this->specsFromPage($xpath),
+            'images' => $this->galleryImages($xpath),
         ];
     }
 
@@ -139,7 +137,7 @@ class MideaClient
                 }
 
                 if (count($cells) >= 2) {
-                    $specs[$cells[0]] = ['name' => trim($cells[0], " :："), 'value' => $cells[1]];
+                    $specs[$cells[0]] = ['name' => trim($cells[0], ' :：'), 'value' => $cells[1]];
                 }
             }
 
@@ -217,9 +215,9 @@ class MideaClient
         $response = Http::timeout($this->config['timeout'] ?? 30)
             ->retry(2, 800, throw: false)
             ->withHeaders([
-                'Accept'     => 'text/html,application/xhtml+xml',
+                'Accept' => 'text/html,application/xhtml+xml',
                 'User-Agent' => config('services.midea.user_agent', 'Mozilla/5.0'),
-                'Referer'    => config('services.midea.base_url'),
+                'Referer' => config('services.midea.base_url'),
             ])
             ->get($url);
 

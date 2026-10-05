@@ -2,8 +2,8 @@
 
 namespace App\Services\Import\Drivers\Alta;
 
-use App\Models\SupplierStock;
 use App\Models\Supplier;
+use App\Models\SupplierStock;
 use App\Services\Import\HasStockFeed;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
@@ -17,9 +17,10 @@ use App\Services\Import\SupplierDriver;
  * So ids() walks the stock table instead of a numeric range: we only ever ask
  * the website about products the supplier actually has.
  */
-class AltaDriver implements SupplierDriver, HasStockFeed
+class AltaDriver implements HasStockFeed, SupplierDriver
 {
     protected AltaClient $client;
+
     protected AltaStockClient $stock;
 
     public function __construct(public Supplier $supplier)
@@ -39,9 +40,9 @@ class AltaDriver implements SupplierDriver, HasStockFeed
             SupplierStock::upsert(
                 array_map(fn ($row) => $row + [
                     'supplier_id' => $this->supplier->id,
-                    'synced_at'   => $now,
-                    'created_at'  => $now,
-                    'updated_at'  => $now,
+                    'synced_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ], $chunk),
                 ['supplier_id', 'external_id'],
                 ['quantity', 'synced_at', 'updated_at'],
@@ -99,15 +100,15 @@ class AltaDriver implements SupplierDriver, HasStockFeed
                 }
 
                 $specs[] = [
-                    'name'   => trim($spec['specificationName'] ?? ''),
-                    'value'  => trim($spec['specificationMeaning'] ?? ''),
+                    'name' => trim($spec['specificationName'] ?? ''),
+                    'value' => trim($spec['specificationMeaning'] ?? ''),
                     'locale' => $locale,
-                    'group'  => trim($group['groupName'] ?? ''),
-                    'key'    => (bool) ($spec['isMainSpecification'] ?? false),
+                    'group' => trim($group['groupName'] ?? ''),
+                    'key' => (bool) ($spec['isMainSpecification'] ?? false),
                     // the source links a spec to its own filter page exactly when
                     // that spec is filterable
                     'filterable' => filled($spec['specificationLinkedUrl'] ?? null),
-                    'color'      => ($spec['isColor'] ?? false) ? ($spec['colorValue'] ?? null) : null,
+                    'color' => ($spec['isColor'] ?? false) ? ($spec['colorValue'] ?? null) : null,
                 ];
             }
         }
@@ -123,21 +124,21 @@ class AltaDriver implements SupplierDriver, HasStockFeed
             ->value('quantity');
 
         return new ProductPayload(
-            externalId:   $externalId,
-            sku:          $this->supplier->code.'-'.$externalId,
+            externalId: $externalId,
+            sku: $this->supplier->code.'-'.$externalId,
             // the site shows the discounted price in "price" and the original in
             // "previousPrice", so the higher one is the regular price
-            costPrice:    (float) ($p['previousPrice'] ?? $p['price'] ?? 0),
+            costPrice: (float) ($p['previousPrice'] ?? $p['price'] ?? 0),
             oldCostPrice: isset($p['previousPrice']) ? (float) $p['price'] : null,
-            stock:        $quantity,
-            brandName:    $this->brand($p),
+            stock: $quantity,
+            brandName: $this->brand($p),
             categoryName: $p['categoryName'] ?? null,
             translations: [$locale => [
-                'name'        => $p['name'] ?? null,
+                'name' => $p['name'] ?? null,
                 'description' => $p['description'] ?? null,
             ]],
-            specs:        $specs,
-            images:       array_values(array_filter($p['images'] ?? [])),
+            specs: $specs,
+            images: array_values(array_filter($p['images'] ?? [])),
         );
     }
 

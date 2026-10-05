@@ -8,13 +8,25 @@ use InvalidArgumentException;
 
 class ImportManager
 {
+    /**
+     * One driver per supplier for the life of this worker.
+     *
+     * A driver builds its HTTP clients in the constructor, and the import job
+     * asks for one per product — so this was rebuilding the same clients, and
+     * throwing away whatever they had cached in memory, thousands of times a
+     * run.
+     *
+     * @var array<int, SupplierDriver>
+     */
+    protected array $drivers = [];
+
     public function driver(Supplier $supplier): SupplierDriver
     {
         if (! class_exists($supplier->driver)) {
             throw new InvalidArgumentException("Driver [{$supplier->driver}] does not exist.");
         }
 
-        return new $supplier->driver($supplier);
+        return $this->drivers[$supplier->id] ??= new $supplier->driver($supplier);
     }
 
     /** Queue one job per product, on the supplier's own queue. */

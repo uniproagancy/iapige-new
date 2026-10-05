@@ -41,4 +41,7 @@ return [
     'write'               => 'Write to us',
     'message_placeholder' => 'Message…',
 
+    // the parent crumb above a single document page
+    'breadcrumb'          => 'Information',
+
 ];

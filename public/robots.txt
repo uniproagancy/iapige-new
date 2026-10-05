@@ -8,10 +8,10 @@ Disallow: /order/
 Disallow: /invoice/
 Disallow: /payment/
 
-# filtered listings are the same products in a different order
-Disallow: /*?f=
-Disallow: /*?sort=
-Disallow: /*?page=
+# Filtered and sorted listings are deliberately NOT blocked here. They carry
+# noindex and a canonical back to the clean category, and a crawler has to be
+# allowed in to read those — a URL blocked in robots.txt can still be indexed,
+# precisely because the noindex on it was never seen.
 
 Allow: /
 

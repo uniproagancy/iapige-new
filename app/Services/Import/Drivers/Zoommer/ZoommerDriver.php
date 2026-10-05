@@ -47,7 +47,7 @@ class ZoommerDriver implements SupplierDriver
             $p = $data['product'];
 
             $translations[$locale] = [
-                'name'        => $p['name'] ?? null,
+                'name' => $p['name'] ?? null,
                 'description' => $p['description'] ?? null,
             ];
 
@@ -58,15 +58,15 @@ class ZoommerDriver implements SupplierDriver
                     }
 
                     $specs[] = [
-                        'name'   => trim($spec['specificationName'] ?? ''),
-                        'value'  => trim($spec['specificationMeaning'] ?? ''),
+                        'name' => trim($spec['specificationName'] ?? ''),
+                        'value' => trim($spec['specificationMeaning'] ?? ''),
                         'locale' => $locale,
-                        'group'  => trim($group['groupName'] ?? ''),
-                        'key'    => (bool) ($spec['isMainSpecification'] ?? false),
+                        'group' => trim($group['groupName'] ?? ''),
+                        'key' => (bool) ($spec['isMainSpecification'] ?? false),
                         // the source links a spec to its own filter page exactly
                         // when that spec is filterable — no dedicated flag exists
                         'filterable' => filled($spec['specificationLinkedUrl'] ?? null),
-                        'color'      => ($spec['isColor'] ?? false) ? ($spec['colorValue'] ?? null) : null,
+                        'color' => ($spec['isColor'] ?? false) ? ($spec['colorValue'] ?? null) : null,
                     ];
                 }
             }
@@ -82,17 +82,17 @@ class ZoommerDriver implements SupplierDriver
             externalId: $externalId,
             // the barcode is shared between colour variants of one model, so the
             // source id is what keeps two variants from merging into one product
-            sku:          'ZOOM-'.$externalId,
-            costPrice:    (float) ($product['previousPrice'] ?? $product['price'] ?? 0),
+            sku: 'ZOOM-'.$externalId,
+            costPrice: (float) ($product['previousPrice'] ?? $product['price'] ?? 0),
             oldCostPrice: isset($product['previousPrice']) ? (float) $product['price'] : null,
-            stock:        $this->stock($base),
-            brandName:    $product['brandName'] ?? null,
+            stock: $this->stock($base),
+            brandName: $product['brandName'] ?? null,
             categoryName: $product['categoryName'] ?? null,
             translations: $translations,
-            specs:        $specs,
-            images:       $this->images($product),
-            isPreorder:   (bool) ($product['preOrder'] ?? $product['onSaleSoon'] ?? false),
-            releaseDate:  $product['releaseDate'] ?? null,
+            specs: $specs,
+            images: $this->images($product),
+            isPreorder: (bool) ($product['preOrder'] ?? $product['onSaleSoon'] ?? false),
+            releaseDate: $product['releaseDate'] ?? null,
             variantGroup: $this->variantGroup($externalId, $product),
         );
     }

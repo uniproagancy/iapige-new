@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Models\Language;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\Facebook\Pixel;
+use App\Services\Import\ImportManager;
+use App\Services\Import\TaxonomyResolver;
 use App\Support\Translation\DatabaseTranslationLoader;
 use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Support\Facades\Gate;
@@ -20,6 +23,15 @@ class AppServiceProvider extends ServiceProvider
     {
         // interface strings: lang/*.php first, then rows from ui_translations on top
         $this->app->extend('translation.loader', fn (Loader $files) => new DatabaseTranslationLoader($files));
+
+        // one per request, so its "already sent" list lasts exactly that long
+        $this->app->singleton(Pixel::class);
+
+        // one per worker, so a feed's repeated names are resolved once per run
+        $this->app->singleton(TaxonomyResolver::class);
+
+        // likewise the drivers, which would otherwise be rebuilt once per product
+        $this->app->singleton(ImportManager::class);
     }
 
     /**
@@ -70,10 +82,10 @@ class AppServiceProvider extends ServiceProvider
         $default = Language::defaultCode();
 
         config([
-            'app.locale'                           => $default,
-            'app.fallback_locale'                  => $default,
+            'app.locale' => $default,
+            'app.fallback_locale' => $default,
             'laravellocalization.supportedLocales' => $supported,
-            'laravellocalization.localesOrder'     => array_keys($supported),
+            'laravellocalization.localesOrder' => array_keys($supported),
         ]);
 
         $this->app->setLocale($default);

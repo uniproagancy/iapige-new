@@ -31,7 +31,7 @@
 
         @switch($view)
             @case('contact')
-                <x-info.contact :cards="$contactCards" :branches="$branches" :topics="$topics" />
+                <x-info.contact :cards="$contactCards" :topics="$topics" />
                 @break
             @case('about')
                 <x-info.about :values="$values" />

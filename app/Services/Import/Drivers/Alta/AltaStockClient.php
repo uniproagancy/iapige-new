@@ -3,7 +3,6 @@
 namespace App\Services\Import\Drivers\Alta;
 
 use SoapClient;
-use Throwable;
 
 /**
  * The B2B price list: a SOAP endpoint that answers with every item the
@@ -13,9 +12,7 @@ class AltaStockClient
 {
     protected ?SoapClient $client = null;
 
-    public function __construct(protected array $config = [])
-    {
-    }
+    public function __construct(protected array $config = []) {}
 
     protected function client(): SoapClient
     {
@@ -29,15 +26,16 @@ class AltaStockClient
             'trace' => 1, 'exceptions' => true, 'encoding' => 'UTF-8',
         ]);
     }
+
     /**
      * @return array<int, array{external_id:string, quantity:int}>
      */
     public function items(string $item = ''): array
     {
         $response = $this->client()->GetPriceList([
-            'user'     => config('services.alta.user'),
+            'user' => config('services.alta.user'),
             'password' => config('services.alta.password'),
-            'item'     => $item,
+            'item' => $item,
         ]);
 
         $items = $response->PriceList->items->item ?? [];
@@ -51,7 +49,7 @@ class AltaStockClient
 
             return $id === '' ? null : [
                 'external_id' => $id,
-                'quantity'    => $this->quantity($row->qty_text ?? null),
+                'quantity' => $this->quantity($row->qty_text ?? null),
             ];
         }, $items)));
     }

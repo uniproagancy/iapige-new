@@ -5,10 +5,12 @@ namespace App\Livewire\Pages;
 use App\Models\Cart as CartModel;
 use App\Models\DeliveryCity;
 use App\Models\Order;
+use App\Models\OrderPixelData;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\UserAddress;
 use App\Services\Cart;
+use App\Services\Facebook\Pixel;
 use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\PaymentManager;
 use App\Support\Catalog;
@@ -87,6 +89,45 @@ class Checkout extends Component
 
         $this->cityId ??= DeliveryCity::active()->value('id');
         $this->payment = $this->payment ?: (string) (PaymentMethod::active()->value('code') ?? 'cash');
+
+        $this->trackCheckoutStarted();
+    }
+
+    /**
+     * Keeps what the browser knows, for a Purchase reported later.
+     *
+     * A card payment is confirmed by a bank callback hours after the customer
+     * has gone, and Meta still wants their cookies and user agent — this is the
+     * last moment those exist.
+     */
+    protected function snapshotForPixel(Order $order): OrderPixelData
+    {
+        $pixel = app(Pixel::class);
+        $browser = $pixel->browserData();
+
+        return OrderPixelData::updateOrCreate(['order_id' => $order->id], [
+            'event_id'   => Pixel::eventId('pu'),
+            'fbp'        => $browser['fbp'] ?? null,
+            'fbc'        => $browser['fbc'] ?? null,
+            'ip'         => $browser['client_ip_address'] ?? null,
+            'user_agent' => $browser['client_user_agent'] ?? null,
+            'source_url' => route('order', $order->number),
+            'consented'  => $pixel->consented(),
+        ]);
+    }
+
+    /** Reaching this page with something to buy is the start of a checkout. */
+    protected function trackCheckoutStarted(): void
+    {
+        $lines = $this->lines();
+
+        if (! $lines) {
+            return;
+        }
+
+        $subtotal = array_sum(array_column($lines, 'sum'));
+
+        $this->dispatch('pixel', ...app(Pixel::class)->initiateCheckout($lines, $subtotal + $this->shipping()));
     }
 
     /** The address the customer used last time, so the form opens filled in. */
@@ -222,8 +263,17 @@ class Checkout extends Component
         session()->push('placed_orders', $order->id);
         $this->placedNumber = $order->number;
 
+        $snapshot = $this->snapshotForPixel($order);
+
         if ($this->isOnline()) {
+            // the sale is not real until the bank says so; PaymentManager
+            // reports it from the callback, using this snapshot
             return $this->sendToBank($order);
+        }
+
+        // cash on delivery: the order itself is the conversion
+        if (app(Pixel::class)->purchase($order->loadMissing('items'), $snapshot->event_id)) {
+            $snapshot->markSent();
         }
 
         session()->flash('toast', __('checkout.placed', ['number' => $order->number]));
@@ -509,6 +559,8 @@ class Checkout extends Component
             'tab'     => '',
             'pageCss' => 'checkout',
             'title'   => __('checkout.title').' — IAPI.GE',
+            // a cart is one person's session, never an index entry
+            'seo'     => ['robots' => 'noindex, nofollow'],
         ])->section('content');
     }
 }

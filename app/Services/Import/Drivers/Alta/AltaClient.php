@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Http;
  */
 class AltaClient
 {
-    public function __construct(protected array $config = [])
-    {
-    }
+    public function __construct(protected array $config = []) {}
 
     /** The product page route for an external id, or null when it is unknown. */
     public function route(string $externalId): ?string
@@ -41,7 +39,7 @@ class AltaClient
         $initial = $json['props']['pageProps']['initialProductData'] ?? [];
 
         return empty($initial['product']) ? null : [
-            'product'              => $initial['product'],
+            'product' => $initial['product'],
             'availabilityInStores' => $initial['availabilityInStores'] ?? [],
         ];
     }
@@ -57,7 +55,7 @@ class AltaClient
         $response = Http::timeout($this->config['timeout'] ?? 30)
             ->retry(2, 500, throw: false)
             ->withHeaders([
-                'Accept'     => $accept,
+                'Accept' => $accept,
                 'User-Agent' => config('services.alta.user_agent', 'Mozilla/5.0'),
             ])
             ->get(config('services.alta.worker_url'), $query + ['token' => config('services.alta.token')]);

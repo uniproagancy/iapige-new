@@ -19,6 +19,25 @@ class ImageDownloader
 {
     protected const DISK = 'public';
 
+    /*
+     | A photograph is worth waiting a few seconds for, not a few minutes.
+     |
+     | The old budget was 30s read + 10s connect with two retries, per image,
+     | for up to eight images: a single product whose CDN had gone quiet could
+     | hold the importer for twelve minutes. These numbers cap one product's
+     | gallery at roughly half a minute.
+     */
+    protected const CONNECT_TIMEOUT = 5;
+
+    protected const READ_TIMEOUT = 10;
+
+    protected const RETRIES = 1;
+
+    protected const FAILURES_BEFORE_SKIP = 5;
+
+    /** host => consecutive failures, for the life of this worker process */
+    protected static array $failures = [];
+
     /** @param  array<int, string>  $urls */
     public function sync(Product $product, array $urls, int $limit = 8): void
     {
@@ -29,8 +48,8 @@ class ImageDownloader
                 // one unreachable photograph must not cost us the gallery
                 Log::channel('import')->warning('image skipped', [
                     'product' => $product->id,
-                    'url'     => $url,
-                    'error'   => $e->getMessage(),
+                    'url' => $url,
+                    'error' => $e->getMessage(),
                 ]);
 
                 continue;
@@ -60,10 +79,14 @@ class ImageDownloader
             return $path;
         }
 
+        if ($this->hostIsDown($url)) {
+            return null;
+        }
+
         try {
-            $response = Http::timeout(30)
-                ->connectTimeout(10)
-                ->retry(2, 1000, throw: false)
+            $response = Http::timeout(self::READ_TIMEOUT)
+                ->connectTimeout(self::CONNECT_TIMEOUT)
+                ->retry(self::RETRIES, 500, throw: false)
                 ->withOptions([
                     // Windows PHP tries IPv6 first and waits out the timeout
                     'force_ip_resolve' => 'v4',
@@ -71,26 +94,64 @@ class ImageDownloader
                 ->withHeaders([
                     'User-Agent' => config('services.import.user_agent', 'Mozilla/5.0'),
                     // some CDNs refuse a request that arrives from nowhere
-                    'Referer'    => parse_url($url, PHP_URL_SCHEME).'://'.parse_url($url, PHP_URL_HOST).'/',
+                    'Referer' => parse_url($url, PHP_URL_SCHEME).'://'.parse_url($url, PHP_URL_HOST).'/',
                 ])
                 ->get($url);
 
             if (! $response->successful()) {
-                Log::warning('image download failed', [
+                $this->noteFailure($url);
+
+                Log::channel('import')->warning('image download failed', [
                     'product' => $product->id, 'url' => $url, 'status' => $response->status(),
                 ]);
 
                 return null;
             }
 
+            unset(self::$failures[$this->hostOf($url)]);
+
             Storage::disk(self::DISK)->put($path, $response->body());
 
             return $path;
         } catch (\Throwable $e) {
-            Log::warning('image download error: '.$e->getMessage(), ['product' => $product->id, 'url' => $url]);
+            $this->noteFailure($url);
+
+            Log::channel('import')->warning('image download error: '.$e->getMessage(), [
+                'product' => $product->id, 'url' => $url,
+            ]);
 
             return null;
         }
+    }
+
+    /* ------------------------------------------------------------------ circuit breaker */
+
+    /**
+     * A host that has failed this many times in a row is treated as down for
+     * the rest of the run.
+     *
+     * Without this, a supplier whose image server is offline costs every one of
+     * its products the full timeout budget — thousands of products each waiting
+     * on the same dead host, one after another.
+     */
+    protected function hostIsDown(string $url): bool
+    {
+        return (self::$failures[$this->hostOf($url)] ?? 0) >= self::FAILURES_BEFORE_SKIP;
+    }
+
+    protected function noteFailure(string $url): void
+    {
+        $host = $this->hostOf($url);
+        self::$failures[$host] = (self::$failures[$host] ?? 0) + 1;
+
+        if (self::$failures[$host] === self::FAILURES_BEFORE_SKIP) {
+            Log::channel('import')->warning('image host skipped for this run', ['host' => $host]);
+        }
+    }
+
+    protected function hostOf(string $url): string
+    {
+        return (string) (parse_url($url, PHP_URL_HOST) ?: 'unknown');
     }
 
     protected function extension(string $url): string

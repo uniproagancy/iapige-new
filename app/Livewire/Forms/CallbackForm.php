@@ -68,6 +68,13 @@ class CallbackForm extends Component
         ]);
 
         $this->sent = true;
+
+        // a phone number left on purpose is the definition of a lead
+        $this->dispatch('pixel', ...app(\App\Services\Facebook\Pixel::class)->lead([
+            'phone' => $this->phone,
+            'name'  => $this->name,
+        ]));
+
         $this->reset('comment');
 
         $this->dispatch('toast', message: __('product.callback_sent'));

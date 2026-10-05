@@ -5,6 +5,7 @@ namespace App\Services\Import;
 use App\Models\Product;
 use App\Models\ProductOffer;
 use App\Models\ProductSpec;
+use App\Models\ProductSpecTranslation;
 use App\Models\Supplier;
 use App\Support\Slug;
 use Illuminate\Support\Facades\DB;
@@ -22,20 +23,42 @@ class ProductImporter
     public function __construct(
         protected TaxonomyResolver $taxonomy,
         protected ImageDownloader $images,
-    ) {
-    }
+    ) {}
 
     public function import(Supplier $supplier, ProductPayload $payload): ?Product
+    {
+        [$product, $isNew] = $this->write($supplier, $payload);
+
+        /*
+         * Photographs are downloaded after the transaction has closed, never
+         * inside it. Eight images from a slow CDN are minutes of waiting, and
+         * doing that with the transaction open held row locks on products and
+         * product_offers for the whole time — long enough for other import
+         * workers to pile up behind it and time out.
+         */
+        if ($product && $isNew && $payload->images) {
+            $this->images->sync($product, $payload->images);
+        }
+
+        return $product;
+    }
+
+    /**
+     * Everything that belongs in one transaction, and nothing that does not.
+     *
+     * @return array{0: ?Product, 1: bool}
+     */
+    protected function write(Supplier $supplier, ProductPayload $payload): array
     {
         return DB::transaction(function () use ($supplier, $payload) {
             $product = $this->find($supplier, $payload);
             $isNew = ! $product;
 
             $product ??= new Product([
-                'sku'    => $payload->sku,
+                'sku' => $payload->sku,
                 'status' => Product::STATUS_DRAFT,   // a human publishes it
-                'price'  => $supplier->markup($payload->costPrice),
-                'stock'  => $payload->stock,
+                'price' => $supplier->markup($payload->costPrice),
+                'stock' => $payload->stock,
             ]);
 
             $this->fillTaxonomy($product, $supplier, $payload);
@@ -54,14 +77,14 @@ class ProductImporter
             ProductOffer::updateOrCreate(
                 ['supplier_id' => $supplier->id, 'external_id' => $payload->externalId],
                 [
-                    'product_id'        => $product->id,
-                    'cost_price'        => $payload->costPrice,
-                    'old_cost_price'    => $payload->oldCostPrice,
-                    'stock'             => $payload->stock,
+                    'product_id' => $product->id,
+                    'cost_price' => $payload->costPrice,
+                    'old_cost_price' => $payload->oldCostPrice,
+                    'stock' => $payload->stock,
                     // kept so a mapping made later can be applied without a re-import
                     'external_category' => $payload->categoryName,
-                    'external_brand'    => $payload->brandName,
-                    'synced_at'         => now(),
+                    'external_brand' => $payload->brandName,
+                    'synced_at' => now(),
                 ],
             );
 
@@ -69,24 +92,20 @@ class ProductImporter
             $this->syncTranslations($product, $payload);
             $this->syncSpecs($product, $supplier, $payload);
 
-            if ($isNew && $payload->images) {
-                $this->images->sync($product, $payload->images);
-            }
-
             if (! $product->category_id) {
                 $this->log('imported without a category', $supplier, $payload, [
-                    'product'       => $product->id,
+                    'product' => $product->id,
                     'external_name' => $payload->categoryName,
                 ]);
             }
 
             $this->log($isNew ? 'imported (new)' : 'updated', $supplier, $payload, [
                 'product' => $product->id,
-                'stock'   => $payload->stock,
-                'price'   => $product->price,
+                'stock' => $payload->stock,
+                'price' => $product->price,
             ]);
 
-            return $product;
+            return [$product, $isNew];
         });
     }
 
@@ -172,7 +191,7 @@ class ProductImporter
                 'name' => $fields['name'],
                 // a published slug is never regenerated: changing it breaks links
                 'slug' => $existing?->slug ?: $this->slugFor($product, $fields['name'], $locale),
-                'summary'     => $fields['summary'] ?? $existing?->summary,
+                'summary' => $fields['summary'] ?? $existing?->summary,
                 'description' => $fields['description'] ?? $existing?->description,
             ];
         }
@@ -217,6 +236,9 @@ class ProductImporter
 
         $valueIds = [];
         $order = 0;
+        $specRows = [];
+        $byAttribute = [];
+        $now = now();
 
         foreach (collect($payload->specs)->groupBy('name') as $name => $rows) {
             $filterable = (bool) ($rows->first()['filterable'] ?? false);
@@ -226,18 +248,60 @@ class ProductImporter
                 continue;
             }
 
-            $spec = ProductSpec::updateOrCreate(
-                ['product_id' => $product->id, 'attribute_id' => $attribute->id],
-                ['is_key' => (bool) ($rows->first()['key'] ?? false), 'sort_order' => $order++],
-            );
+            $specRows[] = [
+                'product_id' => $product->id,
+                'attribute_id' => $attribute->id,
+                'is_key' => (bool) ($rows->first()['key'] ?? false),
+                'sort_order' => $order++,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
 
-            $spec->saveTranslations(
-                $rows->mapWithKeys(fn ($r) => [$r['locale'] => ['value' => $r['value']]])->all()
-            );
+            $byAttribute[$attribute->id] = $rows;
 
             // a value the resolver rejected ("-", empty) must not become a filter
             if ($value = $this->taxonomy->attributeValue($attribute, $rows->all())) {
                 $valueIds[] = $value->id;
+            }
+        }
+
+        /*
+         * Written in bulk rather than row by row.
+         *
+         * A product with fifteen specs in two languages used to cost forty-five
+         * statements here — one lookup and one write per spec, then one more
+         * per spec per language. Both tables carry the unique key an upsert
+         * needs, so the whole block is three.
+         */
+        if ($specRows) {
+            ProductSpec::upsert($specRows, ['product_id', 'attribute_id'], ['is_key', 'sort_order', 'updated_at']);
+
+            $specIds = ProductSpec::where('product_id', $product->id)->pluck('id', 'attribute_id');
+
+            $translations = [];
+
+            foreach ($byAttribute as $attributeId => $rows) {
+                $specId = $specIds[$attributeId] ?? null;
+
+                if (! $specId) {
+                    continue;
+                }
+
+                foreach ($rows as $row) {
+                    if (! filled($row['value'] ?? null)) {
+                        continue;
+                    }
+
+                    $translations[] = [
+                        'product_spec_id' => $specId,
+                        'locale' => $row['locale'],
+                        'value' => $row['value'],
+                    ];
+                }
+            }
+
+            if ($translations) {
+                ProductSpecTranslation::upsert($translations, ['product_spec_id', 'locale'], ['value']);
             }
         }
 
@@ -251,8 +315,8 @@ class ProductImporter
         Log::channel('import')->info($message, array_merge([
             'supplier' => $supplier?->code,
             'external' => $payload->externalId,
-            'sku'      => $payload->sku,
-            'name'     => $payload->translations[array_key_first($payload->translations)]['name'] ?? null,
+            'sku' => $payload->sku,
+            'name' => $payload->translations[array_key_first($payload->translations)]['name'] ?? null,
         ], $extra));
     }
 }

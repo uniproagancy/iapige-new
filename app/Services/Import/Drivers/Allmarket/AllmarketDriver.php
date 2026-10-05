@@ -76,18 +76,18 @@ class AllmarketDriver implements SupplierDriver
         ));
 
         return new ProductPayload(
-            externalId:   $code,
-            sku:          $this->supplier->code.'-'.$code,
-            costPrice:    $price,
+            externalId: $code,
+            sku: $this->supplier->code.'-'.$code,
+            costPrice: $price,
             oldCostPrice: $old,
-            stock:        (int) ($data['quantity'] ?? 0),
-            brandName:    $data['brand']['title'] ?? $this->valueOf($specs, ['ბრენდი', 'Brand']),
+            stock: (int) ($data['quantity'] ?? 0),
+            brandName: $data['brand']['title'] ?? $this->valueOf($specs, ['ბრენდი', 'Brand']),
             categoryName: $data['categories'][0]['title'] ?? null,
             translations: [$locale => [
-                'name'        => $name,
+                'name' => $name,
                 'description' => $description ?: null,
             ]],
-            specs:  $specs,
+            specs: $specs,
             images: $images,
         );
     }
@@ -115,13 +115,13 @@ class AllmarketDriver implements SupplierDriver
             }
 
             $specs[] = [
-                'name'   => $name,
-                'value'  => $value,
+                'name' => $name,
+                'value' => $value,
                 'locale' => $locale,
-                'key'    => false,
+                'key' => false,
                 // nothing is filterable on arrival; that is decided in the admin
                 'filterable' => false,
-                'color'      => null,
+                'color' => null,
             ];
         }
 
@@ -247,8 +247,8 @@ class AllmarketDriver implements SupplierDriver
     /**
      * A spec by any of its names — the brand is sometimes only in the list.
      *
-     * @param array<int, array> $specs
-     * @param array<int, string> $names
+     * @param  array<int, array>  $specs
+     * @param  array<int, string>  $names
      */
     protected function valueOf(array $specs, array $names): ?string
     {
