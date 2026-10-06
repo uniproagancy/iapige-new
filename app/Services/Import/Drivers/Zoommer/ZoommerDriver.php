@@ -15,11 +15,23 @@ class ZoommerDriver implements SupplierDriver
         $this->client = new ZoommerClient($supplier->config ?? []);
     }
 
-    /** This source has no catalogue endpoint, so we walk its id range. */
+    /**
+     * This source has no catalogue endpoint, so we walk its id range.
+     *
+     * One request first, to find out whether the source is talking to us at
+     * all. Without it a blocked address queued the whole range and every job
+     * failed in turn — a thousand identical warnings saying the same thing,
+     * where one refusal up front says it once and stops.
+     *
+     * @throws BlockedByZoommer
+     */
     public function ids(): iterable
     {
         $from = (int) ($this->supplier->config['from'] ?? 1);
         $to = (int) ($this->supplier->config['to'] ?? 1000);
+
+        // a missing product answers with an empty array; only a refusal throws
+        $this->client->fetch((string) $from, ['ka']);
 
         for ($id = $from; $id <= $to; $id++) {
             yield $id;
