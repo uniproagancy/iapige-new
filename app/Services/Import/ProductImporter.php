@@ -173,15 +173,25 @@ class ProductImporter
 
     protected function fillTaxonomy(Product $product, Supplier $supplier, ProductPayload $payload): void
     {
+        /*
+         * The names are resolved even for a locked product.
+         *
+         * Locking a product says "do not move this one", not "stop telling me
+         * about new names" — and returning early meant exactly the second thing:
+         * a category nobody had mapped yet was never parked, so it never
+         * appeared in the admin's queue and every later product arriving under
+         * that same name was uncategorised with nothing to map it by. One locked
+         * product was enough to hide a whole category.
+         */
+        $category = $this->taxonomy->category($supplier, $payload->categoryName);
+        $brand = $this->taxonomy->brand($payload->brandName);
+
         if ($product->taxonomy_lock) {
-            return;
+            return;   // seen and recorded, but this product keeps what it has
         }
 
-        $product->category_id = $this->taxonomy->category($supplier, $payload->categoryName)?->id
-            ?? $product->category_id;
-
-        $product->brand_id = $this->taxonomy->brand($payload->brandName)?->id
-            ?? $product->brand_id;
+        $product->category_id = $category?->id ?? $product->category_id;
+        $product->brand_id = $brand?->id ?? $product->brand_id;
     }
 
     protected function syncTranslations(Product $product, ProductPayload $payload): void

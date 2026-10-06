@@ -122,6 +122,11 @@ return [
     'sort_stock'               => 'Stock ↑',
     'sort_sales'               => 'Sales ↓',
 
+    /* ------------------------------------------------------------ mapping */
+    'new_parameters'             => 'New parameters',
+    'specs_moved'                => ':count specs moved',
+    'mapped_and_moved'           => ':count mapped, :specs specs moved',
+
     /* ------------------------------------------------------------ ready */
     'ready_to_publish'         => 'Ready to publish',
     'not_ready'                => 'Not ready to publish',

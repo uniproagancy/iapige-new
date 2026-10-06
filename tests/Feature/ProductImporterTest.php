@@ -186,6 +186,37 @@ class ProductImporterTest extends TestCase
         $this->assertDatabaseCount('product_images', 1);
     }
 
+    /**
+     * Re-importing changes nothing it does not have to.
+     *
+     * The importer runs every night over the same catalogue, so anything that
+     * inserts instead of upserting shows up as a table that grows without the
+     * shop gaining a thing.
+     */
+    public function test_re_importing_creates_no_duplicates(): void
+    {
+        $importer = app(ProductImporter::class);
+        $importer->import($this->supplier, $this->payload());
+
+        $counts = fn () => [
+            'products' => Product::count(),
+            'specs' => DB::table('product_specs')->count(),
+            'spec_translations' => DB::table('product_spec_translations')->count(),
+            'attributes' => DB::table('attributes')->count(),
+            'attribute_values' => DB::table('attribute_values')->count(),
+            'value_links' => DB::table('attribute_value_product')->count(),
+            'attribute_map' => DB::table('supplier_attribute_map')->count(),
+            'category_map' => DB::table('supplier_category_map')->count(),
+            'brands' => DB::table('brands')->count(),
+            'offers' => DB::table('product_offers')->count(),
+        ];
+
+        $before = $counts();
+        $importer->import($this->supplier, $this->payload());
+
+        $this->assertSame($before, $counts());
+    }
+
     /** An unmapped category parks the name and leaves the product uncategorised. */
     public function test_an_unknown_category_is_parked(): void
     {
@@ -202,6 +233,7 @@ class ProductImporterTest extends TestCase
         int $stock = 5,
         string $name = 'ლეპტოპი',
         string $category = 'Laptops',
+        ?array $specs = null,
     ): ProductPayload {
         return new ProductPayload(
             externalId: 'EXT-1',
@@ -215,7 +247,7 @@ class ProductImporterTest extends TestCase
                 'ka' => ['name' => $name, 'summary' => 'შეჯამება'],
                 'en' => ['name' => 'Laptop', 'summary' => 'Summary'],
             ],
-            specs: [
+            specs: $specs ?? [
                 ['name' => 'CPU', 'value' => $cpu, 'locale' => 'ka', 'filterable' => true, 'key' => true],
                 ['name' => 'CPU', 'value' => $cpu, 'locale' => 'en', 'filterable' => true, 'key' => true],
                 ['name' => 'RAM', 'value' => '32GB', 'locale' => 'ka'],

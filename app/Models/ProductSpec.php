@@ -23,7 +23,8 @@ class ProductSpec extends Model
     protected function casts(): array
     {
         return [
-            'is_key'     => 'boolean',
+            'is_key' => 'boolean',
+            'is_manual' => 'boolean',
             'sort_order' => 'integer',
         ];
     }

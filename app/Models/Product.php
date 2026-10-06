@@ -30,8 +30,18 @@ class Product extends Model
 
     protected array $translatable = ['name', 'slug', 'summary', 'description', 'meta_title', 'meta_description'];
 
+    /*
+     | Every column the admin form and the importer actually write.
+     |
+     | cost_price, price_lock and taxonomy_lock were missing, and fill() drops
+     | what it is not told about without a word — so the two switches that exist
+     | precisely to stop the importer overwriting a human's decision could never
+     | be saved from the product form. Ticking "keep my price" appeared to work
+     | and the next run replaced the price anyway.
+     */
     protected $fillable = [
-        'category_id', 'brand_id', 'sku', 'price', 'old_price', 'stock', 'status',
+        'category_id', 'brand_id', 'sku', 'price', 'old_price', 'cost_price',
+        'price_lock', 'taxonomy_lock', 'stock', 'status',
         'is_new', 'is_featured', 'rating', 'reviews_count', 'sales_count', 'published_at',
         'weight', 'length', 'width', 'height', 'is_bulky', 'variant_group', 'is_preorder', 'release_date', 'prepay_percent',
     ];
@@ -41,6 +51,9 @@ class Product extends Model
         return [
             'price' => 'decimal:2',
             'old_price' => 'decimal:2',
+            'cost_price' => 'decimal:2',
+            'price_lock' => 'boolean',
+            'taxonomy_lock' => 'boolean',
             'stock' => 'integer',
             'is_new' => 'boolean',
             'is_featured' => 'boolean',
