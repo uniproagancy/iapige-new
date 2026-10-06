@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Alta;
 
+use RuntimeException;
 use SoapClient;
 
 /**

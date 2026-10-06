@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Supplier;
 use App\Services\Import\ImportManager;
 use App\Services\Import\ProductImporter;
+use App\Support\Redact;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\RateLimited;
@@ -40,11 +41,16 @@ class ImportProductJob implements ShouldQueue
         try {
             $payload = $manager->driver($supplier)->fetch($this->externalId);
         } catch (\Throwable $e) {
-            // on the import channel with everything else, not the application log
+            /*
+             * On the import channel with everything else, and with the
+             * credentials taken out: several suppliers carry a token in the
+             * query string, so a client error quotes the whole URL and a plain
+             * timeout was enough to write a live token into the log file.
+             */
             Log::channel('import')->warning('import fetch failed', [
                 'supplier' => $supplier->code,
                 'external' => $this->externalId,
-                'error' => $e->getMessage(),
+                'error' => Redact::secrets($e->getMessage()),
             ]);
 
             return;   // a single bad product must not stop the run

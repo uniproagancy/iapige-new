@@ -104,12 +104,40 @@ class CheckZoommerAccess extends Command
             isset($data['error']) => 'error: '.$data['error'],
             is_array($data) && array_key_exists('product', $data) => 'no such product (which is a working route)',
             $result['status'] === 'no answer' => mb_substr($result['body'], 0, 60),
+            (bool) $this->cloudflareCode($result['body']) => $this->cloudflareCode($result['body']),
             default => mb_substr(trim(strip_tags($result['body'])), 0, 60) ?: '(empty)',
         };
 
         $colour = $result['status'] === 200 ? 'green' : 'red';
 
         return ["<fg={$colour}>{$result['status']}</>", $said];
+    }
+
+    /**
+     * Cloudflare's own numbered refusals, spelled out.
+     *
+     * The body of one of these says only "error code: 1006", which is the
+     * difference between an address somebody has banned and a challenge that
+     * would pass on a retry — and nobody should have to go and look it up.
+     */
+    protected function cloudflareCode(string $body): ?string
+    {
+        if (! preg_match('/error code:\s*(\d{4})/i', $body, $m)) {
+            return null;
+        }
+
+        $code = $m[1];
+
+        $meaning = match ($code) {
+            '1006', '1007', '1008' => 'the site owner has banned this IP address',
+            '1009' => 'the site owner has blocked this country',
+            '1010' => 'the site refused the browser fingerprint',
+            '1015' => 'rate limited by the site owner',
+            '1020' => 'blocked by one of the site owner firewall rules',
+            default => 'a Cloudflare refusal',
+        };
+
+        return "Cloudflare {$code} — {$meaning}";
     }
 
     /** @param  array<int, array<int, string>>  $rows */
@@ -146,7 +174,8 @@ class CheckZoommerAccess extends Command
         if ($worker === '') {
             $this->warn('This address is refused (403) whatever it sends — that is Cloudflare '
                 .'turning away the caller, and no cookie or header changes it. Set '
-                .'ZOOMMER_WORKER_URL to a worker that fetches zoommer.ge for you.');
+                .'ZOOMMER_WORKER_URL to a worker that fetches zoommer.ge for you, then run this '
+                .'again: it will test that route too.');
 
             return;
         }

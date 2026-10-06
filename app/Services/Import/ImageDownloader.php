@@ -4,6 +4,7 @@ namespace App\Services\Import;
 
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Support\Redact;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -60,8 +61,8 @@ class ImageDownloader
                 // one unreachable photograph must not cost us the gallery
                 Log::channel('import')->warning('image skipped', [
                     'product' => $product->id,
-                    'url' => $url,
-                    'error' => $e->getMessage(),
+                    'url' => Redact::secrets($url),
+                    'error' => Redact::secrets($e->getMessage()),
                 ]);
 
                 continue;
@@ -114,7 +115,7 @@ class ImageDownloader
                 $this->noteFailure($url);
 
                 Log::channel('import')->warning('image download failed', [
-                    'product' => $product->id, 'url' => $url, 'status' => $response->status(),
+                    'product' => $product->id, 'url' => Redact::secrets($url), 'status' => $response->status(),
                 ]);
 
                 return null;
@@ -128,8 +129,8 @@ class ImageDownloader
         } catch (\Throwable $e) {
             $this->noteFailure($url);
 
-            Log::channel('import')->warning('image download error: '.$e->getMessage(), [
-                'product' => $product->id, 'url' => $url,
+            Log::channel('import')->warning('image download error: '.Redact::secrets($e->getMessage()), [
+                'product' => $product->id, 'url' => Redact::secrets($url),
             ]);
 
             return null;

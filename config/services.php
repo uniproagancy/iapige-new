@@ -55,6 +55,10 @@ return [
         'password' => env('ALTA_B2B_PASSWORD'),
         'worker_url' => env('ALTA_WORKER_URL'),
         'token' => env('ALTA_ACCESS_TOKEN'),
+        // alta.ge serves a Cloudflare browser challenge, so a clearance taken
+        // from a browser is forwarded with the request; it is bound to the
+        // user agent it was issued for, so the two travel together
+        'cf_clearance' => env('ALTA_CF_CLEARANCE'),
         'user_agent' => env('ALTA_USER_AGENT', 'Mozilla/5.0'),
     ],
     'elite' => [
