@@ -126,8 +126,29 @@ class EliteDriver implements SupplierDriver
                 'description' => $p['description'] ?? null,
             ]],
             specs: $specs,
-            images: array_values(array_filter($p['images'] ?? [])),
+            images: $this->images($p),
         );
+    }
+
+    /**
+     * Every photograph of this product, the declared one first.
+     *
+     * Only the "images" array was read, and the source does not always put its
+     * own "imageUrl" in it — product 1000 names a main picture that appears
+     * nowhere in the list, so that product came in with two photographs out of
+     * three and the one the supplier chose to lead with was the one lost.
+     *
+     * @return array<int, string>
+     */
+    protected function images(array $product): array
+    {
+        $main = trim((string) ($product['imageUrl'] ?? ''));
+        $rest = array_values(array_filter($product['images'] ?? []));
+
+        $urls = $main === '' ? $rest : array_values(array_unique(array_merge([$main], $rest)));
+
+        // through the proxy when there is one: static.ee.ge refuses the server
+        return array_map(fn ($url) => $this->client->imageUrl($url), $urls);
     }
 
     /** What the latest spreadsheet says about this barcode. */

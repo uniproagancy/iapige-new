@@ -55,6 +55,30 @@ class EliteClient
         ];
     }
 
+    /**
+     * A photograph's address, through the proxy when there is one.
+     *
+     * The pictures sit on static.ee.ge rather than behind the API, and that host
+     * refuses the shop's server even though it answers a laptop — which is why
+     * products arrived complete and bare, and why this looked like a fault in
+     * the importer. The proxy already carries an image branch for exactly this.
+     *
+     * The downloader stays supplier-agnostic: the driver hands it whichever
+     * address works, and names the stored file after it.
+     */
+    public function imageUrl(string $url): string
+    {
+        if (! $worker = config('services.elite.worker_url')) {
+            return $url;
+        }
+
+        return rtrim($worker, '/').'?'.http_build_query(array_filter([
+            'type' => 'image',
+            'url' => $url,
+            'token' => config('services.elite.token'),
+        ]));
+    }
+
     /** What to actually go and fix, per status. */
     protected function refusal(int $status): string
     {
