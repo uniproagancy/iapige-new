@@ -44,10 +44,10 @@ return [
         // not checked at all — only zoommer-access_token is
         'cf_clearance' => env('ZOOMMER_CF_CLEARANCE'),
 
-        // set these to reach the source through a proxy, as the Elite driver
-        // does; a 403 is Cloudflare refusing a server address, not a bad cookie
+        // set this to reach the source through the shop's worker, as the Elite
+        // and Alta drivers do; a 403 is Cloudflare refusing a server address,
+        // not a bad cookie, so no header can fix it from here
         'worker_url' => env('ZOOMMER_WORKER_URL'),
-        'worker_token' => env('ZOOMMER_WORKER_TOKEN'),
     ],
     'alta' => [
         'wsdl' => env('ALTA_WSDL', 'http://extra.alta.com.ge/b2b/b2bEWS?WSDL'),

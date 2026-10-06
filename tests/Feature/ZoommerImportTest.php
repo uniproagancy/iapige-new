@@ -118,52 +118,72 @@ class ZoommerImportTest extends TestCase
         $client->fetch('54500', ['ka']);
     }
 
-    /* ------------------------------------------------------------------ proxy */
+    /* ------------------------------------------------------------------ worker */
 
     /**
      * With no worker configured the request goes straight to the source.
      *
-     * A laptop's address is not refused, so making the proxy mandatory would
+     * A laptop's address is not refused, so making the worker mandatory would
      * mean nobody could run an import without deploying one.
      */
     public function test_it_calls_the_source_directly_by_default(): void
     {
         config(['services.zoommer.worker_url' => null]);
 
-        $this->assertStringStartsWith(
+        $this->assertSame(
             'https://zoommer.ge/api/proxy/v1/Products/details?productId=54500',
             $this->endpointFor('54500'),
         );
     }
 
-    /** With one configured, the target travels as a parameter. */
+    /** The worker's own shape, so the shop and the worker agree. */
     public function test_it_calls_through_the_worker_when_one_is_configured(): void
     {
         config([
-            'services.zoommer.worker_url' => 'https://proxy.example.workers.dev',
-            'services.zoommer.worker_token' => 'secret-123',
+            'services.zoommer.worker_url' => 'https://w.example.workers.dev',
+            'services.zoommer.access_token' => 'tok-123',
         ]);
 
-        $endpoint = $this->endpointFor('54500');
+        $query = $this->queryOf($this->endpointFor('54500'));
 
-        $this->assertStringStartsWith('https://proxy.example.workers.dev?', $endpoint);
-
-        $query = [];
-        parse_str(parse_url($endpoint, PHP_URL_QUERY), $query);
-
-        $this->assertSame('https://zoommer.ge/api/proxy/v1/Products/details?productId=54500', $query['url']);
-        $this->assertSame('secret-123', $query['token']);
+        $this->assertSame('product', $query['type']);
+        $this->assertSame('54500', $query['productId']);
+        $this->assertSame('tok-123', $query['accessToken']);
     }
 
-    /** A worker with no token set is still usable; the worker decides that. */
+    /** The token stays in this project's .env, not duplicated into the worker. */
     public function test_the_token_is_left_out_when_it_is_not_set(): void
     {
         config([
-            'services.zoommer.worker_url' => 'https://proxy.example.workers.dev/',
-            'services.zoommer.worker_token' => null,
+            'services.zoommer.worker_url' => 'https://w.example.workers.dev/',
+            'services.zoommer.access_token' => null,
         ]);
 
-        $this->assertStringNotContainsString('token=', $this->endpointFor('54500'));
+        $this->assertArrayNotHasKey('accessToken', $this->queryOf($this->endpointFor('54500')));
+    }
+
+    /** Pictures sit on another host, and go the same way when there is a worker. */
+    public function test_image_addresses_go_through_the_worker_too(): void
+    {
+        config([
+            'services.zoommer.worker_url' => 'https://w.example.workers.dev',
+            'services.zoommer.access_token' => 'tok-123',
+        ]);
+
+        $original = 'https://s3.zoommer.ge/site/abc_Thumb.jpeg';
+        $query = $this->queryOf((new ZoommerClient)->imageUrl($original));
+
+        $this->assertSame('image', $query['type']);
+        $this->assertSame($original, $query['url']);
+    }
+
+    public function test_image_addresses_are_untouched_without_a_worker(): void
+    {
+        config(['services.zoommer.worker_url' => null]);
+
+        $url = 'https://s3.zoommer.ge/site/abc_Thumb.jpeg';
+
+        $this->assertSame($url, (new ZoommerClient)->imageUrl($url));
     }
 
     protected function endpointFor(string $id): string
@@ -172,6 +192,15 @@ class ZoommerImportTest extends TestCase
         $method->setAccessible(true);
 
         return $method->invoke(new ZoommerClient, $id);
+    }
+
+    /** @return array<string, string> */
+    protected function queryOf(string $url): array
+    {
+        $query = [];
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+        return $query;
     }
 
     /* ------------------------------------------------------------------ helpers */

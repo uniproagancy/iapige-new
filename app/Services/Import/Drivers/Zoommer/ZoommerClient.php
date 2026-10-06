@@ -52,6 +52,17 @@ class ZoommerClient
             'sec-fetch-mode' => 'cors',
             'sec-fetch-site' => 'same-origin',
             'Cookie' => $this->cookie(),
+
+            /*
+             * The same cookie under a name no host strips.
+             *
+             * Shared hosting and some proxies drop or rewrite an inbound Cookie
+             * header, and this one carries the only credential the API checks —
+             * losing it turns a working proxy into a 401. Sent only when there
+             * is a proxy to send it to, because an unknown header on a direct
+             * request is one more thing for bot scoring to notice.
+             */
+            'X-Proxy-Cookie' => config('services.zoommer.worker_url') ? $this->cookie() : null,
         ]);
     }
 
@@ -71,26 +82,50 @@ class ZoommerClient
     }
 
     /**
-     * The address to ask, direct or through the proxy.
+     * The address to ask, direct or through the shop's own worker.
      *
-     * Cloudflare answers a server address with 403 however good the cookie is —
-     * it is refusing the caller, not the request — so from a datacentre the only
-     * way in is somebody else's address. With ZOOMMER_WORKER_URL set the request
-     * goes through a worker that forwards these headers unchanged, which is how
-     * the Elite driver has always reached its source. Unset, it goes direct, so
-     * a laptop needs no proxy at all.
+     * Cloudflare answers this server with 403 whatever cookie it carries —
+     * confirmed with plain curl from that machine, so it is the address being
+     * refused and no header fixes it. A worker asks from an address that is not
+     * refused, which is how the Elite and Alta drivers already reach their
+     * sources.
+     *
+     * The worker's own shape: ?type=product&productId=N, with the access token
+     * passed along so it lives in this project's .env and not in two places.
+     * Unset, the request goes direct, so a laptop needs no worker at all.
      */
     protected function endpoint(string $id): string
     {
-        $target = $this->apiUrl."v1/Products/details?productId={$id}";
-
         if (! $worker = config('services.zoommer.worker_url')) {
-            return $target;
+            return $this->apiUrl."v1/Products/details?productId={$id}";
         }
 
         return rtrim($worker, '/').'?'.http_build_query(array_filter([
-            'url' => $target,
-            'token' => config('services.zoommer.worker_token'),
+            'type' => 'product',
+            'productId' => $id,
+            'accessToken' => config('services.zoommer.access_token'),
+        ]));
+    }
+
+    /**
+     * A photograph's address, direct or through the worker.
+     *
+     * The pictures sit on a different host from the API, so they may well be
+     * reachable when the API is not — but a blocked address is usually blocked
+     * for the whole estate, and the worker already carries an image branch for
+     * exactly this. The downloader stays supplier-agnostic: the driver hands it
+     * whichever address works.
+     */
+    public function imageUrl(string $url): string
+    {
+        if (! $worker = config('services.zoommer.worker_url')) {
+            return $url;
+        }
+
+        return rtrim($worker, '/').'?'.http_build_query(array_filter([
+            'type' => 'image',
+            'url' => $url,
+            'accessToken' => config('services.zoommer.access_token'),
         ]));
     }
 

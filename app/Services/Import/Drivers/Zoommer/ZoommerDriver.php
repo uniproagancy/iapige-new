@@ -151,11 +151,10 @@ class ZoommerDriver implements SupplierDriver
         $main = trim((string) ($product['imageUrl'] ?? ''));
         $rest = array_values(array_filter($product['images'] ?? []));
 
-        if ($main === '') {
-            return $rest;
-        }
+        $urls = $main === '' ? $rest : array_values(array_unique(array_merge([$main], $rest)));
 
-        return array_values(array_unique(array_merge([$main], $rest)));
+        // through the worker when there is one, for the same reason the API is
+        return array_map(fn ($url) => $this->client->imageUrl($url), $urls);
     }
 
     /**
