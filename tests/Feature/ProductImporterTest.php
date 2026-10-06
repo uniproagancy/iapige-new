@@ -297,6 +297,87 @@ class ProductImporterTest extends TestCase
         return array_map(fn ($i) => "https://example.com/{$i}.jpg", range(1, $count));
     }
 
+    /* ------------------------------------------------------------------ require_image */
+
+    /**
+     * A product with no photograph is a hole in the catalogue.
+     *
+     * It cannot be shown on a card, a listing or a search result, so when the
+     * supplier asks for one, a new product that ended up without it is taken
+     * straight back out instead of being left to be found later.
+     */
+    public function test_a_new_product_with_no_photograph_is_dropped(): void
+    {
+        config(['shop.require_image' => true]);
+        app(ImageDownloader::class)->failing = true;
+
+        $product = app(ProductImporter::class)->import($this->supplier, $this->payload());
+
+        $this->assertNull($product);
+        $this->assertSame(0, Product::count());
+        $this->assertSame(0, DB::table('product_offers')->count(), 'the offer goes with it');
+        $this->assertSame(0, DB::table('product_specs')->count(), 'and so do the specs');
+    }
+
+    public function test_a_new_product_with_a_photograph_is_kept(): void
+    {
+        config(['shop.require_image' => true]);
+
+        $product = app(ProductImporter::class)->import($this->supplier, $this->payload());
+
+        $this->assertNotNull($product);
+        $this->assertSame(1, Product::count());
+    }
+
+    /** Off unless asked for: not every supplier sends pictures at all. */
+    public function test_it_is_off_by_default(): void
+    {
+        config(['shop.require_image' => false]);
+        app(ImageDownloader::class)->failing = true;
+
+        $this->assertNotNull(app(ProductImporter::class)->import($this->supplier, $this->payload()));
+    }
+
+    /**
+     * A supplier whose feed carries no pictures can opt out.
+     *
+     * Alta's B2B feed has none at all, so requiring them there would import
+     * nothing whatsoever.
+     */
+    public function test_a_supplier_can_override_the_rule(): void
+    {
+        config(['shop.require_image' => true]);
+        $this->supplier->update(['config' => ['require_image' => false]]);
+        app(ImageDownloader::class)->failing = true;
+
+        $this->assertNotNull(app(ProductImporter::class)->import($this->supplier, $this->payload()));
+    }
+
+    /**
+     * An existing product is somebody's decision.
+     *
+     * Its picture may have been added by hand, and a nightly run is not the
+     * place to delete it — the admin's "no photo" filter is, for the backlog.
+     */
+    public function test_an_existing_product_is_never_deleted(): void
+    {
+        $importer = app(ProductImporter::class);
+        $downloader = app(ImageDownloader::class);
+
+        $product = $importer->import($this->supplier, $this->payload());
+        $this->assertNotNull($product);
+
+        // its gallery disappears, and the rule comes on afterwards
+        DB::table('product_images')->where('product_id', $product->id)->delete();
+        config(['shop.require_image' => true]);
+        $downloader->failing = true;
+
+        $again = $importer->import($this->supplier, $this->payload());
+
+        $this->assertNotNull($again, 'an existing product must survive the rule');
+        $this->assertSame($product->id, $again->id);
+    }
+
     /** An unmapped category parks the name and leaves the product uncategorised. */
     public function test_an_unknown_category_is_parked(): void
     {

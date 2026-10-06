@@ -55,7 +55,48 @@ class ProductImporter
             $this->images->sync($product, $payload->images);
         }
 
+        if ($product && $isNew && ! $this->keep($supplier, $product)) {
+            return null;
+        }
+
         return $product;
+    }
+
+    /**
+     * Whether a product just created is worth keeping.
+     *
+     * A product with no photograph is a hole in the catalogue: it cannot be
+     * shown on a card, a listing or a search result, and nobody buys what they
+     * cannot see. When the supplier is set to require one, a new product that
+     * ended up with none is taken back out rather than left to be found later.
+     *
+     * Only ever applied to a product created by this very call. An existing
+     * product is somebody's decision and may have had its picture added by
+     * hand; a nightly run is not the place to delete it. The admin's product
+     * list already filters on "no photo" for clearing that backlog.
+     *
+     * Off unless asked for, because it is not true of every supplier: Alta's
+     * B2B feed carries no pictures at all, so requiring them there would import
+     * nothing whatsoever.
+     */
+    protected function keep(Supplier $supplier, Product $product): bool
+    {
+        $required = $supplier->config['require_image'] ?? config('shop.require_image', false);
+
+        if (! $required || $product->images()->exists()) {
+            return true;
+        }
+
+        Log::channel('import')->info('dropped: no photograph', [
+            'supplier' => $supplier->code,
+            'sku' => $product->sku,
+            'product' => $product->id,
+        ]);
+
+        // hard delete, so its specs, translations and offer go with it
+        $product->forceDelete();
+
+        return false;
     }
 
     /**

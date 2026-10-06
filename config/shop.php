@@ -45,4 +45,19 @@ return [
      */
     'import_rate' => (int) env('IMPORT_RATE_PER_MINUTE', 60),
 
+    /*
+     | Whether a product with no photograph is worth importing.
+     |
+     | One that has none cannot be shown on a card, a listing or a search
+     | result, so it is a hole in the catalogue rather than a product. With this
+     | on, a newly imported product that ended up without one is taken straight
+     | back out; products already in the catalogue are left alone, because one
+     | may have had its picture added by hand.
+     |
+     | A supplier can override it with require_image in its own config — Alta's
+     | B2B feed carries no pictures at all, so requiring them there would import
+     | nothing.
+     */
+    'require_image' => (bool) env('IMPORT_REQUIRE_IMAGE', false),
+
 ];
