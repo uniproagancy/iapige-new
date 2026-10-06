@@ -134,26 +134,33 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
-		
-		'import' => [
+
+        /*
+         | Everything the importer writes is info or warning, so at "error" this
+         | channel discarded all of it — nine supplier runs produced no
+         | import.log at all, and a run that saved nothing looked exactly like a
+         | run that worked. Set IMPORT_LOG_LEVEL=debug to also see every id that
+         | came back empty.
+         */
+        'import' => [
             'driver' => 'daily',
-            'path'   => storage_path('logs/import.log'),
-            'level'  => 'error',
-            'days'   => 7,
+            'path' => storage_path('logs/import.log'),
+            'level' => env('IMPORT_LOG_LEVEL', 'info'),
+            'days' => 7,
             'replace_placeholders' => true,
         ],
-		'pixel' => [
+        'pixel' => [
             'driver' => 'daily',
-            'path'   => storage_path('logs/pixel.log'),
-            'level'  => 'debug',
-            'days'   => 14,
+            'path' => storage_path('logs/pixel.log'),
+            'level' => 'debug',
+            'days' => 14,
         ],
 
-		'payments' => [
+        'payments' => [
             'driver' => 'daily',
-            'path'   => storage_path('logs/payments.log'),
-            'level'  => 'debug',
-            'days'   => 90,
+            'path' => storage_path('logs/payments.log'),
+            'level' => 'debug',
+            'days' => 90,
         ],
     ],
 

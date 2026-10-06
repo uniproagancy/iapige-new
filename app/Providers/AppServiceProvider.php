@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Jobs\ImportProductJob;
 use App\Models\Language;
 use App\Models\Order;
 use App\Models\User;
@@ -9,8 +10,10 @@ use App\Services\Facebook\Pixel;
 use App\Services\Import\ImportManager;
 use App\Services\Import\TaxonomyResolver;
 use App\Support\Translation\DatabaseTranslationLoader;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Mcamara\LaravelLocalization\LaravelLocalization;
 
@@ -40,7 +43,23 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->defineGates();
+        $this->defineRateLimiters();
         $this->useDatabaseLanguages();
+    }
+
+    /**
+     * The pace the import keeps.
+     *
+     * ImportProductJob asks for RateLimited('import') and an undefined limiter
+     * is silently a no-op, so until this existed the middleware did nothing at
+     * all. Limited per supplier rather than globally: one source throttling us
+     * is no reason to slow down the other eight.
+     */
+    protected function defineRateLimiters(): void
+    {
+        RateLimiter::for('import', fn (ImportProductJob $job) => Limit::perMinute(
+            max(1, (int) config('shop.import_rate', 60))
+        )->by('import:'.$job->supplierId));
     }
 
     /**

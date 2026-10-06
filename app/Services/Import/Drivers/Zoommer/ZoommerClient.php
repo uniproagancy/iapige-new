@@ -13,6 +13,9 @@ use GuzzleHttp\Psr7\Request;
  */
 class ZoommerClient
 {
+    /** Statuses that mean "not you", never "not found". */
+    protected const BLOCKED_STATUSES = [401, 403, 429, 503];
+
     protected Client $client;
 
     protected string $apiUrl;
@@ -71,6 +74,9 @@ class ZoommerClient
      * One product in every language we keep.
      *
      * @return array<string, array> locale => raw payload
+     *
+     * @throws BlockedByZoommer when the source is refusing us rather than
+     *                          telling us a product does not exist
      */
     public function fetch(string $id, array $locales = ['ka', 'en']): array
     {
@@ -82,11 +88,29 @@ class ZoommerClient
                 ['headers' => ['Accept-Language' => $locale]],
             );
 
-            if ($response->getStatusCode() !== 200) {
+            $status = $response->getStatusCode();
+            $body = (string) $response->getBody();
+
+            /*
+             * A missing product and a closed door used to look identical here —
+             * both were skipped, quietly. So an expired cf_clearance turned a
+             * run of a thousand ids into a thousand silent nothings: no product
+             * saved, no error, no log line, nothing to tell anybody the cookie
+             * needed refreshing. The two cases are told apart now, and only one
+             * of them is normal.
+             */
+            if (in_array($status, self::BLOCKED_STATUSES, true) || $this->isChallenge($body)) {
+                throw new BlockedByZoommer(
+                    "Zoommer refused the request (HTTP {$status}). ZOOMMER_CF_CLEARANCE and "
+                    .'ZOOMMER_USER_AGENT must be a matching, unexpired pair.'
+                );
+            }
+
+            if ($status !== 200) {
                 continue;
             }
 
-            $data = json_decode((string) $response->getBody(), true);
+            $data = json_decode($body, true);
 
             if (! empty($data['product'])) {
                 $out[$locale] = $data;
@@ -94,6 +118,14 @@ class ZoommerClient
         }
 
         return $out;
+    }
+
+    /** Cloudflare answers a challenge with HTML, sometimes under a 200. */
+    protected function isChallenge(string $body): bool
+    {
+        return $body !== ''
+            && ! str_starts_with(ltrim($body), '{')
+            && (bool) preg_match('/cf-browser-verification|Just a moment|cf_chl|Attention Required/i', $body);
     }
 
     /**

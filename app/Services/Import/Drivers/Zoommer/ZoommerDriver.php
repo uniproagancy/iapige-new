@@ -40,6 +40,8 @@ class ZoommerDriver implements SupplierDriver
         $base = $byLocale[array_key_first($byLocale)];
         $product = $base['product'];
 
+        [$costPrice, $oldCostPrice] = $this->prices($product);
+
         $translations = [];
         $specs = [];
 
@@ -83,8 +85,8 @@ class ZoommerDriver implements SupplierDriver
             // the barcode is shared between colour variants of one model, so the
             // source id is what keeps two variants from merging into one product
             sku: 'ZOOM-'.$externalId,
-            costPrice: (float) ($product['previousPrice'] ?? $product['price'] ?? 0),
-            oldCostPrice: isset($product['previousPrice']) ? (float) $product['price'] : null,
+            costPrice: $costPrice,
+            oldCostPrice: $oldCostPrice,
             stock: $this->stock($base),
             brandName: $product['brandName'] ?? null,
             categoryName: $product['categoryName'] ?? null,
@@ -95,6 +97,34 @@ class ZoommerDriver implements SupplierDriver
             releaseDate: $product['releaseDate'] ?? null,
             variantGroup: $this->variantGroup($externalId, $product),
         );
+    }
+
+    /**
+     * What we pay, and the figure to strike through.
+     *
+     * The source's "price" is what it sells for today and "previousPrice" is
+     * what it cost before the discount — so previousPrice is the HIGHER of the
+     * two. Reading it as the cost meant buying a discounted product at its
+     * pre-discount price: a 1399 television was imported as 1599, the markup
+     * was applied to that, and the real 1399 became the struck-through "old"
+     * price, so the page advertised a price rise and showed no discount at all.
+     *
+     * The lower figure is the cost whichever way round the source sends them,
+     * and a comparison that is not above it is no comparison.
+     *
+     * @return array{0: float, 1: ?float}
+     */
+    protected function prices(array $product): array
+    {
+        $current = (float) ($product['price'] ?? 0);
+        $previous = (float) ($product['previousPrice'] ?? 0);
+
+        if ($previous > 0 && $current > 0) {
+            return [min($current, $previous), max($current, $previous)];
+        }
+
+        // only one of them is usable, so there is nothing to compare against
+        return [$current ?: $previous, null];
     }
 
     /**
