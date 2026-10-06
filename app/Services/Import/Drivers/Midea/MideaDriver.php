@@ -71,7 +71,87 @@ class MideaDriver implements SupplierDriver
 
         $key = $this->modelKey($model);
 
-        return $index[$key] ?? [];
+        if (isset($index[$key])) {
+            return $index[$key];
+        }
+
+        /*
+         * Nothing in the listings, so ask the sitemap.
+         *
+         * The listings are seven narrow sub-pages and the price list spans
+         * twenty-one categories, so most models were never looked for at all —
+         * the product came in from the spreadsheet and simply had no picture.
+         * A sitemap entry carries no card, only an address, so the product page
+         * is read for it; that is marked rather than assumed, because a listing
+         * card already has its picture and needs no second request.
+         */
+        if ($url = $this->sitemapMatch($key)) {
+            return ['url' => $url, 'needs_page' => true];
+        }
+
+        return [];
+    }
+
+    /**
+     * The sitemap address whose slug carries this model code.
+     *
+     * Matched by containment rather than equality, because the slug is the
+     * product's whole name with the model buried at the end and written in
+     * lower case — "chasashenebeli-eleqtro-gumeli-mo-37001-gb" for MO-37001-GB.
+     * Pulling the model back out of that is guesswork; asking whether the slug
+     * contains it is not.
+     *
+     * Short codes are left alone: three or four characters appear inside
+     * unrelated slugs often enough that a wrong picture is the likely outcome.
+     */
+    protected function sitemapMatch(string $key): ?string
+    {
+        if (mb_strlen($key) < self::MIN_MATCH_LENGTH) {
+            return null;
+        }
+
+        foreach ($this->sitemapIndex() as $slug => $url) {
+            if (str_contains($slug, $key)) {
+                return $url;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalised slug => product address, from the site's sitemap.
+     *
+     * The whole slug is kept rather than a model pulled out of it: the address
+     * is /ka/product/<slug>/<id>/ and the slug is the product's name with the
+     * model at the end in lower case, so there is no reliable place to cut. The
+     * same normalisation the listing index uses is applied to both sides, and
+     * the lookup asks whether the slug contains the code.
+     *
+     * @return array<string, string>
+     */
+    protected function sitemapIndex(): array
+    {
+        return Cache::remember(
+            "import:{$this->supplier->code}:sitemap-index",
+            now()->addHours(6),
+            function () {
+                $locale = $this->supplier->config['locale'] ?? 'ka';
+                $index = [];
+
+                foreach ($this->client->sitemapProducts($locale) as $url) {
+                    // the trailing number is the site's own id, not the model
+                    $slug = basename(rtrim((string) preg_replace('#/\d+/?$#', '', $url), '/'));
+                    $key = $this->modelKey($slug);
+
+                    if ($key !== '') {
+                        $index[$key] ??= $url;
+                    }
+                }
+
+                return $index;
+            },
+        );
     }
 
     /**
@@ -142,7 +222,11 @@ class MideaDriver implements SupplierDriver
             ];
         }
 
-        $page = ! empty($card['url']) && ($this->supplier->config['read_product_page'] ?? false)
+        // a sitemap match has no card, so its page is the only picture there is
+        $readPage = ! empty($card['needs_page'])
+            || ($this->supplier->config['read_product_page'] ?? false);
+
+        $page = ! empty($card['url']) && $readPage
             ? $this->client->page($card['url'])
             : [];
 
@@ -239,6 +323,9 @@ class MideaDriver implements SupplierDriver
     }
 
     /** Model codes differ in case and punctuation between the file and the site. */
+    /** Below this a code appears inside unrelated slugs too often to trust. */
+    protected const MIN_MATCH_LENGTH = 5;
+
     protected function modelKey(string $model): string
     {
         return strtoupper(preg_replace('/[^A-Z0-9]/i', '', $model));

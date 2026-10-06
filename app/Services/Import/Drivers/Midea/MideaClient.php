@@ -210,6 +210,60 @@ class MideaClient
 
     /* ------------------------------------------------------------------ helpers */
 
+    /**
+     * Every product address the site publishes, from its own sitemap.
+     *
+     * The crawl walks the listing pages named in the supplier's config, and
+     * those cover a fraction of what the price list holds: seven narrow
+     * sub-pages against twenty-one categories, which indexed 54 cards for 368
+     * models. Products outside them were imported with no picture, because
+     * nothing had ever looked for them.
+     *
+     * The sitemap is one request instead of two hundred pages, and it lists
+     * products the listings never reach.
+     *
+     * @return array<int, string>
+     */
+    public function sitemapProducts(string $locale = 'ka'): array
+    {
+        $index = $this->get($this->absolute('/sitemap.xml'));
+
+        if ($index === null) {
+            return [];
+        }
+
+        $urls = [];
+
+        foreach ($this->locations($index) as $map) {
+            // one sitemap per language; the other is the same products again
+            if (! str_contains($map, "_{$locale}.")) {
+                continue;
+            }
+
+            $body = $this->get($map);
+
+            if ($body === null) {
+                continue;
+            }
+
+            foreach ($this->locations($body) as $url) {
+                if (str_contains($url, "/{$locale}/product/")) {
+                    $urls[] = $url;
+                }
+            }
+        }
+
+        return array_values(array_unique($urls));
+    }
+
+    /** @return array<int, string> */
+    protected function locations(string $xml): array
+    {
+        preg_match_all('#<loc>\s*(.*?)\s*</loc>#i', $xml, $m);
+
+        return array_map('html_entity_decode', $m[1] ?? []);
+    }
+
     protected function get(string $url): ?string
     {
         $response = Http::timeout($this->config['timeout'] ?? 30)
@@ -267,8 +321,17 @@ class MideaClient
             return null;
         }
 
-        return str_starts_with($url, 'http')
+        $url = str_starts_with($url, 'http')
             ? $url
             : rtrim((string) config('services.midea.base_url'), '/').'/'.ltrim($url, '/');
+
+        /*
+         * The site writes some of its own addresses with a doubled slash —
+         * https://www.midea.ge//uploads/products/x.jpg — and it serves them
+         * either way. The downloader names a stored file after a hash of the
+         * address, so the two spellings of one picture would be downloaded and
+         * kept twice.
+         */
+        return (string) preg_replace('#(?<!:)//+#', '/', $url);
     }
 }

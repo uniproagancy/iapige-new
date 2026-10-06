@@ -70,7 +70,14 @@ return [
         'search_url' => env('MIDEA_SEARCH_URL'),
         'search_param' => env('MIDEA_SEARCH_PARAM', 'search'),
         'user_agent' => env('MIDEA_USER_AGENT', 'Mozilla/5.0'),
-        'image_path' => env('MIDEA_IMAGE_PATH', '/storage/'),
+        /*
+         | Where the site keeps product photographs, used to tell them from
+         | logos and banners. The default was /storage/, which this site does
+         | not use: everything it serves sits under /uploads/products/, so the
+         | filter threw away every real photograph and any product whose images
+         | came from its own page arrived with none.
+         */
+        'image_path' => env('MIDEA_IMAGE_PATH', '/uploads/products/'),
         'spec_xpath' => [
             '//table//tr[td]',
             '//*[contains(@class,"spec")]//li',
