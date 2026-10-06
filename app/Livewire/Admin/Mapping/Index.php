@@ -47,6 +47,23 @@ class Index extends Component
     /** how many products are waiting behind each unmapped name */
     public bool $showImpact = true;
 
+    /** '' | 'mapped' | 'unmapped' — the only states the query knows about. */
+    protected const STATES = ['', 'mapped', 'unmapped'];
+
+    /**
+     * A state the query cannot answer is no state at all.
+     *
+     * stateFilter comes off the query string, so a stale or hand-typed value
+     * sticks to the component while the select shows nothing selected — the
+     * screen then looks filtered by something invisible.
+     */
+    public function mount(): void
+    {
+        if (! in_array($this->stateFilter, self::STATES, true)) {
+            $this->stateFilter = '';
+        }
+    }
+
     public function updated($property): void
     {
         if (in_array($property, ['tab', 'supplierId', 'search', 'stateFilter'], true)) {
