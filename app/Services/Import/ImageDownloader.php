@@ -19,6 +19,9 @@ class ImageDownloader
 {
     protected const DISK = 'public';
 
+    /** How many photographs of one product are worth keeping. */
+    public const MAX_IMAGES = 8;
+
     /*
      | A photograph is worth waiting a few seconds for, not a few minutes.
      |
@@ -48,7 +51,7 @@ class ImageDownloader
     protected static array $failures = [];
 
     /** @param  array<int, string>  $urls */
-    public function sync(Product $product, array $urls, int $limit = 8): void
+    public function sync(Product $product, array $urls, int $limit = self::MAX_IMAGES): void
     {
         foreach (array_slice(array_values(array_filter($urls)), 0, $limit) as $i => $url) {
             try {

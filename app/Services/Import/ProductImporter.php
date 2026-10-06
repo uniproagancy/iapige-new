@@ -37,14 +37,21 @@ class ProductImporter
          * workers to pile up behind it and time out.
          */
         /*
-         * A later run retries a gallery that never arrived.
+         * A later run fills in whatever did not arrive.
          *
-         * Only new products used to be fetched, so a product whose photographs
-         * all timed out on its first import stayed empty for good — no amount of
-         * re-importing would ask for them again. The images table answers that
-         * in one EXISTS, and only for products we are not creating.
+         * Only new products used to be fetched, so a gallery lost to a slow CDN
+         * stayed lost. Checking merely that the product has *some* photograph
+         * was not enough either: these hosts time out on a picture or two out
+         * of five, and a product that came out with three of them would never be
+         * asked for the other two again.
+         *
+         * Re-asking is cheap — the downloader names a file after the product and
+         * the source URL, so one that is already on disk costs no request at
+         * all and only the gaps are fetched.
          */
-        if ($product && $payload->images && ($isNew || ! $product->images()->exists())) {
+        $wanted = min(count($payload->images), ImageDownloader::MAX_IMAGES);
+
+        if ($product && $wanted > 0 && ($isNew || $product->images()->count() < $wanted)) {
             $this->images->sync($product, $payload->images);
         }
 

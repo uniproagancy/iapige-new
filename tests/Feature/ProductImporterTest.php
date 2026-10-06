@@ -65,7 +65,10 @@ class ProductImporterTest extends TestCase
             /** When true the gallery fails, as a dead CDN would. */
             public bool $failing = false;
 
-            public function sync(Product $product, array $urls, int $limit = 8): void
+            /** Positions to drop, as a CDN that times out on a picture or two. */
+            public array $skip = [];
+
+            public function sync(Product $product, array $urls, int $limit = self::MAX_IMAGES): void
             {
                 $this->calls[] = $product->id;
 
@@ -73,7 +76,11 @@ class ProductImporterTest extends TestCase
                     return;
                 }
 
-                foreach (array_values($urls) as $i => $url) {
+                foreach (array_slice(array_values($urls), 0, $limit) as $i => $url) {
+                    if (in_array($i, $this->skip, true)) {
+                        continue;
+                    }
+
                     ProductImage::updateOrCreate(
                         ['product_id' => $product->id, 'sort_order' => $i],
                         ['path' => 'products/'.$product->id.'/'.$i.'.jpg'],
@@ -217,6 +224,79 @@ class ProductImporterTest extends TestCase
         $this->assertSame($before, $counts());
     }
 
+    /**
+     * A gallery that arrived incomplete is completed later.
+     *
+     * These CDNs time out on a picture or two out of five, and the first version
+     * of this only re-asked when a product had no photographs at all — so one
+     * that came out with three of them was never asked for the other two again
+     * and stayed short for good.
+     */
+    public function test_a_partial_gallery_is_completed_on_the_next_run(): void
+    {
+        $importer = app(ProductImporter::class);
+        $downloader = app(ImageDownloader::class);
+
+        // the CDN drops the second and fourth picture
+        $downloader->skip = [1, 3];
+        $importer->import($this->supplier, $this->payload(images: $this->urls(5)));
+
+        $this->assertSame([0, 2, 4], $this->imagePositions());
+        $this->assertCount(1, $downloader->calls);
+
+        $downloader->skip = [];
+        $importer->import($this->supplier, $this->payload(images: $this->urls(5)));
+
+        $this->assertSame([0, 1, 2, 3, 4], $this->imagePositions());
+        $this->assertCount(2, $downloader->calls, 'a short gallery must be asked again');
+    }
+
+    /** A complete gallery is left alone, however many runs follow. */
+    public function test_a_complete_gallery_is_not_fetched_again(): void
+    {
+        $importer = app(ProductImporter::class);
+        $downloader = app(ImageDownloader::class);
+
+        $importer->import($this->supplier, $this->payload(images: $this->urls(5)));
+        $this->assertSame([0, 1, 2, 3, 4], $this->imagePositions());
+
+        $importer->import($this->supplier, $this->payload(images: $this->urls(5)));
+
+        $this->assertCount(1, $downloader->calls);
+    }
+
+    /**
+     * More pictures than we keep is not a short gallery.
+     *
+     * The limit has to be the same figure on both sides, or a product offering
+     * twenty would be re-fetched on every run for the twelve we never wanted.
+     */
+    public function test_a_source_offering_more_than_the_limit_settles(): void
+    {
+        $importer = app(ProductImporter::class);
+        $downloader = app(ImageDownloader::class);
+
+        $importer->import($this->supplier, $this->payload(images: $this->urls(20)));
+        $this->assertCount(ImageDownloader::MAX_IMAGES, $this->imagePositions());
+
+        $importer->import($this->supplier, $this->payload(images: $this->urls(20)));
+
+        $this->assertCount(1, $downloader->calls, 'the limit is reached, so nothing is missing');
+    }
+
+    /** @return array<int, int> */
+    protected function imagePositions(): array
+    {
+        return DB::table('product_images')->orderBy('sort_order')->pluck('sort_order')
+            ->map(fn ($i) => (int) $i)->all();
+    }
+
+    /** @return array<int, string> */
+    protected function urls(int $count): array
+    {
+        return array_map(fn ($i) => "https://example.com/{$i}.jpg", range(1, $count));
+    }
+
     /** An unmapped category parks the name and leaves the product uncategorised. */
     public function test_an_unknown_category_is_parked(): void
     {
@@ -234,6 +314,7 @@ class ProductImporterTest extends TestCase
         string $name = 'ლეპტოპი',
         string $category = 'Laptops',
         ?array $specs = null,
+        ?array $images = null,
     ): ProductPayload {
         return new ProductPayload(
             externalId: 'EXT-1',
@@ -253,7 +334,7 @@ class ProductImporterTest extends TestCase
                 ['name' => 'RAM', 'value' => '32GB', 'locale' => 'ka'],
                 ['name' => 'RAM', 'value' => '32GB', 'locale' => 'en'],
             ],
-            images: ['https://example.com/1.jpg'],
+            images: $images ?? ['https://example.com/1.jpg'],
             weight: 2000,
         );
     }
