@@ -31,11 +31,9 @@
                                     <span class="cat-sub__count">{{ $sub['count'] }}</span>
                                 </a>
 
-                                @if (count($sub['leaves']))
+                                @if (! empty($sub['children']))
                                     <div class="cat-chips">
-                                        @foreach ($sub['leaves'] as [$leaf, $n, $url])
-                                            <a class="cat-chip" href="{{ $url }}">{{ $leaf }}</a>
-                                        @endforeach
+                                        <x-catalog.chips :nodes="$sub['children']" />
                                     </div>
                                 @endif
                             </div>
@@ -71,15 +69,8 @@
                                 <span class="sub__count">{{ __('common.products_count', ['count' => $sub['count']]) }}</span>
                             </a>
 
-                            @if (count($sub['leaves']))
-                                <div class="leaves">
-                                    @foreach ($sub['leaves'] as [$leaf, $n, $url])
-                                        <a class="leaf" href="{{ $url }}">
-                                            <span class="leaf__name">{{ $leaf }}</span>
-                                            <span class="leaf__count">{{ __('common.products_count', ['count' => $n]) }}</span>
-                                        </a>
-                                    @endforeach
-                                </div>
+                            @if (! empty($sub['children']))
+                                <x-catalog.branch :nodes="$sub['children']" />
                             @endif
                         </div>
                     @endforeach

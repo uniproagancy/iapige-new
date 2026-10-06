@@ -67,10 +67,10 @@ class ImportStockFile extends Command
             $rows[] = [
                 'supplier_id' => $supplier->id,
                 'external_id' => $barcode,
-                'quantity'    => max(0, $quantity),
-                'synced_at'   => $now,
-                'created_at'  => $now,
-                'updated_at'  => $now,
+                'quantity' => max(0, $quantity),
+                'synced_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
 
             $read++;

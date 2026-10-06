@@ -69,27 +69,27 @@ class Catalog
         }
 
         return [
-            'id'        => $p->id,
-            'sku'       => $p->sku,
-            'brand'     => $p->brand?->name ?? '',
-            'name'      => $p->name,
-            'spec'      => $p->summary ?? '',
-            'price'     => (float) $p->price,
-            'old'       => $p->old_price ? (float) $p->old_price : 0,
-            'tag'       => $p->old_price ? 'sale' : ($p->is_new ? 'new' : null),
-            'stock'     => __('card.stock_left', ['count' => $p->stock]),
+            'id' => $p->id,
+            'sku' => $p->sku,
+            'brand' => $p->brand?->name ?? '',
+            'name' => $p->name,
+            'spec' => $p->summary ?? '',
+            'price' => (float) $p->price,
+            'old' => $p->old_price ? (float) $p->old_price : 0,
+            'tag' => $p->old_price ? 'sale' : ($p->is_new ? 'new' : null),
+            'stock' => __('card.stock_left', ['count' => $p->stock]),
             'stock_raw' => (int) $p->stock,
-            'cat'       => $p->category?->name ?? '',
-            'sub'       => $p->category_id,
-            'filters'   => $filters,
-            'order'     => $p->sales_count,
-            'images'    => $images,
-            'thumb'     => $images[0],
-            'discount'  => ($d = $p->discountPercent()) ? "−{$d}%" : null,
-            'monthly'   => $p->monthlyPrice(),
-            'url'       => route('product', $p->slug),
-            'preorder'  => (bool) $p->is_preorder,
-            'release'   => $p->release_date?->translatedFormat('F Y'),
+            'cat' => $p->category?->name ?? '',
+            'sub' => $p->category_id,
+            'filters' => $filters,
+            'order' => $p->sales_count,
+            'images' => $images,
+            'thumb' => $images[0],
+            'discount' => ($d = $p->discountPercent()) ? "−{$d}%" : null,
+            'monthly' => $p->monthlyPrice(),
+            'url' => route('product', $p->slug),
+            'preorder' => (bool) $p->is_preorder,
+            'release' => $p->release_date?->translatedFormat('F Y'),
         ];
     }
 
@@ -103,8 +103,8 @@ class Catalog
     public static function cartPayload(array $card): array
     {
         return [
-            'id'    => $card['id'],
-            'name'  => trim($card['brand'].' '.$card['name']),
+            'id' => $card['id'],
+            'name' => trim($card['brand'].' '.$card['name']),
             'price' => $card['price'],
         ];
     }
@@ -136,9 +136,9 @@ class Catalog
             $price = (float) $p->price;
 
             $promo = match (true) {
-                (float) ($p->pivot->promo_price ?? 0) > 0    => (float) $p->pivot->promo_price,
+                (float) ($p->pivot->promo_price ?? 0) > 0 => (float) $p->pivot->promo_price,
                 (int) ($p->pivot->discount_percent ?? 0) > 0 => round($price * (1 - $p->pivot->discount_percent / 100), 2),
-                default                                      => 0.0,
+                default => 0.0,
             };
 
             if ($promo <= 0 || $promo >= $price) {
@@ -146,11 +146,11 @@ class Catalog
             }
 
             return array_merge($card, [
-                'price'    => $promo,
-                'old'      => $price,
-                'tag'      => 'sale',
+                'price' => $promo,
+                'old' => $price,
+                'tag' => 'sale',
                 'discount' => '−'.(int) round((1 - $promo / $price) * 100).'%',
-                'monthly'  => (int) round($promo / 12),
+                'monthly' => (int) round($promo / 12),
             ]);
         })->all();
     }
@@ -170,19 +170,19 @@ class Catalog
                 $key = $category->translate(Language::defaultCode(), false)?->slug;
 
                 return [
-                    'slug'     => $category->slug,
-                    'name'     => $category->name,
-                    'url'      => route('catalog', $category->slug),
+                    'slug' => $category->slug,
+                    'name' => $category->name,
+                    'url' => route('catalog', $category->slug),
                     // counted from the same map as everywhere else, not a query per section
-                    'count'    => __('common.products_count', [
+                    'count' => __('common.products_count', [
                         'count' => collect($ids)->sum(fn ($id) => $counts[$id] ?? 0),
                     ]),
-                    'subs'     => $category->children->map(fn (Category $c) => [
+                    'subs' => $category->children->map(fn (Category $c) => [
                         'name' => $c->name,
-                        'url'  => route('catalog', $c->slug),
+                        'url' => route('catalog', $c->slug),
                     ])->all(),
-                    'banner'   => $banners[$key]['banner'] ?? null,
-                    'duo'      => $banners[$key]['duo'] ?? null,
+                    'banner' => $banners[$key]['banner'] ?? null,
+                    'duo' => $banners[$key]['duo'] ?? null,
                     'products' => self::cards(self::productQuery()
                         ->whereIn('category_id', $ids)
                         ->orderByDesc('sales_count')
@@ -200,10 +200,10 @@ class Catalog
             ->withCount(['products' => fn ($q) => $q->active()])
             ->get()
             ->map(fn (Brand $b) => [
-                'name'  => $b->name,
+                'name' => $b->name,
                 'count' => $b->products_count,
-                'logo'  => $b->logoUrl(),
-                'url'   => route('catalog', ['f' => ['brand' => [$b->slug]]]),
+                'logo' => $b->logoUrl(),
+                'url' => route('catalog', ['f' => ['brand' => [$b->slug]]]),
             ])
             ->all();
     }
@@ -218,31 +218,81 @@ class Catalog
         return static::$treeMemo[app()->getLocale()] ??= static::buildTree();
     }
 
+    /**
+     * Forgets the built tree.
+     *
+     * Static state outlives a request in a test run and under a persistent
+     * worker, where "once per request" quietly becomes "once per process" and
+     * a category added afterwards never appears.
+     */
+    public static function flushTree(): void
+    {
+        static::$treeMemo = [];
+    }
+
+    /**
+     * The whole tree, however deep it goes.
+     *
+     * This used to eager-load exactly two levels of children and shape them as
+     * root → subs → leaves, with a leaf being a flat [name, count, url] triple.
+     * A shop built three deep fitted that exactly — and the moment a fourth
+     * level was added it could not be rendered at all, because a leaf had
+     * nowhere to put children. Those categories were reachable only by typing
+     * their address.
+     *
+     * Every node now carries `children`, so depth is whatever the data says.
+     * `subs` stays as an alias because the sidebar and footer read it.
+     *
+     * One query for the lot. The old count closure walked `$c->children` past
+     * the two loaded levels, which lazy-loaded a query per node — invisible on
+     * a small tree and a few hundred queries on a large one.
+     */
     protected static function buildTree(): array
     {
-        $roots = Category::active()->roots()->withTranslation()
-            ->with(['children' => fn ($q) => $q->active()->withTranslation()
-                ->with(['children' => fn ($q) => $q->active()->withTranslation()])])
-            ->get();
+        $byParent = Category::active()->withTranslation()
+            ->orderBy('sort_order')->orderBy('id')
+            ->get()
+            ->groupBy('parent_id');
 
         $counts = self::categoryCounts();
 
-        $count = function (Category $c) use (&$count, $counts): int {
-            return ($counts[$c->id] ?? 0) + $c->children->sum(fn (Category $child) => $count($child));
+        $build = function (?int $parentId, int $depth) use (&$build, $byParent, $counts): array {
+            $nodes = [];
+
+            foreach ($byParent[$parentId] ?? [] as $category) {
+                $children = $build($category->id, $depth + 1);
+
+                $nodes[] = [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'url' => route('catalog', $category->slug),
+                    // only the first level is shown with a picture
+                    'image' => $depth === 1
+                        ? ($category->imageUrl() ?? Store::img('iapi-cat-'.$category->id, 0, 76, 76))
+                        : null,
+                    'total' => ($counts[$category->id] ?? 0) + array_sum(array_column($children, 'total')),
+                    'children' => $children,
+                ];
+            }
+
+            return $nodes;
         };
 
-        return $roots->map(fn (Category $root) => [
-            'name'  => $root->name,
-            'url'   => route('catalog', $root->slug),
-            'image' => $root->imageUrl() ?? Store::img('iapi-cat-'.$root->id, 0, 76, 76),
-            'count' => __('common.products_count', ['count' => $count($root)]),
-            'subs'  => $root->children->map(fn (Category $sub) => [
-                'name'   => $sub->name,
-                'url'    => route('catalog', $sub->slug),
-                'count'  => (string) $count($sub),
-                'leaves' => $sub->children->map(fn (Category $leaf) => [$leaf->name, (string) $count($leaf), route('catalog', $leaf->slug)])->all(),
-            ])->all(),
-        ])->all();
+        $decorate = function (array $nodes, int $depth) use (&$decorate): array {
+            foreach ($nodes as &$node) {
+                // the first level prints the word, the rest just the number
+                $node['count'] = $depth === 1
+                    ? __('common.products_count', ['count' => $node['total']])
+                    : (string) $node['total'];
+
+                $node['children'] = $decorate($node['children'], $depth + 1);
+                $node['subs'] = $node['children'];
+            }
+
+            return $nodes;
+        };
+
+        return $decorate($build(null, 1), 1);
     }
 
     /** Root categories flagged for the main navigation. */
@@ -255,9 +305,9 @@ class Catalog
             ->limit($limit)
             ->get()
             ->map(fn (Category $c) => [
-                'id'   => $c->id,
+                'id' => $c->id,
                 'name' => $c->name,
-                'url'  => route('catalog', $c->slug),
+                'url' => route('catalog', $c->slug),
             ])
             ->all();
     }
@@ -292,15 +342,15 @@ class Catalog
         };
 
         return $roots->map(fn (Category $root) => [
-            'id'    => $root->id,
-            'name'  => $root->name,
-            'url'   => route('catalog', $root->slug),
+            'id' => $root->id,
+            'name' => $root->name,
+            'url' => route('catalog', $root->slug),
             'image' => $root->imageUrl() ?? Store::img('iapi-cat-'.$root->id, 0, 320, 240),
             'total' => $count($root),
-            'subs'  => $root->children
+            'subs' => $root->children
                 ->map(fn (Category $sub) => [
-                    'name'  => $sub->name,
-                    'url'   => route('catalog', $sub->slug),
+                    'name' => $sub->name,
+                    'url' => route('catalog', $sub->slug),
                     'total' => $count($sub),
                 ])
                 ->filter(fn ($sub) => $sub['total'] > 0)
@@ -353,9 +403,9 @@ class Catalog
             ->orderBy('sort_order')
             ->get()
             ->map(fn (Attribute $a) => [
-                'name'  => $a->name,
-                'key'   => $a->code,
-                'open'  => true,
+                'name' => $a->name,
+                'key' => $a->code,
+                'open' => true,
                 'items' => $a->values
                     // a nameless or free-text value is a spec, never a filter option
                     ->filter(fn (AttributeValue $v) => filled($v->label) && mb_strlen($v->label) <= self::MAX_OPTION_LENGTH)
@@ -378,34 +428,34 @@ class Catalog
             : $attributeGroups;
 
         return [
-            'category'    => $category,
-            'title'       => $category?->name ?? __('catalog.index_title'),
+            'category' => $category,
+            'title' => $category?->name ?? __('catalog.index_title'),
             'breadcrumbs' => $category
                 ? array_map(fn (Category $c) => ['name' => $c->name, 'url' => route('catalog', $c->slug)], $category->ancestorsAndSelf())
                 : [],
-            'total'       => count($cards),
-            'subs'        => $category
+            'total' => count($cards),
+            'subs' => $category
                 ? $category->children->map(fn (Category $c) => [
-                    'id'    => $c->id,
-                    'name'  => $c->name,
-                    'url'   => route('catalog', $c->slug),
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'url' => route('catalog', $c->slug),
                     'image' => $c->imageUrl() ?? Store::img('iapi-cat-'.$c->id, 0, 320, 240),
                     'total' => collect($c->descendantAndSelfIds())->sum(fn ($id) => $childCounts[$id] ?? 0),
                 ])
                     ->filter(fn ($sub) => $sub['total'] > 0)   // an empty sub-category helps nobody
                     ->values()->all()
                 : [],
-            'sorts'       => [
-                'popular'    => __('catalog.sort.popular'),
-                'price-asc'  => __('catalog.sort.price_asc'),
+            'sorts' => [
+                'popular' => __('catalog.sort.popular'),
+                'price-asc' => __('catalog.sort.price_asc'),
                 'price-desc' => __('catalog.sort.price_desc'),
-                'new'        => __('catalog.sort.new'),
+                'new' => __('catalog.sort.new'),
             ],
-            'groups'      => $groups,
-            'priceMin'    => (int) (floor(($prices->min() ?: 0) / 100) * 100),
-            'priceMax'    => $max,
-            'perPage'     => 8,
-            'products'    => $cards,
+            'groups' => $groups,
+            'priceMin' => (int) (floor(($prices->min() ?: 0) / 100) * 100),
+            'priceMax' => $max,
+            'perPage' => 8,
+            'products' => $cards,
         ];
     }
 
@@ -471,28 +521,28 @@ class Catalog
             ->get());
 
         return [
-            'product'    => $card + [
-                'code'        => $product->sku,
-                'gallery'     => $gallery,
-                'thumbs'      => $gallery,
+            'product' => $card + [
+                'code' => $product->sku,
+                'gallery' => $gallery,
+                'thumbs' => $gallery,
                 'description' => $product->description,
                 'breadcrumbs' => $product->category ? array_map(
                     fn (Category $c) => ['name' => $c->name, 'url' => route('catalog', $c->slug)],
                     $product->category->ancestorsAndSelf(),
                 ) : [],
             ],
-            'model'      => $product,      // the Eloquent model for the Livewire components
-            'colors'     => $colors,
-            'configs'    => $storage,
-            'bundleIds'  => array_column($bundle, 'id'),
-            'keySpecs'   => $keySpecs,
-            'specs'      => $specs->all(),
+            'model' => $product,      // the Eloquent model for the Livewire components
+            'colors' => $colors,
+            'configs' => $storage,
+            'bundleIds' => array_column($bundle, 'id'),
+            'keySpecs' => $keySpecs,
+            'specs' => $specs->all(),
             'highlights' => $extras['highlights'],
-            'rating'     => ['score' => (float) $product->rating, 'count' => $product->reviews_count, 'bars' => $extras['rating_bars']],
-            'reviews'    => $extras['reviews'],
-            'services'   => $extras['services'],
-            'bundle'     => $bundle,
-            'related'    => $related,
+            'rating' => ['score' => (float) $product->rating, 'count' => $product->reviews_count, 'bars' => $extras['rating_bars']],
+            'reviews' => $extras['reviews'],
+            'services' => $extras['services'],
+            'bundle' => $bundle,
+            'related' => $related,
         ];
     }
 
@@ -532,10 +582,10 @@ class Catalog
                 // belongs to the product being viewed — that one always wins
                 if ($isCurrent || ! isset($switchers[$code][$value->code])) {
                     $switchers[$code][$value->code] = [
-                        'code'    => $value->code,
-                        'label'   => $value->label,
-                        'hex'     => $value->color_hex,
-                        'url'     => $isCurrent ? null : route('product', $sibling->slug),
+                        'code' => $value->code,
+                        'label' => $value->label,
+                        'hex' => $value->color_hex,
+                        'url' => $isCurrent ? null : route('product', $sibling->slug),
                         'current' => $isCurrent,
                     ];
                 }
@@ -553,9 +603,9 @@ class Catalog
         $products = self::productQuery()
             ->where(function ($q) use ($term) {
                 $q->whereHas('translations', fn ($t) => $t
-                        ->where('locale', app()->getLocale())
-                        ->where(fn ($w) => $w->where('name', 'like', "%{$term}%")
-                            ->orWhere('summary', 'like', "%{$term}%")))
+                    ->where('locale', app()->getLocale())
+                    ->where(fn ($w) => $w->where('name', 'like', "%{$term}%")
+                        ->orWhere('summary', 'like', "%{$term}%")))
                     ->orWhere('sku', 'like', "%{$term}%")
                     ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', "%{$term}%"));
             })

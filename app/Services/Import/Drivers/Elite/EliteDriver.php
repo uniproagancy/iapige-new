@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use RuntimeException;
 
 /**
  * Elite gives us stock as a spreadsheet of barcodes and details through a web
@@ -29,9 +30,24 @@ class EliteDriver implements SupplierDriver
         $this->client = new EliteClient($supplier->config ?? []);
     }
 
-    /** Their ids are sequential and the API is the only way to learn a barcode. */
+    /**
+     * Their ids are sequential and the API is the only way to learn a barcode.
+     *
+     * Refused outright with no spreadsheet loaded: the scan would be tens of
+     * thousands of requests to Elite that could not import a single product,
+     * because the file is what says which barcodes are theirs to sell.
+     *
+     * @throws RuntimeException
+     */
     public function ids(): iterable
     {
+        if (! $this->stockFile()) {
+            throw new RuntimeException(
+                'Elite has no stock file loaded, so nothing it returns can be matched. '
+                .'Run: php artisan import:stock-file elite <file.xlsx>'
+            );
+        }
+
         $from = (int) ($this->supplier->config['from'] ?? 1);
         $to = (int) ($this->supplier->config['to'] ?? 35000);
 
@@ -57,6 +73,17 @@ class EliteDriver implements SupplierDriver
 
         // no barcode means we cannot match it against the spreadsheet at all
         if ($barcode === '') {
+            return null;
+        }
+
+        /*
+         * The spreadsheet decides what we sell, as this class has always
+         * claimed — and never enforced. Only an empty barcode was refused, so
+         * every product the id scan happened to find was published whether
+         * Elite stocked it or not: thousands of rows at stock zero, none of
+         * them in the file anyone had sent us.
+         */
+        if (! $this->listedInStockFile($barcode)) {
             return null;
         }
 
@@ -106,11 +133,32 @@ class EliteDriver implements SupplierDriver
     /** What the latest spreadsheet says about this barcode. */
     protected function stockFor(string $barcode): int
     {
-        $this->stock ??= SupplierStock::where('supplier_id', $this->supplier->id)
+        return (int) ($this->stockFile()[$barcode] ?? 0);
+    }
+
+    /**
+     * Whether Elite sent us this barcode at all.
+     *
+     * Distinct from stockFor(), because a barcode listed with a quantity of
+     * zero is a product Elite sells and has run out of — worth keeping, shown
+     * as unavailable — while a barcode that is not in the file is not theirs to
+     * sell and has no business in the catalogue.
+     */
+    protected function listedInStockFile(string $barcode): bool
+    {
+        return array_key_exists($barcode, $this->stockFile());
+    }
+
+    /**
+     * barcode => quantity, read once per run.
+     *
+     * @return array<string, int>
+     */
+    protected function stockFile(): array
+    {
+        return $this->stock ??= SupplierStock::where('supplier_id', $this->supplier->id)
             ->pluck('quantity', 'external_id')
             ->all();
-
-        return (int) ($this->stock[$barcode] ?? 0);
     }
 
     protected function brand(array $product): ?string

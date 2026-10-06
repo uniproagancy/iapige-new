@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Supplier;
 use Illuminate\Console\Command;
+use Illuminate\Console\View\TaskResult;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -59,9 +60,22 @@ class ImportAll extends Command
                         $this->loadFile($supplier);
                     }
 
-                    Artisan::call('import:run', ['supplier' => $supplier->code], $this->output->getVerbosity() > 1 ? $this->output : null);
+                    /*
+                     * The exit code is the verdict, not the absence of a throw.
+                     * Artisan::call runs through the console kernel, which
+                     * catches whatever the command threw, renders it and
+                     * returns non-zero — so a supplier that refused to run was
+                     * reported here as DONE.
+                     */
+                    $code = Artisan::call('import:run', ['supplier' => $supplier->code], $this->output->getVerbosity() > 1 ? $this->output : null);
 
-                    return true;
+                    if ($code !== self::SUCCESS) {
+                        $failed[$supplier->code] = 'import:run exited with '.$code.' — see the output above';
+
+                        return TaskResult::Failure->value;
+                    }
+
+                    return TaskResult::Success->value;
                 } catch (\Throwable $e) {
                     $failed[$supplier->code] = $e->getMessage();
 
@@ -70,7 +84,13 @@ class ImportAll extends Command
                         'error' => $e->getMessage(),
                     ]);
 
-                    return false;
+                    /*
+                     * The task component matches this against TaskResult, which
+                     * is int-backed — false is not its Failure value, so it fell
+                     * through to the default and a supplier that had just blown
+                     * up was printed as DONE.
+                     */
+                    return TaskResult::Failure->value;
                 }
             });
         }

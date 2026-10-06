@@ -77,6 +77,25 @@ document.addEventListener('click', (e) => {
     const action = button.dataset.confirmAction;
     const arg = button.dataset.confirmArg;
 
+    const run = () => {
+        if (!root || !action) return;
+
+        const component = Livewire.find(root.getAttribute('wire:id'));
+        arg !== undefined ? component.call(action, arg) : component.call(action);
+    };
+
+    /*
+     * SweetAlert comes from the template's vendor bundle, and when that bundle
+     * fails to build or load every button wired this way stops doing anything
+     * at all — silently, because the throw happens before the action is ever
+     * reached. Deleting a product is not worth losing to a missing vendor file.
+     */
+    if (typeof Swal === 'undefined' || typeof Swal.fire !== 'function') {
+        if (window.confirm(button.dataset.confirm)) run();
+
+        return;
+    }
+
     Swal.fire({
         title: button.dataset.confirmTitle ?? button.dataset.confirm,
         text: button.dataset.confirmTitle ? button.dataset.confirm : undefined,
@@ -92,9 +111,6 @@ document.addEventListener('click', (e) => {
         },
         buttonsStyling: false,
     }).then((result) => {
-        if (result.isConfirmed && root && action) {
-            const component = Livewire.find(root.getAttribute('wire:id'));
-            arg !== undefined ? component.call(action, arg) : component.call(action);
-        }
+        if (result.isConfirmed) run();
     });
 });

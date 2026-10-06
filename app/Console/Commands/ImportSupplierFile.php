@@ -63,13 +63,13 @@ class ImportSupplierFile extends Command
             $rows[] = [
                 'supplier_id' => $supplier->id,
                 'external_id' => $key,
-                'quantity'    => $this->quantity($cells, $map),
-                'cost_price'  => $this->money($cells[$map['cost'] ?? ''] ?? null),
+                'quantity' => $this->quantity($cells, $map),
+                'cost_price' => $this->money($cells[$map['cost'] ?? ''] ?? null),
                 // the rest of the row travels with it; the driver decides what it means
-                'data'        => json_encode($this->pick($cells, $map), JSON_UNESCAPED_UNICODE),
-                'synced_at'   => $now,
-                'created_at'  => $now,
-                'updated_at'  => $now,
+                'data' => json_encode($this->pick($cells, $map), JSON_UNESCAPED_UNICODE),
+                'synced_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
 
             $read++;

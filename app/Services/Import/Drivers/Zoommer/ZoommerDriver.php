@@ -102,15 +102,16 @@ class ZoommerDriver implements SupplierDriver
     /**
      * What we pay, and the figure to strike through.
      *
-     * The source's "price" is what it sells for today and "previousPrice" is
-     * what it cost before the discount — so previousPrice is the HIGHER of the
+     * This source's "price" is what it sells for today and "previousPrice" is
+     * what it cost before the discount, so previousPrice is the HIGHER of the
      * two. Reading it as the cost meant buying a discounted product at its
      * pre-discount price: a 1399 television was imported as 1599, the markup
      * was applied to that, and the real 1399 became the struck-through "old"
-     * price, so the page advertised a price rise and showed no discount at all.
+     * price — so the page advertised a price rise and showed no discount.
      *
-     * The lower figure is the cost whichever way round the source sends them,
-     * and a comparison that is not above it is no comparison.
+     * The lower figure is the cost whichever way round this source sends them.
+     * Zoommer only: Elite's API looks identical but prices a different thing,
+     * so it reads its own pair and this must not be shared with it.
      *
      * @return array{0: float, 1: ?float}
      */
