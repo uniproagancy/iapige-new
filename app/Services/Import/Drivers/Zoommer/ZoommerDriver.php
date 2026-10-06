@@ -151,10 +151,19 @@ class ZoommerDriver implements SupplierDriver
         $main = trim((string) ($product['imageUrl'] ?? ''));
         $rest = array_values(array_filter($product['images'] ?? []));
 
-        $urls = $main === '' ? $rest : array_values(array_unique(array_merge([$main], $rest)));
+        /*
+         * Straight to the pictures, never through the worker.
+         *
+         * The API is refused from the shop's server but s3.zoommer.ge answers
+         * it fine — checked with curl from that machine — so routing eight
+         * photographs per product through the worker would be a hop that buys
+         * nothing and spends the worker's quota on every one of them.
+         */
+        if ($main === '') {
+            return $rest;
+        }
 
-        // through the worker when there is one, for the same reason the API is
-        return array_map(fn ($url) => $this->client->imageUrl($url), $urls);
+        return array_values(array_unique(array_merge([$main], $rest)));
     }
 
     /**

@@ -86,9 +86,11 @@ class ZoommerImportTest extends TestCase
      */
     public function test_the_message_says_what_to_fix(): void
     {
+        config(['services.zoommer.worker_url' => null]);
+
         $cases = [
             401 => 'ZOOMMER_ACCESS_TOKEN',
-            403 => 'Cloudflare refused the caller',
+            403 => 'Set ZOOMMER_WORKER_URL',
             429 => 'IMPORT_RATE_PER_MINUTE',
         ];
 
@@ -98,7 +100,29 @@ class ZoommerImportTest extends TestCase
                 $this->fail("HTTP {$status} should have been refused");
             } catch (BlockedByZoommer $e) {
                 $this->assertStringContainsString($expected, $e->getMessage());
+                $this->assertStringContainsString('asked directly', $e->getMessage());
             }
+        }
+    }
+
+    /**
+     * A 403 means something different once a worker is in the way.
+     *
+     * Told flatly to use a proxy, somebody already using one has nothing to act
+     * on — and that is exactly the message this shop produced after its worker
+     * was configured.
+     */
+    public function test_a_refusal_through_the_worker_blames_the_worker(): void
+    {
+        config(['services.zoommer.worker_url' => 'https://w.example.workers.dev']);
+
+        try {
+            $this->clientReturning(new Response(403, [], 'denied'))->fetch('54500', ['ka']);
+            $this->fail('403 should have been refused');
+        } catch (BlockedByZoommer $e) {
+            $this->assertStringContainsString('refused the worker as well', $e->getMessage());
+            $this->assertStringContainsString('asked through the worker', $e->getMessage());
+            $this->assertStringNotContainsString('Set ZOOMMER_WORKER_URL', $e->getMessage());
         }
     }
 
@@ -160,30 +184,6 @@ class ZoommerImportTest extends TestCase
         ]);
 
         $this->assertArrayNotHasKey('accessToken', $this->queryOf($this->endpointFor('54500')));
-    }
-
-    /** Pictures sit on another host, and go the same way when there is a worker. */
-    public function test_image_addresses_go_through_the_worker_too(): void
-    {
-        config([
-            'services.zoommer.worker_url' => 'https://w.example.workers.dev',
-            'services.zoommer.access_token' => 'tok-123',
-        ]);
-
-        $original = 'https://s3.zoommer.ge/site/abc_Thumb.jpeg';
-        $query = $this->queryOf((new ZoommerClient)->imageUrl($original));
-
-        $this->assertSame('image', $query['type']);
-        $this->assertSame($original, $query['url']);
-    }
-
-    public function test_image_addresses_are_untouched_without_a_worker(): void
-    {
-        config(['services.zoommer.worker_url' => null]);
-
-        $url = 'https://s3.zoommer.ge/site/abc_Thumb.jpeg';
-
-        $this->assertSame($url, (new ZoommerClient)->imageUrl($url));
     }
 
     protected function endpointFor(string $id): string

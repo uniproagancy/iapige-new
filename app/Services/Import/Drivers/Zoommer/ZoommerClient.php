@@ -108,28 +108,6 @@ class ZoommerClient
     }
 
     /**
-     * A photograph's address, direct or through the worker.
-     *
-     * The pictures sit on a different host from the API, so they may well be
-     * reachable when the API is not — but a blocked address is usually blocked
-     * for the whole estate, and the worker already carries an image branch for
-     * exactly this. The downloader stays supplier-agnostic: the driver hands it
-     * whichever address works.
-     */
-    public function imageUrl(string $url): string
-    {
-        if (! $worker = config('services.zoommer.worker_url')) {
-            return $url;
-        }
-
-        return rtrim($worker, '/').'?'.http_build_query(array_filter([
-            'type' => 'image',
-            'url' => $url,
-            'accessToken' => config('services.zoommer.access_token'),
-        ]));
-    }
-
-    /**
      * One product in every language we keep.
      *
      * @return array<string, array> locale => raw payload
@@ -192,17 +170,30 @@ class ZoommerClient
                 .'the only one this API checks. Take a fresh zoommer-access_token from a browser '
                 .'session on zoommer.ge.',
 
-            $status === 403 || $this->isChallenge($body) => 'Cloudflare refused the caller, not the '
-                .'request: the token is not what is being rejected. This is normal from a server '
-                .'address, and the way round it is to fetch through a proxy the way the Elite '
-                .'driver does, rather than directly.',
+            /*
+             * Which of these you are looking at decides what to go and do, so
+             * the message has to know whether a worker was even used. Told
+             * flatly to "use a proxy", somebody already using one has nothing
+             * to act on.
+             */
+            $status === 403 || $this->isChallenge($body) => config('services.zoommer.worker_url')
+                ? 'Cloudflare refused the worker as well, so the shop is not the problem: the '
+                    .'worker fetched zoommer.ge and was refused in its turn. Check it on its own '
+                    .'with the curl in the comment above, then its headers — a fetch with no '
+                    .'User-Agent or cookie is scored as a bot and gets exactly this.'
+                : 'Cloudflare refused the caller, not the request: the token is not what is being '
+                    .'rejected, and no header fixes it from here. Set ZOOMMER_WORKER_URL to a '
+                    .'worker that fetches zoommer.ge for you, the way the Elite and Alta drivers '
+                    .'already do.',
 
             $status === 429 => 'Too many requests. Lower IMPORT_RATE_PER_MINUTE or run fewer workers.',
 
             default => 'Zoommer is refusing requests for now; this is usually temporary.',
         };
 
-        return "Zoommer refused the request (HTTP {$status}). {$reason}";
+        $route = config('services.zoommer.worker_url') ? 'through the worker' : 'directly';
+
+        return "Zoommer refused the request (HTTP {$status}, asked {$route}). {$reason}";
     }
 
     /** Cloudflare answers a challenge with HTML, sometimes under a 200. */
