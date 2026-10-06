@@ -167,10 +167,34 @@ class ImageDownloader
         return (string) (parse_url($url, PHP_URL_HOST) ?: 'unknown');
     }
 
+    /**
+     * The extension to store the file under.
+     *
+     * A proxied address carries the real one in its query rather than its path:
+     * ...workers.dev?type=image&url=https%3A%2F%2Fstatic.ee.ge%2F...png
+     *
+     * Reading only the path there gives nothing, so every picture fetched
+     * through a worker was saved as .jpg — and a PNG named .jpg is served with
+     * the wrong content type, because the web server decides that from the
+     * extension and has no reason to doubt it.
+     */
     protected function extension(string $url): string
+    {
+        $ext = $this->extensionOf($url);
+
+        if ($ext === null) {
+            parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+            $ext = $this->extensionOf((string) ($query['url'] ?? ''));
+        }
+
+        return $ext ?? 'jpg';
+    }
+
+    protected function extensionOf(string $url): ?string
     {
         $ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
 
-        return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true) ? $ext : 'jpg';
+        return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true) ? $ext : null;
     }
 }
