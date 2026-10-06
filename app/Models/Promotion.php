@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property string|null $name
@@ -23,9 +23,17 @@ class Promotion extends Model
         return ['is_active' => 'boolean', 'starts_at' => 'datetime', 'ends_at' => 'datetime'];
     }
 
+    /**
+     * The products in this campaign.
+     *
+     * The pivot is named, because Laravel would otherwise work it out
+     * alphabetically as product_promotion while the migration created
+     * promotion_product — and this relation's own ordering clause already said
+     * so, which is how a table that does not exist came to be queried.
+     */
     public function products(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class)
+        return $this->belongsToMany(Product::class, 'promotion_product')
             ->withPivot(['promo_price', 'sort_order'])
             ->orderBy('promotion_product.sort_order');
     }

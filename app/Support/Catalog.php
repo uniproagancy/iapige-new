@@ -128,6 +128,8 @@ class Catalog
             ->active()
             ->withTranslation()
             ->with(self::CARD_RELATIONS)
+            // no order at all meant the database chose, and it chose the oldest
+            ->orderByDesc('products.id')
             ->limit($limit)
             ->get();
 
@@ -183,9 +185,17 @@ class Catalog
                     ])->all(),
                     'banner' => $banners[$key]['banner'] ?? null,
                     'duo' => $banners[$key]['duo'] ?? null,
+                    /*
+                     * Newest first. Ordering by sales_count put the oldest
+                     * products at the top of every section, because nothing
+                     * has sold yet and a column of equal values leaves the
+                     * order to the database — which hands back insertion
+                     * order. A shop still filling its catalogue wants its
+                     * newest arrivals seen.
+                     */
                     'products' => self::cards(self::productQuery()
                         ->whereIn('category_id', $ids)
-                        ->orderByDesc('sales_count')
+                        ->orderByDesc('id')
                         ->limit($perSection)
                         ->get()),
                 ];
