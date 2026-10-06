@@ -36,10 +36,6 @@
                 @if ($pending['attributes'])
                     <span class="badge rounded-pill badge-light-warning ms-50">{{ $pending['attributes'] }}</span>
                 @endif
-                @if ($pending['attributes_new'])
-                    <span class="badge rounded-pill badge-light-info ms-25"
-                          title="{{ __('admin.new_parameters') }}">{{ $pending['attributes_new'] }}</span>
-                @endif
             </button>
         </li>
     </ul>
@@ -71,10 +67,6 @@
                         <option value="">{{ __('admin.all') }}</option>
                         <option value="unmapped">{{ __('admin.not_mapped') }}</option>
                         <option value="mapped">{{ __('admin.already_mapped') }}</option>
-                        @if ($tab === 'attributes')
-                            {{-- mapped by the importer's guess, never confirmed --}}
-                            <option value="new">{{ __('admin.new_parameters') }}</option>
-                        @endif
                     </select>
                 </div>
 

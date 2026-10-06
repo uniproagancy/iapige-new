@@ -140,15 +140,8 @@ class TaxonomyResolver
         return $this->memo["av:{$attribute->id}:{$code}"] = $value;
     }
 
-    /**
-     * A stable code for a spec name, readable for Latin and Georgian alike.
-     *
-     * Public because it is the only link back from a supplier's own wording to
-     * the attribute the importer invented for it: the admin needs that to move
-     * existing specs when it re-points a mapping, and the answer has to be the
-     * same function, not a second guess at the same rule.
-     */
-    public function attributeCode(string $name): string
+    /** A stable code for a spec name, readable for Latin and Georgian alike. */
+    protected function attributeCode(string $name): string
     {
         $code = Slug::make($name) ?: Str::slug($name);
 
@@ -212,16 +205,10 @@ class TaxonomyResolver
             $attribute->saveTranslations([Language::defaultCode() => ['name' => $name]]);
         }
 
-        /*
-         * Remembered, so the same name resolves without a lookup next time —
-         * and flagged, because this mapping is a guess the importer made rather
-         * than a decision anyone took. Without the flag a brand-new parameter
-         * was indistinguishable from an approved one and never showed up in the
-         * admin's queue.
-         */
+        // remember the mapping, so the same name resolves without a lookup next time
         DB::table('supplier_attribute_map')->updateOrInsert(
             ['supplier_id' => $supplier->id, 'external_name' => $name],
-            ['attribute_id' => $attribute->id, 'is_auto' => true, 'updated_at' => now(), 'created_at' => now()],
+            ['attribute_id' => $attribute->id, 'updated_at' => now(), 'created_at' => now()],
         );
 
         return $this->memo[$key] = $attribute;
