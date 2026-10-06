@@ -71,6 +71,30 @@ class ZoommerClient
     }
 
     /**
+     * The address to ask, direct or through the proxy.
+     *
+     * Cloudflare answers a server address with 403 however good the cookie is —
+     * it is refusing the caller, not the request — so from a datacentre the only
+     * way in is somebody else's address. With ZOOMMER_WORKER_URL set the request
+     * goes through a worker that forwards these headers unchanged, which is how
+     * the Elite driver has always reached its source. Unset, it goes direct, so
+     * a laptop needs no proxy at all.
+     */
+    protected function endpoint(string $id): string
+    {
+        $target = $this->apiUrl."v1/Products/details?productId={$id}";
+
+        if (! $worker = config('services.zoommer.worker_url')) {
+            return $target;
+        }
+
+        return rtrim($worker, '/').'?'.http_build_query(array_filter([
+            'url' => $target,
+            'token' => config('services.zoommer.worker_token'),
+        ]));
+    }
+
+    /**
      * One product in every language we keep.
      *
      * @return array<string, array> locale => raw payload
@@ -84,7 +108,7 @@ class ZoommerClient
 
         foreach ($locales as $locale) {
             $response = $this->client->get(
-                $this->apiUrl."v1/Products/details?productId={$id}",
+                $this->endpoint($id),
                 ['headers' => ['Accept-Language' => $locale]],
             );
 
@@ -167,7 +191,7 @@ class ZoommerClient
 
         $requests = function () use ($ids) {
             foreach ($ids as $id) {
-                yield $id => new Request('GET', $this->apiUrl."v1/Products/details?productId={$id}", [
+                yield $id => new Request('GET', $this->endpoint((string) $id), [
                     'Accept-Language' => 'ka',
                 ]);
             }

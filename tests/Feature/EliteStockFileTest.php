@@ -4,8 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Supplier;
 use App\Models\SupplierStock;
+use App\Services\Import\Drivers\Elite\BlockedByElite;
+use App\Services\Import\Drivers\Elite\EliteClient;
 use App\Services\Import\Drivers\Elite\EliteDriver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use Tests\TestCase;
 
@@ -97,6 +101,74 @@ class EliteStockFileTest extends TestCase
 
         $this->assertSame(1599.0, $payload->costPrice);
         $this->assertSame(1399.0, $payload->oldCostPrice);
+    }
+
+    /**
+     * A refusal from the proxy is not a missing product.
+     *
+     * Both used to return null, so an expired worker token turned a run of
+     * thirty-five thousand ids into thirty-five thousand silent nothings with
+     * nothing anywhere to say the token needed replacing.
+     *
+     * One case per test, because Http::fake keeps the stub it matched first and
+     * a loop would measure the same response four times.
+     */
+    #[DataProvider('refusals')]
+    public function test_a_refusal_from_the_proxy_is_loud(int $status, string $expected): void
+    {
+        Http::fake(fn () => Http::response('denied', $status));
+
+        try {
+            (new EliteClient)->product('500');
+            $this->fail("HTTP {$status} should have been refused");
+        } catch (BlockedByElite $e) {
+            $this->assertStringContainsString("HTTP {$status}", $e->getMessage());
+            $this->assertStringContainsString($expected, $e->getMessage());
+        }
+    }
+
+    public static function refusals(): array
+    {
+        return [
+            'bad token' => [401, 'ELITE_TOKEN'],
+            'forbidden' => [403, 'ELITE_TOKEN'],
+            'throttled' => [429, 'IMPORT_RATE_PER_MINUTE'],
+            'proxy down' => [503, 'unavailable'],
+        ];
+    }
+
+    /** The proxy's own complaint about our query is ours to fix, so it is raised. */
+    public function test_a_proxy_error_payload_is_raised(): void
+    {
+        Http::fake(fn () => Http::response(['error' => 'type must be: product or image'], 400));
+
+        $this->expectException(BlockedByElite::class);
+        $this->expectExceptionMessage('type must be: product or image');
+
+        (new EliteClient)->product('500');
+    }
+
+    /** A product that is not there answers 200 with a null product, and that is normal. */
+    public function test_a_missing_product_stays_quiet(): void
+    {
+        Http::fake(fn () => Http::response([
+            'product' => null, 'availabilityInStores' => null,
+            'httpStatusCode' => 400, 'userMessage' => 'პროდუქტი ვერ მოიძებნა',
+        ]));
+
+        $this->assertNull((new EliteClient)->product('999999'));
+    }
+
+    public function test_a_real_product_comes_back(): void
+    {
+        Http::fake(fn () => Http::response([
+            'product' => ['id' => 500, 'barCode' => 'I33436', 'name' => 'BOSCH MFW66020'],
+            'availabilityInStores' => [],
+        ]));
+
+        $data = (new EliteClient)->product('500');
+
+        $this->assertSame('I33436', $data['product']['barCode']);
     }
 
     /* ------------------------------------------------------------------ helpers */

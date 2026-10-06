@@ -118,6 +118,62 @@ class ZoommerImportTest extends TestCase
         $client->fetch('54500', ['ka']);
     }
 
+    /* ------------------------------------------------------------------ proxy */
+
+    /**
+     * With no worker configured the request goes straight to the source.
+     *
+     * A laptop's address is not refused, so making the proxy mandatory would
+     * mean nobody could run an import without deploying one.
+     */
+    public function test_it_calls_the_source_directly_by_default(): void
+    {
+        config(['services.zoommer.worker_url' => null]);
+
+        $this->assertStringStartsWith(
+            'https://zoommer.ge/api/proxy/v1/Products/details?productId=54500',
+            $this->endpointFor('54500'),
+        );
+    }
+
+    /** With one configured, the target travels as a parameter. */
+    public function test_it_calls_through_the_worker_when_one_is_configured(): void
+    {
+        config([
+            'services.zoommer.worker_url' => 'https://proxy.example.workers.dev',
+            'services.zoommer.worker_token' => 'secret-123',
+        ]);
+
+        $endpoint = $this->endpointFor('54500');
+
+        $this->assertStringStartsWith('https://proxy.example.workers.dev?', $endpoint);
+
+        $query = [];
+        parse_str(parse_url($endpoint, PHP_URL_QUERY), $query);
+
+        $this->assertSame('https://zoommer.ge/api/proxy/v1/Products/details?productId=54500', $query['url']);
+        $this->assertSame('secret-123', $query['token']);
+    }
+
+    /** A worker with no token set is still usable; the worker decides that. */
+    public function test_the_token_is_left_out_when_it_is_not_set(): void
+    {
+        config([
+            'services.zoommer.worker_url' => 'https://proxy.example.workers.dev/',
+            'services.zoommer.worker_token' => null,
+        ]);
+
+        $this->assertStringNotContainsString('token=', $this->endpointFor('54500'));
+    }
+
+    protected function endpointFor(string $id): string
+    {
+        $method = new \ReflectionMethod(ZoommerClient::class, 'endpoint');
+        $method->setAccessible(true);
+
+        return $method->invoke(new ZoommerClient, $id);
+    }
+
     /* ------------------------------------------------------------------ helpers */
 
     protected function payloadFor(array $priceFields)
