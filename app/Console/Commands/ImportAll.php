@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Supplier;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -20,13 +21,20 @@ class ImportAll extends Command
     protected $signature = 'import:all
                             {--only= : comma-separated supplier codes}
                             {--skip= : comma-separated supplier codes to leave out}
-                            {--files : load price lists from storage/app/imports first}
+                            {--files : load price lists from storage/app/imports or storage/imports first}
                             {--sync : work the queue here instead of leaving jobs for a worker}';
 
     protected $description = 'Import every active supplier';
 
-    /** Where a supplier's price list is expected, named after its code. */
-    protected const FILES = 'imports';
+    /**
+     * Where a supplier's price list is expected, named after its code.
+     *
+     * Two directories, because this looked in storage/imports while its own
+     * --files help promised storage/app/imports — and with neither directory
+     * present, a file dropped in the documented place was never found and the
+     * run simply reported no price list. Both are searched now.
+     */
+    protected const FILE_DIRS = ['app/imports', 'imports'];
 
     public function handle(): int
     {
@@ -59,7 +67,7 @@ class ImportAll extends Command
 
                     Log::channel('import')->error('supplier run failed', [
                         'supplier' => $supplier->code,
-                        'error'    => $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ]);
 
                     return false;
@@ -83,7 +91,7 @@ class ImportAll extends Command
         return $failed ? self::FAILURE : self::SUCCESS;
     }
 
-    /** @return \Illuminate\Support\Collection<int, Supplier> */
+    /** @return Collection<int, Supplier> */
     protected function suppliers()
     {
         $only = $this->codes('only');
@@ -119,20 +127,25 @@ class ImportAll extends Command
             return;   // this supplier has no spreadsheet to load
         }
 
-        foreach (['xlsx', 'csv'] as $extension) {
-            $path = storage_path(self::FILES."/{$supplier->code}.{$extension}");
+        foreach (self::FILE_DIRS as $dir) {
+            foreach (['xlsx', 'csv'] as $extension) {
+                $path = storage_path("{$dir}/{$supplier->code}.{$extension}");
 
-            if (File::exists($path)) {
-                Artisan::call('import:file', [
-                    'supplier' => $supplier->code,
-                    'file'     => $path,
-                ]);
+                if (File::exists($path)) {
+                    Artisan::call('import:file', [
+                        'supplier' => $supplier->code,
+                        'file' => $path,
+                    ]);
 
-                return;
+                    return;
+                }
             }
         }
 
-        $this->warn("  no price list for {$supplier->code}");
+        // named, because a supplier reading from supplier_stocks imports
+        // nothing at all without one, and that is easy to mistake for a bug
+        $this->warn("  no price list for {$supplier->code}: expected storage/"
+            .self::FILE_DIRS[0]."/{$supplier->code}.xlsx");
     }
 
     /**
@@ -148,10 +161,10 @@ class ImportAll extends Command
         $this->line("Working {$queues}…");
 
         Artisan::call('queue:work', [
-            '--queue'            => $queues,
-            '--stop-when-empty'  => true,
-            '--tries'            => 3,
-            '--sleep'            => 0,
+            '--queue' => $queues,
+            '--stop-when-empty' => true,
+            '--tries' => 3,
+            '--sleep' => 0,
         ], $this->output);
     }
 }

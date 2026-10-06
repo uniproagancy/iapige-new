@@ -93,7 +93,9 @@ class KontaktDriver implements SupplierDriver
             oldCostPrice: $old,
             stock: $stock,
             brandName: $page['brand'] ?? null,
-            categoryName: $data['category'] ?? null,
+            // the price list has no category column, so the page's breadcrumb is
+            // what reaches the mapping queue; a column named one would still win
+            categoryName: $data['category'] ?? $page['category'] ?? null,
             translations: [$locale => [
                 'name' => $this->rewrite($page['name']),
                 'description' => $this->rewrite($page['description']),

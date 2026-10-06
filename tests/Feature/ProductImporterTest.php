@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Language;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ProductSpec;
 use App\Models\Supplier;
 use App\Services\Import\ImageDownloader;
@@ -52,14 +53,32 @@ class ProductImporterTest extends TestCase
             'created_at' => now(), 'updated_at' => now(),
         ]);
 
-        // the network half is covered by its own concerns, not by these
+        /*
+         * The network half is covered by its own concerns, not by these — but
+         * the fake does record a row per image, because whether the importer
+         * asks again depends on whether the last attempt left anything behind.
+         */
         $this->app->instance(ImageDownloader::class, new class extends ImageDownloader
         {
             public array $calls = [];
 
+            /** When true the gallery fails, as a dead CDN would. */
+            public bool $failing = false;
+
             public function sync(Product $product, array $urls, int $limit = 8): void
             {
                 $this->calls[] = $product->id;
+
+                if ($this->failing) {
+                    return;
+                }
+
+                foreach (array_values($urls) as $i => $url) {
+                    ProductImage::updateOrCreate(
+                        ['product_id' => $product->id, 'sort_order' => $i],
+                        ['path' => 'products/'.$product->id.'/'.$i.'.jpg'],
+                    );
+                }
             }
         });
     }
@@ -128,17 +147,43 @@ class ProductImporterTest extends TestCase
         $this->assertSame($slug, $product->fresh()->translate('ka')->slug);
     }
 
-    /** Photographs are fetched outside the transaction, and only for new products. */
-    public function test_images_are_only_fetched_for_a_new_product(): void
+    /** Photographs are fetched outside the transaction, and once is enough. */
+    public function test_a_gallery_already_fetched_is_not_fetched_again(): void
     {
         $importer = app(ProductImporter::class);
         $downloader = app(ImageDownloader::class);
 
         $importer->import($this->supplier, $this->payload());
         $this->assertCount(1, $downloader->calls);
+        $this->assertDatabaseCount('product_images', 1);
 
         $importer->import($this->supplier, $this->payload());
         $this->assertCount(1, $downloader->calls, 'an update must not re-download the gallery');
+    }
+
+    /**
+     * A product left with no photographs is asked for them again.
+     *
+     * Images used to be fetched for new products only, so one timed-out CDN on
+     * the first import meant a product that stayed blank however many times it
+     * was re-imported — and nothing short of hand-editing would fix it.
+     */
+    public function test_a_gallery_that_failed_is_retried_on_the_next_run(): void
+    {
+        $importer = app(ProductImporter::class);
+        $downloader = app(ImageDownloader::class);
+
+        $downloader->failing = true;
+        $importer->import($this->supplier, $this->payload());
+
+        $this->assertCount(1, $downloader->calls);
+        $this->assertDatabaseCount('product_images', 0);
+
+        $downloader->failing = false;
+        $importer->import($this->supplier, $this->payload());
+
+        $this->assertCount(2, $downloader->calls, 'a product with no gallery must be asked again');
+        $this->assertDatabaseCount('product_images', 1);
     }
 
     /** An unmapped category parks the name and leaves the product uncategorised. */

@@ -27,7 +27,16 @@ class ImageDownloader
      | hold the importer for twelve minutes. These numbers cap one product's
      | gallery at roughly half a minute.
      */
-    protected const CONNECT_TIMEOUT = 5;
+    /*
+     | Connecting is the slow part, not the download.
+     |
+     | At five seconds s3.zoommer.ge lost whole galleries to what was only a
+     | cold DNS and TLS handshake — one product came out of a thirty-id run with
+     | no photographs at all. Ten is the figure that stops happening, and since
+     | the gallery is fetched outside the transaction it costs nobody a lock;
+     | a host that is genuinely down is still cut off after five tries.
+     */
+    protected const CONNECT_TIMEOUT = 10;
 
     protected const READ_TIMEOUT = 10;
 

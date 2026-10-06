@@ -36,7 +36,15 @@ class ProductImporter
          * product_offers for the whole time — long enough for other import
          * workers to pile up behind it and time out.
          */
-        if ($product && $isNew && $payload->images) {
+        /*
+         * A later run retries a gallery that never arrived.
+         *
+         * Only new products used to be fetched, so a product whose photographs
+         * all timed out on its first import stayed empty for good — no amount of
+         * re-importing would ask for them again. The images table answers that
+         * in one EXISTS, and only for products we are not creating.
+         */
+        if ($product && $payload->images && ($isNew || ! $product->images()->exists())) {
             $this->images->sync($product, $payload->images);
         }
 

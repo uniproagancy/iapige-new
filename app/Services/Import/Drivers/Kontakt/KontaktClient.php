@@ -16,7 +16,7 @@ class KontaktClient
     public function __construct(protected array $config = []) {}
 
     /**
-     * @return array{name:?string, description:?string, brand:?string, image:?string, specs:array, in_stock:bool, price:float}|null
+     * @return array{name:?string, description:?string, brand:?string, category:?string, image:?string, specs:array, in_stock:bool, price:float}|null
      */
     public function page(string $url): ?array
     {
@@ -37,6 +37,7 @@ class KontaktClient
             'description' => $this->clean((string) ($json['description'] ?? '')) ?: null,
             'brand' => $json['brand']['name'] ?? null,
             'images' => $this->images($json, $html),
+            'category' => $this->category($html),
             'specs' => $this->specs($html),
             'in_stock' => str_contains((string) ($json['offers']['availability'] ?? ''), 'InStock'),
             'price' => (float) ($json['offers']['price'] ?? 0),
@@ -131,6 +132,18 @@ class KontaktClient
 
     protected function productJson(string $html): ?array
     {
+        return $this->ldJson($html, 'Product');
+    }
+
+    /**
+     * The first structured-data node of a given type.
+     *
+     * The site publishes its Product and its BreadcrumbList the same way, so
+     * both are read through here rather than through two copies of the same
+     * script-tag scan.
+     */
+    protected function ldJson(string $html, string $type): ?array
+    {
         if (! preg_match_all('#<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>#si', $html, $m)) {
             return null;
         }
@@ -142,18 +155,53 @@ class KontaktClient
                 continue;
             }
 
-            if (($data['@type'] ?? '') === 'Product') {
+            if (($data['@type'] ?? '') === $type) {
                 return $data;
             }
 
             foreach ($data['@graph'] ?? [] as $node) {
-                if (($node['@type'] ?? '') === 'Product') {
+                if (($node['@type'] ?? '') === $type) {
                     return $node;
                 }
             }
         }
 
         return null;
+    }
+
+    /**
+     * The category, taken from the page's own breadcrumb.
+     *
+     * Nothing in the price list says what a product is — the column map holds a
+     * code, a link, a price and a quantity, and no category — so every Kontakt
+     * product arrived with categoryName null. The resolver parks a name it does
+     * not recognise so an admin can map it, but it was never given one to park:
+     * the mapping queue stayed empty and the products stayed uncategorised, with
+     * nothing to map them by.
+     *
+     * The trail reads Home › Category › Product, so the category is the entry
+     * before the last. A deeper trail yields the most specific one, which is
+     * the one worth mapping.
+     */
+    protected function category(string $html): ?string
+    {
+        $names = [];
+
+        foreach ($this->ldJson($html, 'BreadcrumbList')['itemListElement'] ?? [] as $item) {
+            $name = $this->clean((string) ($item['name'] ?? $item['item']['name'] ?? ''));
+
+            if ($name !== '') {
+                $names[] = $name;
+            }
+        }
+
+        array_pop($names);              // the product itself
+        $category = array_pop($names);  // what it sits under
+
+        // a product linked straight off the front page has no category to give
+        return in_array($category, ['მთავარი', 'Home', 'Главная'], true)
+            ? null
+            : ($category ?: null);
     }
 
     /**
