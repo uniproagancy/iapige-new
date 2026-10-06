@@ -66,8 +66,11 @@ class ResetAttributeMappings extends Command
             ->when($category, fn ($q) => $q->whereIn('attribute_id', $this->attributesOf($category)))
             ->get();
 
+        // named first, so even "nothing to do" says what it looked at
+        $this->scope($supplier, $category);
+
         if ($rows->isEmpty()) {
-            $this->info('No attribute mappings to reset.');
+            $this->info('No attribute mappings matched.');
 
             return self::SUCCESS;
         }
@@ -96,6 +99,30 @@ class ResetAttributeMappings extends Command
         $this->warnAboutTheNextRun();
 
         return self::SUCCESS;
+    }
+
+    /**
+     * What this run is about.
+     *
+     * A count on its own does not say what it counted, and --category takes an
+     * id — the easiest thing in the world to mistype into another department.
+     */
+    protected function scope(?Supplier $supplier, ?Category $category): void
+    {
+        $this->newLine();
+        $this->line('Supplier: <options=bold>'.($supplier?->code ?? 'all').'</>');
+        $this->line('Category: <options=bold>'.($category
+            ? $this->trail($category).' (id '.$category->id.')'
+            : 'all').'</>'
+            .($category && $this->option('only-exclusive') ? '  [only what no other category uses]' : ''));
+    }
+
+    /** Root > ... > this, so an id cannot be mistaken for a different department. */
+    protected function trail(Category $category): string
+    {
+        return collect($category->ancestorsAndSelf())
+            ->map(fn (Category $c) => $c->name ?: ('#'.$c->id))
+            ->implode(' > ');
     }
 
     protected function findCategory(string $name): ?Category
@@ -173,6 +200,11 @@ class ResetAttributeMappings extends Command
         $specs = DB::table('product_specs')->whereIn('attribute_id', $invented->pluck('id'))->count();
         $values = DB::table('attribute_values')->whereIn('attribute_id', $invented->pluck('id'))->count();
 
+        /*
+         * Said out loud, because a count on its own does not tell anybody what
+         * it counted — and --category takes an id, which is the easiest thing
+         * in the world to mistype into a different department.
+         */
         $this->newLine();
         $this->table(['what', 'count'], [
             ['mappings set back to unmapped', $rows->count()],

@@ -122,6 +122,8 @@ return [
     'sort_stock'               => 'Stock ↑',
     'sort_sales'               => 'Sales ↓',
 
+    'seen_in'                  => 'Seen in',
+
     /* ------------------------------------------------------------ ready */
     'ready_to_publish'         => 'Ready to publish',
     'not_ready'                => 'Not ready to publish',

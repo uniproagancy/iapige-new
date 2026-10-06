@@ -41,6 +41,9 @@ class Index extends Component
 
     public int $perPage = 40;
 
+    /** How many categories to name per attribute before it stops being useful. */
+    protected const CONTEXT_CATEGORIES = 3;
+
     /** row id => target id, for the bulk save */
     public array $choice = [];
 
@@ -105,6 +108,7 @@ class Index extends Component
             'targets' => $this->targets(),
             'pending' => $this->pendingCounts(),
             'impact' => $this->showImpact ? $this->impact($rows) : [],
+            'context' => $this->categoryContext($rows),
             'canRelink' => $this->canRelink(),
         ])->layout('layouts.admin', ['title' => __('admin.mapping')]);
     }
@@ -133,6 +137,64 @@ class Index extends Component
         $walk(null, '');
 
         return $flat;
+    }
+
+    /**
+     * Where each attribute's products actually sit, for the rows on this page.
+     *
+     * Mapping "ეკრანის ზომა" by hand is guesswork without knowing whether it
+     * arrived on a phone or a television — the name alone does not say, and the
+     * same wording means different things per department.
+     *
+     * Nothing links an attribute to a category directly, so the answer comes
+     * the only way it can: attribute -> specs -> products -> category. That
+     * chain runs through product_specs, which is why a reset that deletes the
+     * attributes also takes this context with it and the column comes back
+     * empty; attributes:reset --keep-attributes is the one that preserves it.
+     *
+     * One query for the page, not one per row.
+     *
+     * @return array<int, array<int, array{name: string, products: int}>>
+     */
+    protected function categoryContext($rows): array
+    {
+        if ($this->tab !== 'attributes') {
+            return [];
+        }
+
+        $attributeIds = collect($rows->items())->pluck('attribute_id')->filter()->unique();
+
+        if ($attributeIds->isEmpty()) {
+            return [];
+        }
+
+        $counts = DB::table('product_specs as ps')
+            ->join('products as p', 'p.id', '=', 'ps.product_id')
+            ->whereIn('ps.attribute_id', $attributeIds)
+            ->whereNull('p.deleted_at')
+            ->whereNotNull('p.category_id')
+            ->selectRaw('ps.attribute_id, p.category_id, count(distinct p.id) as products')
+            ->groupBy('ps.attribute_id', 'p.category_id')
+            ->orderByDesc('products')
+            ->get();
+
+        $names = Category::withTranslation()
+            ->whereIn('id', $counts->pluck('category_id')->unique())
+            ->get()
+            ->mapWithKeys(fn (Category $c) => [$c->id => $c->name ?: '#'.$c->id]);
+
+        return $counts
+            ->groupBy('attribute_id')
+            ->map(fn ($group) => $group
+                // the busiest departments first; a long tail helps nobody
+                ->take(self::CONTEXT_CATEGORIES)
+                ->map(fn ($row) => [
+                    'name' => $names[$row->category_id] ?? '—',
+                    'products' => (int) $row->products,
+                ])
+                ->values()
+                ->all())
+            ->all();
     }
 
     protected function pendingCounts(): array

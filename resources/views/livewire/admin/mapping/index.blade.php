@@ -111,6 +111,10 @@
                         @if ($tab === 'categories' && $canRelink)
                             <th class="text-center" style="width:110px">{{ __('admin.products') }}</th>
                         @endif
+                        @if ($tab === 'attributes')
+                            {{-- which department the name arrived from; the name alone does not say --}}
+                            <th style="width:22%">{{ __('admin.seen_in') }}</th>
+                        @endif
                         <th style="width:38%">{{ $tab === 'attributes' ? __('admin.attribute') : __('admin.category') }}</th>
                         <th class="text-end" style="width:120px">{{ __('admin.actions') }}</th>
                     </tr>
@@ -139,6 +143,19 @@
                             </td>
 
                             <td class="text-center text-muted">{{ $row->hits }}</td>
+
+                            @if ($tab === 'attributes')
+                                <td class="small">
+                                    @forelse ($context[$row->attribute_id] ?? [] as $seen)
+                                        <span class="badge bg-light-secondary mb-25">
+                                            {{ $seen['name'] }}
+                                            <span class="text-muted">· {{ $seen['products'] }}</span>
+                                        </span>
+                                    @empty
+                                        <span class="text-muted">—</span>
+                                    @endforelse
+                                </td>
+                            @endif
 
                             @if ($tab === 'categories' && $canRelink)
                                 <td class="text-center">
