@@ -100,10 +100,7 @@ class ZoommerClient
              * of them is normal.
              */
             if (in_array($status, self::BLOCKED_STATUSES, true) || $this->isChallenge($body)) {
-                throw new BlockedByZoommer(
-                    "Zoommer refused the request (HTTP {$status}). ZOOMMER_CF_CLEARANCE and "
-                    .'ZOOMMER_USER_AGENT must be a matching, unexpired pair.'
-                );
+                throw new BlockedByZoommer($this->refusal($status, $body));
             }
 
             if ($status !== 200) {
@@ -118,6 +115,35 @@ class ZoommerClient
         }
 
         return $out;
+    }
+
+    /**
+     * What to actually go and fix, per status.
+     *
+     * These two mean different things and have different answers, and one
+     * message covering both sent somebody to rotate a cookie that was not the
+     * problem: 401 is the API saying the token is wrong, while 403 is
+     * Cloudflare refusing the caller before the API sees it at all — which no
+     * cookie fixes when the caller is a datacentre address.
+     */
+    protected function refusal(int $status, string $body): string
+    {
+        $reason = match (true) {
+            $status === 401 => 'ZOOMMER_ACCESS_TOKEN is missing or no longer valid — that cookie is '
+                .'the only one this API checks. Take a fresh zoommer-access_token from a browser '
+                .'session on zoommer.ge.',
+
+            $status === 403 || $this->isChallenge($body) => 'Cloudflare refused the caller, not the '
+                .'request: the token is not what is being rejected. This is normal from a server '
+                .'address, and the way round it is to fetch through a proxy the way the Elite '
+                .'driver does, rather than directly.',
+
+            $status === 429 => 'Too many requests. Lower IMPORT_RATE_PER_MINUTE or run fewer workers.',
+
+            default => 'Zoommer is refusing requests for now; this is usually temporary.',
+        };
+
+        return "Zoommer refused the request (HTTP {$status}). {$reason}";
     }
 
     /** Cloudflare answers a challenge with HTML, sometimes under a 200. */

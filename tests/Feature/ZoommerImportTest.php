@@ -70,9 +70,36 @@ class ZoommerImportTest extends TestCase
         $client = $this->clientReturning(new Response($status, [], 'denied'));
 
         $this->expectException(BlockedByZoommer::class);
-        $this->expectExceptionMessage('ZOOMMER_CF_CLEARANCE');
+        $this->expectExceptionMessage("HTTP {$status}");
 
         $client->fetch('54500', ['ka']);
+    }
+
+    /**
+     * Each refusal names its own cause.
+     *
+     * 401 and 403 have different answers, and one message covering both sent
+     * somebody rotating a cookie that was not the problem. Measured against the
+     * live API: the only cookie it checks is zoommer-access_token — dropping
+     * cf_clearance still returns 200, dropping the token returns 401 — so a 403
+     * is Cloudflare refusing the caller, which no cookie fixes.
+     */
+    public function test_the_message_says_what_to_fix(): void
+    {
+        $cases = [
+            401 => 'ZOOMMER_ACCESS_TOKEN',
+            403 => 'Cloudflare refused the caller',
+            429 => 'IMPORT_RATE_PER_MINUTE',
+        ];
+
+        foreach ($cases as $status => $expected) {
+            try {
+                $this->clientReturning(new Response($status, [], 'denied'))->fetch('54500', ['ka']);
+                $this->fail("HTTP {$status} should have been refused");
+            } catch (BlockedByZoommer $e) {
+                $this->assertStringContainsString($expected, $e->getMessage());
+            }
+        }
     }
 
     public static function blockedStatuses(): array
