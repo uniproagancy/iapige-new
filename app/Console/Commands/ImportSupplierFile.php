@@ -206,7 +206,22 @@ class ImportSupplierFile extends Command
             return 1;
         }
 
-        return max(0, (int) filter_var($text, FILTER_SANITIZE_NUMBER_INT));
+        /*
+         * Read as a number first, because a spreadsheet writes small fractions
+         * in scientific notation: Excel stores 0.04 as "4.0000000000000001E-2".
+         * Stripping the non-digits out of that left "40000000000000001-2",
+         * which became forty quadrillion — out of range for the column, so the
+         * insert failed and took its whole batch of five hundred rows with it.
+         * One such cell stopped a nine thousand row price list at one thousand.
+         */
+        if (is_numeric($text)) {
+            return max(0, (int) floor((float) $text));
+        }
+
+        // free text: "30+", ">=10", "12 ცალი"
+        $digits = preg_replace('/\D+/', '', $text);
+
+        return $digits === '' ? 0 : min(PHP_INT_MAX, (int) $digits);
     }
 
     protected function money(?string $text): ?float

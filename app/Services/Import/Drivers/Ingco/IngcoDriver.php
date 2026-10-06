@@ -43,16 +43,21 @@ class IngcoDriver implements SupplierDriver
             return null;
         }
 
-        $cost = (float) $row->cost_price;
-
         /*
          * Cheap tools are not worth a listing here: they cost more to handle
          * and photograph than they return. The floor is a commercial decision,
          * so it lives in the supplier's own config.
+         *
+         * Compared against the figure we actually pay — the promotional price
+         * in column B — and not the list price beside it. Reading the list
+         * price instead let a tool through on a number nobody was charged:
+         * B 105 with C 126 cleared a floor of 120 while costing 105.
          */
+        [$price] = $this->prices($row);
+
         $floor = (float) ($this->supplier->config['min_price'] ?? 0);
 
-        if ($floor > 0 && $cost < $floor) {
+        if ($floor > 0 && $price < $floor) {
             return null;
         }
 
@@ -67,6 +72,44 @@ class IngcoDriver implements SupplierDriver
         return $page ? $this->toPayload($externalId, $row, $page) : null;
     }
 
+    /**
+     * What we pay, and the figure to strike through.
+     *
+     * The price list carries two: the list price and the promotional one, and
+     * the promotional one is what the supplier charges. One place, because the
+     * floor in fetch() and the price on the product have to be the same number
+     * — they were not, and a tool priced 105 cleared a floor of 120 on the
+     * strength of the 126 printed next to it.
+     *
+     * @return array{0: float, 1: ?float}
+     */
+    protected function prices(SupplierStock $row): array
+    {
+        $list = (float) $row->cost_price;
+        $sale = (float) ($row->data['sale'] ?? 0);
+
+        return $sale > 0 && $sale < $list ? [$sale, $list] : [$list, null];
+    }
+
+    /**
+     * How many of these we will actually offer.
+     *
+     * A handful left is not worth selling: the last two of a line are the ones
+     * that turn into a cancelled order, and the price list is a day old by the
+     * time anybody buys. Below the floor the product stays in the catalogue and
+     * reads as unavailable, rather than disappearing — it comes back on its own
+     * when the supplier restocks.
+     *
+     * The floor is a commercial decision, so it lives in the supplier's config
+     * beside min_price. Zero or unset keeps every quantity.
+     */
+    protected function sellableStock(int $quantity): int
+    {
+        $floor = (int) ($this->supplier->config['min_stock'] ?? 0);
+
+        return $quantity >= $floor ? $quantity : 0;
+    }
+
     /* ------------------------------------------------------------------ mapping */
 
     protected function toPayload(string $model, SupplierStock $row, array $page): ProductPayload
@@ -74,11 +117,7 @@ class IngcoDriver implements SupplierDriver
         $locale = $this->supplier->config['locale'] ?? 'ka';
         $data = $row->data ?? [];
 
-        // the list price and the promotional one; the lower is what we pay
-        $cost = (float) $row->cost_price;
-        $sale = isset($data['sale']) ? (float) $data['sale'] : 0.0;
-
-        [$price, $old] = $sale > 0 && $sale < $cost ? [$sale, $cost] : [$cost, null];
+        [$price, $old] = $this->prices($row);
 
         $specs = array_map(fn ($spec) => [
             'name' => $spec['name'],
@@ -95,8 +134,7 @@ class IngcoDriver implements SupplierDriver
             sku: $this->supplier->code.'-'.$model,
             costPrice: $price,
             oldCostPrice: $old,
-            // the price list carries no quantity, so presence on the site decides
-            stock: ($page['in_stock'] ?? true) ? max(1, (int) $row->quantity) : 0,
+            stock: ($page['in_stock'] ?? true) ? $this->sellableStock((int) $row->quantity) : 0,
             brandName: $this->supplier->config['brand'] ?? 'INGCO',
             categoryName: $data['category'] ?? null,
             translations: [$locale => [
