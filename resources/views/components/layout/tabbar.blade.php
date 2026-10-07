@@ -21,8 +21,8 @@
     </button>
     @auth
 		<a class="tab" href="{{ route('account') }}">
-			<x-icon name="user" size="20" />
-			<span>{{ __('account.title') }}</span>
+			<span class="tab__ico"><x-icon name="user" size="20" /></span>
+			<span class="tab__label">{{ __('account.title') }}</span>
 		</a>
 	@else
 		<button type="button" class="tab" data-open="auth">
