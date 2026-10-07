@@ -1,21 +1,17 @@
 @props(['specs' => [], 'description' => null])
 
 @php
-    /* a spec with no value would render as an empty row, so it is dropped here
-       rather than inside the loop: the count decides whether the tab exists */
     $rows = collect($specs)
         ->filter(fn ($row) => filled($row[0] ?? null)
             && filled($row[1] ?? null)
             && ! in_array(trim((string) $row[1]), ['-', '—', 'N/A'], true))
         ->values();
-
     $hasSpecs = $rows->isNotEmpty();
     $hasDescription = filled($description);
 @endphp
 
 @if ($hasSpecs || $hasDescription)
-    <section class="tabsec" aria-label="{{ __('product.details') }}" id="tabs">
-        {{-- one tab is no choice at all, so the bar only appears with both --}}
+    <section class="tabsec" aria-label="{{ __('product.details') }}" id="tabs" style="border-top: 1px solid #f1f2f4">
         @if ($hasSpecs && $hasDescription)
             <div class="tabbar-pills" role="tablist">
                 <button type="button" class="tabpill is-on" data-tab="specs"

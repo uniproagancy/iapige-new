@@ -212,7 +212,7 @@
 
 /* ---- tabs ---- */
 .tabsec{padding:0 36px 44px}
-.tabbar-pills{display:flex;gap:6px;padding:5px;background:var(--soft);border-radius:var(--r-pill);width:max-content;margin-bottom:22px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tabbar-pills{display:flex;gap:6px;padding:5px;background:var(--soft);border-radius:var(--r-pill);width:max-content;margin:10px 0;max-width:100%;overflow-x:auto;scrollbar-width:none}
 .tabbar-pills::-webkit-scrollbar{display:none}
 .tabpill{padding:11px 24px;border-radius:var(--r-pill);color:var(--muted);font-size:14px;font-weight:600;white-space:nowrap;transition:background .22s,color .22s}
 .tabpill.is-on{background:var(--ink);color:#fff}
