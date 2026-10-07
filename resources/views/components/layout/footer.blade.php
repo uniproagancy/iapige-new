@@ -2,7 +2,6 @@
     'pay'   => \App\Support\Store::pay(),
     'banks' => \App\Support\Store::banks(),
 ])
-
 <footer class="footer" id="footer">
     <div class="foot">
         <div class="foot__brand">

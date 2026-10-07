@@ -29,12 +29,6 @@
         'send'         => __('info.send'),
     ];
 
-    /*
-     | The page's own meta, whichever way it was handed over: pages either pass
-     | a `seo` array, or `title` / `description` as variables, or set them as
-     | sections. All three are merged here so a page cannot be half-described —
-     | and so <title> and og:title can never drift apart.
-     */
     $seo = \App\Support\Seo::meta(array_merge(
         [
             'title'       => trim($__env->yieldContent('title')) ?: ($title ?? null),

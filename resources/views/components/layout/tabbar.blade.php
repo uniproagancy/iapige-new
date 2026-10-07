@@ -20,12 +20,12 @@
         <span class="tab__label">{{ __('nav.tab_cart') }}</span>
     </button>
     @auth
-		<a class="tabbar__item" href="{{ route('account') }}">
+		<a class="tab" href="{{ route('account') }}">
 			<x-icon name="user" size="20" />
 			<span>{{ __('account.title') }}</span>
 		</a>
 	@else
-		<button type="button" class="tabbar__item" data-open="auth">
+		<button type="button" class="tab" data-open="auth">
 			<x-icon name="user" size="20" />
 			<span>{{ __('auth.sign_in') }}</span>
 		</button>
