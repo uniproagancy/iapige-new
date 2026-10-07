@@ -26,8 +26,8 @@
 		</a>
 	@else
 		<button type="button" class="tab" data-open="auth">
-			<x-icon name="user" size="20" />
-			<span>{{ __('auth.sign_in') }}</span>
+			<span class="tab__ico"><x-icon name="user" size="20" /></span>
+			<span class="tab__label">{{ __('auth.sign_in') }}</span>
 		</button>
 	@endauth
 </nav>
