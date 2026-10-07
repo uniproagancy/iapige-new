@@ -749,7 +749,7 @@ button,
   }
   .header.is-stuck .btn-catalog{width:42px;height:42px;padding:0}
   .logo{order:2;flex:1;min-width:0;gap:8px}
-  .logo__mark{width:32px;height:32px;font-size:15px;font-weight:700;background:var(--red-bright)}
+  .logo__mark{width:32px;height:32px;font-size:15px;font-weight:700;}
   .header.is-stuck .logo__mark{width:32px;height:32px;font-size:15px}
   .logo__name{font-size:18px;font-weight:600;letter-spacing:.16em}
   .logo__sub{display:none}
