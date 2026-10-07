@@ -26,7 +26,7 @@
         @endif
 
         @if (! empty($p['discount']))
-            <span class="card__off">{{ $p['discount'] }}</span>
+            <span class="card__discount">{{ $p['discount'] }}</span>
         @endif
     </a>
 
@@ -49,7 +49,7 @@
         </div>
 
         @if (! empty($p['monthly']))
-            <span class="card__inst">{{ __('card.installment', ['amount' => $p['monthly']]) }}</span>
+            <span class="card__monthly">{{ __('card.installment', ['amount' => $p['monthly']]) }}</span>
         @endif
     </div>
 

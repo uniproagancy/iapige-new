@@ -10,7 +10,7 @@
             <span class="section__count">{{ $s['count'] }}</span>
         </div>
         <div class="section__subs">
-            @foreach (array_slice($s['subs'], 0, 3) as $sub)
+            @foreach (array_slice($s['subs'], 0, 2) as $sub)
                 <a class="pill" href="{{ $sub['url'] }}">{{ $sub['name'] }}</a>
             @endforeach
             <a class="pill pill--red" href="{{ $s['url'] }}">{{ __('common.all') }}</a>
