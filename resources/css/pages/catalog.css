@@ -334,6 +334,16 @@
   .subcards{grid-template-columns:repeat(2,1fr);gap:10px;padding-bottom:16px;margin-bottom:16px}
   .subcard{padding:12px 10px}
   .subcard__media{height:84px}
+
+  /*
+   | The title lines up with the controls under it.
+   |
+   | The page drops its side padding on a phone and every band puts its own
+   | back — the toolbar and the grid both use 16px. The heading had none, so it
+   | sat flush against the edge while the filter button and the cards below it
+   | were inset, and the column looked broken at the top.
+   */
+  .listing__head{padding:14px 16px 0;margin-bottom:10px}
   .listing__title{font-size:18px}
 }
 
