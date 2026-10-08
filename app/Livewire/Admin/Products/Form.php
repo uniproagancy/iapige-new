@@ -11,6 +11,8 @@ use App\Models\ProductImage;
 use App\Models\ProductSpec;
 use App\Support\Slug;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -77,6 +79,9 @@ class Form extends Component
     public string $newValue = '';
 
     public $upload = [];
+
+    /** Whether this save made the product, so the form can move to its page. */
+    protected bool $justCreated = false;
 
     public function mount(?Product $product = null): void
     {
@@ -178,16 +183,34 @@ class Form extends Component
     {
         $default = Language::defaultCode();
 
-        $this->validate([
+        $this->validate(array_merge([
             'sku' => ['required', 'string', 'max:64'],
             "translations.{$default}.name" => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
-            'old_price' => ['nullable', 'numeric', 'min:0'],
+            /*
+             * Above the price, or not at all. A "was" price below the one being
+             * charged strikes through a smaller number than the one beside it,
+             * which reads as a price rise — and discountPercent() refuses to
+             * work it out, so the card showed a sale tag with no percentage.
+             */
+            'old_price' => ['nullable', 'numeric', 'gt:price'],
             'stock' => ['integer', 'min:0'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'brand_id' => ['nullable', 'exists:brands,id'],
             'release_date' => ['nullable', 'date'],
-        ]);
+        ], $this->slugRules()));
+
+        /*
+         * The same two conditions saveAndPublish() checks.
+         *
+         * They were enforced on that button alone, so choosing "active" in the
+         * status list and pressing Save published a product with no category
+         * and no price — one that appears in listings and cannot be reached by
+         * browsing, because browsing goes through categories.
+         */
+        if (($andPublish || $this->status === Product::STATUS_ACTIVE) && ! $this->publishable()) {
+            return null;
+        }
 
         DB::transaction(function () use ($andPublish, $default) {
             $product = $this->product ?? new Product;
@@ -235,25 +258,36 @@ class Form extends Component
 
             $product->saveTranslations($rows);
 
-            // spec values are edited in the default language only; the rest stay
-            foreach ($this->specs as $specId => $value) {
-                $spec = ProductSpec::find($specId);
+            /*
+             * Spec values are edited in the default language only; the rest
+             * stay. Fetched in one query rather than one per row, and scoped
+             * to this product because the ids arrive from the browser.
+             */
+            $rows = ProductSpec::whereKey(array_keys($this->specs))
+                ->where('product_id', $product->id)
+                ->get();
 
-                if (! $spec || $spec->product_id !== $product->id) {
-                    continue;
-                }
-
-                trim((string) $value) === ''
+            foreach ($rows as $spec) {
+                trim((string) $this->specs[$spec->id]) === ''
                     ? $spec->delete()
-                    : $spec->saveTranslations([$default => ['value' => $value]]);
+                    : $spec->saveTranslations([$default => ['value' => $this->specs[$spec->id]]]);
             }
+
+            /*
+             * Asked before the refresh. fresh() fetches the row again, and a
+             * model that came back from a query was not recently created — so
+             * this was always false and a new product never moved on to its own
+             * edit page. It stayed on the create URL, where a reload lost it
+             * and the next save made a second product.
+             */
+            $this->justCreated = $product->wasRecentlyCreated;
 
             $this->product = $product->fresh();
         });
 
         $this->dispatch('toast', message: __('admin.saved'));
 
-        if (! $this->product->wasRecentlyCreated) {
+        if (! $this->justCreated) {
             return null;
         }
 
@@ -261,6 +295,12 @@ class Form extends Component
     }
 
     public function saveAndPublish()
+    {
+        return $this->publishable() ? $this->save(andPublish: true) : null;
+    }
+
+    /** What a product needs before anybody can be shown it. */
+    protected function publishable(): bool
     {
         $problems = [];
 
@@ -272,13 +312,36 @@ class Form extends Component
             $problems[] = __('admin.no_price');
         }
 
-        if ($problems) {
-            $this->dispatch('toast', message: implode(', ', $problems), type: 'error');
-
-            return null;
+        if (! $problems) {
+            return true;
         }
 
-        return $this->save(andPublish: true);
+        $this->dispatch('toast', message: implode(', ', $problems), type: 'error');
+
+        return false;
+    }
+
+    /**
+     * A slug is unique per language, and the admin may type one.
+     *
+     * Without this a slug already in use threw a duplicate-key error straight
+     * out of the database — a five-hundred page over a typo, with everything
+     * else the form had just written rolled back with it.
+     */
+    protected function slugRules(): array
+    {
+        $rules = [];
+
+        foreach (array_keys($this->translations) as $locale) {
+            $rules["translations.{$locale}.slug"] = [
+                'nullable', 'string', 'max:255',
+                Rule::unique('product_translations', 'slug')
+                    ->where('locale', $locale)
+                    ->ignore($this->product?->id, 'product_id'),
+            ];
+        }
+
+        return $rules;
     }
 
     /* ------------------------------------------------------------------ specs */
@@ -316,7 +379,8 @@ class Form extends Component
             return;
         }
 
-        $this->validate(['upload.*' => ['image', 'max:4096']]);
+        // mimes, not image: the image rule accepts SVG, which is a script file
+        $this->validate(['upload.*' => ['mimes:jpg,jpeg,png,webp,avif', 'max:4096']]);
 
         $order = (int) ProductImage::where('product_id', $this->product->id)->max('sort_order');
 
@@ -349,6 +413,18 @@ class Form extends Component
 
     public function deleteImage(int $id): void
     {
-        ProductImage::whereKey($id)->where('product_id', $this->product?->id)->delete();
+        $image = ProductImage::whereKey($id)->where('product_id', $this->product?->id)->first();
+
+        if (! $image) {
+            return;
+        }
+
+        // the row went and the file stayed, so every deletion left a picture
+        // on disk that nothing would ever reference again
+        if (! str_starts_with($image->path, 'http')) {
+            Storage::disk('public')->delete($image->path);
+        }
+
+        $image->delete();
     }
 }
