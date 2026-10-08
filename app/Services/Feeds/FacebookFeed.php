@@ -153,7 +153,7 @@ class FacebookFeed
         $xml->writeElement('g:image_link', $image);
 
         foreach ($this->gallery($product) as $extra) {
-            $xml->writeElement('g:additional_image_link', $extra);
+            $xml->writeElement('g:additional_image_link', url($extra));
         }
 
         $xml->writeElement('g:availability', $this->availability($product));
