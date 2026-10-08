@@ -91,7 +91,7 @@
 
 @media(max-width:1024px){
   .checkout{grid-template-columns:1fr}
-  .cosum{position:static;order:-1}
+  .cosum{position:static;}
   .cosum__items{max-height:none}
 }
 @media(max-width:768px){
