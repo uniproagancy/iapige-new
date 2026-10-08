@@ -226,7 +226,7 @@ class FacebookFeed
     protected function image(Product $product): ?string
     {
         $first = $product->images->sortBy('sort_order')->first();
-        return url('storage/' . $first?->url());
+        return url($first?->url());
     }
 
     /** @return array<int, string> */
