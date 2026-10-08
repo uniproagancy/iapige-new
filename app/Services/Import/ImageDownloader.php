@@ -50,9 +50,13 @@ class ImageDownloader
      * How long one product's gallery may take, in seconds.
      *
      * Comfortably inside ImportProductJob::$timeout, with room left for the
-     * API calls and the database work that share the same job.
+     * API calls and the database work that share the same job. Both come from
+     * config/shop.php, so they are raised together.
      */
-    protected const BUDGET = 40;
+    protected function budget(): int
+    {
+        return (int) config('shop.import_image_budget', 120);
+    }
 
     protected const FAILURES_BEFORE_SKIP = 5;
 
@@ -62,7 +66,7 @@ class ImageDownloader
     /** @param  array<int, string>  $urls */
     public function sync(Product $product, array $urls, int $limit = self::MAX_IMAGES): void
     {
-        $deadline = microtime(true) + self::BUDGET;
+        $deadline = microtime(true) + $this->budget();
 
         foreach (array_slice(array_values(array_filter($urls)), 0, $limit) as $i => $url) {
             /*

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Jobs\ImportProductJob;
-use App\Services\Import\ImageDownloader;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Queue\Middleware\RateLimited;
 use Tests\TestCase;
@@ -101,13 +100,35 @@ class ImportJobTimingTest extends TestCase
      */
     public function test_the_image_budget_fits_inside_the_job(): void
     {
-        $budget = (new \ReflectionClassConstant(ImageDownloader::class, 'BUDGET'))->getValue();
+        $budget = (int) config('shop.import_image_budget');
         $timeout = (new ImportProductJob(1, 'X-1'))->timeout;
 
         $this->assertLessThan($timeout, $budget);
 
         // the API calls and the database work share the same job
         $this->assertLessThanOrEqual($timeout * 0.7, $budget);
+    }
+
+    /**
+     * The worst a single product can cost, against what it is allowed.
+     *
+     * Two API calls, one per language, at the client timeout each, and then
+     * the picture budget. This came to more than the job was given, so the
+     * slowest products were killed every time round — silently, because a
+     * kill records no exception.
+     */
+    public function test_the_slowest_product_fits_in_the_job(): void
+    {
+        $perRequest = 30;   // ZoommerClient: config timeout, 30 by default
+        $locales = 2;
+
+        $worst = $perRequest * $locales + (int) config('shop.import_image_budget');
+
+        $this->assertLessThanOrEqual(
+            (new ImportProductJob(1, 'X-1'))->timeout,
+            $worst,
+            "a slow product needs {$worst}s and the job allows less",
+        );
     }
 
     /** The pacing the whole arrangement exists to respect. */

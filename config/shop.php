@@ -62,6 +62,28 @@ return [
     'import_deadline_hours' => (int) env('IMPORT_DEADLINE_HOURS', 24),
 
     /*
+     | How long one product may take, in seconds.
+     |
+     | A product is two API calls — one per language, up to thirty seconds
+     | each — and then its photographs. The worker's default of sixty seconds
+     | did not cover that, so a slow product was killed mid-way: no exception
+     | recorded, only a spent attempt, and the queue re-ran it to be killed
+     | again. Long enough for the slowest product, and the queue's retry_after
+     | must stay longer still, or a job still running is handed to a second
+     | worker as well.
+     */
+    'import_timeout' => (int) env('IMPORT_TIMEOUT', 300),
+
+    /*
+     | Of that, how long the photographs may take.
+     |
+     | Whatever is left when the budget runs out is fetched by the next run —
+     | a file already on disk costs no request, so a gallery fills in over a
+     | run or two instead of taking the job down on the first.
+     */
+    'import_image_budget' => (int) env('IMPORT_IMAGE_BUDGET', 120),
+
+    /*
      | Whether a product with no photograph is worth importing.
      |
      | One that has none cannot be shown on a card, a listing or a search

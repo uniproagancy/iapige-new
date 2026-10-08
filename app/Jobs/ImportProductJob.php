@@ -40,11 +40,14 @@ class ImportProductJob implements ShouldQueue
     public int $backoff = 30;
 
     /**
-     * Shorter than the queue's retry_after of 90 seconds, on purpose: a job
-     * still running when that elapses is handed to a second worker as well,
-     * and two workers importing one product race each other over its rows.
+     * Read at dispatch, which is when Laravel copies it into the payload.
+     *
+     * The default was the worker's own sixty seconds, and a product is two
+     * API calls plus its photographs — comfortably more than that. Being
+     * killed leaves no exception behind, only a spent attempt, which is why
+     * the run failed with nothing in the log to explain it.
      */
-    public int $timeout = 75;
+    public int $timeout;
 
     public function retryUntil(): \DateTimeInterface
     {
@@ -54,7 +57,9 @@ class ImportProductJob implements ShouldQueue
     public function __construct(
         public int $supplierId,
         public string $externalId,
-    ) {}
+    ) {
+        $this->timeout = (int) config('shop.import_timeout', 300);
+    }
 
     /** Keeps us within whatever pace the source tolerates. */
     public function middleware(): array
