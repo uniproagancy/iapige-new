@@ -107,9 +107,16 @@
 }
 .block-head__t{font-size:17px;font-weight:700;color:var(--ink)}
 .keyspecs{display:flex;flex-direction:column}
+/*
+ | A key and its value, side by side.
+ |
+ | Neither side had a floor, and a flex item will not shrink below its own
+ | longest word — so a value like "Intel Core i7-14650HX" held the row open at
+ | a width the phone does not have, and .shell clips rather than scrolls.
+ */
 .krow{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:11px 2px;border-bottom:1px solid #F1F2F4}
-.krow__k{font-size:13px;color:var(--muted-2)}
-.krow__v{font-size:14px;font-weight:600;color:var(--ink);text-align:right}
+.krow__k{font-size:13px;color:var(--muted-2);min-width:0;overflow-wrap:anywhere}
+.krow__v{font-size:14px;font-weight:600;color:var(--ink);text-align:right;min-width:0;overflow-wrap:anywhere}
 .showall{align-self:flex-start;display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;font-weight:600;color:var(--red-bright)}
 
 .opts{display:flex;flex-direction:column;gap:18px;margin-top:20px}
@@ -371,8 +378,8 @@
   .info{padding:18px 16px 0;gap:14px;min-width:0}
   .info__title{font-size:22px;line-height:1.28}
   /* stacked, because a key and a long value side by side leaves neither room */
-  .srow{flex-direction:column;align-items:flex-start;gap:4px;padding:12px 2px}
-  .srow__v{text-align:left}
+  .srow,.krow{flex-direction:column;align-items:flex-start;gap:4px;padding:12px 2px}
+  .srow__v,.krow__v{text-align:left}
   .rating__sep,.rating__code{display:none}
   .opts{margin-top:14px;gap:14px}
 
