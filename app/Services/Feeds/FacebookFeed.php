@@ -226,7 +226,18 @@ class FacebookFeed
     protected function image(Product $product): ?string
     {
         $first = $product->images->sortBy('sort_order')->first();
-        return url($first?->url());
+
+        /*
+         | url() with nothing to resolve hands back the generator itself, not a
+         | string, so a product with no photograph brought the whole run down
+         | on a return type error instead of being skipped.
+         */
+        if (! $url = $first?->url()) {
+            return null;
+        }
+
+        // Facebook fetches the picture from its own servers: a path is no use to it
+        return str_starts_with($url, 'http') ? $url : url($url);
     }
 
     /** @return array<int, string> */
