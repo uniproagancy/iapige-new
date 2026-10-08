@@ -367,7 +367,17 @@
   .pdp__left{gap:0}
   .pdp__top{display:flex;flex-direction:column;gap:0}
 
-  .gal{padding:0 16px;min-width:0}
+  /*
+   | align-self has to be given back.
+   |
+   | Up at .gal it means "sit at the top", because .pdp__top is a grid there
+   | and align-self runs down the block axis. Here that container becomes a
+   | column flex, where the same property switches to the inline axis and now
+   | reads "do not stretch, take your content's width" — and the content is a
+   | 1000px photograph. The gallery was laid out a thousand pixels wide on a
+   | phone, and .shell clips, so everything past the screen edge vanished.
+   */
+  .gal{padding:0 16px;min-width:0;align-self:stretch}
   /* a ratio, not a height: the frame now follows the width of whatever phone */
   .gal__main{height:auto;aspect-ratio:4/3;border-radius:22px}
   .gal__3d{display:none}
@@ -388,7 +398,8 @@
   .bundle__foot{flex-wrap:wrap;gap:12px}
   .bundle__buy{flex:1;text-align:center}
 
-  .buycard{padding:0;border:none;border-radius:0;box-shadow:none;gap:14px;margin:16px 16px 0}
+  /* the same inherited alignment, and the same consequence */
+  .buycard{padding:0;border:none;border-radius:0;box-shadow:none;gap:14px;margin:16px 16px 0;align-self:stretch}
   .buycard .buyrow,.buycard .btn-buy{display:none}
   .priceblock{padding:16px}
   .priceblock__now{font-size:30px}
