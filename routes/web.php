@@ -16,6 +16,8 @@ use App\Livewire\Pages\Checkout;
 use App\Livewire\Pages\Home;
 use App\Livewire\Pages\OrderPlaced;
 use App\Livewire\Pages\Product;
+use App\Livewire\Pages\Promotion;
+use App\Livewire\Pages\Promotions;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
@@ -33,6 +35,16 @@ Route::group([
 
     Route::get('/catalog/{slug?}', Catalog::class)->name('catalog');
     Route::get('/product/{slug}', Product::class)->name('product');
+
+    /*
+     | Campaigns.
+     |
+     | The code is the slug: it is unique, it is already written by hand in the
+     | admin, and it is the one part of a campaign that does not change when
+     | somebody rewrites its title.
+     */
+    Route::get('/promotions', Promotions::class)->name('promotions');
+    Route::get('/promotions/{code}', Promotion::class)->name('promotion');
     Route::get('/checkout', Checkout::class)->name('checkout');
     Route::get('/order/{number}', OrderPlaced::class)->name('order');
 

@@ -274,6 +274,16 @@ button,
 .promo__left{display:flex;align-items:center;gap:14px}
 .promo__badge{padding:9px 18px;border-radius:var(--r-pill);background:var(--red-bright);color:#fff;font-size:13px;font-weight:700;letter-spacing:.05em;box-shadow:0 8px 18px rgba(255,105,0,.28)}
 .promo__title{font-size:24px;font-weight:700;color:var(--ink);margin:0}
+/* the way through to the campaign's own page, beside its heading */
+.promo__all{
+  margin-left:auto;align-self:center;display:inline-flex;align-items:center;gap:7px;flex:none;
+  padding:9px 16px;border-radius:var(--r-pill);background:#fff;color:var(--red-bright);
+  font-size:13px;font-weight:600;text-decoration:none;
+  transition:background .18s var(--ease),color .18s var(--ease)
+}
+.promo__all:hover{background:var(--red-bright);color:#fff}
+@media(max-width:768px){.promo__all{display:none}}
+
 .promo__note{font-size:13px;color:#8A7070}
 .promo__right{display:flex;align-items:center;gap:14px}
 .countdown{display:flex;gap:6px}

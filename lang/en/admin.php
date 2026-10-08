@@ -324,4 +324,5 @@ return [
     'promo_percent_range' => 'The percentage must be between 1 and 99',
     'promo_hint' => 'To place a product that is already marked down, leave both fields empty — it keeps its own discount. Give a price or a percentage only when the campaign should cut it further. Whatever stands here is what the cart charges.',
 
+    'promo_public_url' => 'Public address:',
 ];

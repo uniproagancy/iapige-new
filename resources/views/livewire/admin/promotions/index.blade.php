@@ -191,6 +191,14 @@
             </div>
         </div>
 
+        {{-- the address to put on a banner, in an advert or in a newsletter --}}
+        <p class="text-muted">
+            {{ __('admin.promo_public_url') }}
+            <a href="{{ route('promotion', $promotion->code) }}" target="_blank" rel="noopener">
+                {{ route('promotion', $promotion->code) }}
+            </a>
+        </p>
+
         <p class="text-muted">{{ __('admin.promo_hint') }}</p>
     @endif
 </div>

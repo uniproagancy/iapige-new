@@ -508,6 +508,73 @@ class Catalog
         ];
     }
 
+    /* ================================================================== campaigns */
+
+    /**
+     * Every campaign a shopper may look at right now.
+     *
+     * Only the running ones: a campaign that has not started is an unpublished
+     * plan, and one that has ended would advertise prices we no longer honour.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function campaigns(): array
+    {
+        return Promotion::live()
+            ->withTranslation()
+            ->withCount('products')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn (Promotion $p) => [
+                'code' => $p->code,
+                'title' => $p->title ?: $p->code,
+                'subtitle' => $p->subtitle,
+                'badge' => $p->badge,
+                'image' => $p->image,
+                'count' => (int) $p->products_count,
+                'ends_at' => $p->ends_at?->toIso8601String(),
+                'url' => route('promotion', $p->code),
+            ])
+            ->filter(fn (array $c) => $c['count'] > 0)
+            ->values()
+            ->all();
+    }
+
+    /** One running campaign, by the code that stands in its URL. */
+    public static function campaign(string $code): Promotion
+    {
+        return Promotion::live()->withTranslation()->where('code', $code)->firstOrFail();
+    }
+
+    /**
+     * A campaign's own page.
+     *
+     * The products come through card() like every other listing, so the price
+     * shown here is the campaign price and matches the rail, the category page
+     * and the cart.
+     *
+     * @return array<string, mixed>
+     */
+    public static function campaignPage(Promotion $promotion): array
+    {
+        $products = $promotion->products()
+            ->active()
+            ->withTranslation()
+            ->with(self::CARD_RELATIONS)
+            ->orderBy('promotion_product.sort_order')
+            ->orderByDesc('products.id')
+            ->get();
+
+        return [
+            'code' => $promotion->code,
+            'title' => $promotion->title ?: $promotion->code,
+            'subtitle' => $promotion->subtitle,
+            'badge' => $promotion->badge,
+            'ends_at' => $promotion->ends_at?->toIso8601String(),
+            'products' => self::cards($products),
+        ];
+    }
+
     /* ================================================================== product page */
 
     public static function product(string $slug): Product

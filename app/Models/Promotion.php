@@ -14,7 +14,7 @@ class Promotion extends Model
 {
     use HasTranslations;
 
-    protected array $translatable = ['title', 'subtitle'];
+    protected array $translatable = ['title', 'subtitle', 'cta'];
 
     protected $fillable = [
         'code', 'type', 'image', 'url', 'badge', 'badge_color',
