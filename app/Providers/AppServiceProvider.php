@@ -12,6 +12,7 @@ use App\Services\Import\TaxonomyResolver;
 use App\Support\Translation\DatabaseTranslationLoader;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Translation\Loader;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -43,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->defineGates();
+        $this->useBootstrapPagination();
         $this->defineRateLimiters();
         $this->useDatabaseLanguages();
     }
@@ -55,6 +57,21 @@ class AppServiceProvider extends ServiceProvider
      * all. Limited per supplier rather than globally: one source throttling us
      * is no reason to slow down the other eight.
      */
+    /**
+     * The admin is a Bootstrap theme; Laravel ships Tailwind markup.
+     *
+     * Nothing said so, so every paginated admin list rendered two bare white
+     * boxes in the middle of a dark page — and, with no lang/pagination file
+     * to read, the words on them were the translation keys themselves.
+     *
+     * Safe to set globally: the storefront pages through a "show more"
+     * button and never calls links().
+     */
+    protected function useBootstrapPagination(): void
+    {
+        Paginator::useBootstrapFive();
+    }
+
     protected function defineRateLimiters(): void
     {
         RateLimiter::for('import', fn (ImportProductJob $job) => Limit::perMinute(
