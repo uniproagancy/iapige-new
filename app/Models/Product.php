@@ -117,6 +117,57 @@ class Product extends Model
      * admin is allowed to make. The list's "ready" filter adds `draft` itself,
      * because there the question is what is still waiting.
      */
+    /**
+     * What this product actually sells for right now.
+     *
+     * The shop had two answers to that question. The deals rail worked out a
+     * campaign price and showed it; the cart, the checkout and the order read
+     * products.price and knew nothing about campaigns — so a customer was
+     * shown one figure on the front page and charged another at the till.
+     *
+     * One answer now, and every place that handles money asks it. A product
+     * that is already marked down and simply placed in a campaign keeps its
+     * own price, which is the common case: the campaign is a shelf, not
+     * necessarily a further cut.
+     */
+    public function sellingPrice(): float
+    {
+        return $this->promoPrice() ?? (float) $this->price;
+    }
+
+    /** The campaign price, when a campaign running now sets one. */
+    public function promoPrice(): ?float
+    {
+        $promotion = $this->promotions()
+            ->live()
+            ->orderBy('promotions.sort_order')
+            ->first();
+
+        return $promotion ? static::promoFrom($promotion->pivot, (float) $this->price) : null;
+    }
+
+    /**
+     * One rule, read from the pivot, used by the storefront and the cart alike.
+     *
+     * A figure that is not below the shelf price is no offer — there would be
+     * nothing to strike through — so it is refused here rather than quietly
+     * charged.
+     */
+    public static function promoFrom(?object $pivot, float $price): ?float
+    {
+        if (! $pivot) {
+            return null;
+        }
+
+        $promo = match (true) {
+            (float) ($pivot->promo_price ?? 0) > 0 => (float) $pivot->promo_price,
+            (int) ($pivot->discount_percent ?? 0) > 0 => round($price * (1 - $pivot->discount_percent / 100), 2),
+            default => null,
+        };
+
+        return $promo !== null && $promo > 0 && $promo < $price ? $promo : null;
+    }
+
     /** The campaigns this product is part of. */
     public function promotions(): BelongsToMany
     {

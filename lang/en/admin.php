@@ -322,6 +322,6 @@ return [
     'promo_one_or_the_other' => 'A price or a percentage, not both',
     'promo_must_be_lower' => 'The promotional price must be below :price',
     'promo_percent_range' => 'The percentage must be between 1 and 99',
-    'promo_hint' => 'The deals rail on the front page leads with the newest products. Give each one either a fixed price or a percentage.',
+    'promo_hint' => 'To place a product that is already marked down, leave both fields empty — it keeps its own discount. Give a price or a percentage only when the campaign should cut it further. Whatever stands here is what the cart charges.',
 
 ];

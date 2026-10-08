@@ -152,13 +152,10 @@ class Catalog
             $card = self::card($p);
             $price = (float) $p->price;
 
-            $promo = match (true) {
-                (float) ($p->pivot->promo_price ?? 0) > 0 => (float) $p->pivot->promo_price,
-                (int) ($p->pivot->discount_percent ?? 0) > 0 => round($price * (1 - $p->pivot->discount_percent / 100), 2),
-                default => 0.0,
-            };
+            // the same rule the cart and the order read, so the three agree
+            $promo = Product::promoFrom($p->pivot, $price);
 
-            if ($promo <= 0 || $promo >= $price) {
+            if ($promo === null) {
                 return $card;
             }
 

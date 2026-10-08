@@ -310,7 +310,13 @@ class Checkout extends Component
             }
 
             $qty = max(1, (int) $line['qty']);
-            $price = (float) $product->price;
+
+            /*
+             * Re-read here, as every price is — and now through the same
+             * method the rail and the cart use, so an order cannot charge the
+             * shelf price for something advertised at a campaign price.
+             */
+            $price = $product->sellingPrice();
             $subtotal += $price * $qty;
 
             $items[] = [
@@ -509,9 +515,9 @@ class Checkout extends Component
             'name' => trim($card['brand'].' '.$card['name']),
             'cat' => $card['cat'],
             'img' => $card['thumb'],
-            'price' => (float) $product->price,
+            'price' => $price = $product->sellingPrice(),
             'qty' => $this->qty,
-            'sum' => (float) $product->price * $this->qty,
+            'sum' => $price * $this->qty,
             'weight' => $product->weight,
             'length' => $product->length,
             'width' => $product->width,

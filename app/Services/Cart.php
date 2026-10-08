@@ -73,9 +73,10 @@ class Cart
                 'name' => trim($card['brand'].' '.$card['name']),
                 'cat' => $card['cat'],
                 'img' => $card['thumb'],
-                'price' => (float) $item->product->price,   // always the live price
+                // the live price, campaign included
+                'price' => $price = $item->product->sellingPrice(),
                 'qty' => $item->qty,
-                'sum' => (float) $item->product->price * $item->qty,
+                'sum' => $price * $item->qty,
                 'weight' => $item->product->weight,
                 'length' => $item->product->length,
                 'width' => $item->product->width,
@@ -98,11 +99,11 @@ class Cart
         $cart = $this->cart();
         $item = $cart->items()->firstOrNew(['product_id' => $product->id]);
         $item->qty = min(99, ($item->exists ? $item->qty : 0) + max(1, $qty));
-        $item->price = $product->price;
+        $item->price = $product->sellingPrice();
         $item->save();
 
         $cart->touchActivity();
-        $this->log->record(ProductInteraction::CART_ADD, $product->id, $qty, (float) $product->price);
+        $this->log->record(ProductInteraction::CART_ADD, $product->id, $qty, $item->price);
 
         return true;
     }

@@ -149,7 +149,14 @@
                                     <a href="{{ route('admin.products.edit', $p) }}">{{ $p->name ?: $p->sku }}</a>
                                     <small class="d-block text-muted">{{ $p->sku }}</small>
                                 </td>
-                                <td>{{ money($p->price) }}</td>
+                                <td>
+                                    {{ money($p->price) }}
+                                    {{-- already marked down: the campaign need add nothing --}}
+                                    @if ($d = $p->discountPercent())
+                                        <span class="badge badge-light-danger ms-50">−{{ $d }}%</span>
+                                        <small class="d-block text-muted">{{ money($p->old_price) }}</small>
+                                    @endif
+                                </td>
                                 <td>
                                     <input type="number" step="0.01" class="form-control form-control-sm @error('price.'.$p->id) is-invalid @enderror"
                                            wire:model="price.{{ $p->id }}">
