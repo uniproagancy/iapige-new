@@ -14,12 +14,23 @@
 
 .pdp{display:grid;grid-template-columns:1.82fr .78fr;gap:28px;padding:32px 36px 44px;align-items:start}
 .pdp__left{display:flex;flex-direction:column;gap:24px;min-width:0}
-.pdp__top{display:grid;grid-template-columns:1fr .82fr;gap:28px;align-items:start}
+.pdp__top{display:grid;grid-template-columns:1fr .82fr;gap:28px;align-items:start;min-width:0}
 
 /* ---- gallery ---- */
 .gal{align-self:start;position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
-.gal__main{position:relative;height:470px;border-radius:22px;background:var(--soft-2);overflow:hidden}
-.gal__img{width:100%;height:100%;object-fit:cover;animation:iapiFade .32s ease-out both}
+/*
+ | The same frame the cards use.
+ |
+ | "cover" filled the box by cutting whatever did not fit, and the suppliers
+ | send every shape there is — so a laptop arrived cropped to its vents and a
+ | tall phone lost its ends. "contain" fits the whole photograph instead.
+ */
+.gal__main{
+  position:relative;height:470px;border-radius:22px;overflow:hidden;
+  display:grid;place-items:center;
+  background:linear-gradient(180deg,#fff 0%,var(--soft-3) 100%)
+}
+.gal__img{width:100%;height:100%;object-fit:contain;animation:iapiFade .32s ease-out both}
 .gal__img.is-broken{opacity:0}
 .gal__ph{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--muted-4)}
 .gal__img.is-broken + .gal__ph{display:flex}
@@ -61,7 +72,16 @@
 .info__brandrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .info__brand{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--muted-3)}
 .pill-top{padding:4px 11px;border-radius:var(--r-pill);background:var(--rose);color:var(--red-bright);font-size:11px;font-weight:700}
-.info__title{font-size:32px;font-weight:700;line-height:1.2;color:var(--ink);margin:0;text-wrap:pretty}
+/*
+ | Supplier names arrive as one long string — "83JE0189RK LOQ 15IRX9
+ | i5-13450HX/16GB/512GB SSD/RTX4050" — with no space a browser is willing to
+ | break at. Without this the heading ran past the column, and .shell clips
+ | rather than scrolls, so on a phone the name was simply cut off mid-word.
+ */
+.info__title{
+  font-size:32px;font-weight:700;line-height:1.2;color:var(--ink);margin:0;
+  text-wrap:pretty;overflow-wrap:anywhere
+}
 .rating{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .rating__group{display:flex;align-items:center;gap:7px}
 .stars{display:flex;gap:2px}
@@ -107,7 +127,7 @@
 /* ---- bundle ---- */
 .bundle{display:flex;flex-direction:column;gap:14px;margin-top:6px;padding-top:24px;border-top:1px solid var(--line)}
 .bundle__head{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.bundle__title{font-size:21px;font-weight:700;color:var(--ink);margin:0}
+.bundle__title{font-size:21px;font-weight:700;color:var(--ink);margin:0;min-width:0;overflow-wrap:anywhere}
 .bundle__add{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--red-bright)}
 .bundle__add span{
   width:22px;height:22px;border-radius:50%;border:1.5px solid var(--red-bright);
@@ -219,14 +239,24 @@
 .tabpanel{animation:iapiTabIn .32s cubic-bezier(.22,.9,.24,1) both}
 @keyframes iapiTabIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .specgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+/* a specification's value is supplier text too, and just as unbreakable */
 .srow{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:15px 4px;border-bottom:1px solid #F1F2F4}
-.srow__k{font-size:13px;color:var(--muted-2)}
-.srow__v{font-size:14px;font-weight:500;color:var(--ink);text-align:right}
+.srow__k{font-size:13px;color:var(--muted-2);min-width:0;overflow-wrap:anywhere}
+.srow__v{font-size:14px;font-weight:500;color:var(--ink);text-align:right;min-width:0;overflow-wrap:anywhere}
 
 .desc{display:grid;gap:32px;align-items:start}
 .desc__body{display:flex;flex-direction:column;gap:16px}
 .desc__title{font-size:22px;font-weight:700;color:var(--ink);margin:0}
-.desc__p{font-size:15px;line-height:1.75;color:#5C6167;margin:0}
+.desc__p{font-size:15px;line-height:1.75;color:#5C6167;margin:0;overflow-wrap:anywhere}
+/*
+ | This block is the supplier's own HTML, printed raw. It routinely carries
+ | <img width="900"> and tables built for a desktop shop, and nothing here
+ | bounded them — one such image made the whole page wider than the phone and
+ | everything to the right of it was clipped away.
+ */
+.desc__p img,.desc__p video,.desc__p iframe,.desc__p embed{max-width:100%;height:auto}
+.desc__p table{display:block;width:100%;max-width:100%;overflow-x:auto}
+.desc__p pre{max-width:100%;overflow-x:auto;white-space:pre-wrap}
 .hl{display:flex;flex-direction:column;gap:10px}
 .hl__item{padding:16px 20px;border-radius:18px;background:var(--soft-2);display:flex;flex-direction:column;gap:4px}
 .hl__v{font-size:18px;font-weight:700;color:var(--ink)}
@@ -322,15 +352,19 @@
   .pdp__left{gap:0}
   .pdp__top{display:flex;flex-direction:column;gap:0}
 
-  .gal{padding:0 16px}
-  .gal__main{height:280px;border-radius:22px}
+  .gal{padding:0 16px;min-width:0}
+  /* a ratio, not a height: the frame now follows the width of whatever phone */
+  .gal__main{height:auto;aspect-ratio:4/3;border-radius:22px}
   .gal__3d{display:none}
   .gal__nav{width:32px;height:32px}
   .gal__thumbs{gap:8px}
   .thumb{height:56px;border-radius:14px}
 
-  .info{padding:18px 16px 0;gap:14px}
+  .info{padding:18px 16px 0;gap:14px;min-width:0}
   .info__title{font-size:22px;line-height:1.28}
+  /* stacked, because a key and a long value side by side leaves neither room */
+  .srow{flex-direction:column;align-items:flex-start;gap:4px;padding:12px 2px}
+  .srow__v{text-align:left}
   .rating__sep,.rating__code{display:none}
   .opts{margin-top:14px;gap:14px}
 
@@ -380,7 +414,12 @@
 .thumb{flex:0 0 72px;width:72px;height:72px;scroll-snap-align:start}
 
 /* the dots under the main image cap out — 20 dots are unusable anyway */
-.gal__dots{display:flex;gap:6px;flex-wrap:nowrap;overflow:hidden;max-width:160px}
+/*
+ | Capped, and still centred: left:0 with right:0 and a max-width is
+ | over-constrained, so the browser kept the left edge and the dots sat in the
+ | bottom-left corner of the photograph instead of under its middle.
+ */
+.gal__dots{display:flex;gap:6px;flex-wrap:nowrap;overflow:hidden;max-width:160px;margin:0 auto}
 
 @media(max-width:768px){
   .thumb{flex:0 0 56px;width:56px;height:56px}
