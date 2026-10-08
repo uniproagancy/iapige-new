@@ -50,14 +50,6 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * The pace the import keeps.
-     *
-     * ImportProductJob asks for RateLimited('import') and an undefined limiter
-     * is silently a no-op, so until this existed the middleware did nothing at
-     * all. Limited per supplier rather than globally: one source throttling us
-     * is no reason to slow down the other eight.
-     */
-    /**
      * The admin is a Bootstrap theme; Laravel ships Tailwind markup.
      *
      * Nothing said so, so every paginated admin list rendered two bare white
@@ -70,8 +62,24 @@ class AppServiceProvider extends ServiceProvider
     protected function useBootstrapPagination(): void
     {
         Paginator::useBootstrapFive();
+
+        /*
+         * Livewire does not read Laravel's setting. It picks its own view from
+         * livewire.pagination_theme, which defaults to tailwind — and every
+         * list in the admin is a Livewire component, so the line above on its
+         * own changed nothing at all.
+         */
+        config(['livewire.pagination_theme' => 'bootstrap']);
     }
 
+    /**
+     * The pace the import keeps.
+     *
+     * ImportProductJob asks for RateLimited('import') and an undefined limiter
+     * is silently a no-op, so until this existed the middleware did nothing at
+     * all. Limited per supplier rather than globally: one source throttling us
+     * is no reason to slow down the other eight.
+     */
     protected function defineRateLimiters(): void
     {
         RateLimiter::for('import', fn (ImportProductJob $job) => Limit::perMinute(

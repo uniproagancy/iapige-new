@@ -25,6 +25,9 @@ use Illuminate\Support\Str;
  */
 class TaxonomyResolver
 {
+    /** Separates a supplier's category from its subcategory, broad to narrow. */
+    public const TRAIL = ' > ';
+
     /** Unmapped-name hits are written in batches of this many. */
     protected const HIT_FLUSH_AT = 50;
 
@@ -48,6 +51,20 @@ class TaxonomyResolver
     /** Values that mean "no value" in the feed and must never become options. */
     protected const EMPTY_VALUES = ['-', '–', '—', 'N/A', 'n/a', 'null', 'None'];
 
+    /**
+     * A supplier's category, mapped to ours.
+     *
+     * The name may be a trail — "Laptops > Gaming laptops" — because one
+     * supplier category is often far too broad to map usefully: everything
+     * from a mouse mat to a monitor arrived as "Laptop accessories" and had
+     * to go to one of our categories or none.
+     *
+     * The most specific name is tried first and the broader ones behind it
+     * after, so a trail nobody has mapped yet still lands in the right place
+     * through its parent instead of arriving with no category at all. The
+     * specific name is recorded either way, which is what puts it in front of
+     * somebody in the mapping screen.
+     */
     public function category(Supplier $supplier, ?string $name): ?Category
     {
         $name = trim((string) $name);
@@ -67,18 +84,63 @@ class TaxonomyResolver
             return $this->memo[$key];
         }
 
-        $row = DB::table('supplier_category_map')
-            ->where('supplier_id', $supplier->id)
-            ->where('external_name', $name)
-            ->first();
+        $candidates = $this->trailCandidates($name);
 
-        if ($row?->category_id) {
-            return $this->memo[$key] = Category::find($row->category_id);
+        $rows = DB::table('supplier_category_map')
+            ->where('supplier_id', $supplier->id)
+            ->whereIn('external_name', $candidates)
+            ->get()
+            ->keyBy('external_name');
+
+        foreach ($candidates as $candidate) {
+            if (! $categoryId = $rows[$candidate]->category_id ?? null) {
+                continue;
+            }
+
+            /*
+             * Matched on a broader name than the one the product carries, so
+             * the specific one is still worth offering: it is the finer
+             * mapping somebody may want to make later.
+             */
+            if ($candidate !== $name) {
+                $this->park('supplier_category_map', $supplier, $name);
+            }
+
+            return $this->memo[$key] = Category::find($categoryId);
         }
 
         $this->park('supplier_category_map', $supplier, $name);
 
         return $this->memo[$key] = null;
+    }
+
+    /** The trail, narrowest first: "A > B > C", "A > B", "A". */
+    protected function trailCandidates(string $name): array
+    {
+        $parts = array_map('trim', explode(self::TRAIL, $name));
+        $candidates = [];
+
+        for ($i = count($parts); $i > 0; $i--) {
+            $candidates[] = implode(self::TRAIL, array_slice($parts, 0, $i));
+        }
+
+        return array_values(array_unique($candidates));
+    }
+
+    /**
+     * Joins a supplier's own category names into one trail.
+     *
+     * Here rather than in each driver, because the separator has to be the
+     * same one category() takes apart again.
+     */
+    public static function trail(?string ...$names): ?string
+    {
+        $parts = array_values(array_filter(array_map(
+            fn (?string $n) => trim((string) $n),
+            $names,
+        ), fn (string $n) => $n !== ''));
+
+        return $parts ? implode(self::TRAIL, $parts) : null;
     }
 
     /** Brands are safe to create: the name is the identity. */

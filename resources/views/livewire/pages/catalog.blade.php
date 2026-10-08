@@ -63,6 +63,17 @@
                 <aside class="filters" id="filters" aria-label="{{ __('catalog.filters') }}">
                     <span class="filters__grip" aria-hidden="true"></span>
 
+                    {{--
+                        Phones only. On a wide screen this column is the
+                        sidebar and there is nothing to close; as a sheet it
+                        could be dismissed by the scrim or Escape alone, and
+                        neither is something a thumb looks for.
+                    --}}
+                    <button type="button" class="filters__close" data-close
+                            aria-label="{{ __('common.close') }}">
+                        <x-icon name="x" size="16" />
+                    </button>
+
                     <nav class="sidenav" aria-label="{{ __('catalog.categories') }}">
                         <a class="sidenav__back" href="{{ route('catalog') }}">
                             <x-icon name="caret-left" size="14" />

@@ -5,6 +5,7 @@ namespace App\Services\Import\Drivers\Zoommer;
 use App\Models\Supplier;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Services\Import\TaxonomyResolver;
 
 class ZoommerDriver implements SupplierDriver
 {
@@ -99,7 +100,12 @@ class ZoommerDriver implements SupplierDriver
             oldCostPrice: $oldCostPrice,
             stock: $this->stock($base),
             brandName: $product['brandName'] ?? null,
-            categoryName: $product['categoryName'] ?? null,
+            // the subcategory too: "Laptop accessories" alone covers a mouse
+            // mat and a monitor stand, which cannot both be mapped to one place
+            categoryName: TaxonomyResolver::trail(
+                $product['categoryName'] ?? null,
+                $product['subCategoryName'] ?? null,
+            ),
             translations: $translations,
             specs: $specs,
             images: $this->images($product),

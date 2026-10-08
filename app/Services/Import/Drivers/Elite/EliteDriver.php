@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Services\Import\TaxonomyResolver;
 use RuntimeException;
 
 /**
@@ -120,7 +121,10 @@ class EliteDriver implements SupplierDriver
             oldCostPrice: isset($p['previousPrice']) ? (float) $p['price'] : null,
             stock: $this->stockFor($barcode),
             brandName: $this->brand($p),
-            categoryName: $p['categoryName'] ?? null,
+            categoryName: TaxonomyResolver::trail(
+                $p['categoryName'] ?? null,
+                $p['subCategoryName'] ?? null,
+            ),
             translations: [$locale => [
                 'name' => $p['name'] ?? null,
                 'description' => $p['description'] ?? null,
