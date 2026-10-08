@@ -116,11 +116,26 @@ class Catalog
      * the regular price becomes the struck-through one — nothing is written to
      * products, so the campaign simply expires.
      */
+    /**
+     * The campaign the deals rail is showing, if any is running.
+     *
+     * Separate from deals() because the rail needs its title as well as its
+     * products: the heading above the rail was a fixed phrase from the
+     * language file, so a campaign called "Black Friday" in the admin still
+     * announced itself as the offer of the week.
+     */
+    public static function dealCampaign(): ?Promotion
+    {
+        return static::$dealMemo[app()->getLocale()] ??= Promotion::live()
+            ->where('type', 'deal')
+            ->withTranslation()
+            ->orderBy('sort_order')
+            ->first();
+    }
+
     public static function deals(int $limit = 7): array
     {
-        $promotion = Promotion::live()->where('type', 'deal')->orderBy('sort_order')->first();
-
-        if (! $promotion) {
+        if (! $promotion = static::dealCampaign()) {
             return [];
         }
 
@@ -223,6 +238,9 @@ class Catalog
     /** Built once per request and language — the drawer, the footer and the sidebar all use it. */
     protected static array $treeMemo = [];
 
+    /** @var array<string, ?Promotion> */
+    protected static array $dealMemo = [];
+
     public static function tree(): array
     {
         return static::$treeMemo[app()->getLocale()] ??= static::buildTree();
@@ -238,6 +256,7 @@ class Catalog
     public static function flushTree(): void
     {
         static::$treeMemo = [];
+        static::$dealMemo = [];
     }
 
     /**

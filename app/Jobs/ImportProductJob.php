@@ -9,6 +9,7 @@ use App\Support\Redact;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\RateLimited;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class ImportProductJob implements ShouldQueue
@@ -105,5 +106,36 @@ class ImportProductJob implements ShouldQueue
         }
 
         $importer->import($supplier, $payload);
+    }
+
+    /**
+     * Say which product gave up, and under which rules.
+     *
+     * "Attempted too many times" names neither the supplier nor the product,
+     * and it is thrown before handle() runs — so none of the logging in there
+     * ever fires and the line arrives anonymous. Worse, the rules that decided
+     * it are the ones written into the payload when the job was queued, not
+     * the ones this class declares today, so a job queued before a fix still
+     * dies by the old limits and looks exactly like the fix not working.
+     *
+     * Both are printed here. A line showing maxTries with no retryUntil is a
+     * job from before the deadline was introduced: clear the queue and run the
+     * import again, because retrying re-sends the very same payload.
+     */
+    public function failed(?\Throwable $e): void
+    {
+        $payload = $this->job?->payload() ?? [];
+        $until = $payload['retryUntil'] ?? null;
+
+        Log::channel('import')->error('import job gave up', [
+            'supplier' => Supplier::find($this->supplierId)?->code,
+            'external' => $this->externalId,
+            'attempts' => $this->job ? $this->attempts() : null,
+            'queued_with' => [
+                'maxTries' => $payload['maxTries'] ?? null,
+                'retryUntil' => $until ? Carbon::createFromTimestamp($until)->toDateTimeString() : null,
+            ],
+            'error' => $e ? Redact::secrets($e->getMessage()) : null,
+        ]);
     }
 }

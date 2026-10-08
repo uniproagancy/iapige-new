@@ -13,6 +13,7 @@ class Home extends Component
         return view('livewire.pages.home', [
             'slides' => Store::slides(),
             'deals' => Catalog::deals(),
+            'campaign' => Catalog::dealCampaign(),
             'sections' => Catalog::sections(),
             'brands' => Catalog::brands(),
         ])
