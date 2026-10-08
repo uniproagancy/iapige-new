@@ -90,7 +90,7 @@ class TaxonomyResolver
             return null;
         }
 
-        $slug = Slug::make($name) ?: Str::slug($name);
+        $slug = $this->fit(Slug::make($name) ?: Str::slug($name), 255);
 
         return $this->memo["brand:{$slug}"] ??= Brand::firstOrCreate(
             ['slug' => $slug],
@@ -110,7 +110,7 @@ class TaxonomyResolver
             return null;
         }
 
-        $code = Slug::make(Str::limit($raw, 60, '')) ?: Str::slug(Str::limit($raw, 60, ''));
+        $code = $this->fit(Slug::make($raw) ?: Str::slug($raw));
 
         if ($code === '') {
             return null;   // nothing usable as a stable code
@@ -145,7 +145,32 @@ class TaxonomyResolver
     {
         $code = Slug::make($name) ?: Str::slug($name);
 
-        return $code !== '' ? Str::limit($code, 60, '') : 'spec-'.substr(md5($name), 0, 8);
+        return $code !== '' ? $this->fit($code) : 'spec-'.substr(md5($name), 0, 8);
+    }
+
+    /**
+     * A code the column will actually take.
+     *
+     * The length used to be measured on the Georgian text, before it was
+     * transliterated — and Georgian does not survive that one letter for one:
+     * შ becomes sh, ღ becomes gh, წ becomes ts, ჩ becomes ch. Sixty Georgian
+     * letters came out as ninety Latin ones, the column holds sixty-four, and
+     * MySQL refused the row. That failed the job, the job was retried, and a
+     * single product with a sentence for a specification value was enough to
+     * jam the import queue.
+     *
+     * An over-long code is hashed rather than simply cut, because two values
+     * that open with the same sixty characters would otherwise collapse into
+     * one — and (attribute_id, code) is unique, so the second would silently
+     * become the first.
+     */
+    protected function fit(string $slug, int $max = 64): string
+    {
+        if (mb_strlen($slug) <= $max) {
+            return $slug;
+        }
+
+        return rtrim(mb_substr($slug, 0, $max - 9), '-').'-'.substr(md5($slug), 0, 8);
     }
 
     /** Record an unmapped name so the admin can see what is waiting. */
