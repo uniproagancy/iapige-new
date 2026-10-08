@@ -181,6 +181,83 @@ class AdminPromotionsTest extends TestCase
         $this->assertFalse($component->viewData('found')->contains('id', $inside->id));
     }
 
+    /* ------------------------------------------------------------------ deleting */
+
+    /** There was no way to remove a campaign at all. */
+    public function test_a_campaign_can_be_deleted(): void
+    {
+        $this->screen()->call('deletePromotion');
+
+        $this->assertSame(0, Promotion::count());
+    }
+
+    /**
+     * The products are the catalogue's, not the campaign's.
+     *
+     * A campaign is a shelf they stood on; taking the shelf away must not
+     * take the goods with it.
+     */
+    public function test_deleting_a_campaign_keeps_its_products(): void
+    {
+        $product = $this->product('მაცივარი', 1000);
+        $this->promotion->products()->attach($product->id, ['promo_price' => 800]);
+
+        $this->screen()->call('deletePromotion');
+
+        $this->assertModelExists($product);
+        $this->assertDatabaseCount('promotion_product', 0);
+    }
+
+    /** And the screen lands on whatever campaign is left. */
+    public function test_deleting_moves_to_another_campaign(): void
+    {
+        $other = Promotion::create([
+            'code' => 'black-friday', 'type' => 'deal', 'is_active' => true, 'sort_order' => 2,
+            'starts_at' => now()->subDay(), 'ends_at' => now()->addDay(),
+        ]);
+
+        $component = $this->screen();
+        $component->call('deletePromotion');
+
+        $this->assertSame($other->id, $component->get('promotionId'));
+    }
+
+    /* ------------------------------------------------------------------ re-adding */
+
+    /**
+     * Adding a product starts from nothing.
+     *
+     * syncWithoutDetaching leaves alone the columns it is not given, so a
+     * product put back into a campaign kept whatever price it had carried
+     * before — a figure nobody typed this time round.
+     */
+    public function test_re_adding_a_product_does_not_bring_back_its_old_price(): void
+    {
+        $product = $this->product('მაცივარი', 1000);
+
+        // a pivot left over from an earlier spell in this campaign
+        $this->promotion->products()->attach($product->id, ['promo_price' => 800, 'discount_percent' => null]);
+
+        $this->screen()->call('add', $product->id);
+
+        $pivot = $this->promotion->products()->first()->pivot;
+
+        $this->assertNull($pivot->promo_price);
+        $this->assertNull($pivot->discount_percent);
+    }
+
+    /** A percentage left behind goes the same way. */
+    public function test_re_adding_clears_a_leftover_percentage(): void
+    {
+        $product = $this->product('ტელევიზორი', 2000);
+
+        $this->promotion->products()->attach($product->id, ['discount_percent' => 30]);
+
+        $this->screen()->call('add', $product->id);
+
+        $this->assertNull($this->promotion->products()->first()->pivot->discount_percent);
+    }
+
     /* ------------------------------------------------------------------ campaign */
 
     public function test_a_campaign_can_be_created(): void

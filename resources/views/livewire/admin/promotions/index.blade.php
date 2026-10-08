@@ -45,6 +45,11 @@
                             wire:click="toggleActive">
                         {{ $promotion->is_active ? __('admin.active') : __('admin.inactive') }}
                     </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger"
+                            wire:click="deletePromotion"
+                            wire:confirm="{{ __('admin.promo_delete_sure') }}">
+                        {!! $icon('trash') !!}
+                    </button>
                 @endif
                 <button type="button" class="btn btn-sm btn-primary" wire:click="create">
                     {!! $icon('plus') !!} {{ __('admin.add') }}

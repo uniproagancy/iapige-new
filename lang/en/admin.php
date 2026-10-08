@@ -327,4 +327,6 @@ return [
     'promo_public_url' => 'Public address:',
     'promo_slug' => 'Address',
     'promo_slug_hint' => 'week-deal',
+    'promo_deleted' => 'Campaign deleted',
+    'promo_delete_sure' => 'The campaign will be removed. The products stay in the catalogue and only leave this campaign. Continue?',
 ];

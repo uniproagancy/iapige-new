@@ -186,6 +186,34 @@ class Index extends Component
         $this->done();
     }
 
+    /**
+     * Remove a campaign for good.
+     *
+     * There was no way to: a campaign made by mistake stayed in the strip of
+     * buttons for ever, and switching it off only hid it from the shop.
+     *
+     * The products are not touched. They belong to the catalogue; the campaign
+     * was only a shelf they stood on, and the pivot rows go with it.
+     */
+    public function deletePromotion(): void
+    {
+        if (! $promotion = $this->promotion()) {
+            return;
+        }
+
+        $promotion->products()->detach();
+        $promotion->delete();
+
+        $this->reset(['promotionId', 'search', 'price', 'percent', 'order', 'editingId']);
+        $this->showForm = false;
+
+        // land on whatever is left rather than on an empty screen
+        $this->promotionId = (int) (Promotion::orderBy('sort_order')->value('id') ?? 0);
+        $this->loadRows();
+
+        $this->dispatch('toast', message: __('admin.promo_deleted'));
+    }
+
     public function toggleActive(): void
     {
         if ($promotion = $this->promotion()) {
@@ -204,8 +232,17 @@ class Index extends Component
 
         $product = Product::findOrFail($productId);
 
-        // syncWithoutDetaching, so adding one twice is not an error
+        /*
+         * Adding starts from nothing.
+         *
+         * syncWithoutDetaching leaves the columns it is not given alone, so a
+         * product that had carried a campaign price at some earlier point kept
+         * it the moment it was put back — a figure nobody typed, quietly
+         * charged. Whatever is wanted this time is typed in afterwards.
+         */
         $promotion->products()->syncWithoutDetaching([$product->id => [
+            'promo_price' => null,
+            'discount_percent' => null,
             'sort_order' => (int) $promotion->products()->max('promotion_product.sort_order') + 1,
         ]]);
 

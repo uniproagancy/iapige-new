@@ -327,4 +327,6 @@ return [
     'promo_public_url' => 'საჯარო მისამართი:',
     'promo_slug' => 'მისამართი',
     'promo_slug_hint' => 'kviris-aqcia',
+    'promo_deleted' => 'აქცია წაიშალა',
+    'promo_delete_sure' => 'აქცია წაიშლება. პროდუქტები ადგილზე რჩება — მხოლოდ ამ აქციიდან გამოვლენ. გავაგრძელო?',
 ];
