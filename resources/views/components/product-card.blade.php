@@ -14,7 +14,11 @@
          data-index="0"
          data-order="{{ $p['order'] ?? 0 }}">
     <a class="card__media" href="{{ $p['url'] }}">
-        <img class="card__img" src="{{ $p['thumb'] }}" alt="{{ $p['name'] }}" loading="lazy">
+        <img class="card__img" src="{{ $p['thumb'] }}" alt="{{ $p['name'] }}" loading="lazy"
+             onerror="this.classList.add('is-broken')">
+
+        {{-- the suppliers' photographs fail often enough to be worth a shape --}}
+        <span class="card__fallback" aria-hidden="true">IAPI.GE</span>
 
         @if (! empty($p['preorder']))
             {{-- a pre-order outranks "sale" and "new": it changes how you buy it --}}
@@ -42,7 +46,7 @@
         @endif
 
         <div class="card__prices">
-            <span class="card__price">{{ money($p['price']) }}</span>
+            <span @class(['card__price', 'card__price--sale' => ! empty($p['old'])])>{{ money($p['price']) }}</span>
             @if (! empty($p['old']))
                 <span class="card__old">{{ money($p['old']) }}</span>
             @endif
@@ -55,13 +59,15 @@
 
     <div class="card__foot">
         @if (empty($p['preorder']))
-            <button type="button" class="card__cart" data-add aria-label="{{ __('cart.add') }}">
+            <button type="button" class="card__cart" data-add>
                 <x-icon name="shopping-bag" size="16" />
+                <span class="card__cart-label">{{ __('cart.add') }}</span>
             </button>
         @else
             {{-- a pre-order cannot be bought yet, so the button opens the page instead --}}
-            <a class="card__cart card__cart--pre" href="{{ $p['url'] }}" title="{{ __('card.preorder') }}">
+            <a class="card__cart card__cart--pre" href="{{ $p['url'] }}">
                 <x-icon name="truck" size="16" />
+                <span class="card__cart-label">{{ __('cart.preorder') }}</span>
             </a>
         @endif
         <livewire:wishlist-heart :product-id="$p['id']" :key="'wish-card-'.$p['id']" />

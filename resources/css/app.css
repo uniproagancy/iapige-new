@@ -307,15 +307,51 @@ button,
 /* ---------- product card ---------- */
 .card{
   flex:none;width:244px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);
-  padding:12px;display:flex;flex-direction:column;
-  transition:border-color .18s,box-shadow .18s,transform .18s
+  padding:12px;display:flex;flex-direction:column;position:relative;
+  transition:border-color .22s var(--ease),box-shadow .22s var(--ease),transform .22s var(--ease)
 }
-.card:hover{border-color:var(--red-bright);box-shadow:var(--sh-card);transform:translateY(-2px)}
+.card:hover{
+  border-color:transparent;box-shadow:var(--sh-card);transform:translateY(-3px)
+}
+/*
+ | A hairline of the brand colour on hover, drawn rather than bordered.
+ | A border that changes colour nudges the whole card by a pixel; an inset ring
+ | does not, so the lift stays the only movement.
+ */
+.card::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 0 0 0 1.5px transparent;transition:box-shadow .22s var(--ease)
+}
+.card:hover::after{box-shadow:inset 0 0 0 1.5px var(--red-bright)}
 .card--grid{width:auto}
-.card__media{position:relative;height:150px;border-radius:15px;background:var(--soft-2);overflow:hidden}
-.card__img{width:100%;height:100%;object-fit:cover;background:var(--soft-2)}
+/*
+ | One frame for every supplier.
+ |
+ | The photographs arrive at whatever size and shape each supplier keeps them:
+ | square studio shots, tall phones, wide televisions, some padded and some
+ | cropped to the edge. "cover" filled the box by cutting whatever did not fit,
+ | so a tall product lost its top and bottom and a wide one lost its sides.
+ |
+ | "contain" fits the whole picture instead, and a fixed ratio keeps every card
+ | the same height whatever arrives. The padding stops a crop-to-the-edge photo
+ | touching the corners, which is what made the rail look ragged.
+ */
+.card__media{
+  position:relative;aspect-ratio:4/3;border-radius:15px;overflow:hidden;
+  display:grid;place-items:center;padding:10px;
+  background:linear-gradient(180deg,#fff 0%,var(--soft-3) 100%)
+}
+.card__img{
+  width:100%;height:100%;object-fit:contain;
+  transition:transform .4s var(--ease)
+}
+.card:hover .card__img{transform:scale(1.06)}
 .card__img.is-broken{opacity:0}
-.card__fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted-4)}
+.card__fallback{
+  position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted-4);
+  background:var(--soft-2);border-radius:inherit
+}
 .card__img.is-broken + .card__fallback{display:flex}
 .card__arrow{
   position:absolute;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;
@@ -330,21 +366,60 @@ button,
 .card__dots{position:absolute;bottom:9px;left:0;right:0;display:flex;justify-content:center;gap:5px}
 .card__dot{width:5px;height:5px;border-radius:50%;background:#CDD2D7;transition:width .2s,height .2s,background .2s}
 .card__dot.is-active{width:7px;height:7px;background:var(--ink)}
-.card__discount{position:absolute;top:10px;left:10px;padding:5px 10px;border-radius:var(--r-pill);background:var(--red-bright);color:#fff;font-size:11px;font-weight:700;font-family:var(--mono);box-shadow:0 3px 10px rgba(255,105,0,.35)}
+.card__discount{
+  position:absolute;top:10px;left:10px;z-index:1;padding:5px 10px;border-radius:var(--r-pill);
+  background:var(--red-bright);color:#fff;font-size:11px;font-weight:700;font-family:var(--mono);
+  box-shadow:0 3px 10px rgba(255,105,0,.35)
+}
 .card__tag{position:absolute;top:10px;right:10px;padding:5px 11px;border-radius:var(--r-pill);font-size:10px;font-weight:700;box-shadow:0 2px 8px rgba(22,24,28,.12)}
 .card__tag--sale{background:var(--red-bright);color:#fff}
-.card__tag--new{background:#fff;color:var(--ink)}
-.card__body{flex:1;padding:13px 6px 4px;display:flex;flex-direction:column;gap:5px}
-.card__brand{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted-3)}
-.card__name{font-size:13px;color:var(--ink);line-height:1.35;margin:0;font-weight:400}
+.card__tag--new{background:rgba(255,255,255,.88);color:var(--ink);backdrop-filter:blur(6px)}
+.card__body{flex:1;padding:14px 6px 4px;display:flex;flex-direction:column;gap:6px}
+.card__brand{
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted-2)
+}
+/*
+ | Two lines, always.
+ |
+ | Names run from "Apple iPhone 18 Pro e-SIM Only | 2TB Silver" to "უთო", and
+ | letting them size themselves left every price in a row at a different
+ | height. Clamped and floored, the prices line up across the rail.
+ */
+.card__name{
+  font-size:13.5px;color:var(--ink-2);line-height:1.4;margin:0;font-weight:500;
+  min-height:38px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;transition:color .18s
+}
+.card:hover .card__name{color:var(--red-dark)}
 .card__spec{font-size:11px;color:var(--muted-3);line-height:1.4}
-.card__prices{display:flex;align-items:baseline;gap:8px;min-height:26px}
-.card__price{font-size:21px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.card__prices{display:flex;align-items:baseline;gap:8px;min-height:28px;margin-top:2px}
+.card__price{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .card__price--sale{color:var(--red-bright)}
-.card__old{font-size:12px;color:#A3A8AD;text-decoration:line-through}
-.card__monthly{font-size:11px;color:var(--muted-2);margin-top:2px;min-height:15px}
+.card__old{font-size:12px;color:var(--muted-3);text-decoration:line-through}
+.card__monthly{
+  align-self:flex-start;margin-top:3px;padding:3px 9px;border-radius:var(--r-pill);
+  background:var(--rose);color:var(--red-dark);font-size:11px;line-height:1.5
+}
 .card__stock{margin-top:2px;font-size:10px;color:var(--muted-3);min-height:15px}
-.card__foot{margin-top:auto;padding-top:9px;display:flex;gap:8px;align-items:center;justify-content:flex-end}
+/*
+ | The buying row.
+ |
+ | Two small outline squares in the corner read as an afterthought, and the one
+ | that mattered — add to cart — had no styles at all, so it rendered as a bare
+ | button. The action now takes the width it deserves and says what it does;
+ | the heart keeps its square beside it.
+ */
+.card__foot{margin-top:auto;padding-top:11px;display:flex;gap:8px;align-items:center}
+.card__cart{
+  flex:1;min-width:0;height:38px;display:flex;align-items:center;justify-content:center;gap:7px;
+  border:0;border-radius:var(--r-sm);background:var(--soft);color:var(--ink);
+  font-family:var(--caps);font-size:12px;font-weight:600;cursor:pointer;
+  transition:background .18s var(--ease),color .18s var(--ease),box-shadow .18s var(--ease)
+}
+.card__cart-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card__cart:hover{background:var(--red-bright);color:#fff;box-shadow:var(--sh-red)}
+.card__cart .ic{flex:none}
 .btn-add{
   flex:none;width:38px;height:38px;display:flex;align-items:center;justify-content:center;
   border-radius:var(--r-sm);background:#fff;border:1.5px solid var(--line-2);color:var(--ink);
@@ -353,11 +428,16 @@ button,
 .btn-add:hover{background:var(--red-bright);border-color:var(--red-bright);color:#fff}
 .btn-add.is-added{background:var(--ink);border-color:var(--ink);color:#fff;animation:iapiBump .46s var(--spring) both}
 .btn-add .ic-check{animation:iapiPop .42s var(--spring) both}
-.btn-wish{width:38px;height:38px;border-radius:var(--r-sm);background:#fff;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;transition:background .18s,border-color .18s}
-.btn-wish:hover{background:var(--rose);border-color:var(--red-bright)}
+.btn-wish{
+  width:38px;height:38px;border-radius:var(--r-sm);background:var(--soft);border:0;
+  display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;
+  transition:background .18s var(--ease),color .18s var(--ease),transform .18s var(--spring)
+}
+.btn-wish:active{transform:scale(.92)}
+.btn-wish:hover{background:var(--rose);color:var(--red-bright)}
 .btn-wish{color:#6E747B}
 .btn-wish.is-on{color:var(--red-bright)}
-.btn-wish.is-on{background:var(--rose);border-color:var(--red-bright)}
+.btn-wish.is-on{background:var(--rose)}
 
 /* ---------- category sections ---------- */
 .sections{padding:30px 20px 0;display:flex;flex-direction:column;gap:44px}
@@ -840,20 +920,26 @@ button,
   /* ---- product card ---- */
   .card{border-radius:20px;padding:10px}
   .card:hover{transform:none;box-shadow:none;border-color:var(--line)}
-  .card__media{height:120px;border-radius:14px}
-  .rail--section .card__media{height:110px}
+  .card__media{border-radius:14px;padding:8px}
+  /* a narrow screen gives the picture more of the card, not less */
+  .rail--section .card__media{aspect-ratio:1/1}
   .card__arrow,.card__dots,.card__tag{display:none}
   .card__discount{padding:4px 9px;font-size:10px;background:var(--red-bright)}
   .card__body{padding:10px 4px 0;gap:4px}
   .card__brand{font-size:9px}
   .rail--section .card__brand,.card__spec,.card__monthly,.card__stock{display:none}
+  .card__monthly{padding:2px 8px;font-size:10px}
   .card__name{font-size:13px;min-height:34px}
   .rail--section .card__name{font-size:12px;min-height:32px}
   .card__prices{gap:7px;min-height:0}
   .card__price{font-size:18px}
   .rail--section .card__price{font-size:17px}
   .card__old{font-size:11px}
-  .card__foot{padding-top:0;margin-top:auto;gap:0;justify-content:flex-end}
+  .card__foot{padding-top:9px;margin-top:auto;gap:6px}
+  .card__cart{height:34px;font-size:11px;gap:5px}
+  /* the icon alone carries it where there is no room for the word */
+  .rail--section .card__cart-label{display:none}
+  .btn-wish{width:34px;height:34px}
   .btn-add{
     width:42px;height:42px;margin-top:8px;border-radius:50%;border:none;
     background:var(--red-bright);color:#fff;
@@ -1334,11 +1420,8 @@ body.has-cookies .toast{bottom:130px}
 .card__tag--pre{background:#2563EB;color:#fff}
 
 /* and its cart button becomes a link to the product page */
-.card__cart--pre{
-  display:flex;align-items:center;justify-content:center;
-  background:#DBEAFE;color:#1E40AF
-}
-.card__cart--pre:hover{background:#BFDBFE}
+.card__cart--pre{background:#DBEAFE;color:#1E40AF;text-decoration:none}
+.card__cart--pre:hover{background:#1E40AF;color:#fff;box-shadow:0 8px 18px rgba(30,64,175,.25)}
 
 .errpage{max-width:460px;margin:0 auto;padding:72px 20px;text-align:center}
 .errpage__code{
