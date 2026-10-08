@@ -227,7 +227,7 @@ class FacebookFeed
     {
         $first = $product->images->sortBy('sort_order')->first();
 
-        return $first?->url();
+        return url($first?->url());
     }
 
     /** @return array<int, string> */
