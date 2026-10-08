@@ -5,6 +5,14 @@
 
     $payload = \App\Support\Catalog::cartPayload($p);
     $json = json_encode($payload, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE);
+
+    /*
+     * The gallery the card can page through. app.js reads it off the article,
+     * swaps the picture and moves the dots — all of which was already written
+     * and had nothing to drive it, because the markup never carried the images.
+     */
+    $images = array_values(array_filter($p['images'] ?? []));
+    $many = count($images) > 1;
 @endphp
 
 <article class="card"
@@ -12,10 +20,18 @@
          data-product-id="{{ $p['id'] }}"
          data-product-name="{{ trim(($p['brand'] ?? '').' '.$p['name']) }}"
          data-index="0"
-         data-order="{{ $p['order'] ?? 0 }}">
-    <a class="card__media" href="{{ $p['url'] }}">
-        <img class="card__img" src="{{ $p['thumb'] }}" alt="{{ $p['name'] }}" loading="lazy"
-             onerror="this.classList.add('is-broken')">
+         data-order="{{ $p['order'] ?? 0 }}"
+         @if ($many) data-images="{{ json_encode($images, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}" @endif>
+    {{--
+        A div, not a link: the arrows and dots sit on top of the picture, and a
+        button inside an anchor is invalid markup whose clicks the anchor takes
+        for itself. The link covers the picture alone.
+    --}}
+    <div class="card__media">
+        <a class="card__media-link" href="{{ $p['url'] }}" aria-label="{{ $p['name'] }}">
+            <img class="card__img" data-img src="{{ $p['thumb'] }}" alt="{{ $p['name'] }}"
+                 loading="lazy" onerror="this.classList.add('is-broken')">
+        </a>
 
         {{-- the suppliers' photographs fail often enough to be worth a shape --}}
         <span class="card__fallback" aria-hidden="true">IAPI.GE</span>
@@ -32,7 +48,26 @@
         @if (! empty($p['discount']))
             <span class="card__discount">{{ $p['discount'] }}</span>
         @endif
-    </a>
+
+        @if ($many)
+            <button type="button" class="card__arrow card__arrow--prev" data-img-prev
+                    aria-label="{{ __('card.image_prev') }}">
+                <x-icon name="caret-left" size="14" />
+            </button>
+            <button type="button" class="card__arrow card__arrow--next" data-img-next
+                    aria-label="{{ __('card.image_next') }}">
+                <x-icon name="caret-right" size="14" />
+            </button>
+
+            <div class="card__dots">
+                @foreach ($images as $i => $image)
+                    <button type="button" @class(['card__dot', 'is-active' => $i === 0])
+                            data-img-go="{{ $i }}"
+                            aria-label="{{ __('card.image_n', ['n' => $i + 1]) }}"></button>
+                @endforeach
+            </div>
+        @endif
+    </div>
 
     <div class="card__body">
         @if ($p['brand'])
