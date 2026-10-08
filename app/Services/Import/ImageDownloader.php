@@ -46,6 +46,14 @@ class ImageDownloader
 
     protected const RETRIES = 1;
 
+    /**
+     * How long one product's gallery may take, in seconds.
+     *
+     * Comfortably inside ImportProductJob::$timeout, with room left for the
+     * API calls and the database work that share the same job.
+     */
+    protected const BUDGET = 40;
+
     protected const FAILURES_BEFORE_SKIP = 5;
 
     /** host => consecutive failures, for the life of this worker process */
@@ -54,7 +62,31 @@ class ImageDownloader
     /** @param  array<int, string>  $urls */
     public function sync(Product $product, array $urls, int $limit = self::MAX_IMAGES): void
     {
+        $deadline = microtime(true) + self::BUDGET;
+
         foreach (array_slice(array_values(array_filter($urls)), 0, $limit) as $i => $url) {
+            /*
+             * Eight photographs can each spend twenty seconds reaching a slow
+             * host, which is far longer than the job is allowed to live. The
+             * worker then kills it mid-download: no exception is recorded, only
+             * a spent attempt, and after three of those the job dies of
+             * "attempted too many times" with nothing in the log to say why.
+             *
+             * Stopping early is safe because import() asks again for whatever
+             * is missing on the next run, and a file already on disk costs no
+             * request at all — so the gallery fills in over a run or two
+             * instead of taking the job down on the first.
+             */
+            if (microtime(true) >= $deadline) {
+                Log::channel('import')->info('image budget spent', [
+                    'product' => $product->id,
+                    'fetched' => $i,
+                    'of' => min(count($urls), $limit),
+                ]);
+
+                return;
+            }
+
             try {
                 $path = $this->store($product, $url, $i);
             } catch (\Throwable $e) {
