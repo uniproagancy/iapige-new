@@ -362,9 +362,20 @@
   .pagebar__btn--wish.is-on{background:var(--rose);color:var(--red-bright)}
   .pagebar__path{flex:1;font-size:14px;color:var(--muted-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-  .pdp{display:flex;flex-direction:column;gap:0;padding:0 0 4px}
+  /*
+   | align-items has to be given back, exactly as align-self did below.
+   |
+   | Both of these are grids up above, where align-items:start means "sit at
+   | the top" because it runs down the block axis. Here they become column
+   | flex containers and the very same declaration switches to the inline
+   | axis, where it reads "do not stretch, take your content's width". So
+   | .pdp__left sized itself to its contents — 488px inside a 440px phone —
+   | and the gallery, stretching dutifully to its parent, inherited the 488.
+   | .shell clips, so everything past the screen edge was cut away.
+   */
+  .pdp{display:flex;flex-direction:column;gap:0;padding:0 0 4px;align-items:stretch}
   .pdp__left{gap:0}
-  .pdp__top{display:flex;flex-direction:column;gap:0}
+  .pdp__top{display:flex;flex-direction:column;gap:0;align-items:stretch}
 
   /*
    | align-self has to be given back.
