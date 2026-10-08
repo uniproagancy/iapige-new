@@ -26,8 +26,13 @@ class ImportProductJob implements ShouldQueue
      * no underlying exception attached to it.
      *
      * Laravel prefers retryUntil over tries when both exist, so a job may be
-     * released as often as the pacing needs within the half hour, while
-     * $maxExceptions still stops anything that genuinely keeps throwing.
+     * released as often as the pacing needs, while $maxExceptions still stops
+     * anything that genuinely keeps throwing.
+     *
+     * The deadline has to outlast the whole run rather than one job. At sixty
+     * products a minute the last of ten thousand is postponed for most of an
+     * afternoon before its turn comes, and a deadline measured in minutes
+     * killed it on the way — the same empty failure as before, just later.
      */
     public int $maxExceptions = 3;
 
@@ -42,7 +47,7 @@ class ImportProductJob implements ShouldQueue
 
     public function retryUntil(): \DateTimeInterface
     {
-        return now()->addMinutes(30);
+        return now()->addHours((int) config('shop.import_deadline_hours', 24));
     }
 
     public function __construct(

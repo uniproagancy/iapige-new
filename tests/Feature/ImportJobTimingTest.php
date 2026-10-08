@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Jobs\ImportProductJob;
 use App\Services\Import\ImageDownloader;
+use Illuminate\Cache\RateLimiter;
 use Illuminate\Queue\Middleware\RateLimited;
 use Tests\TestCase;
 
@@ -36,6 +37,38 @@ class ImportJobTimingTest extends TestCase
         $this->assertTrue(method_exists($job, 'retryUntil'));
         $this->assertFalse(property_exists($job, 'tries'), 'tries would take precedence away from the deadline');
         $this->assertGreaterThan(now()->addMinutes(5), $job->retryUntil());
+    }
+
+    /**
+     * The deadline has to cover the run, not the job.
+     *
+     * Every product behind the rate limiter is being postponed until its turn
+     * comes, and at sixty a minute the last of ten thousand waits most of an
+     * afternoon. A deadline shorter than that kills the tail of every large
+     * catalogue — with no exception recorded, because being postponed is not
+     * an error.
+     */
+    public function test_the_deadline_outlasts_a_full_catalogue(): void
+    {
+        $minutes = 10000 / max(1, (int) config('shop.import_rate'));
+
+        $this->assertGreaterThan(
+            now()->addMinutes($minutes),
+            (new ImportProductJob(1, 'X-1'))->retryUntil(),
+        );
+    }
+
+    /** Several suppliers at once never share a queue or a limit. */
+    public function test_each_supplier_is_paced_on_its_own(): void
+    {
+        $limiter = app(RateLimiter::class);
+
+        $this->assertNotNull($limiter->limiter('import'));
+
+        $first = $limiter->limiter('import')(new ImportProductJob(1, 'X-1'));
+        $second = $limiter->limiter('import')(new ImportProductJob(2, 'X-1'));
+
+        $this->assertNotSame($first->key, $second->key);
     }
 
     /** Something still has to stop a job that genuinely keeps throwing. */

@@ -46,6 +46,22 @@ return [
     'import_rate' => (int) env('IMPORT_RATE_PER_MINUTE', 60),
 
     /*
+     | How long a queued product may keep waiting its turn, in hours.
+     |
+     | This has to outlast the whole run, not one job. At the rate above, a
+     | thousand products take a quarter of an hour and ten thousand take most
+     | of an afternoon — and the one at the back of the queue is being
+     | postponed by the rate limiter that entire time. Laravel counts a
+     | postponement as an attempt, so the deadline, not a count, is what
+     | decides when to give up; anything that genuinely keeps throwing is
+     | stopped by maxExceptions long before this.
+     |
+     | Raise it, or raise the rate, if a supplier's catalogue grows past what
+     | this covers: at 60 a minute a day's deadline carries about 86,000.
+     */
+    'import_deadline_hours' => (int) env('IMPORT_DEADLINE_HOURS', 24),
+
+    /*
      | Whether a product with no photograph is worth importing.
      |
      | One that has none cannot be shown on a card, a listing or a search
