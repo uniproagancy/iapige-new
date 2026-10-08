@@ -105,11 +105,18 @@ return [
     'metromart' => [
         'user_agent' => env('METROMART_USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
     ],
+    /*
+     | .env.example has documented these four keys all along; the values were
+     | written in here instead, which put a live access token in the repository
+     | and — worse for the ad account — pinned test_event_code on. Every event
+     | the shop has sent since then landed in Test Events, where Meta counts
+     | none of them as conversions.
+     */
     'facebook' => [
-        'pixel_id' => '1386028086854433',
-        'access_token' => 'EAACRpZCqfAR0BSjlPOLD0qoP4XprZBCTmABUEdVLw1G6JWK66FPs3hSuh5aVaNkeYvQjz6ydCLJo6qXns3PZASI6ZCyjEHNe3LPv6xUTZA7cy5a0KfQRyRVbsYGenyXyqL1DZC50LZBDcYaZBkWWVoTAudC8aElhUIYeypAQ3VnKZBLpZACQSo9RauUpwX9NMWJwZDZD',
+        'pixel_id' => env('FACEBOOK_PIXEL_ID'),
+        'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
         'api_version' => env('FACEBOOK_API_VERSION', 'v24.0'),
-        'test_event_code' => 'TEST91910',
+        'test_event_code' => env('FACEBOOK_TEST_EVENT_CODE') ?: null,
     ],
 
 ];
