@@ -349,9 +349,17 @@ button,
  | the same height whatever arrives. The padding stops a crop-to-the-edge photo
  | touching the corners, which is what made the rail look ragged.
  */
+/*
+ | A plain box, not a grid.
+ |
+ | place-items:center looked like the way to centre the photograph, but an
+ | auto grid track takes its floor from its content's min-content width, and
+ | for an image that is its real pixel width — 1000px on a 244px card, which
+ | min-width:0 cannot shrink because it does not apply to tracks. contain
+ | already centres the picture inside the box, so the grid bought nothing.
+ */
 .card__media{
-  position:relative;aspect-ratio:4/3;border-radius:15px;overflow:hidden;
-  display:grid;place-items:center;padding:10px;
+  position:relative;aspect-ratio:4/3;border-radius:15px;overflow:hidden;padding:10px;
   background:linear-gradient(180deg,#fff 0%,var(--soft-3) 100%)
 }
 .card__img{
