@@ -94,9 +94,7 @@ class ZoommerDriver implements SupplierDriver
 
         return new ProductPayload(
             externalId: $externalId,
-            // the barcode is shared between colour variants of one model, so the
-            // source id is what keeps two variants from merging into one product
-            sku: 'ZOOM-'.$externalId,
+            sku: $this->sku($externalId, $product),
             costPrice: $costPrice,
             oldCostPrice: $oldCostPrice,
             stock: $this->stock($base),
@@ -109,6 +107,26 @@ class ZoommerDriver implements SupplierDriver
             releaseDate: $product['releaseDate'] ?? null,
             variantGroup: $this->variantGroup($externalId, $product),
         );
+    }
+
+    /**
+     * The barcode the source carries, which is the number on the box.
+     *
+     * A barcode is the same article wherever it is bought, so using it here is
+     * what lets one product collect an offer from every supplier that stocks
+     * it instead of appearing once per supplier. The source's own id stays as
+     * the fallback for the rows that have no barcode at all.
+     *
+     * Two colour variants of one model share a barcode. find() already refuses
+     * to merge them, and freeSku() keeps the unique index happy.
+     *
+     * @param  array<string, mixed>  $product
+     */
+    protected function sku(string $externalId, array $product): string
+    {
+        $barcode = trim((string) ($product['barCode'] ?? ''));
+
+        return $barcode !== '' ? $barcode : 'ZOOM-'.$externalId;
     }
 
     /**
