@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    public function __construct(protected PaymentManager $payments)
-    {
-    }
+    public function __construct(protected PaymentManager $payments) {}
 
     /**
      * A bank's callback.
@@ -22,7 +20,7 @@ class PaymentController extends Controller
     public function callback(Request $request, string $driver)
     {
         Log::channel('payments')->info('callback received', [
-            'driver'  => $driver,
+            'driver' => $driver,
             'payload' => $request->all(),
         ]);
 
@@ -41,7 +39,7 @@ class PaymentController extends Controller
         } catch (\Throwable $e) {
             Log::channel('payments')->error('callback failed', [
                 'driver' => $driver,
-                'error'  => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
 

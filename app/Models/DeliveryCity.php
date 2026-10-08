@@ -6,6 +6,7 @@ use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
 /**
  * @property string|null $name
  */
@@ -20,10 +21,10 @@ class DeliveryCity extends Model
     protected function casts(): array
     {
         return [
-            'fee'        => 'decimal:2',
-            'free_from'  => 'decimal:2',
-            'days'       => 'integer',
-            'is_active'  => 'boolean',
+            'fee' => 'decimal:2',
+            'free_from' => 'decimal:2',
+            'days' => 'integer',
+            'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
     }
@@ -32,8 +33,8 @@ class DeliveryCity extends Model
     {
         return $query->where('is_active', true)->orderBy('sort_order')->orderBy('id');
     }
-	
-	public function rates(): HasMany
+
+    public function rates(): HasMany
     {
         return $this->hasMany(DeliveryRate::class)->orderBy('up_to_weight');
     }

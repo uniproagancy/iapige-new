@@ -25,9 +25,9 @@ class CredoController extends Controller
         }
 
         return view('payments.credo', [
-            'order'  => $order,
+            'order' => $order,
             'action' => config('credo.widget_url'),
-            'data'   => json_encode($credo->payload($order), JSON_UNESCAPED_UNICODE),
+            'data' => json_encode($credo->payload($order), JSON_UNESCAPED_UNICODE),
         ]);
     }
 

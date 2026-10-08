@@ -15,8 +15,10 @@ class Attribute extends Model
     use HasTranslations;
 
     public const TYPE_SELECT = 'select';
-    public const TYPE_COLOR  = 'color';
-    public const TYPE_TEXT   = 'text';
+
+    public const TYPE_COLOR = 'color';
+
+    public const TYPE_TEXT = 'text';
 
     protected array $translatable = ['name'];
 
@@ -26,8 +28,8 @@ class Attribute extends Model
     {
         return [
             'is_filterable' => 'boolean',
-            'is_variant'    => 'boolean',
-            'sort_order'    => 'integer',
+            'is_variant' => 'boolean',
+            'sort_order' => 'integer',
         ];
     }
 

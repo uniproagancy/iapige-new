@@ -22,12 +22,12 @@ class PaymentMethod extends Model
     protected function casts(): array
     {
         return [
-            'is_active'  => 'boolean',
-            'is_online'  => 'boolean',
-            'min_total'  => 'decimal:2',
-            'max_total'  => 'decimal:2',
+            'is_active' => 'boolean',
+            'is_online' => 'boolean',
+            'min_total' => 'decimal:2',
+            'max_total' => 'decimal:2',
             'sort_order' => 'integer',
-            'config'     => 'array',
+            'config' => 'array',
         ];
     }
 

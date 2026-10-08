@@ -23,6 +23,7 @@ class TbcInstallment implements PaymentDriver
 {
     /** What the bank's status endpoint means by its numbers. */
     protected const STATUS_PENDING = 0;
+
     protected const STATUS_SUCCESS = 2;
 
     public function start(Order $order, array $options = []): PaymentTransaction
@@ -35,8 +36,8 @@ class TbcInstallment implements PaymentDriver
          * total separately is what makes an application bounce.
          */
         $products = $order->items->map(fn ($item) => [
-            'name'     => mb_substr($item->name, 0, 100),
-            'price'    => round((float) $item->price * (1 + $fee), 2),
+            'name' => mb_substr($item->name, 0, 100),
+            'price' => round((float) $item->price * (1 + $fee), 2),
             'quantity' => (int) $item->qty,
         ])->values()->all();
 
@@ -47,10 +48,10 @@ class TbcInstallment implements PaymentDriver
 
         $payload = [
             'merchantKey' => (string) config('tbc.installment.merchant_key'),
-            'priceTotal'  => $total,
-            'campaignId'  => (string) config('tbc.installment.campaign_id'),
-            'invoiceId'   => (string) $order->number,
-            'products'    => $products,
+            'priceTotal' => $total,
+            'campaignId' => (string) config('tbc.installment.campaign_id'),
+            'invoiceId' => (string) $order->number,
+            'products' => $products,
         ];
 
         $response = Http::withToken($this->token())
@@ -65,22 +66,22 @@ class TbcInstallment implements PaymentDriver
 
         if (! $response->successful() || empty($data['sessionId']) || ! $redirect) {
             Log::channel('payments')->error('tbc refused the application', [
-                'order'    => $order->number,
-                'status'   => $response->status(),
-                'body'     => $response->body(),
+                'order' => $order->number,
+                'status' => $response->status(),
+                'body' => $response->body(),
             ]);
 
             throw new RuntimeException(__('checkout.payment_failed'));
         }
 
         return PaymentTransaction::create([
-            'order_id'     => $order->id,
-            'driver'       => 'tbc-installment',
-            'external_id'  => $data['sessionId'],
-            'amount'       => $total,
-            'status'       => PaymentTransaction::PENDING,
-            'request'      => $payload,
-            'response'     => $data,
+            'order_id' => $order->id,
+            'driver' => 'tbc-installment',
+            'external_id' => $data['sessionId'],
+            'amount' => $total,
+            'status' => PaymentTransaction::PENDING,
+            'request' => $payload,
+            'response' => $data,
             'redirect_url' => $redirect,
         ]);
     }
@@ -111,7 +112,7 @@ class TbcInstallment implements PaymentDriver
         if (! $response->successful()) {
             Log::channel('payments')->warning('tbc status unavailable', [
                 'transaction' => $transaction->id,
-                'status'      => $response->status(),
+                'status' => $response->status(),
             ]);
 
             return false;
@@ -121,7 +122,7 @@ class TbcInstallment implements PaymentDriver
         $status = $data['statusId'] ?? null;
 
         $transaction->update([
-            'response'   => array_merge((array) $transaction->response, ['last_check' => $data]),
+            'response' => array_merge((array) $transaction->response, ['last_check' => $data]),
             'checked_at' => now(),
         ]);
 
@@ -182,17 +183,17 @@ class TbcInstallment implements PaymentDriver
             ->timeout(30)
             ->retry(2, 1000, throw: false)
             ->post($this->url('/oauth/token'), [
-                'client_id'     => config('tbc.installment.client_id'),
+                'client_id' => config('tbc.installment.client_id'),
                 'client_secret' => config('tbc.installment.client_secret'),
-                'merchant-key'  => config('tbc.installment.merchant_key'),
-                'grant_type'    => 'client_credentials',
-                'scope'         => 'online_installments',
+                'merchant-key' => config('tbc.installment.merchant_key'),
+                'grant_type' => 'client_credentials',
+                'scope' => 'online_installments',
             ]);
 
         if (! $response->successful() || ! $response->json('access_token')) {
             Log::channel('payments')->error('tbc authentication failed', [
                 'status' => $response->status(),
-                'body'   => $response->body(),
+                'body' => $response->body(),
             ]);
 
             throw new RuntimeException('Could not authenticate with TBC.');

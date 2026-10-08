@@ -19,14 +19,24 @@ class Category extends Model
 
     protected array $translatable = ['name', 'slug', 'description', 'meta_title', 'meta_description'];
 
-    protected $fillable = ['parent_id', 'image', 'icon', 'is_active', 'show_on_home', 'sort_order'];
+    /*
+     | in_feed and google_category_id were added by a migration and read by the
+     | Facebook feed, but never listed here — so fill() dropped them in silence
+     | and no category could ever be kept out of the feed or given a Google
+     | taxonomy id. The exclusion was unreachable code until these were added.
+     */
+    protected $fillable = [
+        'parent_id', 'image', 'icon', 'is_active', 'show_on_home', 'sort_order',
+        'in_feed', 'google_category_id',
+    ];
 
     protected function casts(): array
     {
         return [
-            'is_active'    => 'boolean',
+            'is_active' => 'boolean',
             'show_on_home' => 'boolean',
-            'sort_order'   => 'integer',
+            'sort_order' => 'integer',
+            'in_feed' => 'boolean',
         ];
     }
 

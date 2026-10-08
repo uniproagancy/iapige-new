@@ -20,9 +20,7 @@ class OrderPlaced extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Order $order)
-    {
-    }
+    public function __construct(public Order $order) {}
 
     public function envelope(): Envelope
     {
@@ -38,8 +36,8 @@ class OrderPlaced extends Mailable
             view: 'emails.order-placed',
             with: [
                 'order' => $this->order->loadMissing(['items', 'city']),
-                'url'   => route('order', $this->order->number),
-                'days'  => config('shop.delivery_days', 2),
+                'url' => route('order', $this->order->number),
+                'days' => config('shop.delivery_days', 2),
             ],
         );
     }

@@ -13,10 +13,10 @@ class Supplier extends Model
     protected function casts(): array
     {
         return [
-            'is_active'   => 'boolean',
-            'priority'    => 'integer',
-            'config'      => 'array',
-            'markup'      => 'array',
+            'is_active' => 'boolean',
+            'priority' => 'integer',
+            'config' => 'array',
+            'markup' => 'array',
             'last_run_at' => 'datetime',
         ];
     }

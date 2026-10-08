@@ -15,9 +15,7 @@ use Illuminate\Support\Arr;
  */
 class DatabaseTranslationLoader implements Loader
 {
-    public function __construct(protected Loader $files)
-    {
-    }
+    public function __construct(protected Loader $files) {}
 
     public function load($locale, $group, $namespace = null)
     {

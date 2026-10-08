@@ -12,12 +12,12 @@ class OrderItem extends Model
     protected function casts(): array
     {
         return [
-			'price' => 'decimal:2', 
-			'sum' => 'decimal:2', 
-			'qty' => 'integer',
-			'is_preorder'  => 'boolean',
+            'price' => 'decimal:2',
+            'sum' => 'decimal:2',
+            'qty' => 'integer',
+            'is_preorder' => 'boolean',
             'release_date' => 'date',
-		];
+        ];
     }
 
     public function order(): BelongsTo

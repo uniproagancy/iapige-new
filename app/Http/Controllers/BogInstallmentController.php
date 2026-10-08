@@ -19,15 +19,13 @@ use Illuminate\Support\Facades\Log;
  */
 class BogInstallmentController extends Controller
 {
-    public function __construct(protected PaymentManager $payments)
-    {
-    }
+    public function __construct(protected PaymentManager $payments) {}
 
     public function create(Request $request, string $number): JsonResponse
     {
         $data = $request->validate([
-            'month'         => ['required', 'integer', 'min:1', 'max:48'],
-            'amount'        => ['nullable', 'numeric'],
+            'month' => ['required', 'integer', 'min:1', 'max:48'],
+            'amount' => ['nullable', 'numeric'],
             'discount_code' => ['nullable', 'string', 'max:64'],
         ]);
 
@@ -43,7 +41,7 @@ class BogInstallmentController extends Controller
         try {
             $transaction = $this->payments->driver('bog-installment')->start($order, [
                 'months' => (int) $data['month'],
-                'type'   => $this->typeFor($order),
+                'type' => $this->typeFor($order),
             ]);
         } catch (\Throwable $e) {
             Log::channel('payments')->error('bog application failed', [
@@ -56,7 +54,7 @@ class BogInstallmentController extends Controller
 
         // the widget wants the bank's own id and nothing else
         return response()->json([
-            'orderId'     => $transaction->external_id,
+            'orderId' => $transaction->external_id,
             'redirectUrl' => $transaction->redirect_url,
         ]);
     }

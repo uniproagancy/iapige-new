@@ -23,9 +23,7 @@ class OrderStatusChanged extends Mailable
     /** The statuses worth an email of their own. */
     public const NOTIFY = ['shipped', 'completed', 'cancelled'];
 
-    public function __construct(public Order $order, public string $status)
-    {
-    }
+    public function __construct(public Order $order, public string $status) {}
 
     public function envelope(): Envelope
     {
@@ -40,9 +38,9 @@ class OrderStatusChanged extends Mailable
         return new Content(
             view: 'emails.order-status',
             with: [
-                'order'  => $this->order->loadMissing(['items', 'city']),
+                'order' => $this->order->loadMissing(['items', 'city']),
                 'status' => $this->status,
-                'url'    => route('order', $this->order->number),
+                'url' => route('order', $this->order->number),
             ],
         );
     }

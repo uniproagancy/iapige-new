@@ -22,9 +22,9 @@ class InvoiceController extends Controller
         abort_unless(Gate::allows('view-order', $order), 404);
 
         return view('invoices.show', [
-            'order'   => $order,
+            'order' => $order,
             'company' => config('shop.company'),
-            'dueAt'   => $order->created_at->copy()->addDays((int) config('shop.invoice_valid_days', 3)),
+            'dueAt' => $order->created_at->copy()->addDays((int) config('shop.invoice_valid_days', 3)),
         ]);
     }
 }

@@ -20,6 +20,7 @@ class XlsxReader
 {
     /** End-of-central-directory and central-directory signatures. */
     protected const EOCD = "\x50\x4b\x05\x06";
+
     protected const CDIR = "\x50\x4b\x01\x02";
 
     /** @var array<int, string> */

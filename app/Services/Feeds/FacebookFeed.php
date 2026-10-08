@@ -18,7 +18,9 @@ use XMLWriter;
 class FacebookFeed
 {
     protected array $config;
+
     protected int $written = 0;
+
     protected array $skipped = ['price' => 0, 'no_name' => 0, 'no_image' => 0, 'no_category' => 0];
 
     public function __construct()
@@ -215,9 +217,9 @@ class FacebookFeed
     protected function availability(Product $product): string
     {
         return match (true) {
-            $product->stock > 0      => 'in stock',
+            $product->stock > 0 => 'in stock',
             (bool) $product->is_preorder => 'available for order',
-            default                  => 'out of stock',
+            default => 'out of stock',
         };
     }
 
@@ -248,11 +250,11 @@ class FacebookFeed
     protected function priceBand(float $price): string
     {
         return match (true) {
-            $price < 200  => '0-200',
-            $price < 500  => '200-500',
+            $price < 200 => '0-200',
+            $price < 500 => '200-500',
             $price < 1000 => '500-1000',
             $price < 2500 => '1000-2500',
-            default       => '2500+',
+            default => '2500+',
         };
     }
 

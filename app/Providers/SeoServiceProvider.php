@@ -17,10 +17,10 @@ class SeoServiceProvider extends ServiceProvider
     {
         View::composer('layouts.app', function ($view) {
             $view->with('seo', array_merge([
-                'title'       => __('layout.title'),
+                'title' => __('layout.title'),
                 'description' => __('layout.description'),
-                'image'       => asset('img/og-default.jpg'),
-                'type'        => 'website',
+                'image' => asset('img/og-default.jpg'),
+                'type' => 'website',
             ], (array) ($view->getData()['seo'] ?? [])));
         });
     }

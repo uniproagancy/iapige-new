@@ -28,7 +28,7 @@ class Store
     public static function pay(): array
     {
         return [
-			['name' => 'VISA',       'logo' => 'visa.webp', 'color' => '#1A1F71', 'italic' => true],
+            ['name' => 'VISA',       'logo' => 'visa.webp', 'color' => '#1A1F71', 'italic' => true],
             ['name' => 'Mastercard', 'logo' => 'mastercard.svg', 'color' => '#EB001B'],
         ];
     }
@@ -83,26 +83,26 @@ class Store
         $b = self::localized([
             'ka' => [
                 'laptops' => ['სასწავლო სეზონი', "სტუდენტებს −20%\nლეპტოპებზე", 'წარადგინე სტუდენტის ბარათი და მიიღე დამატებითი ფასდაკლება ნებისმიერ მოდელზე.', 'პირობების ნახვა'],
-                'audio'   => ['IAPI Sound Days', "ყურსასმენი + დინამიკი\nერთად −25%", 'აირჩიე ნებისმიერი ორი აუდიო პროდუქტი და ფასდაკლება ავტომატურად დაგერიცხება.', 'ნაკრების შედგენა'],
-                'gaming'  => ['Level Up', "გეიმინგ ნაკრები\n1 ₾-დან განვადებით", 'კონსოლი, პერიფერია და სავარძელი — ერთ შეკვეთაში, 18 თვემდე განვადებით.', 'ნაკრების ნახვა'],
-                'phones'  => [
+                'audio' => ['IAPI Sound Days', "ყურსასმენი + დინამიკი\nერთად −25%", 'აირჩიე ნებისმიერი ორი აუდიო პროდუქტი და ფასდაკლება ავტომატურად დაგერიცხება.', 'ნაკრების შედგენა'],
+                'gaming' => ['Level Up', "გეიმინგ ნაკრები\n1 ₾-დან განვადებით", 'კონსოლი, პერიფერია და სავარძელი — ერთ შეკვეთაში, 18 თვემდე განვადებით.', 'ნაკრების ნახვა'],
+                'phones' => [
                     ['Trade-in', "ჩააბარე ძველი\nტელეფონი", 'შეფასება 3 წუთში, თანხა პირდაპირ ახალ შეკვეთაზე.', 'შეფასების დაწყება →'],
                     ['დაზღვევა', "ეკრანის დაზღვევა\n1 წელი", 'შემთხვევითი დაზიანება დაფარულია, ფრანშიზის გარეშე.', 'დეტალები →'],
                 ],
-                'smart'   => [
+                'smart' => [
                     ['სტარტერ ნაკრები', "ჭკვიანი სახლი\n299 ₾-დან", '3 ნათურა, ჰაბი და მოძრაობის სენსორი ერთად.', 'ნაკრების ნახვა →'],
                     ['მონტაჟი', "უფასო დაყენება\nთბილისში", 'ჩვენი ტექნიკოსი დააყენებს და დააკონფიგურირებს.', 'ჯავშნის დადება →'],
                 ],
             ],
             'en' => [
                 'laptops' => ['Back to school', "Students get −20%\non laptops", 'Show your student card and get an extra discount on any model.', 'See the terms'],
-                'audio'   => ['IAPI Sound Days', "Headphones + speaker\n−25% together", 'Pick any two audio products and the discount applies automatically.', 'Build a set'],
-                'gaming'  => ['Level Up', "Gaming bundle\nfrom 1 ₾ a month", 'Console, peripherals and a chair in one order, up to 18 months to pay.', 'See the bundle'],
-                'phones'  => [
+                'audio' => ['IAPI Sound Days', "Headphones + speaker\n−25% together", 'Pick any two audio products and the discount applies automatically.', 'Build a set'],
+                'gaming' => ['Level Up', "Gaming bundle\nfrom 1 ₾ a month", 'Console, peripherals and a chair in one order, up to 18 months to pay.', 'See the bundle'],
+                'phones' => [
                     ['Trade-in', "Trade in your\nold phone", 'Valued in 3 minutes, credited straight to your new order.', 'Start the valuation →'],
                     ['Insurance', "Screen cover\nfor a year", 'Accidental damage covered, no excess.', 'Details →'],
                 ],
-                'smart'   => [
+                'smart' => [
                     ['Starter kit', "Smart home\nfrom 299 ₾", 'Three bulbs, a hub and a motion sensor together.', 'See the kit →'],
                     ['Installation', "Free set-up\nin Tbilisi", 'Our technician installs and configures everything.', 'Book a visit →'],
                 ],
@@ -114,7 +114,7 @@ class Store
             fn ($x, $img) => ['kicker' => $x[0], 'title' => $x[1], 'text' => $x[2], 'cta' => $x[3], 'img' => $img], $pair, $imgs);
 
         return [
-            
+
         ];
     }
 
@@ -165,7 +165,7 @@ class Store
                 ['k' => __('info.cards.hotline'), 'v' => '0322 12 10 28', 'note' => __('info.cards.hotline_hours'), 'href' => 'tel:0322121028'],
                 ['k' => __('info.cards.email'),   'v' => 'info@iapi.ge',   'note' => __('info.cards.email_note'),    'href' => 'mailto:info@iapi.ge'],
                 ['k' => __('info.cards.service'), 'v' => '0322 12 10 28', 'note' => __('info.cards.service_hours'), 'href' => 'tel:0322121028'],
-                ['k' => __('info.cards.social'),  'v' => '@IAPI.ge',       'note' => 'Messenger / IG','href' => '#'],
+                ['k' => __('info.cards.social'),  'v' => '@IAPI.ge',       'note' => 'Messenger / IG', 'href' => '#'],
             ],
             'topics' => [__('info.topics.order'), __('info.topics.delivery'), __('info.topics.warranty'), __('info.topics.installments')],
             'values' => self::localized([

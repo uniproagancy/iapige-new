@@ -23,7 +23,7 @@ class FeedController extends Controller
         }
 
         return response()->file($path, [
-            'Content-Type'  => 'application/xml; charset=utf-8',
+            'Content-Type' => 'application/xml; charset=utf-8',
             'Cache-Control' => 'public, max-age='.config('feeds.facebook.cache_ttl'),
         ]);
     }

@@ -12,10 +12,10 @@ class SupplierStock extends Model
     protected function casts(): array
     {
         return [
-            'quantity'   => 'integer',
+            'quantity' => 'integer',
             'cost_price' => 'decimal:2',
-            'data'       => 'array',        // ← ეს აკლია
-            'synced_at'  => 'datetime',
+            'data' => 'array',        // ← ეს აკლია
+            'synced_at' => 'datetime',
         ];
     }
 

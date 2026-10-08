@@ -28,6 +28,7 @@ class BogInstallment implements PaymentDriver
     public const MONTHS = [3, 6, 12, 18, 24];
 
     public const STANDARD = 'STANDARD';
+
     public const ZERO = 'ZERO';
 
     public function start(Order $order, array $options = []): PaymentTransaction
@@ -54,23 +55,23 @@ class BogInstallment implements PaymentDriver
 
         if (! $response->successful() || ($data['status'] ?? null) !== 'CREATED') {
             Log::channel('payments')->error('bog refused the application', [
-                'order'  => $order->number,
+                'order' => $order->number,
                 'status' => $response->status(),
-                'body'   => $response->body(),
+                'body' => $response->body(),
             ]);
 
             throw new RuntimeException(__('checkout.payment_failed'));
         }
 
         return PaymentTransaction::create([
-            'order_id'     => $order->id,
-            'driver'       => 'bog-installment',
-            'external_id'  => $data['order_id'] ?? null,
-            'amount'       => $amount,
-            'months'       => $months,
-            'status'       => PaymentTransaction::PENDING,
-            'request'      => $payload,
-            'response'     => $data,
+            'order_id' => $order->id,
+            'driver' => 'bog-installment',
+            'external_id' => $data['order_id'] ?? null,
+            'amount' => $amount,
+            'months' => $months,
+            'status' => PaymentTransaction::PENDING,
+            'request' => $payload,
+            'response' => $data,
             'redirect_url' => $this->redirectFrom($data),
         ]);
     }
@@ -96,7 +97,7 @@ class BogInstallment implements PaymentDriver
         if (! $response->successful()) {
             Log::channel('payments')->warning('bog status unavailable', [
                 'transaction' => $transaction->id,
-                'status'      => $response->status(),
+                'status' => $response->status(),
             ]);
 
             return false;
@@ -106,7 +107,7 @@ class BogInstallment implements PaymentDriver
         $status = strtolower((string) ($data['installment_status'] ?? ''));
 
         $transaction->update([
-            'response'   => array_merge((array) $transaction->response, ['last_check' => $data]),
+            'response' => array_merge((array) $transaction->response, ['last_check' => $data]),
             'checked_at' => now(),
         ]);
 
@@ -117,8 +118,8 @@ class BogInstallment implements PaymentDriver
         if ($echoed !== '' && $transaction->order && $echoed !== (string) $transaction->order->number) {
             Log::channel('payments')->error('bog returned a foreign order', [
                 'transaction' => $transaction->id,
-                'expected'    => $transaction->order->number,
-                'received'    => $echoed,
+                'expected' => $transaction->order->number,
+                'received' => $echoed,
             ]);
 
             return false;
@@ -210,30 +211,30 @@ class BogInstallment implements PaymentDriver
             $product = $item->product;
 
             return array_filter([
-                'total_item_amount'    => round(((float) $item->price * (1 + $fee)) * $item->qty, 2),
-                'item_description'     => mb_substr($item->name, 0, 100),
-                'total_item_qty'       => (int) $item->qty,
-                'item_vendor_code'     => $item->sku ?: (string) $item->product_id,
-                'product_image_url'    => $product?->images->first()?->url(),
+                'total_item_amount' => round(((float) $item->price * (1 + $fee)) * $item->qty, 2),
+                'item_description' => mb_substr($item->name, 0, 100),
+                'total_item_qty' => (int) $item->qty,
+                'item_vendor_code' => $item->sku ?: (string) $item->product_id,
+                'product_image_url' => $product?->images->first()?->url(),
                 'item_site_detail_url' => $product?->slug ? route('product', $product->slug) : null,
             ], fn ($v) => $v !== null);
         })->values()->all();
 
         return [
-            'intent'               => 'LOAN',
-            'installment_month'    => $months,
-            'installment_type'     => $type,
+            'intent' => 'LOAN',
+            'installment_month' => $months,
+            'installment_type' => $type,
             // the order number, not the id: it is what the bank echoes back
-            'shop_order_id'        => (string) $order->number,
+            'shop_order_id' => (string) $order->number,
             'success_redirect_url' => route('payment.return', ['number' => $order->number, 'status' => 'success']),
-            'fail_redirect_url'    => route('payment.return', ['number' => $order->number, 'status' => 'fail']),
-            'reject_redirect_url'  => route('payment.return', ['number' => $order->number, 'status' => 'reject']),
-            'validate_items'       => true,
-            'locale'               => 'ka',
-            'purchase_units'       => [
+            'fail_redirect_url' => route('payment.return', ['number' => $order->number, 'status' => 'fail']),
+            'reject_redirect_url' => route('payment.return', ['number' => $order->number, 'status' => 'reject']),
+            'validate_items' => true,
+            'locale' => 'ka',
+            'purchase_units' => [
                 ['amount' => ['currency_code' => 'GEL', 'value' => $amount]],
             ],
-            'cart_items'           => $items,
+            'cart_items' => $items,
         ];
     }
 }

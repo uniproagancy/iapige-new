@@ -16,10 +16,10 @@ class ProductOffer extends Model
     protected function casts(): array
     {
         return [
-            'cost_price'     => 'decimal:2',
+            'cost_price' => 'decimal:2',
             'old_cost_price' => 'decimal:2',
-            'stock'          => 'integer',
-            'synced_at'      => 'datetime',
+            'stock' => 'integer',
+            'synced_at' => 'datetime',
         ];
     }
 

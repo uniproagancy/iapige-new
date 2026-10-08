@@ -33,22 +33,22 @@ class BogCard implements PaymentDriver
 
         if (! $response->successful() || empty($data['id'])) {
             Log::channel('payments')->error('bog refused the payment', [
-                'order'  => $order->number,
+                'order' => $order->number,
                 'status' => $response->status(),
-                'body'   => $response->body(),
+                'body' => $response->body(),
             ]);
 
             throw new RuntimeException(__('checkout.payment_failed'));
         }
 
         return PaymentTransaction::create([
-            'order_id'     => $order->id,
-            'driver'       => 'bog-card',
-            'external_id'  => $data['id'],
-            'amount'       => $order->total,
-            'status'       => PaymentTransaction::PENDING,
-            'request'      => $payload,
-            'response'     => $data,
+            'order_id' => $order->id,
+            'driver' => 'bog-card',
+            'external_id' => $data['id'],
+            'amount' => $order->total,
+            'status' => PaymentTransaction::PENDING,
+            'request' => $payload,
+            'response' => $data,
             'redirect_url' => $data['_links']['redirect']['href'] ?? null,
         ]);
     }
@@ -73,7 +73,7 @@ class BogCard implements PaymentDriver
         if (! $response->successful()) {
             Log::channel('payments')->warning('bog receipt unavailable', [
                 'transaction' => $transaction->id,
-                'status'      => $response->status(),
+                'status' => $response->status(),
             ]);
 
             return false;
@@ -83,7 +83,7 @@ class BogCard implements PaymentDriver
         $status = strtolower((string) data_get($data, 'order_status.key', ''));
 
         $transaction->update([
-            'response'   => array_merge((array) $transaction->response, ['receipt' => $data]),
+            'response' => array_merge((array) $transaction->response, ['receipt' => $data]),
             'checked_at' => now(),
         ]);
 
@@ -93,8 +93,8 @@ class BogCard implements PaymentDriver
         if ($echoed !== '' && $transaction->order && $echoed !== (string) $transaction->order->number) {
             Log::channel('payments')->error('bog returned a foreign receipt', [
                 'transaction' => $transaction->id,
-                'expected'    => $transaction->order->number,
-                'received'    => $echoed,
+                'expected' => $transaction->order->number,
+                'received' => $echoed,
             ]);
 
             return false;
@@ -165,7 +165,7 @@ class BogCard implements PaymentDriver
     {
         $basket = $order->items->map(fn ($item) => [
             'product_id' => (string) $item->product_id,
-            'quantity'   => (int) $item->qty,
+            'quantity' => (int) $item->qty,
             'unit_price' => round((float) $item->price, 2),
         ])->values()->all();
 
@@ -174,14 +174,14 @@ class BogCard implements PaymentDriver
                 ?: route('payment.callback', ['driver' => 'bog-card']),
             // the order number, not the id: it is what the receipt echoes back
             'external_order_id' => (string) $order->number,
-            'purchase_units'    => [
-                'currency'     => 'GEL',
+            'purchase_units' => [
+                'currency' => 'GEL',
                 'total_amount' => round((float) $order->total, 2),
-                'basket'       => $basket,
+                'basket' => $basket,
             ],
-            'redirect_urls'     => [
+            'redirect_urls' => [
                 'success' => route('payment.return', ['number' => $order->number, 'status' => 'success']),
-                'fail'    => route('payment.return', ['number' => $order->number, 'status' => 'fail']),
+                'fail' => route('payment.return', ['number' => $order->number, 'status' => 'fail']),
             ],
         ];
     }

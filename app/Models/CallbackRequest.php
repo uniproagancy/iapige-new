@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CallbackRequest extends Model
 {
     public const NEW = 'new';
+
     public const CALLED = 'called';
+
     public const CLOSED = 'closed';
 
     protected $fillable = [

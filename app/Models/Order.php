@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\DeliveryCity;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
@@ -20,8 +19,8 @@ class Order extends Model
     {
         return ['subtotal' => 'decimal:2', 'shipping' => 'decimal:2', 'total' => 'decimal:2'];
     }
-	
-	public function city(): BelongsTo
+
+    public function city(): BelongsTo
     {
         return $this->belongsTo(DeliveryCity::class, 'city_id');
     }

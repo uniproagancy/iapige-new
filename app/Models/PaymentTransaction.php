@@ -8,8 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PaymentTransaction extends Model
 {
     public const PENDING = 'pending';
+
     public const SUCCESS = 'success';
+
     public const FAILED = 'failed';
+
     public const CANCELLED = 'cancelled';
 
     protected $fillable = [
@@ -20,12 +23,12 @@ class PaymentTransaction extends Model
     protected function casts(): array
     {
         return [
-            'amount'     => 'decimal:2',
-            'months'     => 'integer',
-            'request'    => 'array',
-            'response'   => 'array',
+            'amount' => 'decimal:2',
+            'months' => 'integer',
+            'request' => 'array',
+            'response' => 'array',
             'checked_at' => 'datetime',
-            'paid_at'    => 'datetime',
+            'paid_at' => 'datetime',
         ];
     }
 

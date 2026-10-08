@@ -20,9 +20,7 @@ class OrderInvoice extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Order $order)
-    {
-    }
+    public function __construct(public Order $order) {}
 
     public function envelope(): Envelope
     {
@@ -37,10 +35,10 @@ class OrderInvoice extends Mailable
         return new Content(
             view: 'emails.invoice',
             with: [
-                'order'   => $this->order->loadMissing('items'),
+                'order' => $this->order->loadMissing('items'),
                 'company' => config('shop.company'),
-                'dueAt'   => $this->order->created_at->copy()->addDays((int) config('shop.invoice_valid_days', 3)),
-                'url'     => route('invoice', $this->order->number),
+                'dueAt' => $this->order->created_at->copy()->addDays((int) config('shop.invoice_valid_days', 3)),
+                'url' => route('invoice', $this->order->number),
             ],
         );
     }

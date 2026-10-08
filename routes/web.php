@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BogInstallmentController;
 use App\Http\Controllers\CredoController;
+use App\Http\Controllers\FeedController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
@@ -53,6 +54,18 @@ Route::group([
 });
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
+/*
+ | The Facebook / Instagram catalogue.
+ |
+ | Outside the {locale} group on purpose: Facebook stores the one URL it was
+ | given and refetches it for years, so a locale prefix would freeze the feed
+ | to whichever language happened to be active when it was pasted in. The feed
+ | declares its own locale in config/feeds.php.
+ |
+ | The file is built by the scheduler, never by this request.
+ */
+Route::get('/feed/facebook.xml', [FeedController::class, 'facebook'])->name('feed.facebook');
 
 Route::post('/payment/callback/{driver}', [PaymentController::class, 'callback'])
     ->name('payment.callback')

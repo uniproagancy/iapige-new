@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\Cache;
 use LogicException;
 
 /**
- * @property string      $code
- * @property string      $name
- * @property string      $native_name
+ * @property string $code
+ * @property string $name
+ * @property string $native_name
  * @property string|null $short_name
  * @property string|null $regional
- * @property string      $script
- * @property bool        $is_default
- * @property bool        $is_active
+ * @property string $script
+ * @property bool $is_default
+ * @property bool $is_active
  */
 class Language extends Model
 {
@@ -34,7 +34,7 @@ class Language extends Model
     {
         return [
             'is_default' => 'boolean',
-            'is_active'  => 'boolean',
+            'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
     }
@@ -69,26 +69,26 @@ class Language extends Model
 
     /** Active languages in display order (cached). */
     public static function active(): Collection
-	{
-		if (static::$memo !== null) {
-			return static::$memo;
-		}
+    {
+        if (static::$memo !== null) {
+            return static::$memo;
+        }
 
-		try {
-			// cache plain rows, not models: a serialized model breaks on deploys
-			$rows = Cache::rememberForever(self::CACHE_KEY, fn () => static::query()
-				->where('is_active', true)
-				->orderBy('sort_order')
-				->orderBy('id')
-				->get()
-				->map->getAttributes()
-				->all());
+        try {
+            // cache plain rows, not models: a serialized model breaks on deploys
+            $rows = Cache::rememberForever(self::CACHE_KEY, fn () => static::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get()
+                ->map->getAttributes()
+                ->all());
 
-			return static::$memo = static::hydrate($rows);
-		} catch (QueryException) {
-			return new Collection; // table not migrated yet
-		}
-	}
+            return static::$memo = static::hydrate($rows);
+        } catch (QueryException) {
+            return new Collection; // table not migrated yet
+        }
+    }
 
     public static function activeCodes(): array
     {
@@ -113,11 +113,11 @@ class Language extends Model
     public static function supportedLocales(): array
     {
         return static::active()->mapWithKeys(fn (Language $l) => [$l->code => [
-            'name'     => $l->name,
-            'native'   => $l->native_name,
-            'script'   => $l->script ?: 'Latn',
+            'name' => $l->name,
+            'native' => $l->native_name,
+            'script' => $l->script ?: 'Latn',
             'regional' => $l->regional ?: $l->code,
-            'short'    => $l->short_name ?: mb_substr($l->native_name, 0, 3),
+            'short' => $l->short_name ?: mb_substr($l->native_name, 0, 3),
         ]])->all();
     }
 

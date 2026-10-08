@@ -28,13 +28,13 @@ class CredoInstallment implements PaymentDriver
         $payload = $this->payload($order);
 
         return PaymentTransaction::create([
-            'order_id'    => $order->id,
-            'driver'      => 'credo-installment',
+            'order_id' => $order->id,
+            'driver' => 'credo-installment',
             // Credo identifies an application by our own order code
             'external_id' => (string) $order->number,
-            'amount'      => $this->total($order),
-            'status'      => PaymentTransaction::PENDING,
-            'request'     => $payload,
+            'amount' => $this->total($order),
+            'status' => PaymentTransaction::PENDING,
+            'request' => $payload,
             // the widget needs a form post, so the customer goes to our own page
             'redirect_url' => route('payment.credo.form', $order->number),
         ]);
@@ -83,18 +83,18 @@ class CredoInstallment implements PaymentDriver
     public function payload(Order $order): array
     {
         $products = $order->items->map(fn ($item) => [
-            'id'     => (string) $item->product_id,
-            'title'  => mb_substr($item->name, 0, 100),
+            'id' => (string) $item->product_id,
+            'title' => mb_substr($item->name, 0, 100),
             'amount' => (int) $item->qty,
-            'price'  => (int) round(((float) $item->price * (1 + self::FEE)) * 100),
-            'type'   => '0',
+            'price' => (int) round(((float) $item->price * (1 + self::FEE)) * 100),
+            'type' => '0',
         ])->values()->all();
 
         return [
             'merchantId' => (string) config('credo.merchant_id'),
-            'orderCode'  => (string) $order->number,
-            'check'      => $this->checksum($products),
-            'products'   => $products,
+            'orderCode' => (string) $order->number,
+            'check' => $this->checksum($products),
+            'products' => $products,
         ];
     }
 

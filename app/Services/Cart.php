@@ -12,19 +12,16 @@ class Cart
 {
     protected ?CartModel $cart = null;
 
-    public function __construct(protected InteractionLog $log)
-    {
-		
-    }
-	
-	public function summary(): array
+    public function __construct(protected InteractionLog $log) {}
+
+    public function summary(): array
     {
         $total = $this->total();
 
         return [
-            'count'   => $this->count(),
-            'total'   => money($total),
-            'money'   => money($total),
+            'count' => $this->count(),
+            'total' => money($total),
+            'money' => money($total),
             'monthly' => $this->monthly(),
         ];
     }
@@ -43,8 +40,8 @@ class Cart
 
         if (! $cart && $create) {
             $cart = CartModel::create([
-                'user_id'          => Auth::id(),
-                'session_id'       => session()->getId(),
+                'user_id' => Auth::id(),
+                'session_id' => session()->getId(),
                 'last_activity_at' => now(),
             ]);
         }
@@ -72,23 +69,23 @@ class Cart
             $card = Catalog::card($item->product);
 
             return [
-                'id'    => $item->product_id,
-                'name'  => trim($card['brand'].' '.$card['name']),
-                'cat'   => $card['cat'],
-                'img'   => $card['thumb'],
+                'id' => $item->product_id,
+                'name' => trim($card['brand'].' '.$card['name']),
+                'cat' => $card['cat'],
+                'img' => $card['thumb'],
                 'price' => (float) $item->product->price,   // always the live price
-                'qty'   => $item->qty,
-                'sum'   => (float) $item->product->price * $item->qty,
-				'weight'   => $item->product->weight,
-                'length'   => $item->product->length,
-                'width'    => $item->product->width,
-                'height'   => $item->product->height,
+                'qty' => $item->qty,
+                'sum' => (float) $item->product->price * $item->qty,
+                'weight' => $item->product->weight,
+                'length' => $item->product->length,
+                'width' => $item->product->width,
+                'height' => $item->product->height,
                 'is_bulky' => (bool) $item->product->is_bulky,
             ];
         })->values()->all();
     }
 
-   public function add(string $id, int $qty = 1): bool
+    public function add(string $id, int $qty = 1): bool
     {
         $product = Product::active()->whereKey((int) $id)->first();
 
@@ -121,6 +118,7 @@ class Cart
 
         if ($qty < 1) {
             $this->remove($id);
+
             return;
         }
 

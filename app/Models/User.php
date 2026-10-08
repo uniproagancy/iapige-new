@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     protected $fillable = [
@@ -28,7 +30,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
+            'password' => 'hashed',
         ];
     }
 
@@ -54,8 +56,8 @@ class User extends Authenticatable
         return Str::of($this->name)->trim()->explode(' ')->take(2)
             ->map(fn ($part) => Str::upper(Str::substr($part, 0, 1)))->implode('');
     }
-	
-	public function wishlist(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+
+    public function wishlist(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'wishlists')->withTimestamps();
     }

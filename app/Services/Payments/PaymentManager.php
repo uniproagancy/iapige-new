@@ -6,8 +6,8 @@ use App\Models\Order;
 use App\Models\OrderPixelData;
 use App\Models\PaymentTransaction;
 use App\Services\Facebook\Pixel;
-use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\Drivers\BogCard;
+use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\Drivers\CredoInstallment;
 use App\Services\Payments\Drivers\TbcInstallment;
 use Illuminate\Support\Facades\DB;
@@ -25,9 +25,9 @@ class PaymentManager
     /** @var array<string, class-string<PaymentDriver>> */
     protected array $drivers = [
         'bog-installment' => BogInstallment::class,
-        'bog-card'     => BogCard::class,
-		'credo-installment' => CredoInstallment::class,
-		'tbc-installment' => TbcInstallment::class,
+        'bog-card' => BogCard::class,
+        'credo-installment' => CredoInstallment::class,
+        'tbc-installment' => TbcInstallment::class,
     ];
 
     public function driver(string $name): PaymentDriver
@@ -74,9 +74,9 @@ class PaymentManager
 
         DB::transaction(function () use ($transaction, $order, $paid) {
             $transaction->update([
-                'status'     => $paid ? PaymentTransaction::SUCCESS : PaymentTransaction::FAILED,
+                'status' => $paid ? PaymentTransaction::SUCCESS : PaymentTransaction::FAILED,
                 'checked_at' => now(),
-                'paid_at'    => $paid ? ($transaction->paid_at ?? now()) : null,
+                'paid_at' => $paid ? ($transaction->paid_at ?? now()) : null,
             ]);
 
             if (! $paid || $order->is_paid) {
@@ -84,9 +84,9 @@ class PaymentManager
             }
 
             $order->update([
-                'is_paid'            => true,
-                'paid_at'            => now(),
-                'payment_status'     => 'paid',
+                'is_paid' => true,
+                'paid_at' => now(),
+                'payment_status' => 'paid',
                 'installment_months' => $transaction->months,
             ]);
 
@@ -98,8 +98,8 @@ class PaymentManager
 
         if ($paid) {
             Log::channel('payments')->info('payment settled', [
-                'order'       => $order->number,
-                'driver'      => $transaction->driver,
+                'order' => $order->number,
+                'driver' => $transaction->driver,
                 'transaction' => $transaction->id,
             ]);
 

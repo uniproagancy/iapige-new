@@ -14,9 +14,9 @@ class Brand extends Model
     protected function casts(): array
     {
         return [
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
             'is_featured' => 'boolean',
-            'sort_order'  => 'integer',
+            'sort_order' => 'integer',
         ];
     }
 
