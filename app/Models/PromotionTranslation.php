@@ -13,7 +13,7 @@ class PromotionTranslation extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['locale', 'title', 'subtitle', 'cta'];
+    protected $fillable = ['locale', 'slug', 'title', 'subtitle', 'cta'];
 
     public function promotion(): BelongsTo
     {

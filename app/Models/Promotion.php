@@ -14,7 +14,7 @@ class Promotion extends Model
 {
     use HasTranslations;
 
-    protected array $translatable = ['title', 'subtitle', 'cta'];
+    protected array $translatable = ['title', 'subtitle', 'cta', 'slug'];
 
     protected $fillable = [
         'code', 'type', 'image', 'url', 'badge', 'badge_color',
@@ -42,6 +42,18 @@ class Promotion extends Model
             ->withPivot(['promo_price', 'discount_percent', 'stock_limit', 'sold', 'sort_order'])
             ->withTimestamps()
             ->orderBy('promotion_product.sort_order');
+    }
+
+    /**
+     * What stands for this campaign in a URL.
+     *
+     * The slug, when the current language has one. A campaign made before
+     * slugs existed, or translated into a language nobody has filled in, still
+     * has to be reachable — and its code is unique, so it serves.
+     */
+    public function urlKey(): string
+    {
+        return $this->slug ?: $this->code;
     }
 
     /** Running right now. */

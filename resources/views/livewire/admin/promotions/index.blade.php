@@ -64,9 +64,15 @@
                                wire:model="code" placeholder="week-deal">
                         @error('code') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">{{ __('admin.promo_title') }}</label>
-                        <input type="text" class="form-control" wire:model="title">
+                        <input type="text" class="form-control" wire:model.live.debounce.500ms="title">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">{{ __('admin.promo_slug') }}</label>
+                        <input type="text" class="form-control @error('slug') is-invalid @enderror"
+                               wire:model="slug" placeholder="{{ __('admin.promo_slug_hint') }}">
+                        @error('slug') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">{{ __('admin.promo_starts') }}</label>
@@ -194,8 +200,8 @@
         {{-- the address to put on a banner, in an advert or in a newsletter --}}
         <p class="text-muted">
             {{ __('admin.promo_public_url') }}
-            <a href="{{ route('promotion', $promotion->code) }}" target="_blank" rel="noopener">
-                {{ route('promotion', $promotion->code) }}
+            <a href="{{ route('promotion', $promotion->urlKey()) }}" target="_blank" rel="noopener">
+                {{ route('promotion', $promotion->urlKey()) }}
             </a>
         </p>
 

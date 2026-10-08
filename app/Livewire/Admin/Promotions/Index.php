@@ -4,7 +4,9 @@ namespace App\Livewire\Admin\Promotions;
 
 use App\Models\Product;
 use App\Models\Promotion;
+use App\Support\Slug;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -30,6 +32,8 @@ class Index extends Component
     public string $code = '';
 
     public string $title = '';
+
+    public string $slug = '';
 
     public bool $is_active = true;
 
@@ -82,7 +86,7 @@ class Index extends Component
 
     public function create(): void
     {
-        $this->reset(['code', 'title', 'starts_at', 'ends_at', 'sort_order']);
+        $this->reset(['code', 'title', 'slug', 'starts_at', 'ends_at', 'sort_order']);
         $this->is_active = true;
         $this->showForm = true;
     }
@@ -95,12 +99,26 @@ class Index extends Component
 
         $this->code = $promotion->code;
         $this->title = (string) $promotion->title;
+        $this->slug = (string) $promotion->slug;
         $this->is_active = $promotion->is_active;
         $this->starts_at = $promotion->starts_at?->format('Y-m-d\TH:i') ?? '';
         $this->ends_at = $promotion->ends_at?->format('Y-m-d\TH:i') ?? '';
         $this->sort_order = $promotion->sort_order;
 
         $this->showForm = true;
+    }
+
+    /**
+     * The address follows the title until somebody writes one by hand.
+     *
+     * Only while the campaign is new: changing the slug of one already running
+     * would break every link already printed on a banner or sent out.
+     */
+    public function updatedTitle(): void
+    {
+        if (! $this->promotion() && $this->slug === '') {
+            $this->slug = Slug::make($this->title);
+        }
     }
 
     public function savePromotion(): void
@@ -111,6 +129,15 @@ class Index extends Component
             'code' => ['required', 'string', 'max:40', 'regex:/^[a-z0-9-]+$/',
                 'unique:promotions,code'.($editing ? ','.$this->promotionId : '')],
             'title' => ['nullable', 'string', 'max:120'],
+            /*
+             * The address a shopper sees, unique within its language — the
+             * column says so, and without this a repeat reached the database
+             * as a duplicate-key error instead of a message on the field.
+             */
+            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/',
+                Rule::unique('promotion_translations', 'slug')
+                    ->where('locale', app()->getLocale())
+                    ->ignore($this->promotionId, 'promotion_id')],
             'sort_order' => ['integer', 'min:0'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
@@ -126,9 +153,20 @@ class Index extends Component
             'ends_at' => $this->ends_at ? Carbon::parse($this->ends_at) : null,
         ])->save();
 
-        if ($this->title !== '') {
-            $promotion->saveTranslations([app()->getLocale() => ['title' => $this->title]]);
+        /*
+         * A campaign with no slug has no address, so one is made from the
+         * title or, failing that, from the code — which is unique already.
+         */
+        $slug = $this->slug ?: Slug::make($this->title) ?: $promotion->code;
+
+        if ($this->title !== '' || $slug !== '') {
+            $promotion->saveTranslations([app()->getLocale() => [
+                'title' => $this->title ?: $promotion->code,
+                'slug' => $slug,
+            ]]);
         }
+
+        $this->slug = $slug;
 
         $this->promotionId = $promotion->id;
         $this->showForm = false;

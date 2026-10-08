@@ -526,24 +526,36 @@ class Catalog
             ->orderBy('sort_order')
             ->get()
             ->map(fn (Promotion $p) => [
-                'code' => $p->code,
+                'slug' => $p->urlKey(),
                 'title' => $p->title ?: $p->code,
                 'subtitle' => $p->subtitle,
                 'badge' => $p->badge,
                 'image' => $p->image,
                 'count' => (int) $p->products_count,
                 'ends_at' => $p->ends_at?->toIso8601String(),
-                'url' => route('promotion', $p->code),
+                'url' => route('promotion', $p->urlKey()),
             ])
             ->filter(fn (array $c) => $c['count'] > 0)
             ->values()
             ->all();
     }
 
-    /** One running campaign, by the code that stands in its URL. */
-    public static function campaign(string $code): Promotion
+    /**
+     * One running campaign, by the slug that stands in its URL.
+     *
+     * Looked up in any language rather than the current one, so a link shared
+     * in Georgian still opens when the reader is browsing in English — the
+     * page then renders in whatever language they are in.
+     */
+    public static function campaign(string $slug): Promotion
     {
-        return Promotion::live()->withTranslation()->where('code', $code)->firstOrFail();
+        return Promotion::live()
+            ->withTranslation()
+            ->where(fn ($q) => $q
+                ->whereTranslation('slug', $slug, false)
+                // the code answers too, so links made before slugs still open
+                ->orWhere('code', $slug))
+            ->firstOrFail();
     }
 
     /**
@@ -566,7 +578,7 @@ class Catalog
             ->get();
 
         return [
-            'code' => $promotion->code,
+            'slug' => $promotion->urlKey(),
             'title' => $promotion->title ?: $promotion->code,
             'subtitle' => $promotion->subtitle,
             'badge' => $promotion->badge,

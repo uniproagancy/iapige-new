@@ -37,7 +37,7 @@ class PromotionPageTest extends TestCase
         $other = $this->campaign('black-friday', 'შავი პარასკევი');
         $other->products()->attach($this->product('ტელევიზორი', 2000)->id, ['promo_price' => 1500]);
 
-        Livewire::test(PromotionPage::class, ['code' => 'week-deal'])
+        Livewire::test(PromotionPage::class, ['slug' => 'week-deal'])
             ->assertSee('კვირის აქცია')
             ->assertSee('მაცივარი')
             ->assertDontSee('ტელევიზორი');
@@ -86,6 +86,45 @@ class PromotionPageTest extends TestCase
         $products = Catalog::campaignPage(Catalog::campaign('week-deal'))['products'];
 
         $this->assertSame([$second->id, $first->id], array_column($products, 'id'));
+    }
+
+    /* ------------------------------------------------------------------ the address */
+
+    /** The URL reads like the campaign, not like an internal handle. */
+    public function test_the_address_is_the_slug(): void
+    {
+        $campaign = $this->campaign('wk-1', 'კვირის აქცია');
+        $campaign->saveTranslations(['ka' => ['title' => 'კვირის აქცია', 'slug' => 'kviris-aqcia']]);
+
+        $this->assertSame('kviris-aqcia', $campaign->fresh()->urlKey());
+        $this->assertStringEndsWith('/promotions/kviris-aqcia', route('promotion', $campaign->fresh()->urlKey()));
+    }
+
+    /**
+     * A campaign with no slug is still reachable.
+     *
+     * Ones made before slugs existed, and any language nobody has filled in,
+     * fall back to the code — which is unique, so it always serves.
+     */
+    public function test_a_campaign_without_a_slug_falls_back_to_its_code(): void
+    {
+        $campaign = Promotion::create([
+            'code' => 'no-slug', 'type' => 'deal', 'is_active' => true, 'sort_order' => 1,
+            'starts_at' => now()->subDay(), 'ends_at' => now()->addDay(),
+        ]);
+
+        $this->assertSame('no-slug', $campaign->urlKey());
+        $this->assertSame($campaign->id, Catalog::campaign('no-slug')->id);
+    }
+
+    /** Links printed before the slug existed keep working. */
+    public function test_the_code_still_opens_the_page(): void
+    {
+        $campaign = $this->campaign('black-friday', 'შავი პარასკევი');
+        $campaign->saveTranslations(['ka' => ['title' => 'შავი პარასკევი', 'slug' => 'shavi-paraskevi']]);
+
+        $this->assertSame($campaign->id, Catalog::campaign('shavi-paraskevi')->id);
+        $this->assertSame($campaign->id, Catalog::campaign('black-friday')->id);
     }
 
     /* ------------------------------------------------------------------ reachability */
@@ -180,7 +219,7 @@ class PromotionPageTest extends TestCase
             'ends_at' => $ends ?? now()->addDay(),
         ]);
 
-        $campaign->saveTranslations(['ka' => ['title' => $title]]);
+        $campaign->saveTranslations(['ka' => ['title' => $title, 'slug' => $code]]);
 
         Catalog::flushTree();
 

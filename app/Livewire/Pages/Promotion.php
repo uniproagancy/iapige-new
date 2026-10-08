@@ -16,17 +16,17 @@ use Livewire\Component;
  */
 class Promotion extends Component
 {
-    public string $code = '';
+    public string $slug = '';
 
-    public function mount(string $code): void
+    public function mount(string $slug): void
     {
-        $this->code = $code;
+        $this->slug = $slug;
     }
 
     public function render()
     {
         // a campaign that has ended or not yet started is a 404, not an empty page
-        $campaign = Catalog::campaignPage(Catalog::campaign($this->code));
+        $campaign = Catalog::campaignPage(Catalog::campaign($this->slug));
 
         return view('livewire.pages.promotion', ['campaign' => $campaign])
             ->extends('layouts.app', [
@@ -44,7 +44,7 @@ class Promotion extends Component
         return [
             'title' => $campaign['title'].' — '.config('app.name'),
             'description' => $campaign['subtitle'] ?: __('promo.meta', ['name' => $campaign['title']]),
-            'canonical' => route('promotion', $campaign['code']),
+            'canonical' => route('promotion', $campaign['slug']),
             /*
              * A campaign is a temporary page whose products also live in their
              * own categories, so it is followed but not indexed — otherwise it
@@ -54,7 +54,7 @@ class Promotion extends Component
             'schema' => [
                 Seo::breadcrumbs([
                     ['name' => __('promo.all'), 'url' => route('promotions')],
-                    ['name' => $campaign['title'], 'url' => route('promotion', $campaign['code'])],
+                    ['name' => $campaign['title'], 'url' => route('promotion', $campaign['slug'])],
                 ]),
                 Seo::itemList($campaign['products'], $campaign['title']),
             ],

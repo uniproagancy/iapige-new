@@ -39,12 +39,12 @@ Route::group([
     /*
      | Campaigns.
      |
-     | The code is the slug: it is unique, it is already written by hand in the
-     | admin, and it is the one part of a campaign that does not change when
-     | somebody rewrites its title.
+     | Addressed by a slug per language, as categories and products are, so the
+     | URL reads like the campaign rather than like the handle somebody typed
+     | into an admin field.
      */
     Route::get('/promotions', Promotions::class)->name('promotions');
-    Route::get('/promotions/{code}', Promotion::class)->name('promotion');
+    Route::get('/promotions/{slug}', Promotion::class)->name('promotion');
     Route::get('/checkout', Checkout::class)->name('checkout');
     Route::get('/order/{number}', OrderPlaced::class)->name('order');
 

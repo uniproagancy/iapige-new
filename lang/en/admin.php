@@ -325,4 +325,6 @@ return [
     'promo_hint' => 'To place a product that is already marked down, leave both fields empty — it keeps its own discount. Give a price or a percentage only when the campaign should cut it further. Whatever stands here is what the cart charges.',
 
     'promo_public_url' => 'Public address:',
+    'promo_slug' => 'Address',
+    'promo_slug_hint' => 'week-deal',
 ];

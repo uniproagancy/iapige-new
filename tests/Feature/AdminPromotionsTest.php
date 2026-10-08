@@ -195,6 +195,52 @@ class AdminPromotionsTest extends TestCase
         $this->assertDatabaseHas('promotions', ['code' => 'black-friday', 'type' => 'deal']);
     }
 
+    /** The address is offered from the title while the campaign is new. */
+    public function test_the_slug_is_suggested_from_the_title(): void
+    {
+        $component = $this->screen()
+            ->call('create')
+            ->set('title', 'შავი პარასკევი');
+
+        $this->assertSame('shavi-paraskevi', $component->get('slug'));
+    }
+
+    /** Typed by hand, it is left alone. */
+    public function test_a_hand_written_slug_is_not_overwritten(): void
+    {
+        $component = $this->screen()
+            ->call('create')
+            ->set('slug', 'bf-2026')
+            ->set('title', 'შავი პარასკევი');
+
+        $this->assertSame('bf-2026', $component->get('slug'));
+    }
+
+    /** Two campaigns cannot share an address in one language. */
+    public function test_a_duplicate_slug_is_refused(): void
+    {
+        $this->promotion->saveTranslations(['ka' => ['title' => 'კვირის', 'slug' => 'kviris-aqcia']]);
+
+        $this->screen()
+            ->call('create')
+            ->set('code', 'another')
+            ->set('slug', 'kviris-aqcia')
+            ->call('savePromotion')
+            ->assertHasErrors('slug');
+    }
+
+    /** With nothing typed, the code becomes the address. */
+    public function test_a_campaign_with_no_title_still_gets_an_address(): void
+    {
+        $this->screen()
+            ->call('create')
+            ->set('code', 'quiet-one')
+            ->call('savePromotion')
+            ->assertHasNoErrors();
+
+        $this->assertSame('quiet-one', Promotion::where('code', 'quiet-one')->first()->urlKey());
+    }
+
     /** The code goes in URLs and has to stay a code. */
     public function test_a_code_with_spaces_is_refused(): void
     {

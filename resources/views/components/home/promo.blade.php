@@ -26,7 +26,7 @@
 
             {{-- the rail shows a handful; the campaign's own page shows all of it --}}
             @if ($campaign)
-                <a class="promo__all" href="{{ route('promotion', $campaign->code) }}">
+                <a class="promo__all" href="{{ route('promotion', $campaign->urlKey()) }}">
                     {{ __('common.all') }}
                     <x-icon name="caret-right" size="12" />
                 </a>
