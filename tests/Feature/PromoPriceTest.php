@@ -9,6 +9,7 @@ use App\Models\Promotion;
 use App\Services\Cart;
 use App\Support\Catalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -128,6 +129,83 @@ class PromoPriceTest extends TestCase
         $this->assertSame(Catalog::deals()[0]['price'], $cart->lines()[0]['price']);
     }
 
+    /* ------------------------------------------------------------------ listings */
+
+    /**
+     * The shop's own discount, shown everywhere the product appears.
+     *
+     * A product the supplier never marked down, placed in a campaign, was
+     * advertised at the campaign price on the front rail and at the full price
+     * in its category, in search and among related products.
+     */
+    public function test_a_campaign_price_shows_in_an_ordinary_listing(): void
+    {
+        $product = $this->inCampaign($this->product(1000), ['promo_price' => 800]);
+
+        $card = Catalog::card($product);
+
+        $this->assertSame(800.0, $card['price']);
+        $this->assertSame(1000.0, $card['old']);
+        $this->assertSame('−20%', $card['discount']);
+        $this->assertSame('sale', $card['tag']);
+    }
+
+    /** The instalment figure follows the price actually charged. */
+    public function test_the_monthly_figure_follows_the_campaign_price(): void
+    {
+        $product = $this->inCampaign($this->product(1200), ['promo_price' => 600]);
+
+        $this->assertSame(50, Catalog::card($product)['monthly']);
+    }
+
+    /** With no campaign, the supplier's own discount is what shows. */
+    public function test_a_supplier_discount_still_shows_without_a_campaign(): void
+    {
+        $card = Catalog::card($this->product(800, old: 1000));
+
+        $this->assertSame(800.0, $card['price']);
+        $this->assertSame(1000.0, $card['old']);
+        $this->assertSame('−20%', $card['discount']);
+    }
+
+    /** The two never both apply, so there is nothing to conflict. */
+    public function test_a_campaign_replaces_the_supplier_discount(): void
+    {
+        $product = $this->inCampaign($this->product(800, old: 1000), ['promo_price' => 700]);
+
+        $card = Catalog::card($product);
+
+        $this->assertSame(700.0, $card['price']);
+        $this->assertSame(800.0, $card['old'], 'the struck price is what it was selling at');
+    }
+
+    /**
+     * One query for the campaigns, not one per product.
+     *
+     * Every card asks whether its product is on offer, so without the eager
+     * load a category page of forty products would ask the database forty
+     * extra times.
+     */
+    public function test_a_listing_does_not_ask_per_product(): void
+    {
+        $this->category->update(['show_on_home' => true]);
+
+        // what matters is not the number but whether it grows with the rows
+        $three = $this->queriesForListing(3);
+        $ten = $this->queriesForListing(12);
+
+        /*
+         * Not equal — the second reading is lower, because the languages and
+         * the interface strings are cached by then. What must hold is that
+         * four times the products costs no more queries.
+         */
+        $this->assertLessThanOrEqual(
+            $three,
+            $ten,
+            "a listing queried {$three} times for three products and {$ten} for twelve",
+        );
+    }
+
     /* ------------------------------------------------------------------ helpers */
 
     protected function setUp(): void
@@ -148,6 +226,30 @@ class PromoPriceTest extends TestCase
         ]);
 
         Catalog::flushTree();
+    }
+
+    /** Builds a fresh listing of $count campaign products and counts the queries. */
+    protected function queriesForListing(int $count): int
+    {
+        Product::query()->forceDelete();
+
+        foreach (range(1, $count) as $i) {
+            $this->inCampaign($this->product(1000), ['promo_price' => 800]);
+        }
+
+        Catalog::flushTree();
+
+        // the log accumulates across enable/disable, so the second reading
+        // would otherwise carry the first measurement with it
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $cards = Catalog::sections()[0]['products'];
+        DB::disableQueryLog();
+
+        $this->assertCount($count, $cards);
+        $this->assertSame(800.0, $cards[0]['price']);
+
+        return count(DB::getQueryLog());
     }
 
     protected function inCampaign(Product $product, array $pivot): Product

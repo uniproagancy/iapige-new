@@ -135,13 +135,18 @@ class Product extends Model
         return $this->promoPrice() ?? (float) $this->price;
     }
 
-    /** The campaign price, when a campaign running now sets one. */
+    /**
+     * The campaign price, when a campaign running now sets one.
+     *
+     * Reads the eager-loaded relation when there is one. Every card asks this,
+     * so going to the database per product would turn one category page into a
+     * query for each row on it.
+     */
     public function promoPrice(): ?float
     {
-        $promotion = $this->promotions()
-            ->live()
-            ->orderBy('promotions.sort_order')
-            ->first();
+        $promotion = $this->relationLoaded('livePromotions')
+            ? $this->livePromotions->first()
+            : $this->livePromotions()->orderBy('promotions.sort_order')->first();
 
         return $promotion ? static::promoFrom($promotion->pivot, (float) $this->price) : null;
     }
@@ -166,6 +171,17 @@ class Product extends Model
         };
 
         return $promo !== null && $promo > 0 && $promo < $price ? $promo : null;
+    }
+
+    /**
+     * The campaigns running right now, ready to be eager-loaded.
+     *
+     * A constrained relation rather than a closure on with(), because the
+     * card's relation list is a constant and a constant cannot hold one.
+     */
+    public function livePromotions(): BelongsToMany
+    {
+        return $this->promotions()->live()->orderBy('promotions.sort_order');
     }
 
     /** The campaigns this product is part of. */
@@ -207,9 +223,10 @@ class Product extends Model
         return (int) round((1 - (float) $this->price / (float) $this->old_price) * 100);
     }
 
+    /** The instalment figure follows the price actually charged. */
     public function monthlyPrice(int $months = 12): int
     {
-        return (int) round((float) $this->price / $months);
+        return (int) round($this->sellingPrice() / $months);
     }
 
     public function inStock(): bool

@@ -20,7 +20,16 @@ use Illuminate\Database\Eloquent\Collection;
 class Catalog
 {
     /** Relations every product card needs. */
-    public const CARD_RELATIONS = ['brand', 'images', 'category', 'attributeValues.attribute'];
+    /**
+     * Relations every product card needs.
+     *
+     * The running campaigns are among them: a card has to know whether the
+     * product it is drawing is on offer, and asking per product turns one
+     * listing into a query per row.
+     */
+    public const CARD_RELATIONS = [
+        'brand', 'images', 'category', 'attributeValues.attribute', 'livePromotions',
+    ];
 
     /** A filter option longer than this is a free-text spec, not a choice. */
     protected const MAX_OPTION_LENGTH = 24;
@@ -68,15 +77,34 @@ class Catalog
                 : $value->code;
         }
 
+        /*
+         | A campaign price belongs on every card, not only on the deals rail.
+         |
+         | The rail applied it and nothing else did, so a product the shop had
+         | marked down itself was advertised at one price on the front page and
+         | listed at another in its category, in search and among related
+         | products — the same figure the cart used to disagree with. One place
+         | works it out now, and every listing draws from here.
+         |
+         | A supplier's own discount still shows when there is no campaign: the
+         | two never both apply, so there is nothing to conflict.
+         */
+        $price = (float) $p->price;
+        $promo = $p->promoPrice();
+
+        $sell = $promo ?? $price;
+        $old = $promo !== null ? $price : ($p->old_price ? (float) $p->old_price : 0);
+        $discount = $old > $sell ? (int) round((1 - $sell / $old) * 100) : null;
+
         return [
             'id' => $p->id,
             'sku' => $p->sku,
             'brand' => $p->brand?->name ?? '',
             'name' => $p->name,
             'spec' => $p->summary ?? '',
-            'price' => (float) $p->price,
-            'old' => $p->old_price ? (float) $p->old_price : 0,
-            'tag' => $p->old_price ? 'sale' : ($p->is_new ? 'new' : null),
+            'price' => $sell,
+            'old' => $old,
+            'tag' => $old > 0 ? 'sale' : ($p->is_new ? 'new' : null),
             'stock' => __('card.stock_left', ['count' => $p->stock]),
             'stock_raw' => (int) $p->stock,
             'cat' => $p->category?->name ?? '',
@@ -85,7 +113,7 @@ class Catalog
             'order' => $p->sales_count,
             'images' => $images,
             'thumb' => $images[0],
-            'discount' => ($d = $p->discountPercent()) ? "−{$d}%" : null,
+            'discount' => $discount ? "−{$discount}%" : null,
             'monthly' => $p->monthlyPrice(),
             'url' => route('product', $p->slug),
             'preorder' => (bool) $p->is_preorder,
@@ -148,29 +176,24 @@ class Catalog
             ->limit($limit)
             ->get();
 
-        return $products->map(function (Product $p) {
-            $card = self::card($p);
-            $price = (float) $p->price;
-
-            // the same rule the cart and the order read, so the three agree
-            $promo = Product::promoFrom($p->pivot, $price);
-
-            if ($promo === null) {
-                return $card;
-            }
-
-            return array_merge($card, [
-                'price' => $promo,
-                'old' => $price,
-                'tag' => 'sale',
-                'discount' => '−'.(int) round((1 - $promo / $price) * 100).'%',
-                'monthly' => (int) round($promo / 12),
-            ]);
-        })->all();
+        /*
+         * No special pricing here any more. card() applies the campaign, which
+         * is what stopped the rail and the rest of the shop disagreeing — this
+         * method used to be the only place that knew about offers at all.
+         */
+        return self::cards($products);
     }
 
     /** Root categories flagged show_on_home, each with its best sellers. */
-    public static function sections(int $perSection = 5): array
+    /**
+     * The home page's category rails.
+     *
+     * Twenty a rail, not five. The rail fits exactly five cards across, so a
+     * section holding five had nothing to scroll — and the arrows beside its
+     * heading, which disable themselves when there is nowhere to go, were
+     * therefore dead on every section of the page.
+     */
+    public static function sections(int $perSection = 20): array
     {
         $banners = Store::sectionBanners();
         $counts = self::categoryCounts();

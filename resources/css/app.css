@@ -443,12 +443,13 @@ button,
 .card__foot{margin-top:auto;padding-top:11px;display:flex;gap:8px;align-items:center}
 .card__cart{
   flex:1;min-width:0;height:38px;display:flex;align-items:center;justify-content:center;gap:7px;
-  border:0;border-radius:var(--r-sm);background:var(--red-bright);color:#fff;
+  border:0;border-radius:var(--r-sm);background:#252525;color:#fff;
   font-family:var(--caps);font-size:12px;font-weight:600;cursor:pointer;
   transition:background .18s var(--ease),box-shadow .18s var(--ease),transform .18s var(--spring)
 }
 .card__cart-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card__cart:hover{background:var(--red-dark);box-shadow:var(--sh-red)}
+/* the brand colour stays as the answer to a hover, where it reads as a cue */
+.card__cart:hover{background:var(--red-bright);box-shadow:var(--sh-red)}
 .card__cart:active{transform:scale(.97)}
 .card__cart .ic{flex:none}
 .btn-add{
