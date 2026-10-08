@@ -3,8 +3,8 @@
  * Page-specific code lives in resources/js/pages/*.js.
  */
 import {
-    $, $$, toast, isNarrow,
-    openPanel, closePanels, currentPanel,
+    $, $$, toast, isNarrow, isMobile,
+    openPanel, closePanels, currentPanel, registerPanel,
     railStep, syncRail, selectCategory, storage, t,
 } from './core.js';
 import { confirm } from './ui.js';
@@ -91,6 +91,40 @@ function flashAdded(btn) {
         btn.querySelector('use')?.setAttribute('href', '#i-shopping-bag');
     }, 1700);
 }
+
+/* ------------------------------------------------------------------ filter sheet */
+
+/*
+ * On a phone the filter column is a bottom sheet; on a desktop it is the
+ * sidebar. The same element either way, so it cannot simply carry `hidden` in
+ * the markup — that would hide the sidebar too.
+ *
+ * Going through openPanel brings the scrim, the body lock, Escape and focus
+ * handling with it, which a sheet wants and a sidebar never sees. hideOnClose
+ * keeps the column on screen when the viewport is wide.
+ *
+ * This logic was written in pages/catalog.js, which looks for a [data-catalog]
+ * and a #catGrid that the Livewire page does not have — so the module returned
+ * on its first line and nothing ever hid the sheet. On a phone the filters
+ * were open from the moment the page loaded.
+ */
+function syncFilterSheet() {
+    const filters = $('#filters');
+    if (!filters) return;
+
+    filters.hidden = isMobile() && currentPanel() !== 'filters';
+}
+
+function bindFilterSheet() {
+    if (!$('#filters')) return;
+
+    // called on first paint and again after Livewire boots; registering the
+    // same panel twice simply overwrites the entry
+    registerPanel('filters', '#filters', { hideOnClose: () => isMobile() });
+    syncFilterSheet();
+}
+
+window.addEventListener('resize', syncFilterSheet);
 
 /* ------------------------------------------------------------------ auth modal */
 
@@ -274,6 +308,15 @@ document.addEventListener('error', (e) => {
 /* ------------------------------------------------------------------ Livewire bridge */
 
 document.addEventListener('livewire:init', () => {
+    bindFilterSheet();
+
+    /*
+     * A component re-render replaces the panel, and the attribute this sets is
+     * not in the server's HTML — so morphing drops it and the sheet springs
+     * open on the next filter change. Re-applied once each update has landed.
+     */
+    window.Livewire.hook('commit', ({ respond }) => respond(syncFilterSheet));
+
     /* the cart drawer reports its new state; the header badge follows */
     window.Livewire.on('cart-updated', ({ count, total }) => {
         const badge = document.getElementById('cartBadge');
@@ -302,6 +345,7 @@ document.addEventListener('livewire:navigated', () => {
     bindStickyHeader();
     bindRails();
     showCookieBar();
+    bindFilterSheet();
 });
 
 /* ------------------------------------------------------------------ first paint */
@@ -309,6 +353,7 @@ document.addEventListener('livewire:navigated', () => {
 bindStickyHeader();
 bindRails();
 showCookieBar();
+bindFilterSheet();
 
 /* a message flashed by the server (signed in, signed out, password changed) */
 if (window.IAPI?.flash) toast(window.IAPI.flash);
