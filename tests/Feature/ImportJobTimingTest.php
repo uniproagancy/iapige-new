@@ -112,17 +112,16 @@ class ImportJobTimingTest extends TestCase
     /**
      * The worst a single product can cost, against what it is allowed.
      *
-     * Two API calls, one per language, at the client timeout each, and then
-     * the picture budget. This came to more than the job was given, so the
-     * slowest products were killed every time round — silently, because a
-     * kill records no exception.
+     * Every driver now asks for the same per-request timeout, so the worst a
+     * product can cost is that many requests plus the picture budget. It came
+     * to more than the job was given, and the slowest products were therefore
+     * killed every time round — silently, because a kill records no
+     * exception, only a spent attempt.
      */
     public function test_the_slowest_product_fits_in_the_job(): void
     {
-        $perRequest = 30;   // ZoommerClient: config timeout, 30 by default
-        $locales = 2;
-
-        $worst = $perRequest * $locales + (int) config('shop.import_image_budget');
+        $worst = (int) config('shop.import_request_timeout') * (int) config('shop.import_requests_per_product')
+            + (int) config('shop.import_image_budget');
 
         $this->assertLessThanOrEqual(
             (new ImportProductJob(1, 'X-1'))->timeout,

@@ -240,7 +240,7 @@ class KontaktClient
 
     protected function get(string $url): ?string
     {
-        $response = Http::timeout($this->config['timeout'] ?? 30)
+        $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->connectTimeout(15)
             ->retry(2, 1500, throw: false)
             ->withOptions(['force_ip_resolve' => 'v4'])

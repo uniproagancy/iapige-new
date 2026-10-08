@@ -59,7 +59,7 @@ class AltaClient
      */
     protected function get(array $query, string $accept = 'application/json')
     {
-        $response = Http::timeout($this->config['timeout'] ?? 30)
+        $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->retry(2, 500, throw: false)
             ->withHeaders([
                 'Accept' => $accept,

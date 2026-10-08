@@ -84,6 +84,25 @@ return [
     'import_image_budget' => (int) env('IMPORT_IMAGE_BUDGET', 120),
 
     /*
+     | How long one request to a supplier may take, in seconds.
+     |
+     | Every driver used to write its own 30 here, which was fine until the
+     | job's own limit was worked out against it — three numbers in three
+     | files that nobody could compare. A supplier that needs longer still
+     | overrides it with "timeout" in its own config row.
+     */
+    'import_request_timeout' => (int) env('IMPORT_REQUEST_TIMEOUT', 30),
+
+    /*
+     | The most requests a driver makes for one product.
+     |
+     | Zoommer asks once per language; the scrapers fetch a page and
+     | sometimes a second one. It is here so the job's timeout can be checked
+     | against the worst a product can cost, rather than against a guess.
+     */
+    'import_requests_per_product' => 3,
+
+    /*
      | Whether a product with no photograph is worth importing.
      |
      | One that has none cannot be shown on a card, a listing or a search

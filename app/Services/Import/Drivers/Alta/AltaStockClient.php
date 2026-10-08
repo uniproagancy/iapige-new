@@ -23,8 +23,25 @@ class AltaStockClient
             throw new RuntimeException('services.alta.wsdl is not configured — add the alta block to config/services.php.');
         }
 
+        /*
+         * A SOAP call with no timeout of its own falls back to PHP's
+         * default_socket_timeout, which is a server setting we do not control
+         * and which the WSDL fetch ignores entirely. An unresponsive endpoint
+         * could therefore outlast the job that called it — and a job killed
+         * mid-call leaves no exception, only a spent attempt. Every other
+         * driver answers within the same budget; this one now does too.
+         */
+        $timeout = (int) ($this->config['timeout'] ?? config('shop.import_request_timeout', 30));
+
         return $this->client ??= new SoapClient($wsdl, [
-            'trace' => 1, 'exceptions' => true, 'encoding' => 'UTF-8',
+            'trace' => 1,
+            'exceptions' => true,
+            'encoding' => 'UTF-8',
+            'connection_timeout' => $timeout,
+            'stream_context' => stream_context_create([
+                'http' => ['timeout' => $timeout],
+                'ssl' => ['timeout' => $timeout],
+            ]),
         ]);
     }
 

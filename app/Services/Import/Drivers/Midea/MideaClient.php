@@ -266,7 +266,7 @@ class MideaClient
 
     protected function get(string $url): ?string
     {
-        $response = Http::timeout($this->config['timeout'] ?? 30)
+        $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->retry(2, 800, throw: false)
             ->withHeaders([
                 'Accept' => 'text/html,application/xhtml+xml',

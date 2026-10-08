@@ -18,7 +18,7 @@ class EliteClient
      */
     public function product(string $externalId): ?array
     {
-        $response = Http::timeout($this->config['timeout'] ?? 30)
+        $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->retry(2, 500, throw: false)
             ->withHeaders(['Accept' => 'application/json'])
             ->get(config('services.elite.worker_url'), [

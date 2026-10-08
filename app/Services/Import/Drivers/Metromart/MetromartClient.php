@@ -36,7 +36,7 @@ class MetromartClient
             'cookies' => $this->jar,
             'force_ip_resolve' => 'v4',
         ])
-            ->timeout($this->config['timeout'] ?? 30)
+            ->timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json, text/javascript, */*; q=0.01',
@@ -203,7 +203,7 @@ class MetromartClient
             'cookies' => $this->jar,
             'force_ip_resolve' => 'v4',
         ])
-            ->timeout(20)
+            ->timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->retry(2, 1500, throw: false)
             ->withHeaders(['User-Agent' => $this->agent()])
             ->get(self::BASE.'/ka_GE/');
@@ -226,7 +226,7 @@ class MetromartClient
     protected function get(string $url): ?string
     {
         $response = Http::withOptions(['force_ip_resolve' => 'v4'])
-            ->timeout($this->config['timeout'] ?? 30)
+            ->timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->connectTimeout(15)
             ->retry(2, 1500, throw: false)
             ->withHeaders([

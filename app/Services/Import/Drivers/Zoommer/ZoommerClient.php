@@ -25,7 +25,7 @@ class ZoommerClient
         $this->apiUrl = rtrim((string) config('services.zoommer.api_url'), '/').'/';
 
         $this->client = new Client([
-            'timeout' => $config['timeout'] ?? 30,
+            'timeout' => $config['timeout'] ?? config('shop.import_request_timeout'),
             'connect_timeout' => 10,
             'http_errors' => false,
             'verify' => false,

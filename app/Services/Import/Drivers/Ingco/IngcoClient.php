@@ -187,7 +187,7 @@ class IngcoClient
 
     protected function get(string $url, array $query = [], array $headers = []): ?string
     {
-        $response = Http::timeout($this->config['timeout'] ?? 30)
+        $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->connectTimeout(10)
             ->retry(2, 1500, throw: false)
             ->withHeaders($headers + [
