@@ -29,6 +29,16 @@ class Index extends Component
     /* ---- campaign form ---- */
     public bool $showForm = false;
 
+    /**
+     * The campaign the form is editing, or null while it is making one.
+     *
+     * Not the same as promotionId, which stays on whichever campaign is being
+     * looked at — so asking that one whether we are editing said yes even
+     * while a new campaign was being typed, and the uniqueness rules then
+     * excused the very row they should have caught.
+     */
+    public ?int $editingId = null;
+
     public string $code = '';
 
     public string $title = '';
@@ -86,7 +96,7 @@ class Index extends Component
 
     public function create(): void
     {
-        $this->reset(['code', 'title', 'slug', 'starts_at', 'ends_at', 'sort_order']);
+        $this->reset(['code', 'title', 'slug', 'starts_at', 'ends_at', 'sort_order', 'editingId']);
         $this->is_active = true;
         $this->showForm = true;
     }
@@ -97,6 +107,7 @@ class Index extends Component
             return;
         }
 
+        $this->editingId = $promotion->id;
         $this->code = $promotion->code;
         $this->title = (string) $promotion->title;
         $this->slug = (string) $promotion->slug;
@@ -116,18 +127,18 @@ class Index extends Component
      */
     public function updatedTitle(): void
     {
-        if (! $this->promotion() && $this->slug === '') {
+        if ($this->editingId === null && $this->slug === '') {
             $this->slug = Slug::make($this->title);
         }
     }
 
     public function savePromotion(): void
     {
-        $editing = $this->showForm && $this->promotion() && $this->code === $this->promotion()->code;
+        $editing = $this->editingId !== null;
 
         $data = $this->validate([
             'code' => ['required', 'string', 'max:40', 'regex:/^[a-z0-9-]+$/',
-                'unique:promotions,code'.($editing ? ','.$this->promotionId : '')],
+                'unique:promotions,code'.($editing ? ','.$this->editingId : '')],
             'title' => ['nullable', 'string', 'max:120'],
             /*
              * The address a shopper sees, unique within its language — the
@@ -137,13 +148,13 @@ class Index extends Component
             'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/',
                 Rule::unique('promotion_translations', 'slug')
                     ->where('locale', app()->getLocale())
-                    ->ignore($this->promotionId, 'promotion_id')],
+                    ->ignore($this->editingId, 'promotion_id')],
             'sort_order' => ['integer', 'min:0'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
         ]);
 
-        $promotion = $editing ? $this->promotion() : new Promotion(['type' => 'deal']);
+        $promotion = $editing ? Promotion::findOrFail($this->editingId) : new Promotion(['type' => 'deal']);
 
         $promotion->fill([
             'code' => $data['code'],
@@ -169,6 +180,7 @@ class Index extends Component
         $this->slug = $slug;
 
         $this->promotionId = $promotion->id;
+        $this->editingId = null;
         $this->showForm = false;
 
         $this->done();
