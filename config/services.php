@@ -105,28 +105,11 @@ return [
     'metromart' => [
         'user_agent' => env('METROMART_USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
     ],
-
-    /*
-    | Meta (Facebook / Instagram) pixel and Conversions API.
-    |
-    | The same event is sent twice — once from the browser, once from here —
-    | and Meta joins the pair by event_id. Both halves are needed: the browser
-    | one carries the cookies, the server one survives ad blockers and iOS.
-    |
-    | content_ids must be the product's numeric id, because that is what
-    | FacebookFeed writes as <g:id> — a mismatch means the catalogue never
-    | connects to the pixel and dynamic ads have nothing to show.
-    */
     'facebook' => [
-        'pixel_id' => env('FACEBOOK_PIXEL_ID'),
-        'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
+        'pixel_id' => '1386028086854433',
+        'access_token' => 'EAACRpZCqfAR0BSjlPOLD0qoP4XprZBCTmABUEdVLw1G6JWK66FPs3hSuh5aVaNkeYvQjz6ydCLJo6qXns3PZASI6ZCyjEHNe3LPv6xUTZA7cy5a0KfQRyRVbsYGenyXyqL1DZC50LZBDcYaZBkWWVoTAudC8aElhUIYeypAQ3VnKZBLpZACQSo9RauUpwX9NMWJwZDZD',
         'api_version' => env('FACEBOOK_API_VERSION', 'v24.0'),
-
-        /*
-        | While this is set every event lands in Test Events only and counts
-        | nowhere else. Empty it in .env once the test run is done.
-        */
-        'test_event_code' => env('FACEBOOK_TEST_EVENT_CODE') ?: null,
+        'test_event_code' => 'TEST91910',
     ],
 
 ];

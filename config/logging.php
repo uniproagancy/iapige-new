@@ -155,7 +155,6 @@ return [
             'level' => 'debug',
             'days' => 14,
         ],
-
         'payments' => [
             'driver' => 'daily',
             'path' => storage_path('logs/payments.log'),
