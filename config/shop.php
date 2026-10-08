@@ -60,4 +60,19 @@ return [
      */
     'require_image' => (bool) env('IMPORT_REQUIRE_IMAGE', false),
 
+    /*
+     | Whether a product the supplier cannot hand over today is worth importing.
+     |
+     | A supplier's catalogue is far larger than its warehouse. Importing the
+     | rest fills the shop with pages nobody can buy from, and each one still
+     | costs photographs, a category to map by hand and a row to carry.
+     |
+     | Only new products are refused. One already in the catalogue goes out of
+     | stock and stays, because "we are out of this" is not "this never
+     | existed" — orders, hand-made edits and its history all point at it.
+     |
+     | Per supplier with require_stock in its own config.
+     */
+    'require_stock' => (bool) env('IMPORT_REQUIRE_STOCK', false),
+
 ];

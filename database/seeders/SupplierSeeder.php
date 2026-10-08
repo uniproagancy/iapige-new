@@ -11,19 +11,21 @@ class SupplierSeeder extends Seeder
     public function run(): void
     {
         Supplier::updateOrCreate(['code' => 'zoommer'], [
-            'name'     => 'Zoommer',
-            'driver'   => ZoommerDriver::class,
+            'name' => 'Zoommer',
+            'driver' => ZoommerDriver::class,
             'priority' => 10,
-            'config'   => [
-                'base_uri'       => env('ZOOMMER_BASE_URI', 'https://api.zoommer.ge'),
-                'from'           => 1,
-                'to'             => 1000,
-                'locales'        => ['ka', 'en'],
+            'config' => [
+                'base_uri' => env('ZOOMMER_BASE_URI', 'https://api.zoommer.ge'),
+                'from' => 1,
+                'to' => 1000,
+                'locales' => ['ka', 'en'],
                 'stock_cities' => ['თბილისი', 'Tbilisi'],
-                'stock_units'    => 5,
-                'headers'        => [
+                'stock_units' => 5,
+                // the Tbilisi branches are what a customer can collect from
+                'require_stock' => true,
+                'headers' => [
                     'User-Agent' => env('ZOOMMER_USER_AGENT', ''),
-                    'Cookie'     => env('ZOOMMER_COOKIE', ''),
+                    'Cookie' => env('ZOOMMER_COOKIE', ''),
                 ],
             ],
             'markup' => [

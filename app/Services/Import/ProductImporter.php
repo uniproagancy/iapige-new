@@ -63,6 +63,41 @@ class ProductImporter
     }
 
     /**
+     * Whether a product we have never seen is worth adding at all.
+     *
+     * A supplier's catalogue is far larger than what it can actually hand over
+     * today. Importing the rest fills the shop with pages that cannot be
+     * bought from, and every one of them still costs photographs to download,
+     * a category to map by hand and a row to carry for ever.
+     *
+     * This refuses before the row is written, unlike keep(), which has to
+     * create the product first because whether a photograph arrives is only
+     * known after the download.
+     *
+     * An existing product is never touched by this: it goes out of stock
+     * through the ordinary update and stays in the catalogue, where its
+     * history, its hand-made edits and any order that points at it survive.
+     * That is the difference between "we are out of this" and "this never
+     * existed".
+     */
+    protected function worthAdding(Supplier $supplier, ProductPayload $payload): bool
+    {
+        $required = $supplier->config['require_stock'] ?? config('shop.require_stock', false);
+
+        if (! $required || $payload->stock > 0) {
+            return true;
+        }
+
+        Log::channel('import')->info('skipped: nothing in stock', [
+            'supplier' => $supplier->code,
+            'external' => $payload->externalId,
+            'sku' => $payload->sku,
+        ]);
+
+        return false;
+    }
+
+    /**
      * Whether a product just created is worth keeping.
      *
      * A product with no photograph is a hole in the catalogue: it cannot be
@@ -109,6 +144,10 @@ class ProductImporter
         return DB::transaction(function () use ($supplier, $payload) {
             $product = $this->find($supplier, $payload);
             $isNew = ! $product;
+
+            if ($isNew && ! $this->worthAdding($supplier, $payload)) {
+                return [null, false];
+            }
 
             $product ??= new Product([
                 'sku' => $payload->sku,

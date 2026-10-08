@@ -229,7 +229,15 @@ class ZoommerDriver implements SupplierDriver
 
             $city = mb_strtolower(trim((string) ($store['city'] ?? '')));
 
-            if (! $cities || in_array($city, $cities, true)) {
+            /*
+             * Contains, not equals. A branch reports its city as "თბილისი,
+             * ვაჟა-ფშაველა" as often as plain "თბილისი", and an exact match
+             * read every one of those as a different town — so a product sitting
+             * on a shelf in Tbilisi came through as out of stock.
+             */
+            $matches = ! $cities || array_filter($cities, fn ($c) => str_contains($city, $c));
+
+            if ($matches) {
                 return (int) ($this->supplier->config['stock_units'] ?? 5);
             }
         }
