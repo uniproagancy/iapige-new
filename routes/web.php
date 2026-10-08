@@ -94,6 +94,8 @@ Route::middleware(['auth', 'can:admin'])
         Route::get('/orders', Admin\Orders\Index::class)->name('orders');
         Route::get('/orders/{order}', Admin\Orders\Show::class)->name('orders.show');
 
+        Route::get('/promotions', Admin\Promotions\Index::class)->name('promotions');
+
         Route::get('/callbacks', Admin\Callbacks\Index::class)->name('callbacks');
         Route::get('/users', Admin\Users\Index::class)->name('users');
         Route::get('/users/{user}', Admin\Users\Show::class)->name('users.show');

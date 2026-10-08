@@ -16,7 +16,10 @@ class Promotion extends Model
 
     protected array $translatable = ['title', 'subtitle'];
 
-    protected $fillable = ['code', 'type', 'is_active', 'starts_at', 'ends_at', 'sort_order'];
+    protected $fillable = [
+        'code', 'type', 'image', 'url', 'badge', 'badge_color',
+        'is_active', 'starts_at', 'ends_at', 'sort_order',
+    ];
 
     protected function casts(): array
     {
@@ -34,7 +37,10 @@ class Promotion extends Model
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'promotion_product')
-            ->withPivot(['promo_price', 'sort_order'])
+            // discount_percent and stock_limit exist in the pivot and were not
+            // read here, so a campaign set up by percentage showed no discount
+            ->withPivot(['promo_price', 'discount_percent', 'stock_limit', 'sold', 'sort_order'])
+            ->withTimestamps()
             ->orderBy('promotion_product.sort_order');
     }
 

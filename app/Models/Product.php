@@ -117,6 +117,13 @@ class Product extends Model
      * admin is allowed to make. The list's "ready" filter adds `draft` itself,
      * because there the question is what is still waiting.
      */
+    /** The campaigns this product is part of. */
+    public function promotions(): BelongsToMany
+    {
+        return $this->belongsToMany(Promotion::class, 'promotion_product')
+            ->withPivot(['promo_price', 'discount_percent', 'stock_limit', 'sold', 'sort_order']);
+    }
+
     public function scopeReadyToPublish(Builder $query): Builder
     {
         $locales = array_values(array_unique([app()->getLocale(), Language::defaultCode()]));

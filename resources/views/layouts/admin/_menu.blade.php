@@ -120,7 +120,7 @@
 
                 {{-- promotions --}}
                 <li class="nav-item @activeMenu('admin.promotions')">
-                    <a class="nav-link d-flex align-items-center" href="{{ route('admin.dashboard') }}">
+                    <a class="nav-link d-flex align-items-center" href="{{ route('admin.promotions') }}">
                         <i data-feather="percent"></i><span>{{ __('admin.promotions') }}</span>
                     </a>
                 </li>
