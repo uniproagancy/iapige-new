@@ -106,6 +106,25 @@ class Product extends Model
     }
 
     /**
+     * Published, and actually obtainable.
+     *
+     * Browsing a shop and finding nothing but things it does not have wastes
+     * the visit, so a product with an empty shelf stays out of the listings.
+     *
+     * A pre-order is the exception and always has been: it has no stock by
+     * definition, and its whole point is to be seen before it arrives.
+     *
+     * Separate from active() on purpose. A direct link — a shared one, a
+     * bookmark, a search result — still opens the product's page, where it
+     * says it is unavailable rather than answering with a 404.
+     */
+    public function scopeListable(Builder $query): Builder
+    {
+        return $query->active()
+            ->where(fn (Builder $q) => $q->where('stock', '>', 0)->orWhere('is_preorder', true));
+    }
+
+    /**
      * Has everything publishing requires: a category, a name and a price.
      *
      * These are exactly what the admin's publish button refuses without, so the
@@ -239,14 +258,28 @@ class Product extends Model
         return $this->hasMany(ProductOffer::class);
     }
 
+    /**
+     * Whether it can go in a basket right now.
+     *
+     * Stock counts here too. Without it a product kept out of every listing
+     * was still buyable to anyone holding its address, and the shop took
+     * money for something it had already said it did not have.
+     */
     public function isSellable(): bool
     {
-        return $this->status === self::STATUS_ACTIVE && ! $this->is_preorder;
+        return $this->status === self::STATUS_ACTIVE && ! $this->is_preorder && $this->stock > 0;
     }
 
+    /**
+     * Whether the page may say "in stock".
+     *
+     * This read the status alone, so the "not available" line on the product
+     * page — markup, styles and translation all written — could never be
+     * reached by an active product.
+     */
     public function isListed(): bool
     {
-        return $this->status === self::STATUS_ACTIVE;
+        return $this->status === self::STATUS_ACTIVE && ($this->stock > 0 || $this->is_preorder);
     }
 
     public function prepayment(): ?float

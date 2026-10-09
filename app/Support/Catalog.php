@@ -45,7 +45,7 @@ class Catalog
     public static function productQuery(): Builder
     {
         return Product::query()
-            ->active()
+            ->listable()
             ->withTranslation()
             ->with(array_merge(self::CARD_RELATIONS, [
                 'category.translations',
@@ -168,7 +168,7 @@ class Catalog
         }
 
         $products = $promotion->products()
-            ->active()
+            ->listable()
             ->withTranslation()
             ->with(self::CARD_RELATIONS)
             // no order at all meant the database chose, and it chose the oldest
@@ -242,7 +242,8 @@ class Catalog
     public static function brands(): array
     {
         return Brand::active()->where('is_featured', true)
-            ->withCount(['products' => fn ($q) => $q->active()])
+            // counted the same way the listings are, or the number lies
+            ->withCount(['products' => fn ($q) => $q->listable()])
             ->get()
             ->map(fn (Brand $b) => [
                 'name' => $b->name,
@@ -361,10 +362,10 @@ class Catalog
             ->all();
     }
 
-    /** category_id => how many active products sit directly in it. */
+    /** category_id => how many obtainable products sit directly in it. */
     protected static function categoryCounts()
     {
-        return Product::active()
+        return Product::listable()
             ->selectRaw('category_id, count(*) as n')
             ->groupBy('category_id')
             ->pluck('n', 'category_id');
