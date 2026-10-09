@@ -120,6 +120,43 @@ class ZoommerStockTest extends TestCase
         $this->assertSame(1, Product::count());
     }
 
+    /* ------------------------------------------------------------------ the flag */
+
+    /**
+     * The live supplier row gains the flag, not only the seeder.
+     *
+     * A seeder runs on a fresh database and nowhere else, so the flag never
+     * reached the server and Zoommer went on adding what it cannot hand over.
+     * The migration is run here for real, against a row that does not have it
+     * — which is the situation on the server.
+     */
+    public function test_the_migration_sets_the_flag_on_an_existing_row(): void
+    {
+        $this->supplier->update(['config' => ['from' => 1, 'to' => 9000]]);
+
+        $this->runStockMigration();
+
+        $config = $this->supplier->fresh()->config;
+
+        $this->assertTrue($config['require_stock']);
+        $this->assertSame(9000, $config['to'], 'the id range is not this migration to touch');
+    }
+
+    /** A database without that supplier is simply left alone. */
+    public function test_the_migration_passes_over_a_missing_supplier(): void
+    {
+        $this->supplier->delete();
+
+        $this->runStockMigration();
+
+        $this->assertSame(0, Supplier::where('code', 'zoommer')->count());
+    }
+
+    protected function runStockMigration(): void
+    {
+        (require database_path('migrations/2026_10_09_090000_require_stock_for_zoommer.php'))->up();
+    }
+
     /* ------------------------------------------------------------------ helpers */
 
     protected Supplier $supplier;

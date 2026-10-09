@@ -27,6 +27,7 @@ class PurgeSupplierProducts extends Command
     protected $signature = 'products:purge
                             {supplier : the supplier code, e.g. elite}
                             {--status= : only this status (draft|active|archived)}
+                            {--out-of-stock : only products with nothing on the shelf}
                             {--force : actually delete; without it nothing is touched}
                             {--include-ordered : also delete products somebody has ordered}
                             {--chunk=200}';
@@ -98,9 +99,16 @@ class PurgeSupplierProducts extends Command
 
         $status = $this->option('status');
 
+        /*
+         * The stock filter is for clearing up after a rule arrives late.
+         * Zoommer now refuses to add a product it cannot hand over, but
+         * everything imported before that is still in the catalogue with
+         * nothing behind it.
+         */
         $eligible = Product::withTrashed()
             ->whereIn('id', $productIds)
             ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($this->option('out-of-stock'), fn ($q) => $q->where('stock', '<=', 0))
             ->pluck('id');
 
         $mine = collect();
