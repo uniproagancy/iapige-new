@@ -13,12 +13,13 @@
         <div class="pdp__left">
             <div class="pdp__top">
                 <x-product.gallery :product="$product" />
-                <x-product.info :product="$product" :rating="$rating" :key-specs="$keySpecs" />
+                <x-product.info :product="$product" :rating="$rating" :key-specs="$keySpecs"
+                                :colors="$colors" :configs="$configs" />
             </div>
             <livewire:product.bundle :ids="$bundleIds" :key="'bundle-'.$model->id" />
         </div>
         <x-product.buy-card :product="$product" :services="$services"
-                            :model="$model" :colors="$colors" :configs="$configs" />
+                            :model="$model" />
     </main>
     <x-product.tabs :specs="$specs" :description="$product['description']"
                     :highlights="$highlights" :rating="$rating" :reviews="$reviews" />
@@ -39,7 +40,7 @@
         </section>
     @endif
     <div class="actionbar">
-        <livewire:product.buy-box :product="$model" :colors="$colors" :configs="$configs" :key="'buy-bar-'.$model->id" />
+        <livewire:product.buy-box :product="$model" :key="'buy-bar-'.$model->id" />
         <a class="btn-buy" href="{{ route('checkout', ['product' => $model->id]) }}">
             <span class="btn-buy__label">{{ __('product.buy') }}</span>
             <span class="btn-buy__sep" aria-hidden="true"></span>

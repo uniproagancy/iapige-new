@@ -123,18 +123,27 @@
 .opt__label{font-size:13px;color:var(--muted-2)}
 .opt__label b{color:var(--ink);font-weight:600}
 .colors{display:flex;gap:12px;align-items:center}
+/*
+ | Anchors now, not buttons: choosing a colour opens another product.
+ | display and text-decoration have to be said out loud for a link, which a
+ | button gave for free.
+ */
 .color{
-  width:34px;height:34px;border-radius:50%;
+  display:block;width:34px;height:34px;border-radius:50%;text-decoration:none;cursor:pointer;
   box-shadow:0 0 0 2px #fff inset, 0 0 0 2px var(--line-2);transition:box-shadow .18s,transform .18s
 }
+/* the one this product already is leads nowhere, so it does not invite a click */
+.color.is-on{cursor:default}
 .color:hover{transform:scale(1.06)}
 .color.is-on{box-shadow:0 0 0 2px #fff inset, 0 0 0 2px var(--red-bright)}
 .cfg{display:flex;gap:10px;flex-wrap:wrap}
 .cfg__item{
-  padding:11px 18px;border-radius:10px;background:#fff;border:1.5px solid var(--line-2);
+  display:inline-block;padding:11px 18px;border-radius:10px;background:#fff;
+  border:1.5px solid var(--line-2);text-decoration:none;cursor:pointer;
   font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;
   transition:background .18s,border-color .18s,color .18s
 }
+.cfg__item.is-on{cursor:default}
 .cfg__item:hover{border-color:var(--muted-4)}
 .cfg__item.is-on{background:var(--red-bright);border-color:var(--red-bright);color:#fff}
 

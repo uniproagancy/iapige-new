@@ -1,47 +1,12 @@
 <div>
-    <div class="opts">
-        @if ($colors)
-            <div class="opt">
-                <span class="opt__label">{{ __('product.color') }}:
-                    <b>{{ collect($colors)->firstWhere('current', true)['label']
-                        ?? collect($colors)->firstWhere('code', $color)['label']
-                        ?? '' }}</b>
-                </span>
-                <div class="colors" role="group" aria-label="{{ __('product.color') }}">
-                    @foreach ($colors as $c)
-                        @php $on = $c['current'] ?? $c['code'] === $color; @endphp
-                        <button type="button" @class(['color', 'is-on' => $on])
-                                wire:click="chooseColor('{{ $c['code'] }}')"
-                                wire:key="color-{{ $c['code'] }}"
-                                style="background:{{ $c['hex'] ?? '#ccc' }}"
-                                title="{{ $c['label'] }}"
-                                aria-label="{{ $c['label'] }}"
-                                aria-pressed="{{ $on ? 'true' : 'false' }}"></button>
-                    @endforeach
-                </div>
-            </div>
-        @endif
+    {{--
+        The colour and size options used to live here.
 
-        @if ($configs)
-            <div class="opt">
-                <span class="opt__label">{{ __('product.memory') }}:
-                    <b>{{ collect($configs)->firstWhere('current', true)['label']
-                        ?? collect($configs)->firstWhere('code', $config)['label']
-                        ?? '' }}</b>
-                </span>
-                <div class="cfg" role="group" aria-label="{{ __('product.memory') }}">
-                    @foreach ($configs as $item)
-                        @php $on = $item['current'] ?? $item['code'] === $config; @endphp
-                        <button type="button" @class(['cfg__item', 'is-on' => $on])
-                                wire:click="chooseConfig('{{ $item['code'] }}')"
-                                wire:key="cfg-{{ $item['code'] }}"
-                                title="{{ $item['note'] ?? '' }}"
-                                aria-pressed="{{ $on ? 'true' : 'false' }}">{{ $item['label'] }}</button>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-    </div>
+        They are navigation — each one opens a different product — so they are
+        links now, in <x-product.variants>, beside the specifications they
+        describe. This component keeps what genuinely needs a server: the
+        quantity and the basket.
+    --}}
 
     <div class="buyrow">
         {{-- a pre-order has nothing to count, so the stepper goes with the button --}}

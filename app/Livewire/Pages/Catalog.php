@@ -32,9 +32,15 @@ class Catalog extends Component
     #[Url(as: 'f', except: [])]
     public array $picked = [];
 
-    public int $perPage = 8;
+    public int $perPage = 20;
 
-    protected int $step = 8;
+    /*
+     | How many more "show more" fetches each time.
+     |
+     | The same as the first page, so the listing grows in even blocks rather
+     | than filling a row and leaving the next one short.
+     */
+    protected int $step = 20;
 
     public function mount(?string $slug = null)
     {

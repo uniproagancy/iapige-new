@@ -2,8 +2,6 @@
     'product',            // the card array from Catalog::card()
     'services' => [],     // [[title, text], …]
     'model',              // the Eloquent product, for the Livewire components
-    'colors' => [],
-    'configs' => [],
 ])
 
 <aside class="buycard" aria-label="{{ __('product.buy') }}">
@@ -44,8 +42,6 @@
     {{-- options, quantity and add to cart --}}
     <livewire:product.buy-box
         :product="$model"
-        :colors="$colors"
-        :configs="$configs"
         :key="'buy-card-'.$model->id" />
 
     @if ($model->isSellable())

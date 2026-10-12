@@ -107,6 +107,59 @@ class ProductVariantsTest extends TestCase
         $this->assertSame([], Catalog::productPage($one->fresh())['configs']);
     }
 
+    /* ------------------------------------------------------------------ the links */
+
+    /**
+     * The sibling's colour is a link on the page itself.
+     *
+     * It used to be a button that asked the server which product to open and
+     * was answered with a redirect, and on the live site that journey never
+     * completed — the swatch drew and a click did nothing. An anchor either
+     * carries an address or it does not, and this reads the one the page
+     * actually renders.
+     */
+    public function test_the_other_colour_is_a_link_on_the_page(): void
+    {
+        $colour = $this->attribute('ფერი');
+
+        $black = $this->product('შავი', 'p-black');
+        $blue = $this->product('ლურჯი', 'p-blue');
+
+        $this->give($black, $colour, 'shavi', 'შავი', '#000000');
+        $this->give($blue, $colour, 'lurji', 'ლურჯი', '#0000FF');
+
+        $page = Catalog::productPage($black->fresh());
+
+        $html = view('components.product.variants', [
+            'colors' => $page['colors'],
+            'configs' => $page['configs'],
+        ])->render();
+
+        $this->assertStringContainsString('href="'.route('product', 'p-blue').'"', $html);
+    }
+
+    /** The colour this product already is leads nowhere, and says so. */
+    public function test_the_current_colour_is_not_a_link(): void
+    {
+        $colour = $this->attribute('ფერი');
+
+        $black = $this->product('შავი', 'p-black');
+        $blue = $this->product('ლურჯი', 'p-blue');
+
+        $this->give($black, $colour, 'shavi', 'შავი', '#000000');
+        $this->give($blue, $colour, 'lurji', 'ლურჯი', '#0000FF');
+
+        $page = Catalog::productPage($black->fresh());
+
+        $html = view('components.product.variants', [
+            'colors' => $page['colors'],
+            'configs' => $page['configs'],
+        ])->render();
+
+        $this->assertStringNotContainsString('href="'.route('product', 'p-black').'"', $html);
+        $this->assertStringContainsString('aria-current="true"', $html);
+    }
+
     /* ------------------------------------------------------------------ helpers */
 
     protected function setUp(): void

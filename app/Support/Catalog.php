@@ -504,7 +504,7 @@ class Catalog
             'groups' => $groups,
             'priceMin' => (int) (floor(($prices->min() ?: 0) / 100) * 100),
             'priceMax' => $max,
-            'perPage' => 8,
+            'perPage' => 20,
             'products' => $cards,
         ];
     }
