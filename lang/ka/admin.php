@@ -348,4 +348,6 @@ return [
     'import_rows_in_stock_table' => 'სტრიქონი ბაზაში',
     'import_rows_available' => 'მარაგშია',
     'import_last_load' => 'ბოლო ჩატვირთვა',
+    'cb_make_order' => 'შეკვეთის გაფორმება',
+    'cb_see_order' => 'შეკვეთა',
 ];

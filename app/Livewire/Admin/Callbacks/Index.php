@@ -3,6 +3,9 @@
 namespace App\Livewire\Admin\Callbacks;
 
 use App\Models\CallbackRequest;
+use App\Models\Order;
+use App\Models\OrderPixelData;
+use App\Services\Facebook\Pixel;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -95,6 +98,93 @@ class Index extends Component
         ]);
 
         $this->dispatch('toast', message: __('admin.saved'));
+    }
+
+    /**
+     * Turn a phone call into an order.
+     *
+     * The operator has rung back and agreed the purchase; this writes the
+     * order so they do not have to retype the name, the number and the
+     * product they were already looking at.
+     *
+     * What matters beyond the typing is the pixel data. Meta sees a Lead when
+     * the number is left and a Purchase when the order is paid, and only
+     * recognises them as one person if the Purchase carries the identifiers
+     * the browser had. Written from the admin, the Purchase has none of them
+     * — a different request, a different machine, no cookies — so the sale was
+     * credited to nothing and the campaign only ever got the Lead. They were
+     * kept on the call for exactly this moment.
+     */
+    public function createOrder(int $id)
+    {
+        $request = CallbackRequest::with('product')->findOrFail($id);
+
+        if ($request->order_id) {
+            return $this->redirect(route('admin.orders.show', $request->order_id), navigate: true);
+        }
+
+        $order = DB::transaction(function () use ($request) {
+            $product = $request->product;
+            $price = $product ? $product->sellingPrice() : 0.0;
+
+            $order = Order::create([
+                'number' => Order::nextNumber(),
+                'user_id' => $request->user_id,
+                'status' => 'new',
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'email' => $request->user?->email,
+                /*
+                 * The columns' own defaults, not nulls: both are NOT NULL,
+                 * and the operator changes them on the order itself once the
+                 * customer has said how they want it.
+                 */
+                'delivery' => 'courier',
+                'payment' => 'cash',
+                'comment' => $request->comment,
+                'subtotal' => $price,
+                'shipping' => 0,
+                'total' => $price,
+            ]);
+
+            if ($product) {
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'sku' => $product->sku,
+                    'name' => trim(($product->brand?->name ?? '').' '.$product->name),
+                    'price' => $price,
+                    'qty' => 1,
+                    'sum' => $price,
+                ]);
+            }
+
+            /*
+             * The snapshot the Purchase will be sent with, copied from the
+             * call rather than read from this request — this one is the
+             * operator's browser, not the customer's.
+             */
+            OrderPixelData::create([
+                'order_id' => $order->id,
+                'event_id' => Pixel::eventId('pur'),
+                'fbp' => $request->fbp,
+                'fbc' => $request->fbc,
+                'ip' => $request->ip,
+                'user_agent' => $request->user_agent,
+                'source_url' => $request->source_url,
+                'consented' => (bool) $request->consented,
+            ]);
+
+            $request->update([
+                'order_id' => $order->id,
+                'status' => CallbackRequest::CALLED,
+                'handled_by' => auth()->id(),
+                'handled_at' => now(),
+            ]);
+
+            return $order;
+        });
+
+        return $this->redirect(route('admin.orders.show', $order), navigate: true);
     }
 
     public function saveNote(int $id): void

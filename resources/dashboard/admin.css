@@ -55,6 +55,32 @@
 /* a row that needs a human: draft products, unmapped categories */
 .row-attention { background: rgba(255, 105, 0, .06); }
 
+/* ------------------------------------------------------------------ header width
+
+   The floating header is laid out for a 260px sidebar that this layout does
+   not have.
+
+   The template positions .header-navbar.floating-nav with left:260px and a
+   width 260px short, which is right for the vertical menu it ships with. The
+   horizontal layout corrects that — but only for elements carrying
+   .navbar-horizontal, which the menu has and the header does not. So the bar
+   sat 260px to the right of the menu beneath it and overhung the page.
+
+   Corrected here rather than by adding that class to the markup: the class
+   also sets top:62px and a white background, which would drop the header onto
+   the menu and undo the dark theme.
+*/
+.horizontal-menu .header-navbar.floating-nav:not(.navbar-horizontal) {
+    left: 0;
+    width: calc(100vw - (100vw - 100%) - calc(2rem * 2));
+}
+
+@media (max-width: 1199.98px) {
+    .horizontal-menu .header-navbar.floating-nav:not(.navbar-horizontal) {
+        width: calc(100vw - (100vw - 100%) - calc(2rem * 2));
+    }
+}
+
 /* ------------------------------------------------------------------ category tree
    Add to resources/dashboard/admin.css
 */

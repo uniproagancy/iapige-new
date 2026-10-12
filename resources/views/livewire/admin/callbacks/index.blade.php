@@ -7,6 +7,7 @@
             'x'      => '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
             'trash'  => '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>',
             'box'    => '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>',
+            'cart'   => '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
             'link'   => '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
         ];
 
@@ -99,6 +100,26 @@
                             </td>
 
                             <td class="text-end text-nowrap">
+                                {{--
+                                    The order this call turned into, written
+                                    from here so the Purchase can carry the
+                                    identifiers the browser had when the
+                                    number was left. Once written, the button
+                                    leads to it rather than making a second.
+                                --}}
+                                @if ($request->order_id)
+                                    <a class="btn btn-sm btn-outline-success"
+                                       href="{{ route('admin.orders.show', $request->order_id) }}">
+                                        {!! $icon('cart', 'me-25') !!}{{ __('admin.cb_see_order') }}
+                                    </a>
+                                @else
+                                    <button type="button" class="btn btn-sm btn-success"
+                                            wire:click="createOrder({{ $request->id }})"
+                                            wire:loading.attr="disabled">
+                                        {!! $icon('cart', 'me-25') !!}{{ __('admin.cb_make_order') }}
+                                    </button>
+                                @endif
+
                                 @if ($request->status !== 'called')
                                     <button type="button" class="btn btn-sm btn-outline-info"
                                             wire:click="setStatus({{ $request->id }}, 'called')">

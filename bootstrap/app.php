@@ -42,7 +42,17 @@ return Application::configure(basePath: dirname(__DIR__))
          * Nothing secret lives in it: it holds "all" or "necessary".
          */
 
-        $middleware->encryptCookies(except: ['cookie_consent']);
+        $middleware->encryptCookies(except: [
+            'cookie_consent',
+            /*
+             * Meta's own two, written by its script and read by the server
+             * half of the pixel. Encrypted, they came back null — so every
+             * server event went out with no browser identifier on it and Meta
+             * had nothing to match the visit to the advert that caused it.
+             */
+            '_fbp',
+            '_fbc',
+        ]);
 
         // the server half of the Meta pixel; it mints the id the browser reuses
         $middleware->web(append: [TrackPageView::class]);

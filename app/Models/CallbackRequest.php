@@ -16,6 +16,8 @@ class CallbackRequest extends Model
     protected $fillable = [
         'user_id', 'product_id', 'name', 'phone', 'comment',
         'status', 'note', 'handled_by', 'handled_at', 'page',
+        'lead_event_id', 'fbp', 'fbc', 'ip', 'user_agent', 'source_url', 'consented',
+        'order_id',
     ];
 
     protected function casts(): array
@@ -41,5 +43,27 @@ class CallbackRequest extends Model
     public function isOpen(): bool
     {
         return $this->status === self::NEW;
+    }
+
+    /** The order an operator wrote from this call, if it came to one. */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * What the browser knew when the number was left.
+     *
+     * Handed to the Purchase the operator writes later, which happens in the
+     * admin where none of it can be read any more.
+     */
+    public function pixelData(): array
+    {
+        return array_filter([
+            'client_ip_address' => $this->ip,
+            'client_user_agent' => $this->user_agent,
+            'fbp' => $this->fbp,
+            'fbc' => $this->fbc,
+        ]);
     }
 }

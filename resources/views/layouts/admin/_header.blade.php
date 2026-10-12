@@ -13,15 +13,13 @@
                 </li>
             </ul>
             {{--
-                The title is not repeated here. The content header below says
-                it already, in a bigger type and with its breadcrumbs, so the
-                page announced itself twice within a hundred pixels.
+                Nothing on this side.
+
+                The page title was here and the content header below repeats
+                it, in a bigger type and with its breadcrumbs. A link to the
+                storefront replaced it and the menu already ends with one, so
+                that was the same thing twice over again.
             --}}
-            <a class="navbar-brand d-none d-lg-flex align-items-center gap-1 py-0"
-               href="{{ route('home') }}" target="_blank" rel="noopener">
-                <i class="ficon" data-feather="external-link"></i>
-                <span class="fw-bolder">{{ __('admin.view_site') }}</span>
-            </a>
         </div>
 
         <ul class="nav navbar-nav align-items-center ms-auto">

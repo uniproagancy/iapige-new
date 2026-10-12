@@ -59,6 +59,25 @@ class CallbackForm extends Component
 
         RateLimiter::hit($key, 3600);
 
+        $pixel = app(Pixel::class);
+
+        // a phone number left on purpose is the definition of a lead
+        $lead = $pixel->lead([
+            'phone' => $this->phone,
+            'name' => $this->name,
+        ]);
+
+        /*
+         * The browser's own identifiers, kept with the request.
+         *
+         * An operator rings back and writes the order by hand, minutes later,
+         * from the admin — a different request with none of these cookies on
+         * it. Without them the Purchase carries nothing Meta can match to the
+         * advert that produced the call, so the campaign is credited with the
+         * Lead and never with the sale.
+         */
+        $browser = $pixel->browserData();
+
         CallbackRequest::create([
             'user_id' => Auth::id(),
             'product_id' => $this->productId,
@@ -66,15 +85,19 @@ class CallbackForm extends Component
             'phone' => $this->phone,
             'comment' => $this->comment ?: null,
             'page' => url()->previous(),
+
+            'lead_event_id' => $lead['id'] ?? null,
+            'fbp' => $browser['fbp'] ?? null,
+            'fbc' => $browser['fbc'] ?? null,
+            'ip' => $browser['client_ip_address'] ?? null,
+            'user_agent' => $browser['client_user_agent'] ?? null,
+            'source_url' => url()->previous(),
+            'consented' => $pixel->consented(),
         ]);
 
         $this->sent = true;
 
-        // a phone number left on purpose is the definition of a lead
-        $this->dispatch('pixel', app(Pixel::class)->lead([
-            'phone' => $this->phone,
-            'name' => $this->name,
-        ]));
+        $this->dispatch('pixel', $lead);
 
         $this->reset('comment');
 

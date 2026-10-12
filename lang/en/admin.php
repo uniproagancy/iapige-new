@@ -348,4 +348,6 @@ return [
     'import_rows_in_stock_table' => 'rows stored',
     'import_rows_available' => 'in stock',
     'import_last_load' => 'last load',
+    'cb_make_order' => 'Create order',
+    'cb_see_order' => 'Order',
 ];
