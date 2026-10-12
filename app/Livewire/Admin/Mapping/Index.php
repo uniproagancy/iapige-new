@@ -241,6 +241,37 @@ class Index extends Component
     /* ------------------------------------------------------------------ actions */
 
     /** Map one row; the choice applies the moment it is made. */
+    /**
+     * Assign by the label somebody typed or picked.
+     *
+     * The input is a datalist, so the browser gives back the label rather than
+     * the id. Turning one into the other was done in JavaScript — find the
+     * option, read its data-id, call the component — which is three places for
+     * it to go wrong and nowhere to test it. The list of labels already lives
+     * here, so the lookup does too.
+     *
+     * A label that is not in the list is somebody mid-word, not a choice, and
+     * is ignored. Clearing the field is how a mapping is removed.
+     */
+    public function assignByLabel(int $id, ?string $label): void
+    {
+        $label = trim((string) $label);
+
+        if ($label === '') {
+            $this->assign($id, null);
+
+            return;
+        }
+
+        $targetId = array_search($label, $this->targets(), true);
+
+        if ($targetId === false) {
+            return;
+        }
+
+        $this->assign($id, $targetId);
+    }
+
     public function assign(int $id, $targetId): void
     {
         $targetId = ($targetId === '' || $targetId === null) ? null : (int) $targetId;

@@ -189,7 +189,8 @@
                                        class="form-control form-control-sm"
                                        placeholder="— {{ __('admin.not_mapped') }} —"
                                        value="{{ $current ? ($targets[$current] ?? '') : '' }}"
-                                       data-map-row="{{ $row->id }}">
+                                       wire:change="assignByLabel({{ $row->id }}, $event.target.value)"
+                                       wire:key="map-{{ $tab }}-{{ $row->id }}">
                             </td>
 
                             <td class="text-end text-nowrap">
@@ -240,7 +241,7 @@
     {{-- the options every row's input filters against, rendered once --}}
     <datalist id="mapTargets">
         @foreach ($targets as $id => $label)
-            <option value="{{ $label }}" data-id="{{ $id }}"></option>
+            <option value="{{ $label }}"></option>
         @endforeach
     </datalist>
 </div>

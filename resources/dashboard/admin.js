@@ -115,36 +115,3 @@ document.addEventListener('click', (e) => {
     });
 });
 
-/* ------------------------------------------------------------------ mapping search */
-
-/**
- * <input list="mapTargets" data-map-row="12">
- *
- * The datalist does the filtering; this turns the chosen label back into the
- * category it stands for and hands that to the component. Matching on the
- * label is safe because the labels are full trails — "Phones > Smart watches"
- * — and no two of those are the same.
- *
- * Only a label the list actually contains counts. Half-typed text is somebody
- * still choosing, and unmapping is what clearing the field means.
- */
-document.addEventListener('change', (e) => {
-    const input = e.target.closest('[data-map-row]');
-
-    if (!input) return;
-
-    const root = input.closest('[wire\\:id]');
-
-    if (!root) return;
-
-    const typed = input.value.trim();
-    const list = document.getElementById(input.getAttribute('list'));
-    const match = typed === ''
-        ? null
-        : [...(list?.options ?? [])].find((o) => o.value === typed);
-
-    if (typed !== '' && !match) return;
-
-    Livewire.find(root.getAttribute('wire:id'))
-        .call('assign', input.dataset.mapRow, match ? match.dataset.id : '');
-});
