@@ -350,4 +350,5 @@ return [
     'import_last_load' => 'last load',
     'cb_make_order' => 'Create order',
     'cb_see_order' => 'Order',
+    'cb_from_page' => 'Page they were on',
 ];

@@ -56,5 +56,13 @@
             <span class="btn-buy__note">{{ __('common.per_month', ['amount' => $product['monthly']]) }} · 0%</span>
         </a>
     @endif
-    <livewire:forms.callback-form :key="'callback-'.$model->id" />
+    {{--
+        The product goes with the request.
+
+        The form takes a productId and this was the only place that renders it
+        on a product page — and it was not passing one, so every call came in
+        with no idea what it was about. The operator had the name and the
+        number and nothing else, and the order written from it had no line.
+    --}}
+    <livewire:forms.callback-form :product-id="$model->id" :key="'callback-'.$model->id" />
 </aside>

@@ -88,6 +88,16 @@
                                     <a href="{{ route('admin.products.edit', $request->product) }}">
                                         {{ $request->product->name }}
                                     </a>
+                                    <small class="d-block">{{ money($request->product->sellingPrice()) }}</small>
+                                @elseif ($request->page)
+                                    {{--
+                                        Calls left on the general form carry no
+                                        product, so the page they were on is the
+                                        next best thing an operator can open.
+                                    --}}
+                                    <a href="{{ $request->page }}" target="_blank" rel="noopener">
+                                        {{ __('admin.cb_from_page') }}
+                                    </a>
                                 @else
                                     —
                                 @endif

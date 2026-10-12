@@ -350,4 +350,5 @@ return [
     'import_last_load' => 'ბოლო ჩატვირთვა',
     'cb_make_order' => 'შეკვეთის გაფორმება',
     'cb_see_order' => 'შეკვეთა',
+    'cb_from_page' => 'საიდან დარეკა',
 ];
