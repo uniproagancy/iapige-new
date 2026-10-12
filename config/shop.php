@@ -43,7 +43,7 @@ return [
      | source as fast as it could answer. Sources behind Cloudflare stop
      | answering at all when treated that way.
      */
-    'import_rate' => (int) env('IMPORT_RATE_PER_MINUTE', 60),
+    'import_rate' => (int) env('IMPORT_RATE_PER_MINUTE', 240),
 
     /*
      | How long a queued product may keep waiting its turn, in hours.

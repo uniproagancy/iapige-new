@@ -3,12 +3,15 @@
 namespace App\Services\Import\Drivers\Zoommer;
 
 use App\Models\Supplier;
+use App\Services\Import\Concerns\ScansIdRange;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 use App\Services\Import\TaxonomyResolver;
 
 class ZoommerDriver implements SupplierDriver
 {
+    use ScansIdRange;
+
     protected ZoommerClient $client;
 
     public function __construct(public Supplier $supplier)
@@ -28,15 +31,14 @@ class ZoommerDriver implements SupplierDriver
      */
     public function ids(): iterable
     {
-        $from = (int) ($this->supplier->config['from'] ?? 1);
-        $to = (int) ($this->supplier->config['to'] ?? 1000);
+        /*
+         * One request before the rest, so a closed door is found now rather
+         * than after thousands of jobs have been queued against it. A missing
+         * product answers with an empty array; only a refusal throws.
+         */
+        $this->client->fetch((string) ($this->supplier->config['from'] ?? 1), ['ka']);
 
-        // a missing product answers with an empty array; only a refusal throws
-        $this->client->fetch((string) $from, ['ka']);
-
-        for ($id = $from; $id <= $to; $id++) {
-            yield $id;
-        }
+        yield from $this->idsToScan(defaultTo: 1000);
     }
 
     public function fetch(string $externalId): ?ProductPayload

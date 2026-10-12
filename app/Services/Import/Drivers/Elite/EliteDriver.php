@@ -4,6 +4,7 @@ namespace App\Services\Import\Drivers\Elite;
 
 use App\Models\Supplier;
 use App\Models\SupplierStock;
+use App\Services\Import\Concerns\ScansIdRange;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 use App\Services\Import\TaxonomyResolver;
@@ -21,6 +22,8 @@ use RuntimeException;
  */
 class EliteDriver implements SupplierDriver
 {
+    use ScansIdRange;
+
     protected EliteClient $client;
 
     /** barcode => quantity, loaded once per run instead of per product */
@@ -49,12 +52,7 @@ class EliteDriver implements SupplierDriver
             );
         }
 
-        $from = (int) ($this->supplier->config['from'] ?? 1);
-        $to = (int) ($this->supplier->config['to'] ?? 35000);
-
-        for ($id = $from; $id <= $to; $id++) {
-            yield $id;
-        }
+        yield from $this->idsToScan(defaultTo: 35000);
     }
 
     public function fetch(string $externalId): ?ProductPayload

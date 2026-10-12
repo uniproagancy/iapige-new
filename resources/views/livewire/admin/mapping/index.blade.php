@@ -173,13 +173,23 @@
                             @endif
 
                             <td>
-                                <select class="form-select form-select-sm"
-                                        wire:change="assign({{ $row->id }}, $event.target.value)">
-                                    <option value="">— {{ __('admin.not_mapped') }} —</option>
-                                    @foreach ($targets as $id => $label)
-                                        <option value="{{ $id }}" @selected($current == $id)>{{ $label }}</option>
-                                    @endforeach
-                                </select>
+                                {{--
+                                    Typed, not scrolled.
+
+                                    A plain select holds every category in the
+                                    shop and offers nothing but the browser's
+                                    jump-to-first-letter, which is no help at
+                                    all when the labels are full trails. A
+                                    datalist filters as you type, natively,
+                                    with no library and no round trip per
+                                    keystroke — the list is the same for every
+                                    row, so it is rendered once below.
+                                --}}
+                                <input type="text" list="mapTargets"
+                                       class="form-control form-control-sm"
+                                       placeholder="— {{ __('admin.not_mapped') }} —"
+                                       value="{{ $current ? ($targets[$current] ?? '') : '' }}"
+                                       data-map-row="{{ $row->id }}">
                             </td>
 
                             <td class="text-end text-nowrap">
@@ -226,4 +236,11 @@
             </div>
         </div>
     @endif
+
+    {{-- the options every row's input filters against, rendered once --}}
+    <datalist id="mapTargets">
+        @foreach ($targets as $id => $label)
+            <option value="{{ $label }}" data-id="{{ $id }}"></option>
+        @endforeach
+    </datalist>
 </div>
