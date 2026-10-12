@@ -374,7 +374,17 @@ class Index extends Component
         $this->deletingName = $category->name;
         $this->deletingChildren = $category->children_count;
         $this->deletingProducts = Product::whereIn('category_id', $category->descendantAndSelfIds())->count();
-        $this->moveTo = $category->parent_id ?? Category::fallback()->id;
+        /*
+         * The parent, or nothing.
+         *
+         * This asked Category::fallback() for somewhere to put the orphans and
+         * no such method has ever existed, so opening the delete dialog on a
+         * root category was a fatal error. The form itself already offers
+         * "uncategorised" as the first choice — products are allowed to have
+         * no category, and the product list filters on exactly that — so a
+         * root simply defaults to it.
+         */
+        $this->moveTo = $category->parent_id;
         $this->resetValidation();
 
         $this->showDelete = true;
@@ -390,21 +400,25 @@ class Index extends Component
             return;
         }
 
-        $target = $this->moveTo ? Category::findOrFail($this->moveTo) : Category::fallback();
+        $target = $this->moveTo ? Category::findOrFail($this->moveTo) : null;
 
-        if (in_array($target->id, $category->descendantAndSelfIds(), true)) {
+        // a category cannot be moved inside itself, nor inside one of its own children
+        if ($target && in_array($target->id, $category->descendantAndSelfIds(), true)) {
             $this->addError('moveTo', __('admin.move_into_self'));
 
             return;
         }
 
-        DB::transaction(function () use ($category, $target) {
-            Category::where('parent_id', $category->id)->update(['parent_id' => $target->id]);
-            Product::where('category_id', $category->id)->update(['category_id' => $target->id]);
+        $targetId = $target?->id;
+
+        DB::transaction(function () use ($category, $targetId) {
+            // null makes them roots, which is what "uncategorised" means for a branch
+            Category::where('parent_id', $category->id)->update(['parent_id' => $targetId]);
+            Product::where('category_id', $category->id)->update(['category_id' => $targetId]);
 
             // a supplier mapping pointing here would silently refill a deleted category
             DB::table('supplier_category_map')->where('category_id', $category->id)
-                ->update(['category_id' => $target->id, 'updated_at' => now()]);
+                ->update(['category_id' => $targetId, 'updated_at' => now()]);
 
             $category->delete();
         });
@@ -412,7 +426,10 @@ class Index extends Component
         $this->showDelete = false;
         $this->reset(['deletingId', 'deletingName', 'deletingChildren', 'deletingProducts', 'moveTo']);
 
-        $this->dispatch('toast', message: __('admin.category_deleted', ['target' => $target->name]));
+        // "uncategorised" is a real destination, and it has no name to read
+        $this->dispatch('toast', message: $target
+            ? __('admin.category_deleted', ['target' => $target->name])
+            : __('admin.category_deleted_uncategorised'));
     }
 
     protected function resetForm(): void

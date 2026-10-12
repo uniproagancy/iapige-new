@@ -29,6 +29,19 @@ class Index extends Component
     #[Url(as: 'tab', except: 'categories')]
     public string $tab = 'categories';
 
+    /**
+     * The row whose list is open, and what has been typed into it.
+     *
+     * One at a time: a picker is something somebody is in the middle of, and
+     * two half-finished ones on a screen is a way to assign the wrong row.
+     */
+    public ?int $picking = null;
+
+    public string $pick = '';
+
+    /** Enough to choose from without turning the page into a list. */
+    protected const SUGGESTIONS = 12;
+
     #[Url(as: 'supplier', except: null)]
     public ?int $supplierId = null;
 
@@ -110,6 +123,8 @@ class Index extends Component
             'impact' => $this->showImpact ? $this->impact($rows) : [],
             'context' => $this->categoryContext($rows),
             'canRelink' => $this->canRelink(),
+            // only built when a list is actually open
+            'suggestions' => $this->picking ? $this->suggestions() : [],
         ])->layout('layouts.admin', ['title' => __('admin.mapping')]);
     }
 
@@ -241,35 +256,50 @@ class Index extends Component
     /* ------------------------------------------------------------------ actions */
 
     /** Map one row; the choice applies the moment it is made. */
-    /**
-     * Assign by the label somebody typed or picked.
-     *
-     * The input is a datalist, so the browser gives back the label rather than
-     * the id. Turning one into the other was done in JavaScript — find the
-     * option, read its data-id, call the component — which is three places for
-     * it to go wrong and nowhere to test it. The list of labels already lives
-     * here, so the lookup does too.
-     *
-     * A label that is not in the list is somebody mid-word, not a choice, and
-     * is ignored. Clearing the field is how a mapping is removed.
-     */
-    public function assignByLabel(int $id, ?string $label): void
+    public function openPicker(int $id): void
     {
-        $label = trim((string) $label);
+        $this->picking = $id;
+        $this->pick = '';
+    }
 
-        if ($label === '') {
-            $this->assign($id, null);
+    public function closePicker(): void
+    {
+        $this->picking = null;
+        $this->pick = '';
+    }
 
-            return;
-        }
-
-        $targetId = array_search($label, $this->targets(), true);
-
-        if ($targetId === false) {
-            return;
-        }
-
+    /** Chosen from the list, which is the only way to choose. */
+    public function choose(int $id, int $targetId): void
+    {
         $this->assign($id, $targetId);
+        $this->closePicker();
+    }
+
+    public function unmap(int $id): void
+    {
+        $this->assign($id, null);
+        $this->closePicker();
+    }
+
+    /**
+     * What to offer for what has been typed so far.
+     *
+     * Matched anywhere in the trail rather than only at the start, because
+     * the part somebody remembers is usually the last word — "watches", not
+     * "Mobile phones and accessories".
+     *
+     * @return array<int, string>
+     */
+    public function suggestions(): array
+    {
+        $targets = $this->targets();
+        $query = trim($this->pick);
+
+        if ($query !== '') {
+            $targets = array_filter($targets, fn (string $label) => mb_stripos($label, $query) !== false);
+        }
+
+        return array_slice($targets, 0, self::SUGGESTIONS, true);
     }
 
     public function assign(int $id, $targetId): void

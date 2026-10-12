@@ -127,4 +127,67 @@
 .map-row--done{opacity:.68}
 .map-row--done:hover{opacity:1}
 
+/* ------------------------------------------------------------------ mapping picker
 
+   A category list we draw ourselves.
+
+   The browser's own datalist box cannot be sized or styled, and these labels
+   are full paths — "Small appliances › Kitchen › Blenders" — so the end of the
+   name, which is the part that tells two of them apart, was always the part
+   cut off. This one wraps rather than truncates and shows a dozen at a time.
+*/
+.picker { position: relative; }
+
+.picker__list {
+    margin-top: 6px;
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: .357rem;
+    background: rgba(0, 0, 0, .25);
+}
+
+.picker__item {
+    display: block;
+    width: 100%;
+    padding: 9px 12px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: .95rem;
+    line-height: 1.45;
+    text-align: start;
+    /* the whole path, wrapped onto a second line rather than cut short */
+    white-space: normal;
+    word-break: break-word;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.picker__item + .picker__item { border-top: 1px solid rgba(255, 255, 255, .05); }
+.picker__item:hover { background: var(--iapi-orange); color: #fff; }
+
+.picker__empty { display: block; padding: 12px; opacity: .6; }
+
+.picker__foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+
+/* what a row shows while its list is closed */
+.picker__current {
+    display: block;
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: .357rem;
+    background: none;
+    color: inherit;
+    font-size: .95rem;
+    line-height: 1.45;
+    text-align: start;
+    white-space: normal;
+    word-break: break-word;
+    cursor: pointer;
+    transition: border-color .15s;
+}
+
+.picker__current:hover { border-color: var(--iapi-orange); }
+.picker__current.is-empty { opacity: .55; }

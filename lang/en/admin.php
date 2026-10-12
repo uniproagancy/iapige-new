@@ -351,4 +351,7 @@ return [
     'cb_make_order' => 'Create order',
     'cb_see_order' => 'Order',
     'cb_from_page' => 'Page they were on',
+    'map_search' => 'Start typing a category name…',
+    'map_nothing_found' => 'No category matches that',
+    'category_deleted_uncategorised' => 'Category deleted; what was in it has no category now',
 ];

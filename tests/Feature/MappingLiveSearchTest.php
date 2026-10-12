@@ -13,13 +13,14 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Mapping a supplier's category by typing its name.
+ * Choosing a category by typing part of its name.
  *
- * The field is a datalist, so the browser hands back the label and something
- * has to turn it into the category it stands for. That was done in
- * JavaScript — find the option, read an id off it, call the component — which
- * is three places to go wrong and none of them testable. The list of labels
- * is built here, so the lookup is too, and these cover it.
+ * The field began as a select holding every category in the shop, which
+ * offered nothing but the browser's jump-to-first-letter. A datalist filtered
+ * as you type but drew a box the browser owns — not sizeable, not styleable —
+ * and these labels are full paths, so the end of the name was always the part
+ * cut off. The list is ours now, and every step of it is a method rather than
+ * something only a browser can do.
  */
 class MappingLiveSearchTest extends TestCase
 {
@@ -29,78 +30,116 @@ class MappingLiveSearchTest extends TestCase
 
     protected Category $watches;
 
-    public function test_a_chosen_label_is_saved(): void
+    /* ------------------------------------------------------------------ choosing */
+
+    public function test_choosing_from_the_list_saves_it(): void
     {
         $id = $this->unmapped('სმარტ საათები');
 
-        Livewire::test(Index::class)->call('assignByLabel', $id, 'მობილურები › სმარტ საათები');
+        Livewire::test(Index::class)
+            ->call('openPicker', $id)
+            ->call('choose', $id, $this->watches->id);
 
         $this->assertSame($this->watches->id, $this->mappedTo($id));
     }
 
-    /** A top-level category has no trail in front of it. */
-    public function test_a_label_without_a_trail_is_saved(): void
-    {
-        $id = $this->unmapped('ტელეფონები');
-
-        Livewire::test(Index::class)->call('assignByLabel', $id, 'მობილურები');
-
-        $this->assertSame($this->watches->parent_id, $this->mappedTo($id));
-    }
-
-    /**
-     * Half a word is somebody still choosing.
-     *
-     * The field fires on every change, so a name nobody has finished typing
-     * must not clear the mapping that is already there.
-     */
-    public function test_an_unfinished_label_changes_nothing(): void
+    /** And the list closes behind it, so the next row starts clean. */
+    public function test_the_list_closes_after_choosing(): void
     {
         $id = $this->unmapped('სმარტ საათები');
 
-        $component = Livewire::test(Index::class);
-        $component->call('assignByLabel', $id, 'მობილურები › სმარტ საათები');
-        $component->call('assignByLabel', $id, 'მობილუ');
+        $component = Livewire::test(Index::class)
+            ->call('openPicker', $id)
+            ->set('pick', 'საათ')
+            ->call('choose', $id, $this->watches->id);
 
-        $this->assertSame($this->watches->id, $this->mappedTo($id), 'a half-typed name is not a choice');
+        $this->assertNull($component->get('picking'));
+        $this->assertSame('', $component->get('pick'));
     }
 
-    /** Clearing the field is how a mapping is removed. */
-    public function test_an_empty_label_unmaps_it(): void
+    public function test_a_mapping_can_be_removed(): void
     {
         $id = $this->unmapped('სმარტ საათები');
 
-        $component = Livewire::test(Index::class);
-        $component->call('assignByLabel', $id, 'მობილურები › სმარტ საათები');
-        $component->call('assignByLabel', $id, '');
+        $component = Livewire::test(Index::class)->call('choose', $id, $this->watches->id);
+        $component->call('openPicker', $id)->call('unmap', $id);
 
         $this->assertNull($this->mappedTo($id));
     }
 
-    /** Surrounding spaces are the browser's, not part of the name. */
-    public function test_a_padded_label_still_matches(): void
+    /* ------------------------------------------------------------------ searching */
+
+    /**
+     * Matched anywhere in the path, not only at the start.
+     *
+     * The word somebody remembers is the last one — "watches", not "Mobile
+     * phones and accessories" — so a list that only matched the beginning was
+     * no better than scrolling.
+     */
+    public function test_the_last_word_of_a_path_finds_it(): void
     {
-        $id = $this->unmapped('სმარტ საათები');
+        $component = Livewire::test(Index::class)->set('pick', 'საათ');
 
-        Livewire::test(Index::class)->call('assignByLabel', $id, '  მობილურები › სმარტ საათები  ');
-
-        $this->assertSame($this->watches->id, $this->mappedTo($id));
+        $this->assertContains('მობილურები › სმარტ საათები', $component->instance()->suggestions());
     }
 
-    /** Two categories called the same thing are told apart by their trail. */
-    public function test_the_trail_tells_two_identical_names_apart(): void
+    public function test_the_search_ignores_case(): void
     {
-        $other = Category::create(['parent_id' => null, 'is_active' => true, 'sort_order' => 2]);
-        $other->saveTranslations(['ka' => ['name' => 'აქსესუარები', 'slug' => 'accessories']]);
+        $this->category('Accessories', null);
 
-        $nested = Category::create(['parent_id' => $other->id, 'is_active' => true, 'sort_order' => 1]);
-        $nested->saveTranslations(['ka' => ['name' => 'სმარტ საათები', 'slug' => 'watch-accessories']]);
+        $component = Livewire::test(Index::class)->set('pick', 'accessories');
 
-        $id = $this->unmapped('საათების აქსესუარები');
+        $this->assertContains('Accessories', $component->instance()->suggestions());
+    }
 
-        Livewire::test(Index::class)->call('assignByLabel', $id, 'აქსესუარები › სმარტ საათები');
+    /** Nothing typed is still a list — the first few, to choose from. */
+    public function test_an_empty_search_offers_the_first_few(): void
+    {
+        $this->assertNotEmpty(Livewire::test(Index::class)->set('pick', '')->instance()->suggestions());
+    }
 
-        $this->assertSame($nested->id, $this->mappedTo($id));
+    public function test_a_search_that_matches_nothing_offers_nothing(): void
+    {
+        $this->assertSame([], Livewire::test(Index::class)->set('pick', 'qqqq')->instance()->suggestions());
+    }
+
+    /** A dozen at a time, so the page does not become the list. */
+    public function test_the_list_is_capped(): void
+    {
+        foreach (range(1, 30) as $i) {
+            $this->category('კატეგორია '.$i, null);
+        }
+
+        $this->assertLessThanOrEqual(12, count(Livewire::test(Index::class)->set('pick', 'კატეგორია')->instance()->suggestions()));
+    }
+
+    /** Two of the same name are told apart by the path in front of them. */
+    public function test_identical_names_are_told_apart_by_their_path(): void
+    {
+        $other = $this->category('აქსესუარები', null);
+        $this->category('სმარტ საათები', $other->id);
+
+        $labels = Livewire::test(Index::class)->set('pick', 'სმარტ საათები')->instance()->suggestions();
+
+        $this->assertContains('მობილურები › სმარტ საათები', $labels);
+        $this->assertContains('აქსესუარები › სმარტ საათები', $labels);
+    }
+
+    /* ------------------------------------------------------------------ one at a time */
+
+    /** Two half-finished pickers on a screen is how the wrong row gets mapped. */
+    public function test_opening_one_row_closes_the_other(): void
+    {
+        $first = $this->unmapped('ერთი');
+        $second = $this->unmapped('ორი');
+
+        $component = Livewire::test(Index::class)
+            ->call('openPicker', $first)
+            ->set('pick', 'საათ')
+            ->call('openPicker', $second);
+
+        $this->assertSame($second, $component->get('picking'));
+        $this->assertSame('', $component->get('pick'), 'the search starts clean on the new row');
     }
 
     /* ------------------------------------------------------------------ helpers */
@@ -119,13 +158,18 @@ class MappingLiveSearchTest extends TestCase
             'priority' => 1, 'markup' => [['up_to' => 5000, 'percent' => 20]],
         ]);
 
-        $phones = Category::create(['parent_id' => null, 'is_active' => true, 'sort_order' => 1]);
-        $phones->saveTranslations(['ka' => ['name' => 'მობილურები', 'slug' => 'phones']]);
-
-        $this->watches = Category::create(['parent_id' => $phones->id, 'is_active' => true, 'sort_order' => 1]);
-        $this->watches->saveTranslations(['ka' => ['name' => 'სმარტ საათები', 'slug' => 'smart-watches']]);
+        $phones = $this->category('მობილურები', null);
+        $this->watches = $this->category('სმარტ საათები', $phones->id);
 
         $this->actingAs(User::factory()->create(['is_admin' => true]));
+    }
+
+    protected function category(string $name, ?int $parentId): Category
+    {
+        $category = Category::create(['parent_id' => $parentId, 'is_active' => true, 'sort_order' => 1]);
+        $category->saveTranslations(['ka' => ['name' => $name, 'slug' => str()->slug($name).'-'.$category->id]]);
+
+        return $category->fresh();
     }
 
     protected function unmapped(string $externalName): int

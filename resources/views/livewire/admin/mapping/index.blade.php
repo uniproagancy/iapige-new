@@ -184,23 +184,56 @@
 
                             <td>
                                 {{--
-                                    Typed, not scrolled.
+                                    A list of our own, not the browser's.
 
-                                    A plain select holds every category in the
-                                    shop and offers nothing but the browser's
-                                    jump-to-first-letter, which is no help at
-                                    all when the labels are full trails. A
-                                    datalist filters as you type, natively,
-                                    with no library and no round trip per
-                                    keystroke — the list is the same for every
-                                    row, so it is rendered once below.
+                                    A datalist filters natively and costs
+                                    nothing, but the box it draws belongs to
+                                    the browser: its width, its height and how
+                                    many lines it shows are not ours to set.
+                                    With labels that run to three levels the
+                                    end of the path — the part that tells two
+                                    apart — was always the part cut off.
                                 --}}
-                                <input type="text" list="mapTargets"
-                                       class="form-control form-control-sm"
-                                       placeholder="— {{ __('admin.not_mapped') }} —"
-                                       value="{{ $current ? ($targets[$current] ?? '') : '' }}"
-                                       wire:change="assignByLabel({{ $row->id }}, $event.target.value)"
-                                       wire:key="map-{{ $tab }}-{{ $row->id }}">
+                                @if ($picking === $row->id)
+                                    <div class="picker">
+                                        <input type="text" class="form-control form-control-sm"
+                                               placeholder="{{ __('admin.map_search') }}"
+                                               wire:model.live.debounce.250ms="pick"
+                                               wire:keydown.escape="closePicker"
+                                               autofocus>
+
+                                        <div class="picker__list">
+                                            @forelse ($suggestions as $targetId => $label)
+                                                <button type="button" class="picker__item"
+                                                        wire:click="choose({{ $row->id }}, {{ $targetId }})"
+                                                        wire:key="pick-{{ $row->id }}-{{ $targetId }}">
+                                                    {{ $label }}
+                                                </button>
+                                            @empty
+                                                <span class="picker__empty">{{ __('admin.map_nothing_found') }}</span>
+                                            @endforelse
+                                        </div>
+
+                                        <div class="picker__foot">
+                                            @if ($current)
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        wire:click="unmap({{ $row->id }})">
+                                                    {{ __('admin.not_mapped') }}
+                                                </button>
+                                            @endif
+                                            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto"
+                                                    wire:click="closePicker">
+                                                {{ __('admin.cancel') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                @else
+                                    <button type="button"
+                                            @class(['picker__current', 'is-empty' => ! $current])
+                                            wire:click="openPicker({{ $row->id }})">
+                                        {{ $current ? ($targets[$current] ?? '') : '— '.__('admin.not_mapped').' —' }}
+                                    </button>
+                                @endif
                             </td>
 
                             <td class="text-end text-nowrap">
@@ -248,10 +281,4 @@
         </div>
     @endif
 
-    {{-- the options every row's input filters against, rendered once --}}
-    <datalist id="mapTargets">
-        @foreach ($targets as $id => $label)
-            <option value="{{ $label }}"></option>
-        @endforeach
-    </datalist>
 </div>
