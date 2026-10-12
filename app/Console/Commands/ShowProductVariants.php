@@ -63,8 +63,8 @@ class ShowProductVariants extends Command
         if ($siblings->count() < 2) {
             $this->line('');
             $this->warn('  Nothing to switch between: no other product shares that.');
-            $this->line('  Colour variants are found by a shared variant_group, or by a shared');
-            $this->line('  barcode in the sku. This product has neither in common with anything.');
+
+            $this->nearby($product);
 
             return self::SUCCESS;
         }
@@ -114,5 +114,53 @@ class ShowProductVariants extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Products that are plainly the same thing, and what keeps them apart.
+     *
+     * The usual answer to "no siblings" is not that they are missing but that
+     * each ended up in a group of its own. The supplier builds a group from
+     * the list of related ids it sends with each product, so a product whose
+     * list arrived short — or arrived on a different day — gets a group
+     * nobody else shares. Shown side by side, that is obvious at a glance.
+     */
+    protected function nearby(Product $product): void
+    {
+        // the name up to the part that differs, which is usually the colour
+        $stem = trim(implode(' ', array_slice(preg_split('/\s+/', (string) $product->name), 0, 6)));
+
+        $others = Product::withTranslation()
+            ->whereKeyNot($product->id)
+            ->whereHas('translations', fn ($q) => $q->where('name', 'like', $stem.'%'))
+            ->orderBy('id')
+            ->limit(15)
+            ->get();
+
+        if ($others->isEmpty()) {
+            $this->line('  No other product is named like this one either.');
+
+            return;
+        }
+
+        $this->line('');
+        $this->line('  Named like it, and how each is grouped:');
+
+        $this->table(
+            ['id', 'name', 'variant_group', 'sku'],
+            $others->map(fn (Product $p) => [
+                $p->id,
+                $p->name,
+                $p->variant_group ?: '—',
+                $p->sku,
+            ])->prepend([
+                $product->id.' ←',
+                $product->name,
+                $product->variant_group ?: '—',
+                $product->sku,
+            ]),
+        );
+
+        $this->line('  Same group or same sku on two rows is what makes them switchable.');
     }
 }
