@@ -112,7 +112,24 @@ return [
      | the shop has sent since then landed in Test Events, where Meta counts
      | none of them as conversions.
      */
+    /*
+     | Signing in with Google or Facebook.
+     |
+     | The redirect must match the one registered with the provider exactly,
+     | down to the scheme and any trailing slash, or the provider refuses the
+     | callback with no explanation worth reading.
+     */
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL').'/auth/google/callback'),
+    ],
+
     'facebook' => [
+        'client_id' => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+        'redirect' => env('FACEBOOK_REDIRECT_URI', env('APP_URL').'/auth/facebook/callback'),
+
         'pixel_id' => env('FACEBOOK_PIXEL_ID'),
         'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
         'api_version' => env('FACEBOOK_API_VERSION', 'v24.0'),

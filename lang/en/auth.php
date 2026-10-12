@@ -66,4 +66,6 @@ and get 5% off',
 
     'sign_in' => 'Sign in',
 
+    'social_failed' => 'Sign-in did not go through. Try again, or use your email and password.',
+    'social_no_email' => 'That account came with no email address, and an order needs one. Please sign up with an email instead.',
 ];

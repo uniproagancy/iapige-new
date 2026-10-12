@@ -14,6 +14,14 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    /*
+     | provider and provider_id are deliberately absent.
+     |
+     | They say who somebody is as far as Google or Facebook is concerned, and
+     | a mass assignment that reached them would let a request claim an
+     | identity it has not proved. SocialAuthController sets them explicitly,
+     | after the provider has.
+     */
     protected $fillable = [
         'name',
         'email',
@@ -24,6 +32,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'provider_id',
     ];
 
     protected function casts(): array

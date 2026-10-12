@@ -8,6 +8,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\SocialAuthController;
 use App\Livewire\Account\Index;
 use App\Livewire\Admin;
 use App\Livewire\Auth\ResetPassword;
@@ -64,6 +65,17 @@ Route::group([
         ->name('password.reset');
 
 });
+
+/*
+ | Signing in with Google or Facebook.
+ |
+ | Outside the {locale} group: the callback address is registered with the
+ | provider once and cannot carry a language that changes per visitor.
+ */
+Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
+    ->name('social.redirect');
+Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
+    ->name('social.callback');
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
