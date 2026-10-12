@@ -105,18 +105,28 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th style="width:130px">{{ __('admin.supplier') }}</th>
-                        <th>{{ __('admin.external_name') }}</th>
-                        <th class="text-center" style="width:90px">{{ __('admin.hits') }}</th>
+                        {{--
+                            The category column takes what is left, and the
+                            rest are held to what they need.
+
+                            A full trail runs to "Small kitchen appliances ›
+                            Blenders and choppers" and the field was given a
+                            fixed share of the table, so most of a name was cut
+                            off exactly where it starts to matter — the end,
+                            which is the part that tells two of them apart.
+                        --}}
+                        <th style="width:110px">{{ __('admin.supplier') }}</th>
+                        <th style="width:18%">{{ __('admin.external_name') }}</th>
+                        <th class="text-center" style="width:70px">{{ __('admin.hits') }}</th>
                         @if ($tab === 'categories' && $canRelink)
-                            <th class="text-center" style="width:110px">{{ __('admin.products') }}</th>
+                            <th class="text-center" style="width:90px">{{ __('admin.products') }}</th>
                         @endif
                         @if ($tab === 'attributes')
                             {{-- which department the name arrived from; the name alone does not say --}}
-                            <th style="width:22%">{{ __('admin.seen_in') }}</th>
+                            <th style="width:14%">{{ __('admin.seen_in') }}</th>
                         @endif
-                        <th style="width:38%">{{ $tab === 'attributes' ? __('admin.attribute') : __('admin.category') }}</th>
-                        <th class="text-end" style="width:120px">{{ __('admin.actions') }}</th>
+                        <th>{{ $tab === 'attributes' ? __('admin.attribute') : __('admin.category') }}</th>
+                        <th class="text-end" style="width:100px">{{ __('admin.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
