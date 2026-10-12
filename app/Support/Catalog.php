@@ -612,8 +612,7 @@ class Catalog
         // the switchers cover this product and every sibling that shares its group
         $variants = self::variantSwitchers($product);
 
-        $colors = $variants['color'] ?? [];
-        $storage = $variants['storage'] ?? [];
+        [$colors, $storage] = self::splitVariants($variants);
 
         // a spec with no value would render as an empty row
         $usable = fn ($row) => filled($row[0]) && filled($row[1]) && ! in_array(trim($row[1]), ['-', '—', 'N/A'], true);
@@ -673,6 +672,49 @@ class Catalog
             'bundle' => $bundle,
             'related' => $related,
         ];
+    }
+
+    /**
+     * Which switcher is the colour row and which is the memory row.
+     *
+     * These were picked by attribute code — "color" and "storage" — and the
+     * codes are made from the supplier's own words. A Georgian shop importing
+     * Georgian names gets "feri" and "mekhsiereba", so neither ever matched
+     * and the product page showed no switchers at all however carefully the
+     * attributes were marked as variants in the admin.
+     *
+     * Decided on what the options are instead of what they are called: a
+     * colour is the group whose values carry a swatch, which is the one thing
+     * only a colour has. Whatever else is marked as a variant becomes the
+     * second row.
+     *
+     * @param  array<string, array<int, array<string, mixed>>>  $variants
+     * @return array{0: array<int, mixed>, 1: array<int, mixed>}
+     */
+    protected static function splitVariants(array $variants): array
+    {
+        $colors = [];
+        $other = [];
+
+        foreach ($variants as $code => $options) {
+            $isColour = collect($options)->contains(fn (array $o) => filled($o['hex'] ?? null));
+
+            if ($isColour && ! $colors) {
+                $colors = $options;
+
+                continue;
+            }
+
+            $other[$code] = $options;
+        }
+
+        /*
+         * The page has one row for the rest, so with several the first is
+         * shown — by code, so the choice does not move about between requests.
+         */
+        ksort($other);
+
+        return [$colors, $other ? reset($other) : []];
     }
 
     /**

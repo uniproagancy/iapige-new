@@ -228,40 +228,15 @@ class Index extends Component
             : __('account.reordered', ['count' => $added]));
     }
 
-    /**
-     * A customer may call off an order we have not packed yet. After that it is
-     * a conversation, not a button, so the option disappears.
+    /*
+     | cancelOrder lived here.
+     |
+     | Removed rather than hidden: a Livewire method is callable from the
+     | browser whether or not a button points at it, so taking the button away
+     | would have left the action itself open to anyone who looked. Cancelling
+     | is the shop's decision now, made on the order in the admin, where the
+     | status change is recorded against whoever made it.
      */
-    public function cancelOrder(int $id): void
-    {
-        $order = Order::where('user_id', auth()->id())->findOrFail($id);
-
-        if (! in_array($order->status, ['new', 'confirmed'], true)) {
-            $this->dispatch('toast', message: __('account.cancel_too_late'), type: 'error');
-
-            return;
-        }
-
-        DB::transaction(function () use ($order) {
-            $from = $order->status;
-
-            $order->update(['status' => 'cancelled']);
-
-            foreach ($order->items as $item) {
-                Product::whereKey($item->product_id)->increment('stock', (int) $item->qty);
-            }
-
-            $order->events()->create([
-                'user_id' => auth()->id(),
-                'type' => 'status',
-                'from' => $from,
-                'to' => 'cancelled',
-                'note' => __('account.cancelled_by_customer'),
-            ]);
-        });
-
-        $this->dispatch('toast', message: __('account.order_cancelled'));
-    }
 
     /* ------------------------------------------------------------------ addresses */
 

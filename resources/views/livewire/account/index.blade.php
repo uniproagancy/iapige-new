@@ -178,15 +178,16 @@
                                         {{ __('account.reorder') }}
                                     </button>
 
-                                    {{-- only while nobody has packed it yet --}}
-                                    @if (in_array($order->status, ['new', 'confirmed'], true))
-                                        <button type="button" class="pill pill--danger"
-                                                data-confirm="{{ __('account.cancel_confirm') }}"
-                                                data-confirm-action="cancelOrder"
-                                                data-confirm-arg="{{ $order->id }}">
-                                            {{ __('account.cancel_order') }}
-                                        </button>
-                                    @endif
+                                    {{--
+                                        Cancelling is the shop's to do.
+
+                                        A customer pressing this put stock back
+                                        and closed the order without anybody
+                                        knowing why — and after goods are picked
+                                        or paid for that is a conversation, not a
+                                        button. The admin cancels from the order
+                                        itself, where the reason is recorded.
+                                    --}}
                                 </div>
                             </div>
                         @endif
