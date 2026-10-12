@@ -107,6 +107,69 @@ class ProductVariantsTest extends TestCase
         $this->assertSame([], Catalog::productPage($one->fresh())['configs']);
     }
 
+    /* ------------------------------------------------------------------ the barcode */
+
+    /**
+     * The black and the white phone find each other by their barcode.
+     *
+     * The supplier does not always send its list of related products, and
+     * without one the colours on a page had nothing to point at. A barcode
+     * names an article rather than a listing, so the two colours carry the
+     * same one — and since the import stores it as the sku, the relationship
+     * is already in the database.
+     */
+    public function test_two_colours_sharing_a_barcode_are_siblings(): void
+    {
+        $colour = $this->attribute('ფერი');
+
+        $black = $this->product('Black', 'phone-black', group: null, sku: '6931474700000');
+        $white = $this->product('White', 'phone-white', group: null, sku: '6931474700000');
+
+        $this->give($black, $colour, 'shavi', 'შავი', '#000000');
+        $this->give($white, $colour, 'tetri', 'თეთრი', '#FFFFFF');
+
+        $page = Catalog::productPage($black->fresh());
+
+        $this->assertCount(2, $page['colors']);
+        $this->assertSame(
+            route('product', 'phone-white'),
+            collect($page['colors'])->firstWhere('code', 'tetri')['url'],
+        );
+    }
+
+    /**
+     * A sku the importer invented groups nothing.
+     *
+     * Rows with no barcode get "ZOOM-54321", which belongs to one product
+     * alone — two unrelated products must never become each other's variants.
+     */
+    public function test_products_with_their_own_skus_are_not_siblings(): void
+    {
+        $colour = $this->attribute('ფერი');
+
+        $one = $this->product('ერთი', 'p-one', group: null, sku: 'ZOOM-1');
+        $two = $this->product('ორი', 'p-two', group: null, sku: 'ZOOM-2');
+
+        $this->give($one, $colour, 'shavi', 'შავი', '#000000');
+        $this->give($two, $colour, 'tetri', 'თეთრი', '#FFFFFF');
+
+        $this->assertSame([], Catalog::productPage($one->fresh())['colors']);
+    }
+
+    /** The supplier's own grouping still wins where it exists. */
+    public function test_the_variant_group_is_used_when_there_is_one(): void
+    {
+        $colour = $this->attribute('ფერი');
+
+        $one = $this->product('ერთი', 'g-one', sku: 'SKU-A');
+        $two = $this->product('ორი', 'g-two', sku: 'SKU-B');
+
+        $this->give($one, $colour, 'shavi', 'შავი', '#000000');
+        $this->give($two, $colour, 'tetri', 'თეთრი', '#FFFFFF');
+
+        $this->assertCount(2, Catalog::productPage($one->fresh())['colors']);
+    }
+
     /* ------------------------------------------------------------------ the links */
 
     /**
@@ -201,10 +264,10 @@ class ProductVariantsTest extends TestCase
         $product->attributeValues()->syncWithoutDetaching([$value->id]);
     }
 
-    protected function product(string $name, string $slug, ?string $group = 'nothing-3a'): Product
+    protected function product(string $name, string $slug, ?string $group = 'nothing-3a', ?string $sku = null): Product
     {
         $product = Product::create([
-            'sku' => 'SKU-'.$slug,
+            'sku' => $sku ?? 'SKU-'.$slug,
             'category_id' => $this->category->id,
             'price' => 899,
             'stock' => 5,

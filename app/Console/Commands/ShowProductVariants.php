@@ -45,18 +45,29 @@ class ShowProductVariants extends Command
         $this->line("  sku {$product->sku} · id {$product->id}");
         $this->line('');
 
-        if (! $product->variant_group) {
-            $this->warn('  No variant_group, so this product has no siblings and no switchers.');
-
-            return self::SUCCESS;
-        }
+        /*
+         * Grouped the same way the page groups them: the supplier's own list
+         * when it sent one, and otherwise the barcode, which names an article
+         * rather than a listing and so is shared by a phone's colours.
+         */
+        $by = $product->variant_group ? 'variant_group' : 'sku';
+        $value = $product->variant_group ?: $product->sku;
 
         $siblings = Product::withTranslation()
-            ->where('variant_group', $product->variant_group)
+            ->where($by, $value)
             ->orderBy('price')
             ->get();
 
-        $this->line("  group <options=bold>{$product->variant_group}</> · {$siblings->count()} products in it");
+        $this->line("  grouped by <options=bold>{$by}</> = <options=bold>{$value}</> · {$siblings->count()} products");
+
+        if ($siblings->count() < 2) {
+            $this->line('');
+            $this->warn('  Nothing to switch between: no other product shares that.');
+            $this->line('  Colour variants are found by a shared variant_group, or by a shared');
+            $this->line('  barcode in the sku. This product has neither in common with anything.');
+
+            return self::SUCCESS;
+        }
 
         $this->table(
             ['id', 'name', 'status', 'price'],

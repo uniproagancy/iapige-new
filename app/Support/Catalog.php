@@ -675,6 +675,43 @@ class Catalog
     }
 
     /**
+     * The same article in its other shapes.
+     *
+     * Two ways of knowing, and the second is the one that does the work.
+     *
+     * variant_group comes from the supplier's own list of related products,
+     * which it does not always send — and when it is missing the colours on a
+     * product page had nothing to point at.
+     *
+     * The sku is the barcode, and a barcode names an article rather than a
+     * listing: a phone's black and white versions carry the same one. So
+     * products sharing a sku are the same thing in different colours, which is
+     * exactly the relationship wanted here, and it is already in the database
+     * without asking the supplier anything.
+     *
+     * @return Collection<int, Product>
+     */
+    protected static function siblingsOf(Product $product): Collection
+    {
+        $query = Product::active()->withTranslation()
+            ->with(['attributeValues' => fn ($q) => $q->withTranslation()
+                ->whereHas('attribute', fn ($a) => $a->where('is_variant', true))
+                ->with('attribute')])
+            ->orderBy('price');
+
+        if ($product->variant_group) {
+            return $query->where('variant_group', $product->variant_group)->get();
+        }
+
+        /*
+         * Only when more than one product carries it. A sku the importer had
+         * to invent — "ZOOM-54321", for a row the supplier gave no barcode —
+         * is unique to one product and groups nothing.
+         */
+        return $query->where('sku', $product->sku)->get();
+    }
+
+    /**
      * Which switcher is the colour row and which is the memory row.
      *
      * These were picked by attribute code — "color" and "storage" — and the
@@ -725,17 +762,11 @@ class Catalog
      */
     public static function variantSwitchers(Product $product): array
     {
-        if (! $product->variant_group) {
+        $siblings = self::siblingsOf($product);
+
+        if ($siblings->count() < 2) {
             return [];
         }
-
-        $siblings = Product::active()->withTranslation()
-            ->where('variant_group', $product->variant_group)
-            ->with(['attributeValues' => fn ($q) => $q->withTranslation()
-                ->whereHas('attribute', fn ($a) => $a->where('is_variant', true))
-                ->with('attribute')])
-            ->orderBy('price')
-            ->get();
 
         $switchers = [];
 
