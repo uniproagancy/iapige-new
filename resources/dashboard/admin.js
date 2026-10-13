@@ -80,8 +80,23 @@ document.addEventListener('click', (e) => {
     const run = () => {
         if (!root || !action) return;
 
-        const component = Livewire.find(root.getAttribute('wire:id'));
-        arg !== undefined ? component.call(action, arg) : component.call(action);
+        const wire = window.Livewire?.find(root.getAttribute('wire:id'));
+
+        if (!wire) return;
+
+        /*
+         * $call, not call.
+         *
+         * Livewire 4 hands back the component's $wire proxy, and that proxy
+         * has no "call" of its own — so .call(action) was read as the name of
+         * a server method and Livewire dutifully asked the component to run
+         * one called "call". There is no such method, the request was refused,
+         * and the button did nothing at all. Every confirmed action in the
+         * admin went this way: deleting a product, deleting a batch of them,
+         * every other dialog. It looked like deletion was broken; the dialog
+         * was fine and the delete was never asked for.
+         */
+        arg !== undefined ? wire.$call(action, arg) : wire.$call(action);
     };
 
     /*

@@ -191,11 +191,23 @@ document.addEventListener('click', (e) => {
 
         const root = guarded.closest('[wire\\:id]');
         const action = guarded.dataset.confirmAction;
+        const arg = guarded.dataset.confirmArg;
 
         confirm(guarded.dataset.confirm, { title: guarded.dataset.confirmTitle }).then((ok) => {
-            if (ok && root && action) {
-                window.Livewire.find(root.getAttribute('wire:id')).call(action);
-            }
+            if (!ok || !root || !action) return;
+
+            /*
+             * $call, not call: Livewire 4 hands back the component's $wire
+             * proxy, which has no "call" of its own — so .call(action) was
+             * read as the name of a server method and the component was asked
+             * to run one called "call". There is none, the request was
+             * refused, and the button did nothing.
+             */
+            const wire = window.Livewire?.find(root.getAttribute('wire:id'));
+
+            if (!wire) return;
+
+            arg !== undefined ? wire.$call(action, arg) : wire.$call(action);
         });
         return;
     }

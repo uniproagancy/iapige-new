@@ -128,8 +128,11 @@ return [
      | stock and stays, because "we are out of this" is not "this never
      | existed" — orders, hand-made edits and its history all point at it.
      |
-     | Per supplier with require_stock in its own config.
+     | On for every supplier. It was off, and off meant each one had to be
+     | switched on by hand — so only Zoommer ever was, and the rest went on
+     | importing a warehouse they did not have. A supplier that genuinely
+     | wants the whole catalogue sets require_stock false in its own config.
      */
-    'require_stock' => (bool) env('IMPORT_REQUIRE_STOCK', false),
+    'require_stock' => (bool) env('IMPORT_REQUIRE_STOCK', true),
 
 ];

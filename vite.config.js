@@ -3,7 +3,7 @@ import laravel from 'laravel-vite-plugin';
 
 export default defineConfig({
     server: {
-        origin: 'httsps://dev.iapi.ge',
+        origin: 'https://dev.iapi.ge',
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

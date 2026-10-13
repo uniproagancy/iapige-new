@@ -389,6 +389,56 @@ class ProductImporterTest extends TestCase
         ]);
     }
 
+    /* ------------------------------------------------------------------ the floor */
+
+    /**
+     * A new product below the supplier's floor is not imported.
+     *
+     * Their catalogues run down to parts worth a few lari, where the margin
+     * does not cover delivering the thing — and every one of them still costs
+     * photographs, a hand-mapped category and a row we carry for ever.
+     */
+    public function test_a_new_product_below_the_floor_is_not_imported(): void
+    {
+        $this->supplier->update(['config' => ['min_cost' => 100]]);
+
+        $this->assertNull(app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload(cost: 40)));
+        $this->assertSame(0, Product::count());
+    }
+
+    public function test_a_new_product_at_the_floor_is_imported(): void
+    {
+        $this->supplier->update(['config' => ['min_cost' => 100]]);
+
+        $this->assertNotNull(app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload(cost: 100)));
+    }
+
+    /** No floor configured is no floor at all, which is every other supplier. */
+    public function test_without_a_floor_a_cheap_product_is_imported(): void
+    {
+        $this->assertNotNull(app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload(cost: 5)));
+    }
+
+    /**
+     * A product we already sell is kept even once it falls below the floor.
+     *
+     * It has a page, possibly hand-made edits, and orders pointing at it.
+     * Deleting that to save a row would break all three; the price simply
+     * updates, as it does for any other change.
+     */
+    public function test_an_existing_product_below_the_floor_is_kept(): void
+    {
+        $product = app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload(cost: 500));
+
+        $this->supplier->update(['config' => ['min_cost' => 100]]);
+
+        $again = app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload(cost: 40));
+
+        $this->assertNotNull($again);
+        $this->assertSame($product->id, $again->id);
+        $this->assertSame(1, Product::count());
+    }
+
     protected function payload(
         string $cpu = 'Ryzen 9',
         int $stock = 5,
@@ -396,11 +446,12 @@ class ProductImporterTest extends TestCase
         string $category = 'Laptops',
         ?array $specs = null,
         ?array $images = null,
+        float $cost = 1000,
     ): ProductPayload {
         return new ProductPayload(
             externalId: 'EXT-1',
             sku: 'SKU-1',
-            costPrice: 1000,
+            costPrice: $cost,
             oldCostPrice: null,
             stock: $stock,
             brandName: 'NORDA',

@@ -105,7 +105,7 @@ class RestartImportTest extends TestCase
             'markup' => [['up_to' => 5000, 'percent' => 20]],
         ]);
 
-        $this->app->instance(ImportManager::class, new ImportManager);
+        $this->app->forgetInstance(ImportManager::class);
 
         /*
          * The suite runs the queue synchronously, which is right for every

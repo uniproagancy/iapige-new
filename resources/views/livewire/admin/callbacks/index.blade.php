@@ -123,11 +123,25 @@
                                         {!! $icon('cart', 'me-25') !!}{{ __('admin.cb_see_order') }}
                                     </a>
                                 @else
+                                    {{--
+                                        Two ways, because a call is one of two
+                                        things: they want the thing they rang
+                                        about, or they want to talk it through.
+                                        The first is one click; the second opens
+                                        the operator's own checkout, filled in
+                                        as far as the call got.
+                                    --}}
                                     <button type="button" class="btn btn-sm btn-success"
                                             wire:click="createOrder({{ $request->id }})"
                                             wire:loading.attr="disabled">
                                         {!! $icon('cart', 'me-25') !!}{{ __('admin.cb_make_order') }}
                                     </button>
+
+                                    <a class="btn btn-sm btn-outline-success"
+                                       href="{{ route('admin.orders.create', ['callback' => $request->id]) }}"
+                                       wire:navigate>
+                                        {!! $icon('cart', 'me-25') !!}{{ __('admin.order_create') }}
+                                    </a>
                                 @endif
 
                                 @if ($request->status !== 'called')

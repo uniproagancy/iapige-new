@@ -256,7 +256,7 @@
                             ])->filter();
                         @endphp
 
-                        <tr wire:key="p-{{ $product->id }}" @class(['table-active' => in_array($product->id, $selected, true)])>
+                        <tr wire:key="p-{{ $product->id }}" @class(['table-active' => in_array($product->id, $selected)])>
                             <td>
                                 <input type="checkbox" class="form-check-input"
                                        value="{{ $product->id }}" wire:model.live="selected">

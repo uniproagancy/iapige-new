@@ -84,17 +84,49 @@ class ProductImporter
     {
         $required = $supplier->config['require_stock'] ?? config('shop.require_stock', false);
 
-        if (! $required || $payload->stock > 0) {
-            return true;
+        if ($required && $payload->stock <= 0) {
+            Log::channel('import')->info('skipped: nothing in stock', [
+                'supplier' => $supplier->code,
+                'external' => $payload->externalId,
+                'sku' => $payload->sku,
+            ]);
+
+            return false;
         }
 
-        Log::channel('import')->info('skipped: nothing in stock', [
-            'supplier' => $supplier->code,
-            'external' => $payload->externalId,
-            'sku' => $payload->sku,
-        ]);
+        /*
+         * Too cheap to be worth carrying.
+         *
+         * Some suppliers' catalogues run from air conditioners down to washers
+         * and filters, and the small end cannot be sold at all: the margin on
+         * a fifteen lari part does not cover delivering it, let alone the
+         * photographs, the hand-mapping and the row we keep for ever. A floor
+         * is the supplier's own figure, because what counts as too cheap
+         * depends entirely on what they sell.
+         *
+         * On the cost price, before any markup, so changing the markup later
+         * does not quietly change what gets imported.
+         *
+         * New products only, like the rules above it: an existing product that
+         * has merely dropped below the floor keeps its page, its edits and any
+         * order pointing at it. Taking it out would break those to save
+         * nothing.
+         */
+        $floor = (float) ($supplier->config['min_cost'] ?? 0);
 
-        return false;
+        if ($floor > 0 && $payload->costPrice < $floor) {
+            Log::channel('import')->info('skipped: below the supplier floor', [
+                'supplier' => $supplier->code,
+                'external' => $payload->externalId,
+                'sku' => $payload->sku,
+                'cost' => $payload->costPrice,
+                'floor' => $floor,
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 
     /**

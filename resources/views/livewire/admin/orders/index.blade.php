@@ -27,6 +27,13 @@
 @endphp
 
 <div>
+    {{-- ------------------------------------------------------------ an order taken by phone --}}
+    <div class="d-flex justify-content-end mb-1">
+        <a class="btn btn-sm btn-primary" href="{{ route('admin.orders.create') }}" wire:navigate>
+            {!! $icon('cart', 'me-25') !!}{{ __('admin.order_create') }}
+        </a>
+    </div>
+
     {{-- ------------------------------------------------------------ what is waiting --}}
     <div class="d-flex flex-wrap gap-1 mb-2">
         @foreach ($statuses as $key => $label)
@@ -136,7 +143,7 @@
                 </thead>
                 <tbody>
                     @forelse ($orders as $order)
-                        <tr wire:key="o-{{ $order->id }}" @class(['table-active' => in_array($order->id, $selected, true)])>
+                        <tr wire:key="o-{{ $order->id }}" @class(['table-active' => in_array($order->id, $selected)])>
                             <td>
                                 <input type="checkbox" class="form-check-input"
                                        value="{{ $order->id }}" wire:model.live="selected">

@@ -25,6 +25,7 @@ return [
     'keep_shopping' => 'შოპინგის გაგრძელება',
     'questions' => 'კითხვები გაქვს?',
 
+    'placed_by_operator' => 'შეკვეთა გააფორმა ოპერატორმა :name',
     'placed_by_customer' => 'შეკვეთა გაფორმდა საიტიდან',
 
     'status' => [

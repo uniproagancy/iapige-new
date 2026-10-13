@@ -25,6 +25,7 @@ return [
     'keep_shopping' => 'Keep shopping',
     'questions' => 'Any questions?',
 
+    'placed_by_operator' => 'Placed by operator :name',
     'placed_by_customer' => 'Placed by the customer',
 
     'status' => [

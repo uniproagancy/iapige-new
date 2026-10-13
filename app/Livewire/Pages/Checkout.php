@@ -12,6 +12,7 @@ use App\Models\UserAddress;
 use App\Services\Cart;
 use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Facebook\Pixel;
+use App\Services\Orders\OrderLines;
 use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\PaymentManager;
 use App\Support\Catalog;
@@ -291,43 +292,17 @@ class Checkout extends Component
      */
     protected function createOrder(array $lines): Order
     {
-        $ids = collect($lines)->pluck('id');
-        $products = Product::whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
+        /*
+         * Priced by OrderLines, which the operator's own screen in the admin
+         * uses too. The rules it applies — the price from the database, a
+         * withdrawn product refused, a pre-order refused — have to be the same
+         * whichever way an order is placed, and they were a copy each until
+         * there were two ways.
+         */
+        $priced = app(OrderLines::class)->price($lines);
 
-        $items = [];
-        $subtotal = 0.0;
-
-        foreach ($lines as $line) {
-            $product = $products[$line['id']] ?? null;
-
-            // stock never blocks a sale; status and pre-order do
-            if (! $product || $product->status !== Product::STATUS_ACTIVE) {
-                throw new RuntimeException(__('checkout.item_gone'));
-            }
-
-            if ($product->is_preorder) {
-                throw new RuntimeException(__('checkout.preorder_in_cart', ['name' => $product->name]));
-            }
-
-            $qty = max(1, (int) $line['qty']);
-
-            /*
-             * Re-read here, as every price is — and now through the same
-             * method the rail and the cart use, so an order cannot charge the
-             * shelf price for something advertised at a campaign price.
-             */
-            $price = $product->sellingPrice();
-            $subtotal += $price * $qty;
-
-            $items[] = [
-                'product_id' => $product->id,
-                'name' => $line['name'],
-                'price' => $price,
-                'qty' => $qty,
-                'sum' => $price * $qty,
-            ];
-        }
-
+        $items = $priced['items'];
+        $subtotal = $priced['subtotal'];
         $shipping = $this->shipping();
 
         $order = Order::create([
@@ -350,16 +325,7 @@ class Checkout extends Component
             'total' => $subtotal + $shipping,
         ]);
 
-        $order->items()->createMany($items);
-
-        foreach ($items as $item) {
-            // stock is a record, not a rule: it must not go negative on paper
-            Product::whereKey($item['product_id'])
-                ->where('stock', '>=', $item['qty'])
-                ->decrement('stock', $item['qty']);
-
-            Product::whereKey($item['product_id'])->increment('sales_count', $item['qty']);
-        }
+        app(OrderLines::class)->attach($order, $items);
 
         $order->events()->create([
             'user_id' => Auth::id(),
