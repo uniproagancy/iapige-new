@@ -111,18 +111,50 @@ class XlsxReader
         }
 
         /*
-         * A long number arrives as "2.0000000158E+12". A barcode written that
-         * way is no longer a barcode, so whole numbers are spelled out again.
+         * Scientific notation is spelled out, whole or not.
+         *
+         * A spreadsheet writes a long number as "2.0000000158E+12" and a small
+         * fraction as "2.4E-2", and a cell written that way is no longer the
+         * thing it holds: the first is not a barcode any more, and the second
+         * is not a price. Only the whole ones used to be spelled out, so every
+         * reader downstream had to know about exponents on its own — and each
+         * of them learned it separately, or didn't. Stripping the non-digits
+         * out of "2.4E-2" leaves "2.42", a hundred times the real 0.024, and
+         * that is what reached the supplier's stored row.
+         *
+         * Done here instead, once, so a cell is a number spelled the way a
+         * person would spell it and nothing after this has to care.
          */
-        if (stripos($raw, 'E') !== false) {
-            $number = (float) $raw;
-
-            if ($number == floor($number) && abs($number) < 1e18) {
-                return number_format($number, 0, '.', '');
-            }
+        if (stripos($raw, 'E') !== false && is_numeric($raw)) {
+            return $this->spellOut((float) $raw) ?? trim($raw);
         }
 
         return trim($raw);
+    }
+
+    /**
+     * A float written out in full, or null when it cannot be.
+     *
+     * Fractions are formatted to ten places and the trailing zeros taken off,
+     * which is enough for any price and also quietly repairs the noise a
+     * spreadsheet leaves behind: "3.5999999999999997E-2" is 0.036.
+     *
+     * A number too small to survive that, or too large to spell, keeps its
+     * original text — wrong-looking is better than silently zero.
+     */
+    protected function spellOut(float $number): ?string
+    {
+        if (abs($number) >= 1e18) {
+            return null;
+        }
+
+        if ($number == floor($number)) {
+            return number_format($number, 0, '.', '');
+        }
+
+        $text = rtrim(rtrim(number_format($number, 10, '.', ''), '0'), '.');
+
+        return (float) $text === 0.0 ? null : $text;
     }
 
     /* ------------------------------------------------------------------ links */
