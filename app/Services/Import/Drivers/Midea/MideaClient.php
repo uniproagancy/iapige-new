@@ -19,6 +19,162 @@ class MideaClient
 
     public function __construct(protected array $config = []) {}
 
+    /**
+     * The site's own search, which answers with the whole product.
+     *
+     * The shop's header search posts a keyword to /ka/search and gets JSON
+     * back: the title, both prices, the main photograph and the gallery, the
+     * model number, the stock flag and the weight. Everything an import needs,
+     * in one request.
+     *
+     * Which is worth saying plainly, because the long way round was: crawl
+     * seven category listings page by page, index every card by model code,
+     * fall back to the sitemap when the index misses, and fetch the product
+     * page when the card had no picture. Hundreds of requests, a six hour
+     * cache, and still only the models those seven listings happened to cover
+     * — everything else arrived with no photograph and a name assembled out of
+     * the spreadsheet.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function search(string $keyword): array
+    {
+        $keyword = trim($keyword);
+
+        if ($keyword === '') {
+            return [];
+        }
+
+        try {
+            $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
+                ->connectTimeout(15)
+                ->asForm()
+                ->withHeaders([
+                    'User-Agent' => config('services.midea.user_agent', 'Mozilla/5.0'),
+                    // the endpoint only answers the page's own script
+                    'X-Requested-With' => 'XMLHttpRequest',
+                    'Referer' => rtrim((string) config('services.midea.base_url'), '/').'/ka/',
+                ])
+                ->post($this->absolute('/ka/search'), ['keyword' => $keyword]);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        if (! $response->successful()) {
+            return [];
+        }
+
+        $body = $response->json();
+
+        // status 0 means it did not understand the request, not that there is nothing
+        return (int) ($body['status'] ?? 0) === 1 && is_array($body['products'] ?? null)
+            ? $body['products']
+            : [];
+    }
+
+    /**
+     * One product from the search, as a card the driver can use.
+     *
+     * The search is a search: ask it for a model and it answers with
+     * everything whose text mentions it. So the answer is only accepted when
+     * its own model_number matches what was asked for — otherwise a product
+     * arrives wearing another product's photographs, which is worse than
+     * arriving with none.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function card(string $model): ?array
+    {
+        $key = $this->modelKey($model);
+
+        if ($key === '') {
+            return null;
+        }
+
+        foreach ($this->search($model) as $product) {
+            if (! $this->isSameModel($key, (string) ($product['model_number'] ?? ''))) {
+                continue;
+            }
+
+            return [
+                'id' => $product['id'] ?? null,
+                'url' => $this->normalise((string) ($product['link'] ?? '')),
+                'name' => $this->clean((string) ($product['title'] ?? '')),
+                'description' => $this->clean((string) ($product['text'] ?? $product['short_text'] ?? '')) ?: null,
+                'category' => $this->clean((string) ($product['description_title'] ?? '')) ?: null,
+                'images' => $this->searchImages($product),
+                'in_stock' => (string) ($product['in_stock'] ?? '1') === '1',
+                'weight' => (int) ($product['weight'] ?? 0) ?: null,
+                // the search carries the whole product, so its page adds nothing
+                'needs_page' => false,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether the search result is the model that was asked for.
+     *
+     * The site writes a model number as the bare code on one product and with
+     * the brand in front of it on the next — "FS40-21MR" against
+     * "Midea MDRB489FGE02OE" — so neither side can be required to equal the
+     * other, only to contain it.
+     */
+    protected function isSameModel(string $key, string $found): bool
+    {
+        $found = $this->modelKey($found);
+
+        if ($found === '' || $key === '') {
+            return false;
+        }
+
+        return str_contains($found, $key) || str_contains($key, $found);
+    }
+
+    /**
+     * The main photograph and the gallery, as addresses.
+     *
+     * Both arrive as bare filenames under the site's product media path, and
+     * the gallery arrives as JSON inside the JSON.
+     *
+     * @return array<int, string>
+     */
+    protected function searchImages(array $product): array
+    {
+        $path = rtrim(config('services.midea.image_path', '/uploads/products/'), '/').'/';
+        $files = [];
+
+        if ($main = trim((string) ($product['image'] ?? ''))) {
+            $files[] = $main;
+        }
+
+        $gallery = $product['gallery'] ?? null;
+        $gallery = is_string($gallery) ? json_decode($gallery, true) : $gallery;
+
+        foreach ((array) $gallery as $file) {
+            if (is_string($file) && trim($file) !== '') {
+                $files[] = trim($file);
+            }
+        }
+
+        return array_values(array_unique(array_map(
+            fn (string $file) => $this->absolute($path.ltrim($file, '/')),
+            $files,
+        )));
+    }
+
+    /** The site writes its own links with a doubled slash after the locale. */
+    protected function normalise(string $url): string
+    {
+        return preg_replace('#(?<!:)//+#', '/', trim($url));
+    }
+
+    protected function modelKey(string $model): string
+    {
+        return strtoupper(preg_replace('/[^A-Z0-9]/i', '', $model));
+    }
+
     /* ------------------------------------------------------------------ listing */
 
     /**

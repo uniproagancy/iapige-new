@@ -63,6 +63,21 @@ class MideaDriver implements SupplierDriver
             return [];
         }
 
+        /*
+         * The site's own search first.
+         *
+         * It answers with the whole product — title, both prices, the main
+         * photograph and the gallery — in one request. Everything below this
+         * is the long way round: crawl seven category listings page by page,
+         * index every card by model code, fall back to the sitemap, then fetch
+         * the product page when the card had no picture. It is kept because it
+         * still finds the occasional model the search does not, and it costs
+         * nothing when the search answers.
+         */
+        if ($card = $this->client->card($model)) {
+            return $card;
+        }
+
         $index = $this->remember('site-index', fn () => $this->crawl());
 
         $key = $this->modelKey($model);
@@ -306,8 +321,14 @@ class MideaDriver implements SupplierDriver
             ];
         }
 
+        /*
+         * A listing card carries one thumbnail; a search result carries the
+         * gallery. Merged rather than chosen between, so a product found both
+         * ways keeps every picture either of them knows about.
+         */
         $images = array_values(array_unique(array_filter(array_merge(
             [$card['image'] ?? null],
+            $card['images'] ?? [],
             $page['images'] ?? [],
         ))));
 
@@ -323,11 +344,13 @@ class MideaDriver implements SupplierDriver
             translations: [$locale => [
                 'name' => $name,
                 'summary' => $data['description'] ?? null,
-                'description' => $page['description'] ?? $data['description'] ?? null,
+                // the search's own copy reads better than the spreadsheet's line
+                'description' => $card['description'] ?? $page['description'] ?? $data['description'] ?? null,
             ]],
             specs: array_values($specs),
             images: $images,
-            weight: null,
+            // the search reports it; the spreadsheet never did
+            weight: $card['weight'] ?? null,
         );
     }
 
