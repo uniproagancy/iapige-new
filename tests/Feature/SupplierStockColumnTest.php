@@ -90,6 +90,60 @@ class SupplierStockColumnTest extends TestCase
         $this->assertSame('375', $row->data['sale']);
     }
 
+    /* ------------------------------------------------------------------ the money */
+
+    /**
+     * Excel writes a small fraction in scientific notation.
+     *
+     * Stripping the non-digits out of "2.4E-2" leaves "2.42" — a hundred times
+     * the real 0.024, and not an error anything downstream can notice. It went
+     * into cost_price, became the figure struck through on the product, and set
+     * the margin against a price nobody was ever charged.
+     */
+    public function test_a_price_in_scientific_notation_is_read_as_the_number_it_is(): void
+    {
+        $supplier = $this->supplier(['key' => 'A', 'sale' => 'B', 'cost' => 'C', 'stock' => 'D']);
+
+        $path = $this->file('1618331,0.02,2.4E-2,2830999
+');
+
+        (new PriceListLoader)->load($supplier, $path, skipRows: 0);
+
+        unlink($path);
+
+        $this->assertSame('0.02', SupplierStock::where('external_id', '1618331')->value('cost_price'));
+    }
+
+    /** And the other way: 1.2E+1 is twelve, not 1.21. */
+    public function test_a_positive_exponent_is_read_too(): void
+    {
+        $supplier = $this->supplier(['key' => 'A', 'cost' => 'B']);
+
+        $path = $this->file('X-1,1.2E+1
+');
+
+        (new PriceListLoader)->load($supplier, $path, skipRows: 0);
+
+        unlink($path);
+
+        $this->assertSame('12.00', SupplierStock::where('external_id', 'X-1')->value('cost_price'));
+    }
+
+    /** A price written for people still reads: "1 250,00 ₾". */
+    public function test_a_price_written_as_text_still_reads(): void
+    {
+        $supplier = $this->supplier(['key' => 'A', 'cost' => 'B']);
+
+        $path = $this->file('X-1,"1 250,00"
+');
+
+        (new PriceListLoader)->load($supplier, $path, skipRows: 0);
+
+        unlink($path);
+
+        $this->assertSame('1250.00', SupplierStock::where('external_id', 'X-1')->value('cost_price'));
+    }
+
     /* ------------------------------------------------------------------ the repair */
 
     /**

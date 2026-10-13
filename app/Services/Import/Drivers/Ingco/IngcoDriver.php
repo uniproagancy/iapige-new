@@ -136,7 +136,8 @@ class IngcoDriver implements SupplierDriver
             oldCostPrice: $old,
             stock: ($page['in_stock'] ?? true) ? $this->sellableStock((int) $row->quantity) : 0,
             brandName: $this->supplier->config['brand'] ?? 'INGCO',
-            categoryName: $data['category'] ?? null,
+            // a category column would win; the page's own trail is what there is
+            categoryName: $data['category'] ?? $page['category'] ?? null,
             translations: [$locale => [
                 'name' => $page['name'],
                 'description' => $page['description'] ?? null,

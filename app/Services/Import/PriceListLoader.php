@@ -244,9 +244,32 @@ class PriceListLoader
         return $digits === '' ? 0 : min(PHP_INT_MAX, (int) $digits);
     }
 
+    /**
+     * A price, however the spreadsheet chose to spell it.
+     *
+     * Read as a number first, for the same reason quantity() does: Excel
+     * writes a small fraction in scientific notation, and stripping the
+     * non-digits out of "2.4E-2" leaves "2.42" — a hundred times the real
+     * 0.024, and not an error anything downstream can notice. It went into
+     * cost_price, became the figure struck through on the product, and set
+     * the margin against a price nobody was ever charged. "1.2E+1" went the
+     * other way, from 12 to 1.21.
+     *
+     * Only then the free-text path, for the files that write "1 250,00 ₾".
+     */
     protected function money(?string $text): ?float
     {
-        $digits = preg_replace('/[^\d.]/', '', str_replace(',', '.', (string) $text));
+        $text = trim((string) $text);
+
+        if ($text === '') {
+            return null;
+        }
+
+        if (is_numeric($text)) {
+            return (float) $text;
+        }
+
+        $digits = preg_replace('/[^\d.]/', '', str_replace(',', '.', $text));
 
         return $digits === '' ? null : (float) $digits;
     }

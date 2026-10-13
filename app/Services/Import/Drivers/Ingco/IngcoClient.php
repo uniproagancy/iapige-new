@@ -42,7 +42,7 @@ class IngcoClient
     /**
      * Everything the product page carries.
      *
-     * @return array{name:?string, description:?string, images:array, specs:array, in_stock:bool}|null
+     * @return array{name:?string, description:?string, category:?string, images:array, specs:array, in_stock:bool}|null
      */
     public function page(string $url): ?array
     {
@@ -66,6 +66,7 @@ class IngcoClient
         return [
             'name' => $name,
             'description' => $this->description($json, $xpath, $html),
+            'category' => $this->category($html, $xpath),
             'images' => $this->images($json, $html),
             'specs' => $this->specs($xpath),
             'in_stock' => ! isset($json['offers']['availability'])
@@ -77,13 +78,107 @@ class IngcoClient
 
     protected function structuredData(string $html): array
     {
-        if (! preg_match('#<script type="application/ld\+json">(.*?)</script>#s', $html, $m)) {
-            return [];
+        return $this->ldJson($html, 'Product') ?? [];
+    }
+
+    /**
+     * The first structured-data node of a given type.
+     *
+     * Only the first script on the page used to be read, whatever it described.
+     * A page that publishes its breadcrumb before its product — which is the
+     * usual order — handed back the breadcrumb, and the product's own name,
+     * description and availability were read off a node that has none of them.
+     * The type is written either as a bare word or as its full schema.org URL,
+     * and the node sits either on its own or inside an @graph.
+     */
+    protected function ldJson(string $html, string $type): ?array
+    {
+        if (! preg_match_all('#<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>#si', $html, $m)) {
+            return null;
         }
 
-        $decoded = json_decode($m[1], true);
+        foreach ($m[1] as $raw) {
+            $decoded = json_decode(trim($raw), true);
 
-        return json_last_error() === JSON_ERROR_NONE && is_array($decoded) ? $decoded : [];
+            if (! is_array($decoded)) {
+                continue;
+            }
+
+            foreach ([$decoded, ...array_values((array) ($decoded['@graph'] ?? []))] as $node) {
+                if (! is_array($node)) {
+                    continue;
+                }
+
+                foreach ((array) ($node['@type'] ?? []) as $declared) {
+                    if (is_string($declared) && str_ends_with($declared, $type)) {
+                        return $node;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * What the tool is, for the mapping queue.
+     *
+     * The price list is four columns — model, two prices and a quantity — and
+     * not one of them says what the thing is. So every INGCO product arrived
+     * with categoryName null, and the resolver only parks a name it is given:
+     * the admin's mapping queue stayed empty, the products stayed
+     * uncategorised, and there was nothing to map them by. The same hole
+     * Kontakt fell into, and the answer is the same — the page's own trail.
+     *
+     * The structured breadcrumb first, because it says what it means; the
+     * rendered one after, for pages that publish none.
+     */
+    protected function category(string $html, ?DOMXPath $xpath): ?string
+    {
+        $names = [];
+
+        foreach ($this->ldJson($html, 'BreadcrumbList')['itemListElement'] ?? [] as $item) {
+            $name = $this->clean((string) ($item['name'] ?? $item['item']['name'] ?? ''));
+
+            if ($name !== '') {
+                $names[] = $name;
+            }
+        }
+
+        if (! $names && $xpath) {
+            foreach ($xpath->query('//*[contains(@class,"breadcrumb")]//a') ?: [] as $node) {
+                $name = $this->clean($node->textContent);
+
+                if ($name !== '') {
+                    $names[] = $name;
+                }
+            }
+        }
+
+        /*
+         * The trail reads Home › Category › … › Product, so the step before
+         * the last is the narrowest category — and the deeper the trail, the
+         * more specific the name worth mapping. A rendered breadcrumb often
+         * leaves the product itself unlinked, so a trail that does not end in
+         * the product keeps its last step.
+         */
+        if ($names && $this->isProductName($names[count($names) - 1], $html)) {
+            array_pop($names);
+        }
+
+        $category = array_pop($names);
+
+        return in_array($category, ['მთავარი', 'Home', 'Главная', 'მაღაზია', 'Shop'], true)
+            ? null
+            : ($category ?: null);
+    }
+
+    /** Whether the last step of a trail is the product rather than a category. */
+    protected function isProductName(string $name, string $html): bool
+    {
+        $title = $this->clean((string) ($this->structuredData($html)['name'] ?? ''));
+
+        return $title !== '' && mb_strtolower($title) === mb_strtolower($name);
     }
 
     protected function description(array $json, ?DOMXPath $xpath, string $html): ?string
