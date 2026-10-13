@@ -63,16 +63,34 @@ class MideaDriver implements SupplierDriver
             return [];
         }
 
-        $index = Cache::remember(
-            "import:{$this->supplier->code}:site-index",
-            now()->addHours(6),
-            fn () => $this->crawl(),
-        );
+        $index = $this->remember('site-index', fn () => $this->crawl());
 
         $key = $this->modelKey($model);
 
         if (isset($index[$key])) {
-            return $index[$key];
+            $card = $index[$key];
+
+            /*
+             * A card with no picture has to ask the product page for one.
+             *
+             * The card's only image is a CSS background on the thumbnail, and
+             * that one parse is all a listing product ever got: read_product_page
+             * is off, and needs_page was set for sitemap matches alone. So a card
+             * whose style attribute did not yield a url — a lazy-loaded
+             * thumbnail, a markup change on one template, an empty placeholder
+             * while the site's own cache warmed — produced a product with no
+             * photograph at all and nothing to fall back on. That is the
+             * "sometimes" in it: the spreadsheet and the price were fine, the
+             * picture silently was not.
+             *
+             * Only when there is nothing, so a card that already has its
+             * thumbnail still costs no second request.
+             */
+            if (empty($card['image'])) {
+                $card['needs_page'] = true;
+            }
+
+            return $card;
         }
 
         /*
@@ -106,12 +124,28 @@ class MideaDriver implements SupplierDriver
      */
     protected function sitemapMatch(string $key): ?string
     {
-        if (mb_strlen($key) < self::MIN_MATCH_LENGTH) {
+        if ($key === '') {
             return null;
         }
 
+        /*
+         * A short code is matched at the end of the slug, not anywhere in it.
+         *
+         * Containment was the only rule, so anything under five characters was
+         * refused outright rather than risk "MO37" picking the first slug that
+         * happened to contain those four. Refusing it meant every short-coded
+         * product — and Midea has plenty — came in with no picture at all.
+         *
+         * The slug ends with the model, which the comment above says and the
+         * examples bear out, so anchoring there is as safe as a long code and
+         * recovers the rest.
+         */
+        $anchored = mb_strlen($key) < self::MIN_MATCH_LENGTH;
+
         foreach ($this->sitemapIndex() as $slug => $url) {
-            if (str_contains($slug, $key)) {
+            $hit = $anchored ? str_ends_with($slug, $key) : str_contains($slug, $key);
+
+            if ($hit) {
                 return $url;
             }
         }
@@ -132,26 +166,57 @@ class MideaDriver implements SupplierDriver
      */
     protected function sitemapIndex(): array
     {
-        return Cache::remember(
-            "import:{$this->supplier->code}:sitemap-index",
-            now()->addHours(6),
-            function () {
-                $locale = $this->supplier->config['locale'] ?? 'ka';
-                $index = [];
+        return $this->remember('sitemap-index', function () {
+            $locale = $this->supplier->config['locale'] ?? 'ka';
+            $index = [];
 
-                foreach ($this->client->sitemapProducts($locale) as $url) {
-                    // the trailing number is the site's own id, not the model
-                    $slug = basename(rtrim((string) preg_replace('#/\d+/?$#', '', $url), '/'));
-                    $key = $this->modelKey($slug);
+            foreach ($this->client->sitemapProducts($locale) as $url) {
+                // the trailing number is the site's own id, not the model
+                $slug = basename(rtrim((string) preg_replace('#/\d+/?$#', '', $url), '/'));
+                $key = $this->modelKey($slug);
 
-                    if ($key !== '') {
-                        $index[$key] ??= $url;
-                    }
+                if ($key !== '') {
+                    $index[$key] ??= $url;
                 }
+            }
 
-                return $index;
-            },
-        );
+            return $index;
+        });
+    }
+
+    /**
+     * An index, kept for the run — but never an empty one.
+     *
+     * Cache::remember stores whatever the closure returns, including nothing.
+     * So a crawl that came back empty because the site was down, or slow, or
+     * had moved a class name, was written down as the truth and every product
+     * imported for the next six hours arrived with no picture. The run after
+     * it looked identical and was no better, which is what made this hard to
+     * see: nothing was failing by then, the answer was simply already cached.
+     *
+     * An empty result is now treated as a failed attempt, and the next product
+     * asks again.
+     *
+     * @param  \Closure():array  $build
+     * @return array<string, mixed>
+     */
+    protected function remember(string $name, \Closure $build): array
+    {
+        $key = "import:{$this->supplier->code}:{$name}";
+
+        $index = Cache::get($key);
+
+        if (is_array($index) && $index !== []) {
+            return $index;
+        }
+
+        $index = $build();
+
+        if ($index !== []) {
+            Cache::put($key, $index, now()->addHours(6));
+        }
+
+        return $index;
     }
 
     /**

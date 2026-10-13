@@ -130,9 +130,8 @@
 
                                     <button type="button"
                                             class="btn btn-sm btn-icon btn-danger position-absolute top-0 end-0 m-25"
-                                            data-confirm="{{ __('admin.confirm_delete') }}"
-                                            data-confirm-action="deleteImage"
-                                            data-confirm-arg="{{ $image->id }}">
+                                            wire:click="deleteImage({{ $image->id }})"
+                                            wire:confirm="{{ __('admin.confirm_delete') }}">
                                         {!! $icon('trash') !!}
                                     </button>
                                 </div>

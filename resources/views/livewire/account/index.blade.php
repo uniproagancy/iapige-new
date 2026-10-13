@@ -237,9 +237,8 @@
                             </button>
 
                             <button type="button" class="pill pill--danger"
-                                    data-confirm="{{ __('account.delete_address_confirm') }}"
-                                    data-confirm-action="deleteAddress"
-                                    data-confirm-arg="{{ $address->id }}">
+                                    wire:click="deleteAddress({{ $address->id }})"
+                                    wire:confirm="{{ __('account.delete_address_confirm') }}">
                                 {{ __('common.delete') }}
                             </button>
                         </div>
@@ -436,8 +435,8 @@
                             </button>
 
                             <button type="button" class="btn-main btn-main--danger"
-                                    data-confirm="{{ __('account.close_account_confirm') }}"
-                                    data-confirm-action="deleteAccount">
+                                    wire:click="deleteAccount"
+                                    wire:confirm="{{ __('account.close_account_confirm') }}">
                                 {{ __('account.close_account_yes') }}
                             </button>
                         </div>

@@ -30,7 +30,7 @@
                     <span class="related__bar" aria-hidden="true"></span>
                     <h2 class="related__name" id="relTitle">{{ __('product.related') }}</h2>
                 </div>
-                <a class="pill pill--red" href="{{ route('catalog') }}">{{ __('common.all') }}</a>
+                <a class="pill pill--red" href="{{ $relatedUrl }}">{{ __('common.all') }}</a>
             </div>
             <div class="related__grid">
                 @foreach ($related as $p)

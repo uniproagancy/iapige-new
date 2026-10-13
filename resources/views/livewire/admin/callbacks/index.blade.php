@@ -160,9 +160,8 @@
                                 @endif
 
                                 <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                        data-confirm="{{ __('admin.confirm_delete') }}"
-                                        data-confirm-action="delete"
-                                        data-confirm-arg="{{ $request->id }}">
+                                        wire:click="delete({{ $request->id }})"
+                                        wire:confirm="{{ __('admin.confirm_delete') }}">
                                     {!! $icon('trash') !!}
                                 </button>
                             </td>

@@ -61,72 +61,20 @@ document.addEventListener('livewire:initialized', () => {
 
 /* ------------------------------------------------------------------ confirmations */
 
-/**
- * <button data-confirm="Delete this?" data-confirm-action="delete" data-confirm-arg="12">
- * A Livewire action runs only after the dialog is accepted, so wire:click stays off.
+/*
+ * Handled by Livewire's own wire:confirm, not by anything here.
+ *
+ * There used to be a bridge: data-confirm on the button, a dialog here, and
+ * the action called afterwards through $wire. It called it as $wire.call(name),
+ * and Livewire 4's proxy has no "call" — so the name was read as a server
+ * method, the component was asked to run one called "call", there is none, and
+ * the request was refused in silence. Every confirmed action in the admin went
+ * that way: deleting a product, deleting a batch of them, marking an order
+ * paid, closing an account.
+ *
+ * Fixing the call was not enough to be worth keeping. A delete button has no
+ * business depending on a bundle of ours loading and a global of theirs being
+ * where we left it, so the buttons now carry wire:click and wire:confirm and
+ * Livewire does the asking. The dialog is the browser's own rather than
+ * SweetAlert — plainer, and it cannot fail to appear.
  */
-document.addEventListener('click', (e) => {
-    const button = e.target.closest('[data-confirm]');
-
-    if (!button) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const root = button.closest('[wire\\:id]');
-    const action = button.dataset.confirmAction;
-    const arg = button.dataset.confirmArg;
-
-    const run = () => {
-        if (!root || !action) return;
-
-        const wire = window.Livewire?.find(root.getAttribute('wire:id'));
-
-        if (!wire) return;
-
-        /*
-         * $call, not call.
-         *
-         * Livewire 4 hands back the component's $wire proxy, and that proxy
-         * has no "call" of its own — so .call(action) was read as the name of
-         * a server method and Livewire dutifully asked the component to run
-         * one called "call". There is no such method, the request was refused,
-         * and the button did nothing at all. Every confirmed action in the
-         * admin went this way: deleting a product, deleting a batch of them,
-         * every other dialog. It looked like deletion was broken; the dialog
-         * was fine and the delete was never asked for.
-         */
-        arg !== undefined ? wire.$call(action, arg) : wire.$call(action);
-    };
-
-    /*
-     * SweetAlert comes from the template's vendor bundle, and when that bundle
-     * fails to build or load every button wired this way stops doing anything
-     * at all — silently, because the throw happens before the action is ever
-     * reached. Deleting a product is not worth losing to a missing vendor file.
-     */
-    if (typeof Swal === 'undefined' || typeof Swal.fire !== 'function') {
-        if (window.confirm(button.dataset.confirm)) run();
-
-        return;
-    }
-
-    Swal.fire({
-        title: button.dataset.confirmTitle ?? button.dataset.confirm,
-        text: button.dataset.confirmTitle ? button.dataset.confirm : undefined,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: window.IAPI_ADMIN?.yes ?? 'დიახ',
-        cancelButtonText: window.IAPI_ADMIN?.cancel ?? 'გაუქმება',
-        reverseButtons: true,
-        focusCancel: true,
-        customClass: {
-            confirmButton: 'btn btn-danger',
-            cancelButton: 'btn btn-outline-secondary ms-1',
-        },
-        buttonsStyling: false,
-    }).then((result) => {
-        if (result.isConfirmed) run();
-    });
-});
-

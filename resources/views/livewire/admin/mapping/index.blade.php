@@ -247,9 +247,8 @@
                                 @endif
 
                                 <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                        data-confirm="{{ __('admin.confirm_delete') }}"
-                                        data-confirm-action="forget"
-                                        data-confirm-arg="{{ $row->id }}"
+                                        wire:click="forget({{ $row->id }})"
+                                        wire:confirm="{{ __('admin.confirm_delete') }}"
                                         title="{{ __('admin.delete') }}">
                                     {!! $icon('x') !!}
                                 </button>

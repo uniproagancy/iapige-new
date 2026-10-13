@@ -116,6 +116,9 @@
                                     {{ __('admin.import_rows_no_link', ['count' => $result['missing_url']]) }}
                                 </li>
                             @endif
+                            @if ($result['no_stock_column'] ?? false)
+                                <li class="text-danger">{{ __('admin.import_no_stock_column') }}</li>
+                            @endif
                         </ul>
 
                         @if ($result['read'])

@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\Promotion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 /**
  * Reads the catalogue from the database and returns the array shapes the
@@ -639,14 +640,7 @@ class Catalog
             ->map(fn ($c, $i) => $c + ['fixed' => $i === 0])
             ->all();
 
-        $related = self::cards(self::productQuery()
-            ->whereIn('category_id', $product->category?->parent
-                ? $product->category->parent->descendantAndSelfIds()
-                : array_filter([$product->category_id]))
-            ->whereKeyNot($product->id)
-            ->orderByDesc('sales_count')
-            ->limit(5)
-            ->get());
+        $related = self::related($product);
 
         return [
             'product' => $card + [
@@ -671,7 +665,57 @@ class Catalog
             'services' => $extras['services'],
             'bundle' => $bundle,
             'related' => $related,
+            // the "all" button beside them: the same category they came from
+            'relatedUrl' => $product->category?->slug
+                ? route('catalog', $product->category->slug)
+                : route('catalog'),
         ];
+    }
+
+    /**
+     * What else to show somebody looking at this product.
+     *
+     * Its own category first. The row used to be filled from the whole of the
+     * parent's subtree, which on a shop this wide meant a washing machine was
+     * shown beside an oven and an extractor hood — related only in the sense
+     * that both are appliances. Somebody comparing washing machines wants the
+     * other washing machines.
+     *
+     * A narrow category cannot always fill five cards, though, and three
+     * products under a half-empty row looks like the shop has nothing. So what
+     * the category cannot fill is topped up from its siblings, in the order
+     * they would have come anyway — which is the old behaviour, kept for
+     * exactly the case it was right for.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function related(Product $product, int $limit = 5): array
+    {
+        $found = $product->category_id
+            ? self::productQuery()
+                ->where('category_id', $product->category_id)
+                ->whereKeyNot($product->id)
+                ->orderByDesc('sales_count')
+                ->limit($limit)
+                ->get()
+            // an Eloquent collection even when empty, because cards() wants one
+            : new EloquentCollection;
+
+        $missing = $limit - $found->count();
+
+        if ($missing > 0 && $product->category?->parent) {
+            $siblings = self::productQuery()
+                ->whereIn('category_id', $product->category->parent->descendantAndSelfIds())
+                ->whereKeyNot($product->id)
+                ->whereNotIn('id', $found->pluck('id'))
+                ->orderByDesc('sales_count')
+                ->limit($missing)
+                ->get();
+
+            $found = $found->concat($siblings);
+        }
+
+        return self::cards($found);
     }
 
     /**

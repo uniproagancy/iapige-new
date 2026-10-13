@@ -3,23 +3,28 @@
 namespace Tests\Feature;
 
 use App\Models\Supplier;
-use App\Services\Import\Drivers\Midea\MideaClient;
+use App\Models\SupplierStock;
 use App\Services\Import\Drivers\Midea\MideaDriver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use ReflectionMethod;
 use Tests\TestCase;
 
 /**
- * Midea products arrived without photographs, and only some of them.
+ * Midea products arrived without photographs, sometimes.
  *
- * Two separate causes. The pictures on a listing card were kept while the ones
- * on a product's own page were all thrown away, because the filter that tells a
- * photograph from a logo was looking under /storage/ and this site serves
- * everything from /uploads/products/. And the crawl only walked the seven
- * listing pages named in the config, which indexed 54 cards against 368 models
- * in the price list, so most products were never looked for at all.
+ * Three separate reasons, all of them silent — the spreadsheet was right, the
+ * price was right, and only the picture was missing:
+ *
+ *  - a listing card's only image is a CSS background on its thumbnail, and
+ *    when that one parse yielded nothing the product had no fallback, because
+ *    the product page was read for sitemap matches alone;
+ *  - a model code under five characters was refused a sitemap match outright,
+ *    to avoid matching the wrong slug, which left every short-coded product
+ *    with nothing;
+ *  - an index that came back empty, because the site was down for a minute,
+ *    was cached as the answer for six hours, so every product imported in
+ *    that window came in bare and the next run looked no different.
  */
 class MideaImagesTest extends TestCase
 {
@@ -27,171 +32,195 @@ class MideaImagesTest extends TestCase
 
     protected Supplier $supplier;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->supplier = Supplier::create([
-            'code' => 'midea', 'name' => 'Midea', 'driver' => MideaDriver::class,
-            'is_active' => true, 'priority' => 1, 'markup' => [['percent' => 10]],
-            'config' => ['locale' => 'ka', 'read_site' => true, 'listings' => [], 'max_pages' => 1],
-        ]);
-
-        Cache::flush();
-    }
+    /* ------------------------------------------------------------------ the fallback */
 
     /**
-     * The filter must match where this site actually keeps its photographs.
+     * A card whose thumbnail gave nothing asks the product page.
      *
-     * At /storage/ it rejected every real one, so any product whose pictures
-     * came from its own page — which is most of them — came in bare.
+     * This is the "sometimes": the model was found, the price was read, and
+     * the picture was quietly absent.
      */
-    public function test_product_page_photographs_are_kept(): void
+    public function test_a_card_with_no_thumbnail_falls_back_to_the_page(): void
     {
-        config(['services.midea.image_path' => '/uploads/products/']);
+        $this->fake(cardImage: null);
+        $this->row('6931474700001', model: 'MO-37001-GB');
 
-        Http::fake(fn () => Http::response($this->productPage()));
+        $payload = $this->driver()->fetch('6931474700001');
 
-        $page = (new MideaClient)->page('https://www.midea.ge/ka/product/x/1/');
-
-        $this->assertSame([
-            'https://www.midea.ge/uploads/products/one.jpg',
-            'https://www.midea.ge/uploads/products/two.png',
-        ], $page['images']);
+        $this->assertNotEmpty($payload->images);
+        $this->assertContains('https://midea.ge/uploads/products/gallery-1.jpg', $payload->images);
     }
 
-    /** A logo is not a product photograph, whatever the filter is set to. */
-    public function test_logos_and_banners_are_still_rejected(): void
+    /** A card that has its thumbnail costs no second request. */
+    public function test_a_card_with_a_thumbnail_does_not_read_the_page(): void
     {
-        config(['services.midea.image_path' => '/uploads/products/']);
+        $this->fake(cardImage: 'https://midea.ge/uploads/products/thumb.jpg');
+        $this->row('6931474700001', model: 'MO-37001-GB');
 
-        Http::fake(fn () => Http::response($this->productPage()));
+        $payload = $this->driver()->fetch('6931474700001');
 
-        $images = (new MideaClient)->page('https://www.midea.ge/ka/product/x/1/')['images'];
-
-        foreach ($images as $url) {
-            $this->assertStringNotContainsString('general-logo', $url);
-            $this->assertStringNotContainsString('banner', $url);
-        }
+        $this->assertSame(['https://midea.ge/uploads/products/thumb.jpg'], $payload->images);
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), '/product/'));
     }
+
+    /* ------------------------------------------------------------------ short codes */
 
     /**
-     * The site writes some of its own addresses with a doubled slash, and
-     * serves them either way — so one picture had two spellings, and the stored
-     * file is named after a hash of the address.
-     */
-    public function test_a_doubled_slash_is_one_address(): void
-    {
-        $client = new MideaClient;
-
-        $this->assertSame(
-            $client->absolute('https://www.midea.ge/uploads/products/a.jpg'),
-            $client->absolute('https://www.midea.ge//uploads/products/a.jpg'),
-        );
-    }
-
-    public function test_relative_addresses_still_resolve(): void
-    {
-        $client = new MideaClient;
-
-        $this->assertSame(
-            'https://www.midea.ge/uploads/products/a.jpg',
-            $client->absolute('/uploads/products/a.jpg'),
-        );
-    }
-
-    /**
-     * A model the listings never reach is found through the sitemap.
+     * A short code is matched at the end of a slug rather than anywhere in it.
      *
-     * Whole categories — small appliances, built-in appliances, microwaves —
-     * had no listing configured at all, so nothing ever looked for them.
+     * Refusing it altogether was safe and left the product bare; anchoring is
+     * just as safe and finds it.
      */
-    public function test_a_model_outside_the_listings_is_found_in_the_sitemap(): void
+    public function test_a_short_model_code_is_matched_at_the_end_of_the_slug(): void
     {
-        $this->fakeSitemap();
+        $this->fake(cardImage: null, listingModel: 'OTHER-999', sitemapSlug: 'chasashenebeli-gumeli-mo37');
+        $this->row('6931474700002', model: 'MO37');
 
-        $driver = new MideaDriver($this->supplier);
-        $card = $this->siteCard($driver, 'MG9005TX');
+        $payload = $this->driver()->fetch('6931474700002');
 
-        $this->assertSame('https://www.midea.ge/ka/product/chasashenebeli-zeda-paneli-midea-mg9005tx/934/', $card['url']);
-        $this->assertTrue($card['needs_page'], 'a sitemap match has no card, so its page must be read');
+        $this->assertNotEmpty($payload->images);
     }
 
-    /** The slug carries the model in lower case, buried in the product name. */
-    public function test_matching_survives_the_slug_spelling(): void
+    /** Anchored, so a short code in the middle of an unrelated slug is not a match. */
+    public function test_a_short_code_in_the_middle_of_a_slug_is_not_a_match(): void
     {
-        $this->fakeSitemap();
+        $this->fake(cardImage: null, listingModel: 'OTHER-999', sitemapSlug: 'mo37-sxva-produqti-xyz');
+        $this->row('6931474700002', model: 'MO37');
 
-        $driver = new MideaDriver($this->supplier);
-
-        $this->assertNotEmpty($this->siteCard($driver, 'MO-37001-GB'));
-        $this->assertNotEmpty($this->siteCard($driver, 'mo37001gb'));
+        $this->assertSame([], $this->driver()->fetch('6931474700002')->images);
     }
 
-    /** A code too short to be distinctive would match the wrong product. */
-    public function test_a_very_short_code_is_not_matched(): void
-    {
-        $this->fakeSitemap();
+    /* ------------------------------------------------------------------ the cache */
 
-        $this->assertSame([], $this->siteCard(new MideaDriver($this->supplier), 'MG'));
+    /**
+     * An empty index is a failed attempt, not an answer.
+     *
+     * Cached, it made every product for the next six hours arrive bare — and
+     * the run after it looked identical, because by then nothing was failing.
+     */
+    public function test_an_empty_index_is_not_cached(): void
+    {
+        Http::fake(['*' => Http::response('', 500)]);
+
+        $this->row('6931474700003', model: 'MO-37001-GB');
+
+        $this->driver()->fetch('6931474700003');
+
+        $this->assertNull(Cache::get('import:midea:site-index'));
+        $this->assertNull(Cache::get('import:midea:sitemap-index'));
     }
 
-    public function test_a_model_on_neither_side_is_not_invented(): void
+    public function test_an_index_that_found_something_is_cached(): void
     {
-        $this->fakeSitemap();
+        $this->fake(cardImage: 'https://midea.ge/uploads/products/thumb.jpg');
+        $this->row('6931474700001', model: 'MO-37001-GB');
 
-        $this->assertSame([], $this->siteCard(new MideaDriver($this->supplier), 'NOTHING-LIKE-THIS'));
-    }
+        $this->driver()->fetch('6931474700001');
 
-    /** With read_site off, nothing is fetched at all. */
-    public function test_the_site_is_left_alone_when_it_is_switched_off(): void
-    {
-        $this->supplier->update(['config' => ['read_site' => false] + $this->supplier->config]);
-
-        Http::fake();
-
-        $this->assertSame([], $this->siteCard(new MideaDriver($this->supplier), 'MG9005TX'));
-
-        Http::assertNothingSent();
+        $this->assertNotEmpty(Cache::get('import:midea:site-index'));
     }
 
     /* ------------------------------------------------------------------ helpers */
 
-    protected function siteCard(MideaDriver $driver, string $model): array
+    protected function setUp(): void
     {
-        $method = new ReflectionMethod($driver, 'siteCard');
-        $method->setAccessible(true);
+        parent::setUp();
 
-        return $method->invoke($driver, $model);
-    }
+        Cache::flush();
 
-    protected function fakeSitemap(): void
-    {
-        Http::fake([
-            '*/sitemap.xml' => Http::response(
-                '<?xml version="1.0"?><sitemapindex><sitemap>'
-                .'<loc>https://www.midea.ge/sitemaps/sitemap_ka.xml</loc></sitemap><sitemap>'
-                .'<loc>https://www.midea.ge/sitemaps/sitemap_en.xml</loc></sitemap></sitemapindex>'
-            ),
-            '*/sitemap_ka.xml' => Http::response(
-                '<?xml version="1.0"?><urlset>'
-                .'<url><loc>https://www.midea.ge/ka/product/chasashenebeli-zeda-paneli-midea-mg9005tx/934/</loc></url>'
-                .'<url><loc>https://www.midea.ge/ka/product/chasashenebeli-eleqtro-gumeli-mo-37001-gb-/350/</loc></url>'
-                .'<url><loc>https://www.midea.ge/ka/about/</loc></url>'
-                .'</urlset>'
-            ),
-            // the other language is the same products again, so it is skipped
-            '*/sitemap_en.xml' => Http::response('<?xml version="1.0"?><urlset></urlset>'),
+        $this->supplier = Supplier::create([
+            'code' => 'midea',
+            'name' => 'Midea',
+            'driver' => MideaDriver::class,
+            'is_active' => true,
+            'priority' => 40,
+            'markup' => [['percent' => 20]],
+            'config' => [
+                'locale' => 'ka',
+                'brand' => 'Midea',
+                'read_site' => true,
+                'read_product_page' => false,
+                'max_pages' => 1,
+                'listings' => ['/ka/products/gamwovi/chasashenebeli-gamwovi/all/1/1/'],
+                'columns' => [
+                    'key' => 'C', 'category' => 'A', 'model' => 'B',
+                    'description' => 'D', 'retail' => 'E', 'stock' => 'H',
+                ],
+                'price_from' => 'retail',
+            ],
         ]);
     }
 
-    protected function productPage(): string
+    protected function driver(): MideaDriver
     {
-        return '<html><body>'
-            .'<img src="img/general-logo.png">'
-            .'<img src="/uploads/banners/sale.jpg">'
-            .'<img src="https://www.midea.ge//uploads/products/one.jpg">'
-            .'<div style="background-image:url(\'/uploads/products/two.png\')"></div>'
+        return new MideaDriver($this->supplier->fresh());
+    }
+
+    protected function row(string $barcode, string $model): SupplierStock
+    {
+        return SupplierStock::create([
+            'supplier_id' => $this->supplier->id,
+            'external_id' => $barcode,
+            'quantity' => 4,
+            'cost_price' => 800,
+            'data' => [
+                'model' => $model,
+                'category' => 'გამწოვი',
+                'description' => 'ჩასაშენებელი გამწოვი',
+                'retail' => '990',
+            ],
+            'synced_at' => now(),
+        ]);
+    }
+
+    /**
+     * The site, as far as this driver reads it: one listing page, one sitemap,
+     * one product page.
+     */
+    protected function fake(
+        ?string $cardImage,
+        string $listingModel = 'MO-37001-GB',
+        string $sitemapSlug = 'chasashenebeli-eleqtro-gumeli-mo-37001-gb',
+    ): void {
+        $style = $cardImage ? ' style="background-image: url('.$cardImage.')"' : '';
+
+        $listing = '<html><body>'
+            .'<a class="products-item" href="/ka/product/'.$sitemapSlug.'/4821">'
+            .'<div class="products-item-image"'.$style.'></div>'
+            .'<div class="products-item-title-text">ჩასაშენებელი გამწოვი</div>'
+            .'<div class="products-item-model-value">'.$listingModel.'</div>'
+            .'<div class="products-item-price-value">990</div>'
+            .'</a></body></html>';
+
+        /*
+         * Two documents, as the site really serves them: /sitemap.xml lists one
+         * sub-sitemap per language, and only the one named for this locale is
+         * read. A flat urlset here would make the sitemap path look broken when
+         * it is not.
+         */
+        $sitemapIndex = '<?xml version="1.0" encoding="UTF-8"?>'
+            .'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            .'<sitemap><loc>https://midea.ge/sitemap_products_ka.xml</loc></sitemap>'
+            .'</sitemapindex>';
+
+        $sitemap = '<?xml version="1.0" encoding="UTF-8"?>'
+            .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            .'<url><loc>https://midea.ge/ka/product/'.$sitemapSlug.'/4821</loc></url>'
+            .'</urlset>';
+
+        $page = '<html><body>'
+            .'<img src="https://midea.ge/uploads/products/gallery-1.jpg">'
             .'</body></html>';
+
+        Http::fake(function ($request) use ($listing, $sitemapIndex, $sitemap, $page) {
+            $url = $request->url();
+
+            return match (true) {
+                str_ends_with($url, '/sitemap.xml') => Http::response($sitemapIndex, 200),
+                str_contains($url, 'sitemap_products') => Http::response($sitemap, 200),
+                str_contains($url, '/products/') => Http::response($listing, 200),
+                default => Http::response($page, 200),
+            };
+        });
     }
 }

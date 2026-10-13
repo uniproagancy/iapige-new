@@ -5,9 +5,11 @@ namespace App\Console\Commands;
 use App\Models\Product;
 use App\Models\ProductOffer;
 use App\Models\Supplier;
+use App\Models\SupplierStock;
 use App\Services\Import\ProductImporter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,6 +32,7 @@ class PurgeSupplierProducts extends Command
                             {--out-of-stock : only products with nothing on the shelf}
                             {--force : actually delete; without it nothing is touched}
                             {--include-ordered : also delete products somebody has ordered}
+                            {--everything : also clear the price list, the category mapping and the cached crawl}
                             {--chunk=200}';
 
     protected $description = 'Delete the products a supplier added, with everything attached to them';
@@ -48,7 +51,15 @@ class PurgeSupplierProducts extends Command
 
         $this->report($supplier, $mine, $shared, $ordered);
 
-        if ($mine->isEmpty() && $shared->isEmpty()) {
+        /*
+         * Nothing to delete is not nothing to do.
+         *
+         * A supplier whose products were already cleared out by hand still
+         * holds its price list, its mapping and a cached crawl — which is
+         * exactly the state somebody is in when they come back to finish the
+         * job. Returning here left --everything unreachable for them.
+         */
+        if ($mine->isEmpty() && $shared->isEmpty() && ! $this->option('everything')) {
             return self::SUCCESS;
         }
 
@@ -62,10 +73,39 @@ class PurgeSupplierProducts extends Command
         $this->purge($mine);
         $this->detach($supplier, $shared);
 
+        if ($this->option('everything')) {
+            $this->forget($supplier);
+        }
+
         $this->newLine();
         $this->info('Done. Products on the storefront now: '.Product::active()->count());
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Everything else the supplier left behind.
+     *
+     * Deleting the products is not the same as starting over. The price list
+     * stays in supplier_stocks, so the next run imports the same catalogue
+     * straight back; the category mapping stays, so names mapped against the
+     * old products go on resolving; and the crawled site index stays cached
+     * for six hours, so a fresh run reads a stale picture of their shop.
+     *
+     * Kept behind a flag of its own, because clearing up after a bad run and
+     * starting a supplier from nothing are different jobs: the mapping in
+     * particular is somebody's afternoon of work, and it is still right.
+     */
+    protected function forget(Supplier $supplier): void
+    {
+        $stocks = SupplierStock::where('supplier_id', $supplier->id)->delete();
+        $mapped = DB::table('supplier_category_map')->where('supplier_id', $supplier->id)->delete();
+
+        foreach (['site-index', 'sitemap-index'] as $name) {
+            Cache::forget("import:{$supplier->code}:{$name}");
+        }
+
+        $this->line("  Cleared {$stocks} price list rows, {$mapped} mapped categories and the cached crawl.");
     }
 
     /**
@@ -147,7 +187,13 @@ class PurgeSupplierProducts extends Command
             ['specs attached', DB::table('product_specs')->whereIn('product_id', $mine)->count()],
             ['images attached', DB::table('product_images')->whereIn('product_id', $mine)->count()],
             ['filter links attached', DB::table('attribute_value_product')->whereIn('product_id', $mine)->count()],
+            ['price list rows held', SupplierStock::where('supplier_id', $supplier->id)->count()],
+            ['categories mapped', DB::table('supplier_category_map')->where('supplier_id', $supplier->id)->count()],
         ]);
+
+        if (! $this->option('everything')) {
+            $this->line('  The price list and the category mapping are kept. Use --everything to clear those too.');
+        }
 
         if ($ordered->isNotEmpty()) {
             $this->line('  Ordered products are kept so their orders keep their link. Use --include-ordered to delete them anyway.');

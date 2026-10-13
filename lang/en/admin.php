@@ -358,6 +358,7 @@ return [
     /* ------------------------------------------------------------------ an order taken by phone */
     'order_create' => 'New order',
     'order_create_hint' => 'An order placed by an operator',
+    'import_no_stock_column' => 'No stock column is mapped — every row counts as one available',
     'order_name' => 'Name',
     'order_phone' => 'Phone',
     'order_email' => 'Email',

@@ -137,9 +137,8 @@
 
                                 {{-- a brand with products behind it would orphan them --}}
                                 <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                        data-confirm="{{ __('admin.confirm_delete') }}"
-                                        data-confirm-action="delete"
-                                        data-confirm-arg="{{ $brand->id }}"
+                                        wire:click="delete({{ $brand->id }})"
+                                        wire:confirm="{{ __('admin.confirm_delete') }}"
                                         @disabled($brand->products_count > 0)>
                                     {!! $icon('trash') !!}
                                 </button>

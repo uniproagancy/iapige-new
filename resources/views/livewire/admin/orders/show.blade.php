@@ -177,8 +177,8 @@
 
                     @unless ($order->is_paid)
                         <button type="button" class="btn btn-outline-success w-100 mt-1"
-                                data-confirm="{{ __('admin.mark_paid_confirm') }}"
-                                data-confirm-action="markPaid">
+                                wire:click="markPaid"
+                                wire:confirm="{{ __('admin.mark_paid_confirm') }}">
                             {!! $icon('money', 'me-25') !!}{{ __('admin.mark_paid') }}
                         </button>
                     @endunless

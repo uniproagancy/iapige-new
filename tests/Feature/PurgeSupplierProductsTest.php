@@ -8,7 +8,9 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductOffer;
 use App\Models\Supplier;
+use App\Models\SupplierStock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -142,12 +144,86 @@ class PurgeSupplierProductsTest extends TestCase
         $this->assertNotNull($live->fresh(), 'an active product must survive --status=draft');
     }
 
+    /* ------------------------------------------------------------------ starting over */
+
+    /**
+     * Deleting the products is not the same as starting over.
+     *
+     * The price list stays in supplier_stocks, so the next run imports the
+     * same catalogue straight back — which is the opposite of what somebody
+     * clearing a supplier out expects.
+     */
+    public function test_the_price_list_is_kept_by_default(): void
+    {
+        $this->priceList($this->elite);
+
+        $this->artisan('products:purge elite --force')->assertSuccessful();
+
+        $this->assertSame(2, SupplierStock::where('supplier_id', $this->elite->id)->count());
+    }
+
+    public function test_everything_clears_the_price_list(): void
+    {
+        $this->priceList($this->elite);
+
+        $this->artisan('products:purge elite --force --everything')->assertSuccessful();
+
+        $this->assertSame(0, SupplierStock::where('supplier_id', $this->elite->id)->count());
+    }
+
+    public function test_everything_clears_the_category_mapping(): void
+    {
+        DB::table('supplier_category_map')->insert([
+            'supplier_id' => $this->elite->id, 'external_name' => 'Laptops',
+            'category_id' => $this->category->id, 'hits' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->artisan('products:purge elite --force --everything')->assertSuccessful();
+
+        $this->assertSame(0, DB::table('supplier_category_map')->where('supplier_id', $this->elite->id)->count());
+    }
+
+    /** A stale crawl cached for six hours would make the first fresh run wrong. */
+    public function test_everything_forgets_the_cached_crawl(): void
+    {
+        Cache::put('import:elite:site-index', ['X' => ['url' => 'https://x']], now()->addHours(6));
+
+        $this->artisan('products:purge elite --force --everything')->assertSuccessful();
+
+        $this->assertNull(Cache::get('import:elite:site-index'));
+    }
+
+    /** Another supplier's price list is not this one's to clear. */
+    public function test_another_suppliers_price_list_is_left_alone(): void
+    {
+        $this->priceList($this->other);
+
+        $this->artisan('products:purge elite --force --everything')->assertSuccessful();
+
+        $this->assertSame(2, SupplierStock::where('supplier_id', $this->other->id)->count());
+    }
+
     public function test_an_unknown_supplier_fails(): void
     {
         $this->artisan('products:purge nobody')->assertFailed();
     }
 
     /* ------------------------------------------------------------------ helpers */
+
+    protected function priceList(Supplier $supplier): void
+    {
+        foreach (['R-1', 'R-2'] as $id) {
+            SupplierStock::create([
+                'supplier_id' => $supplier->id,
+                'external_id' => $id,
+                'quantity' => 3,
+                'cost_price' => 100,
+                'data' => [],
+                'synced_at' => now(),
+            ]);
+        }
+    }
 
     protected function supplier(string $code, int $priority): Supplier
     {

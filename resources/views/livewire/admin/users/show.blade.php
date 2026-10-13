@@ -176,8 +176,8 @@
                         <p class="text-muted small mb-1">{{ __('admin.close_account_hint') }}</p>
 
                         <button type="button" class="btn btn-outline-danger w-100"
-                                data-confirm="{{ __('admin.close_account_confirm') }}"
-                                data-confirm-action="anonymise">
+                                wire:click="anonymise"
+                                wire:confirm="{{ __('admin.close_account_confirm') }}">
                             {{ __('admin.close_account') }}
                         </button>
                     </div>

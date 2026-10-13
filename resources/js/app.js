@@ -7,7 +7,6 @@ import {
     openPanel, closePanels, currentPanel, registerPanel,
     railStep, syncRail, selectCategory, storage, t,
 } from './core.js';
-import { confirm } from './ui.js';
 
 /* ------------------------------------------------------------------ sticky header */
 
@@ -183,34 +182,7 @@ document.addEventListener('click', (e) => {
         return;
     }
 
-    /* ---- confirm before an irreversible action (SweetAlert) ---- */
-    const guarded = el.closest('[data-confirm]');
-    if (guarded) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const root = guarded.closest('[wire\\:id]');
-        const action = guarded.dataset.confirmAction;
-        const arg = guarded.dataset.confirmArg;
-
-        confirm(guarded.dataset.confirm, { title: guarded.dataset.confirmTitle }).then((ok) => {
-            if (!ok || !root || !action) return;
-
-            /*
-             * $call, not call: Livewire 4 hands back the component's $wire
-             * proxy, which has no "call" of its own — so .call(action) was
-             * read as the name of a server method and the component was asked
-             * to run one called "call". There is none, the request was
-             * refused, and the button did nothing.
-             */
-            const wire = window.Livewire?.find(root.getAttribute('wire:id'));
-
-            if (!wire) return;
-
-            arg !== undefined ? wire.$call(action, arg) : wire.$call(action);
-        });
-        return;
-    }
+    /* ---- confirmations are Livewire's own wire:confirm now ---- */
 
     /* ---- header buttons (delegated, so a DOM swap never breaks them) ---- */
 

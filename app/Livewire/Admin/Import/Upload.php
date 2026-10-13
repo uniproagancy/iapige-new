@@ -36,7 +36,7 @@ class Upload extends Component
 
     public int $skipRows = 1;
 
-    /** @var array{read:int, zeroed:int, missing_url:int}|null */
+    /** @var array{read:int, zeroed:int, missing_url:int, no_stock_column:bool}|null */
     public ?array $result = null;
 
     public function mount(): void

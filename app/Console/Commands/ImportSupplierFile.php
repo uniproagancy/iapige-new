@@ -46,6 +46,11 @@ class ImportSupplierFile extends Command
             return self::SUCCESS;
         }
 
+        if ($result['no_stock_column'] ?? false) {
+            $this->warn("No stock column mapped for [{$supplier->code}] — every row counts as one available.");
+            $this->line('  Add config.columns.stock if the file has a quantity column.');
+        }
+
         if ($result['missing_url']) {
             $this->warn("{$result['missing_url']} rows carry no link and will be skipped.");
         }

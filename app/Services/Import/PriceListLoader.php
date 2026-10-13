@@ -22,7 +22,7 @@ use RuntimeException;
 class PriceListLoader
 {
     /**
-     * @return array{read:int, zeroed:int, missing_url:int}
+     * @return array{read:int, zeroed:int, missing_url:int, no_stock_column:bool}
      *
      * @throws RuntimeException when the file or the supplier is not usable
      */
@@ -69,7 +69,7 @@ class PriceListLoader
         }
 
         if (! $rows) {
-            return ['read' => 0, 'zeroed' => 0, 'missing_url' => 0];
+            return ['read' => 0, 'zeroed' => 0, 'missing_url' => 0, 'no_stock_column' => empty($map['stock'])];
         }
 
         foreach (array_chunk($rows, 500) as $chunk) {
@@ -98,6 +98,18 @@ class PriceListLoader
             'read' => $read,
             'zeroed' => $zeroed,
             'missing_url' => $this->withoutLink($supplier, $map, $now),
+            /*
+             * Said out loud, because the alternative is silence.
+             *
+             * A map with no stock column means "this supplier does not report
+             * stock", and every row is counted as one available — which is
+             * right for the suppliers that genuinely do not, and catastrophic
+             * for the ones whose column was simply never mapped. INGCO spent
+             * months reporting one of everything that way: the prices came
+             * from the columns that were mapped and were perfectly correct, so
+             * nothing anywhere looked wrong.
+             */
+            'no_stock_column' => empty($map['stock']),
         ];
     }
 

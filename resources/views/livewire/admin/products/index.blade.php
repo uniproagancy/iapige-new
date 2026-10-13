@@ -166,8 +166,8 @@
                     </button>
 
                     <button type="button" class="btn btn-sm btn-outline-danger ms-auto"
-                            data-confirm="{{ __('admin.bulk_delete_confirm') }}"
-                            data-confirm-action="bulkDelete">
+                            wire:click="bulkDelete"
+                            wire:confirm="{{ __('admin.bulk_delete_confirm') }}">
                         {!! $icon('trash', 'me-25') !!}{{ __('admin.delete') }}
                     </button>
 
@@ -354,9 +354,8 @@
                                 </a>
 
                                 <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                        data-confirm="{{ __('admin.confirm_delete') }}"
-                                        data-confirm-action="delete"
-                                        data-confirm-arg="{{ $product->id }}"
+                                        wire:click="delete({{ $product->id }})"
+                                        wire:confirm="{{ __('admin.confirm_delete') }}"
                                         title="{{ __('admin.delete') }}">
                                     {!! $icon('trash') !!}
                                 </button>

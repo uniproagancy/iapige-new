@@ -65,14 +65,14 @@
                 <div class="d-flex gap-1">
                     {{-- the shortcut that turns an imported mess into a usable sidebar --}}
                     <button type="button" class="btn btn-sm btn-outline-primary"
-                            data-confirm="{{ __('admin.enable_useful_confirm') }}"
-                            data-confirm-action="enableUseful">
+                            wire:click="enableUseful"
+                            wire:confirm="{{ __('admin.enable_useful_confirm') }}">
                         {!! $icon('zap', 'me-25') !!}{{ __('admin.enable_useful') }}
                     </button>
 
                     <button type="button" class="btn btn-sm btn-outline-secondary"
-                            data-confirm="{{ __('admin.disable_all_confirm') }}"
-                            data-confirm-action="disableAll">
+                            wire:click="disableAll"
+                            wire:confirm="{{ __('admin.disable_all_confirm') }}">
                         {{ __('admin.disable_all') }}
                     </button>
                 </div>
@@ -145,9 +145,8 @@
                                 </button>
 
                                 <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                        data-confirm="{{ __('admin.delete_attribute_confirm') }}"
-                                        data-confirm-action="delete"
-                                        data-confirm-arg="{{ $attribute->id }}"
+                                        wire:click="delete({{ $attribute->id }})"
+                                        wire:confirm="{{ __('admin.delete_attribute_confirm') }}"
                                         title="{{ __('admin.delete') }}">
                                     {!! $icon('trash') !!}
                                 </button>
@@ -167,9 +166,8 @@
                                                 @endif
                                                 {{ $value->label ?: $value->code }}
                                                 <button type="button" class="btn btn-sm btn-icon p-0 ms-25 text-danger"
-                                                        data-confirm="{{ __('admin.confirm_delete') }}"
-                                                        data-confirm-action="deleteValue"
-                                                        data-confirm-arg="{{ $value->id }}">×</button>
+                                                        wire:click="deleteValue({{ $value->id }})"
+                                                        wire:confirm="{{ __('admin.confirm_delete') }}">×</button>
                                             </span>
                                         @empty
                                             <span class="text-muted">{{ __('admin.no_values') }}</span>
