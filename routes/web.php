@@ -90,6 +90,7 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap')
  | The file is built by the scheduler, never by this request.
  */
 Route::get('/feed/facebook.xml', [FeedController::class, 'facebook'])->name('feed.facebook');
+Route::get('/feed/google.xml', [FeedController::class, 'google'])->name('feed.google');
 
 Route::post('/payment/callback/{driver}', [PaymentController::class, 'callback'])
     ->name('payment.callback')
