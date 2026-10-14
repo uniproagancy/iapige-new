@@ -13,7 +13,6 @@ use App\Services\Import\ProductImporter;
 use App\Services\Import\ProductPayload;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -59,8 +58,6 @@ class ProductImporterTest extends TestCase
          * the fake does record a row per image, because whether the importer
          * asks again depends on whether the last attempt left anything behind.
          */
-        Storage::fake('public');
-
         $this->app->instance(ImageDownloader::class, new class extends ImageDownloader
         {
             public array $calls = [];
@@ -84,15 +81,9 @@ class ProductImporterTest extends TestCase
                         continue;
                     }
 
-                    $path = 'products/'.$product->id.'/'.$i.'.jpg';
-
-                    // the file as well as the row: the importer counts what is
-                    // really on disk, because the two have disagreed before
-                    Storage::disk(self::DISK)->put($path, 'a picture');
-
                     ProductImage::updateOrCreate(
                         ['product_id' => $product->id, 'sort_order' => $i],
-                        ['path' => $path],
+                        ['path' => 'products/'.$product->id.'/'.$i.'.jpg'],
                     );
                 }
             }

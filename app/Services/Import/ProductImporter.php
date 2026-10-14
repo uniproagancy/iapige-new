@@ -11,7 +11,6 @@ use App\Support\Slug;
 use App\Support\Text;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Writes a ProductPayload into the catalogue. One class for every supplier —
@@ -55,7 +54,7 @@ class ProductImporter
          */
         $wanted = min(count($payload->images), ImageDownloader::MAX_IMAGES);
 
-        if ($product && $wanted > 0 && ($isNew || $this->onDisk($product) < $wanted)) {
+        if ($product && $wanted > 0 && ($isNew || $product->images()->count() < $wanted)) {
             $this->images->sync($product, $payload->images);
         }
 
@@ -113,32 +112,6 @@ class ProductImporter
             'product' => $product->id,
             'sku' => $product->sku,
         ]);
-    }
-
-    /**
-     * How many of a product's photographs are really there.
-     *
-     * Counted on the disk rather than in the database, because the two have
-     * disagreed. The public disk is configured not to throw, so a write it
-     * could not make returned false in silence, and a row was recorded for
-     * every picture whether or not the file arrived.
-     *
-     * Which made the trouble permanent: this decides whether to ask for the
-     * gallery again, and a product with three rows and no files counted as
-     * complete. It was never asked about again, the admin agreed it had
-     * photographs — the "no photo" filter counts rows — and the shop served
-     * broken images for ever.
-     *
-     * A few stat() calls per product, against a run that would otherwise
-     * never repair itself.
-     */
-    protected function onDisk(Product $product): int
-    {
-        $disk = Storage::disk(ImageDownloader::DISK);
-
-        return $product->images()->pluck('path')
-            ->filter(fn (string $path) => $disk->exists($path))
-            ->count();
     }
 
     /**

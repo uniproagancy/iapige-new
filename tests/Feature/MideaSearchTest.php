@@ -186,7 +186,7 @@ class MideaSearchTest extends TestCase
 
         $this->assertSame(
             'https://www.midea.ge/ka/product/ventilatori-fs40-21mr/431',
-            $card->invoke($this->driver(), ['FS40-21MR'])['url'],
+            $card->invoke($this->driver(), 'FS40-21MR')['url'],
         );
     }
 

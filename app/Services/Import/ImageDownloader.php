@@ -5,7 +5,7 @@ namespace App\Services\Import;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Support\Redact;
-use App\Support\SharedHttp;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -18,8 +18,7 @@ use Illuminate\Support\Str;
  */
 class ImageDownloader
 {
-    /** The importer reads this too, to count what is really on disk. */
-    public const DISK = 'public';
+    protected const DISK = 'public';
 
     /** How many photographs of one product are worth keeping. */
     public const MAX_IMAGES = 8;
@@ -134,10 +133,13 @@ class ImageDownloader
         }
 
         try {
-            $response = SharedHttp::to($url)
-                ->timeout(self::READ_TIMEOUT)
+            $response = Http::timeout(self::READ_TIMEOUT)
                 ->connectTimeout(self::CONNECT_TIMEOUT)
                 ->retry(self::RETRIES, 500, throw: false)
+                ->withOptions([
+                    // Windows PHP tries IPv6 first and waits out the timeout
+                    'force_ip_resolve' => 'v4',
+                ])
                 ->withHeaders([
                     'User-Agent' => config('services.import.user_agent', 'Mozilla/5.0'),
                     // some CDNs refuse a request that arrives from nowhere

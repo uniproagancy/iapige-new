@@ -150,15 +150,4 @@ return [
      */
     'publish_on_import' => (bool) env('IMPORT_PUBLISH', false),
 
-    /*
-     | Seconds after which a single product is worth a line in the log.
-     |
-     | A run is thousands of products and logging each one would drown
-     | the channel, but "the import is slow" cannot be answered without
-     | knowing which half is slow — reaching the supplier, or writing
-     | what came back. Only the ones that take long enough to wonder
-     | about say so, with both halves timed.
-     */
-    'import_slow_product' => (float) env('IMPORT_SLOW_PRODUCT', 2),
-
 ];
