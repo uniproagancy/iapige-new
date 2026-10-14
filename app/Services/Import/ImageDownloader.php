@@ -18,7 +18,8 @@ use Illuminate\Support\Str;
  */
 class ImageDownloader
 {
-    protected const DISK = 'public';
+    /** The importer reads this too, to count what is really on disk. */
+    public const DISK = 'public';
 
     /** How many photographs of one product are worth keeping. */
     public const MAX_IMAGES = 8;
