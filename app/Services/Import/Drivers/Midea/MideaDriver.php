@@ -7,6 +7,7 @@ use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Midea's price list is the catalogue: it carries the category, the model, the
@@ -68,6 +69,38 @@ class MideaDriver implements SupplierDriver
      * else — not even the product's name.
      */
     protected function siteCard(string ...$models): array
+    {
+        /*
+         * The website is an enrichment, never a requirement.
+         *
+         * Everything that decides whether a product exists and what it costs
+         * comes from the price list; the site only adds a title, a photograph
+         * and a description. So a site that is slow, down, or has moved a page
+         * must cost the product its picture and nothing else.
+         *
+         * It cost far more than that. midea.ge's listing pages began timing
+         * out at ten seconds each, the exception travelled up through fetch()
+         * and the job caught it — and the product was skipped entirely. Not
+         * imported without a photograph: not imported at all, though the
+         * spreadsheet had its price and its stock the whole time. One slow
+         * page on their side emptied our catalogue of everything the search
+         * had not already found.
+         */
+        try {
+            return $this->readSite(...$models);
+        } catch (\Throwable $e) {
+            Log::channel('import')->warning('the site could not be read; importing without it', [
+                'supplier' => $this->supplier->code,
+                'models' => $models,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [];
+        }
+    }
+
+    /** @return array<string, mixed> */
+    protected function readSite(string ...$models): array
     {
         $models = array_values(array_filter($models));
 
@@ -241,11 +274,46 @@ class MideaDriver implements SupplierDriver
             return $index;
         }
 
-        $index = $build();
-
-        if ($index !== []) {
-            Cache::put($key, $index, now()->addHours(6));
+        /*
+         * A source that could not be reached is not asked again immediately.
+         *
+         * An empty result is never cached as the truth — a crawl that came
+         * back empty because the site was down would otherwise be believed for
+         * six hours. But not caching the failure at all is its own trap: every
+         * product then repeats the whole crawl, and midea.ge's listing pages
+         * were timing out at ten seconds each, so a single product spent half
+         * a minute learning what the one before it had just learned. Two
+         * hundred products is an afternoon of that.
+         *
+         * So the failure is remembered, briefly. Long enough that one run does
+         * not repeat it hundreds of times, short enough that the next run
+         * tries again.
+         */
+        if (Cache::get($key.':failed')) {
+            return [];
         }
+
+        try {
+            $index = $build();
+        } catch (\Throwable $e) {
+            Cache::put($key.':failed', true, now()->addMinutes(self::RETRY_AFTER_FAILURE));
+
+            Log::channel('import')->warning('could not build the site index', [
+                'supplier' => $this->supplier->code,
+                'index' => $name,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [];
+        }
+
+        if ($index === []) {
+            Cache::put($key.':failed', true, now()->addMinutes(self::RETRY_AFTER_FAILURE));
+
+            return [];
+        }
+
+        Cache::put($key, $index, now()->addHours(6));
 
         return $index;
     }
@@ -428,6 +496,9 @@ class MideaDriver implements SupplierDriver
 
     /** Model codes differ in case and punctuation between the file and the site. */
     /** Below this a code appears inside unrelated slugs too often to trust. */
+    /** Minutes before a source that could not be reached is asked again. */
+    protected const RETRY_AFTER_FAILURE = 10;
+
     protected const MIN_MATCH_LENGTH = 5;
 
     protected function modelKey(string $model): string
