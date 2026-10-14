@@ -8,6 +8,7 @@ use App\Models\ProductSpec;
 use App\Models\ProductSpecTranslation;
 use App\Models\Supplier;
 use App\Support\Slug;
+use App\Support\Text;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -27,6 +28,8 @@ class ProductImporter
 
     public function import(Supplier $supplier, ProductPayload $payload): ?Product
     {
+        $payload = $this->repair($payload);
+
         [$product, $isNew] = $this->write($supplier, $payload);
 
         /*
@@ -109,6 +112,44 @@ class ProductImporter
             'product' => $product->id,
             'sku' => $product->sku,
         ]);
+    }
+
+    /**
+     * The same payload with every string known to be valid UTF-8.
+     *
+     * A supplier's feed is bytes, not characters: a cell cut to a length, a
+     * response that ended early, a card's summary truncated by the shop that
+     * wrote it. Any of them can end mid-character, and a Georgian letter is
+     * three bytes, so it happens to Georgian text constantly.
+     *
+     * MySQL refuses the insert — "Incorrect string value: 'á'" — and
+     * the refusal lands in the middle of the import: the attribute is not
+     * created, and the row that was to point at it fails too, as a foreign key
+     * violation several lines later that says nothing about the cause. One
+     * broken character took out a product's whole specification table and
+     * filled the log with the wrong error.
+     *
+     * Done here, once, because every supplier reaches the catalogue through
+     * this method and none of them should have to think about it.
+     */
+    protected function repair(ProductPayload $payload): ProductPayload
+    {
+        return new ProductPayload(
+            externalId: $payload->externalId,
+            sku: $payload->sku,
+            costPrice: $payload->costPrice,
+            oldCostPrice: $payload->oldCostPrice,
+            stock: $payload->stock,
+            brandName: Text::utf8($payload->brandName),
+            categoryName: Text::utf8($payload->categoryName),
+            translations: Text::utf8All($payload->translations),
+            specs: Text::utf8All($payload->specs),
+            images: $payload->images,
+            weight: $payload->weight,
+            variantGroup: $payload->variantGroup,
+            isPreorder: $payload->isPreorder,
+            releaseDate: $payload->releaseDate,
+        );
     }
 
     /**
