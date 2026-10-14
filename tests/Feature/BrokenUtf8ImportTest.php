@@ -10,10 +10,12 @@ use App\Models\Supplier;
 use App\Services\Import\ImageDownloader;
 use App\Services\Import\ProductImporter;
 use App\Services\Import\ProductPayload;
+use App\Services\Import\TaxonomyResolver;
 use App\Support\Text;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -134,6 +136,54 @@ class BrokenUtf8ImportTest extends TestCase
 
         // the second is a different word, so a different attribute — but both stored
         $this->assertSame(0, DB::table('attribute_translations')->whereNull('name')->count());
+    }
+
+    /* ------------------------------------------------------------------ the amplifier */
+
+    /**
+     * A failed write must not poison the rest of the run.
+     *
+     * The resolver is a singleton, so an attribute created inside a
+     * transaction that then rolled back stayed in its memory holding an id the
+     * database no longer had. Every later product carrying that same attribute
+     * wrote a link to a row that was never committed, and MySQL refused each
+     * one as a foreign key violation — nineteen of them from seven broken
+     * characters, none naming the cause, going on until the worker restarted.
+     */
+    public function test_a_failed_write_clears_what_the_resolver_remembered(): void
+    {
+        $resolver = app(TaxonomyResolver::class);
+
+        // resolved and remembered, exactly as an import would
+        $attribute = $resolver->attribute($this->supplier, 'მოცულობა');
+
+        $this->assertNotNull($attribute);
+
+        // the row goes, as a rollback would take it
+        Attribute::whereKey($attribute->id)->delete();
+
+        $resolver->forget();
+
+        $again = $resolver->attribute($this->supplier, 'მოცულობა');
+
+        $this->assertNotSame($attribute->id, $again->id);
+        $this->assertTrue(Attribute::whereKey($again->id)->exists());
+    }
+
+    /** And the importer does the clearing itself when a write throws. */
+    public function test_the_importer_clears_it_when_a_write_fails(): void
+    {
+        $resolver = Mockery::mock(TaxonomyResolver::class)->makePartial();
+
+        // whatever goes wrong inside the transaction, this is the contract
+        $resolver->shouldReceive('attribute')->andThrow(new RuntimeException('the write failed'));
+        $resolver->shouldReceive('forget')->once();
+
+        $this->app->instance(TaxonomyResolver::class, $resolver);
+
+        $this->expectException(RuntimeException::class);
+
+        app(ProductImporter::class)->import($this->supplier, $this->payload(specName: 'მოცულობა'));
     }
 
     /* ------------------------------------------------------------------ helpers */

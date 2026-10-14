@@ -263,6 +263,25 @@ class ProductImporter
      */
     protected function write(Supplier $supplier, ProductPayload $payload): array
     {
+        try {
+            return $this->writeInTransaction($supplier, $payload);
+        } catch (\Throwable $e) {
+            /*
+             * Whatever the resolver remembered inside that transaction is gone
+             * from the database now, and it is a singleton — so without this
+             * it goes on handing out ids of rows that were rolled back, and
+             * every later product carrying the same attribute fails as a
+             * foreign key violation that names nothing.
+             */
+            $this->taxonomy->forget();
+
+            throw $e;
+        }
+    }
+
+    /** @return array{0: ?Product, 1: bool} */
+    protected function writeInTransaction(Supplier $supplier, ProductPayload $payload): array
+    {
         return DB::transaction(function () use ($supplier, $payload) {
             $product = $this->find($supplier, $payload);
             $isNew = ! $product;

@@ -301,6 +301,30 @@ class TaxonomyResolver
         return $this->memo[$key] = $attribute;
     }
 
+    /**
+     * Drops everything remembered about rows that may no longer exist.
+     *
+     * This is a singleton, so what it remembers outlives the product it was
+     * resolved for and the job as well — which is the point, because the same
+     * attribute comes up on nearly every product and looking it up each time
+     * is a query a product.
+     *
+     * It is also how one failure poisoned a whole run. A product whose
+     * specification could not be written rolls its transaction back, and the
+     * attribute and value created inside it go with it — but the objects stay
+     * here, holding ids the database no longer has. Every later product
+     * carrying that same attribute then wrote a link to a row that was never
+     * committed, and MySQL refused each one as a foreign key violation. Seven
+     * broken characters produced nineteen of those, none of which named the
+     * cause, and it went on until the worker was restarted.
+     *
+     * Called when a write fails, so the next product asks the database again.
+     */
+    public function forget(): void
+    {
+        $this->memo = [];
+    }
+
     /* ------------------------------------------------------------------ hit counting */
 
     /**
