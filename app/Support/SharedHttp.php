@@ -62,12 +62,15 @@ class SharedHttp
 
         return self::$clients[$host] ??= new Client([
             /*
-             * Keep-alive is the whole point, and it is the default — but a
-             * host that answers "Connection: close" ends the connection
-             * anyway, so this is a request, not a guarantee. Where it is
-             * honoured the handshake happens once.
+             * No Connection header of our own.
+             *
+             * cURL reuses a connection by default and knows when one has gone
+             * stale. Asking for keep-alive explicitly does not make reuse more
+             * likely, and it encourages a server to hold a connection open
+             * that it later drops without telling us — the next request then
+             * waits out the whole connect timeout on a socket that is already
+             * dead, which is the opposite of what this class is for.
              */
-            'headers' => ['Connection' => 'keep-alive'],
 
             // Windows PHP tries IPv6 first and waits out the timeout
             'force_ip_resolve' => 'v4',
