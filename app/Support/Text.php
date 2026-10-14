@@ -34,26 +34,33 @@ class Text
             return $text;
         }
 
-        if (! mb_check_encoding($text, 'UTF-8')) {
-            /*
-             * Dropped, not replaced.
-             *
-             * mb_convert_encoding substitutes "?" for a byte it cannot read,
-             * which turns a half character into a question mark sitting in the
-             * middle of a product name — tidier than a crash and still wrong.
-             * The substitute is switched off for the conversion and put back
-             * afterwards, because it is a global setting and something else
-             * may be relying on it.
-             */
-            $substitute = mb_substitute_character();
+        /*
+         * Valid text is returned exactly as it came.
+         *
+         * Everything below only makes sense for a string that was cut,
+         * and the trim at the end would otherwise quietly edit perfectly
+         * good copy — a campaign called "-20%" would lose its minus sign.
+         */
+        if (mb_check_encoding($text, 'UTF-8')) {
+            return $text;
+        }
 
-            mb_substitute_character('none');
+        /*
+         * Dropped, not replaced.
+         *
+         * mb_convert_encoding substitutes "?" for a byte it cannot read,
+         * which leaves a question mark sitting in the middle of a product
+         * name — tidier than a crash and still wrong. The substitute is a
+         * global setting, so it is put back afterwards.
+         */
+        $substitute = mb_substitute_character();
 
-            try {
-                $text = (string) mb_convert_encoding($text, 'UTF-8', 'UTF-8');
-            } finally {
-                mb_substitute_character($substitute);
-            }
+        mb_substitute_character('none');
+
+        try {
+            $text = (string) mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        } finally {
+            mb_substitute_character($substitute);
         }
 
         /*

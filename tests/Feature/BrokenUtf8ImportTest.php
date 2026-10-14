@@ -13,7 +13,6 @@ use App\Services\Import\ProductPayload;
 use App\Services\Import\TaxonomyResolver;
 use App\Support\Text;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Mockery;
 use RuntimeException;
 use Tests\TestCase;
@@ -42,7 +41,7 @@ class BrokenUtf8ImportTest extends TestCase
 
     public function test_a_half_character_is_dropped(): void
     {
-        $this->assertSame('მაცივრის მოცულობა', Text::utf8("მაცივრის მოცულობა ,\xE1\x83"));
+        $this->assertSame('მაცივრის მოცულობა', Text::utf8('მაცივრის მოცულობა ,'.$this->half()));
     }
 
     /** Only what is broken: a name that is fine comes back untouched. */
@@ -62,7 +61,7 @@ class BrokenUtf8ImportTest extends TestCase
     {
         $this->assertSame(
             ['მოცულობა' => 'x'],
-            Text::utf8All(["მოცულობა\xE1\x83" => 'x']),
+            Text::utf8All(['მოცულობა'.$this->half() => 'x']),
         );
     }
 
@@ -70,7 +69,7 @@ class BrokenUtf8ImportTest extends TestCase
 
     public function test_a_spec_with_a_broken_name_is_still_imported(): void
     {
-        $product = $this->import($this->payload(specName: "მაცივრის მოცულობა ,\xE1\x83"));
+        $product = $this->import($this->payload(specName: 'მაცივრის მოცულობა ,'.$this->half()));
 
         $this->assertNotNull($product);
         $this->assertSame(1, $product->specs()->count());
@@ -79,7 +78,7 @@ class BrokenUtf8ImportTest extends TestCase
     /** And the attribute it needed exists, spelled properly. */
     public function test_the_attribute_is_created_with_a_clean_name(): void
     {
-        $this->import($this->payload(specName: "მაცივრის მოცულობა ,\xE1\x83"));
+        $this->import($this->payload(specName: 'მაცივრის მოცულობა ,'.$this->half()));
 
         $attribute = Attribute::first();
 
@@ -96,7 +95,7 @@ class BrokenUtf8ImportTest extends TestCase
      */
     public function test_the_mapping_row_is_written(): void
     {
-        $this->import($this->payload(specName: "მაცივრის მოცულობა ,\xE1\x83"));
+        $this->import($this->payload(specName: 'მაცივრის მოცულობა ,'.$this->half()));
 
         $this->assertDatabaseHas('supplier_attribute_map', [
             'supplier_id' => $this->supplier->id,
@@ -107,35 +106,69 @@ class BrokenUtf8ImportTest extends TestCase
     /** A broken product name must not reach the translations either. */
     public function test_a_broken_product_name_is_repaired(): void
     {
-        $product = $this->import($this->payload(name: "მაცივარი LG\xE1\x83"));
+        $product = $this->import($this->payload(name: 'მაცივარი LG'.$this->half()));
 
         $this->assertSame('მაცივარი LG', $product->fresh()->name);
     }
 
     public function test_a_broken_category_name_is_repaired(): void
     {
-        $this->import($this->payload(category: "ტექნიკა\xE1\x83"));
+        $this->import($this->payload(category: 'ტექნიკა'.$this->half()));
 
         $this->assertDatabaseHas('supplier_category_map', ['external_name' => 'ტექნიკა']);
     }
 
     public function test_a_broken_brand_name_is_repaired(): void
     {
-        $product = $this->import($this->payload(brand: "ნორდა\xE1\x83"));
+        $product = $this->import($this->payload(brand: 'ნორდა'.$this->half()));
 
         $this->assertSame('ნორდა', $product->fresh()->brand->name);
     }
 
-    /** Two specs whose names differ only in the broken tail are one attribute. */
-    public function test_a_name_broken_two_ways_is_one_attribute(): void
+    /* ------------------------------------------------------------------ the last gate */
+
+    /**
+     * Nothing reaches a translation table broken, whoever wrote it.
+     *
+     * The import repairs its payloads, but translations are written from the
+     * admin and from commands too — and the repair is only worth having if it
+     * cannot be walked around.
+     */
+    public function test_a_translation_written_directly_is_repaired(): void
     {
-        $this->import($this->payload(specName: "მოცულობა\xE1\x83"));
-        $this->import($this->payload(specName: "მოცულობა\xE1\x83\x9a", external: 'EXT-2', sku: 'SKU-2'));
+        $category = Category::create(['parent_id' => null, 'is_active' => true, 'sort_order' => 1]);
 
-        $this->assertSame(2, Attribute::count());
+        $category->saveTranslations(['ka' => ['name' => 'საყინულ'.$this->half(), 'slug' => 'sayinuli']]);
 
-        // the second is a different word, so a different attribute — but both stored
-        $this->assertSame(0, DB::table('attribute_translations')->whereNull('name')->count());
+        $this->assertSame('საყინულ', $category->fresh()->name);
+    }
+
+    /**
+     * The real summary from the log: 309 bytes of Georgian ending two thirds
+     * of the way through a letter.
+     */
+    public function test_a_long_broken_summary_is_repaired(): void
+    {
+        $summary = 'წყლის დისპენსერი,შავი,ქვედა ჩატვირთვის მექანიზმი,'
+            .'ერთონკანიანი დიზაინი,მაღალი ონკანი დიდი ზომის ჭურჭლის ასავსება'.$this->half();
+
+        $product = $this->import($this->payload(summary: $summary));
+
+        $stored = $product->fresh()->translate('ka')->summary;
+
+        $this->assertTrue(mb_check_encoding($stored, 'UTF-8'));
+        $this->assertStringEndsWith('ასავსება', $stored);
+    }
+
+    /** The mapping queue gets the name too, which is what an admin maps by. */
+    public function test_a_broken_category_reaches_the_mapping_queue_clean(): void
+    {
+        $this->import($this->payload(category: 'საყინულ'.$this->half()));
+
+        $this->assertDatabaseHas('supplier_category_map', [
+            'supplier_id' => $this->supplier->id,
+            'external_name' => 'საყინულ',
+        ]);
     }
 
     /* ------------------------------------------------------------------ the amplifier */
@@ -188,6 +221,19 @@ class BrokenUtf8ImportTest extends TestCase
 
     /* ------------------------------------------------------------------ helpers */
 
+    /**
+     * Two thirds of a Georgian letter.
+     *
+     * Built from bytes rather than written as an escape: a source file cannot
+     * hold an incomplete character, and a formatter that rewrites a
+     * double-quoted escape into a single-quoted literal turns the broken bytes
+     * into ordinary ones — repairing the very thing under test.
+     */
+    protected function half(): string
+    {
+        return chr(0xE1).chr(0x83);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -219,6 +265,7 @@ class BrokenUtf8ImportTest extends TestCase
         string $category = 'ტექნიკა',
         string $brand = 'ნორდა',
         ?string $specName = null,
+        ?string $summary = null,
         string $external = 'EXT-1',
         string $sku = 'SKU-1',
     ): ProductPayload {
@@ -230,7 +277,7 @@ class BrokenUtf8ImportTest extends TestCase
             stock: 5,
             brandName: $brand,
             categoryName: $category,
-            translations: ['ka' => ['name' => $name]],
+            translations: ['ka' => array_filter(['name' => $name, 'summary' => $summary])],
             specs: $specName === null ? [] : [
                 ['name' => $specName, 'value' => '384 ლ', 'locale' => 'ka'],
             ],

@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Language;
 use App\Models\Supplier;
 use App\Support\Slug;
+use App\Support\Text;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -67,7 +68,8 @@ class TaxonomyResolver
      */
     public function category(Supplier $supplier, ?string $name): ?Category
     {
-        $name = trim((string) $name);
+        // supplier_category_map.external_name takes this verbatim
+        $name = trim((string) Text::utf8($name));
 
         if ($name === '') {
             return null;
@@ -257,7 +259,8 @@ class TaxonomyResolver
 
     public function attribute(Supplier $supplier, string $name, bool $filterable = false): ?Attribute
     {
-        $name = trim($name);
+        // supplier_attribute_map.external_name takes this verbatim
+        $name = trim((string) Text::utf8($name));
 
         if ($name === '') {
             return null;

@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Models\Language;
+use App\Support\Text;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -124,7 +125,23 @@ trait HasTranslations
         $allowed = array_flip($this->translatableAttributes());
 
         foreach ($byLocale as $locale => $fields) {
-            $fields = array_intersect_key((array) $fields, $allowed);
+            /*
+             * Nothing reaches a translation table that is not valid UTF-8.
+             *
+             * Almost everything written here came from a supplier, and a
+             * supplier's text is bytes: a cell cut to a length, a response
+             * that ended early, a summary the shop truncated for its own card.
+             * Any of them can end mid-character, and a Georgian letter is
+             * three bytes, so it happens to Georgian constantly.
+             *
+             * MySQL then refuses the whole insert, and the refusal lands
+             * wherever the import happened to be — as a foreign key violation
+             * a dozen lines later that names nothing. The import repairs its
+             * payloads already; this is here because translations are written
+             * from the admin and from commands too, and a half character is
+             * not worth losing a product over wherever it came from.
+             */
+            $fields = Text::utf8All(array_intersect_key((array) $fields, $allowed));
 
             if (! array_filter($fields, fn ($v) => $v !== null && $v !== '')) {
                 continue;
