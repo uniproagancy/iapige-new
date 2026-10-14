@@ -159,7 +159,31 @@ class ImageDownloader
 
             unset(self::$failures[$this->hostOf($url)]);
 
-            Storage::disk(self::DISK)->put($path, $response->body());
+            /*
+             * Whether the file was actually written.
+             *
+             * The public disk is configured with 'throw' => false and
+             * 'report' => false, so a write it cannot make returns false and
+             * says nothing at all — no exception, no log line, nothing. The
+             * return value was not read, so a product whose photographs could
+             * not be stored still got a product_images row for every one of
+             * them, pointing at files that were never there. Nothing in the
+             * admin could tell that apart from a product with pictures: the
+             * "no photo" filter counts rows.
+             *
+             * A directory the web user cannot write to is the usual cause, and
+             * it fails for every image of every product at once.
+             */
+            if (Storage::disk(self::DISK)->put($path, $response->body()) === false) {
+                Log::channel('import')->error('image could not be written to disk', [
+                    'product' => $product->id,
+                    'path' => $path,
+                    'disk' => self::DISK,
+                    'root' => config('filesystems.disks.'.self::DISK.'.root'),
+                ]);
+
+                return null;
+            }
 
             return $path;
         } catch (\Throwable $e) {

@@ -8,7 +8,9 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ImportManager;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Why a supplier imported what it imported.
@@ -349,6 +351,48 @@ class ImportDoctor extends Command
                 ->whereNull('category_id')
                 ->count()],
         ]);
+
+        $this->checkImageFiles($ids);
+    }
+
+    /**
+     * Photographs the database claims and the disk does not have.
+     *
+     * The public disk is configured not to throw, so a write it cannot make
+     * returns false and says nothing. A product whose pictures could not be
+     * stored still carried a row for every one of them, and every count in the
+     * admin agreed it had photographs — the "no photo" filter counts rows, not
+     * files. The shop then served broken images and nothing anywhere had
+     * complained.
+     *
+     * A sample, because checking every file of every product is a lot of
+     * stat() calls for a report. When the disk is the problem it is the
+     * problem for all of them, so a hundred rows is plenty to see it.
+     *
+     * @param  Collection<int, int>  $ids
+     */
+    protected function checkImageFiles($ids): void
+    {
+        $rows = DB::table('product_images')
+            ->whereIn('product_id', $ids)
+            ->inRandomOrder()
+            ->limit(100)
+            ->pluck('path');
+
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        $missing = $rows->reject(fn ($path) => Storage::disk('public')->exists($path))->count();
+
+        if ($missing === 0) {
+            return;
+        }
+
+        $this->newLine();
+        $this->line("  <fg=red>{$missing} of {$rows->count()} sampled photographs are recorded but not on disk.</>");
+        $this->line('  Disk root: '.config('filesystems.disks.public.root'));
+        $this->line('  Check that the directory exists and the web user can write to it.');
     }
 
     /* ------------------------------------------------------------------ helpers */
