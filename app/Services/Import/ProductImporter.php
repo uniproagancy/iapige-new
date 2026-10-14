@@ -59,7 +59,56 @@ class ProductImporter
             return null;
         }
 
+        if ($product) {
+            $this->publish($supplier, $product);
+        }
+
         return $product;
+    }
+
+    /**
+     * Puts the product on sale, for suppliers whose catalogue needs no reading.
+     *
+     * An import lands as a draft so somebody can look at it first, which is
+     * right for a supplier whose feed arrives half-described — a bare model
+     * code for a name, no category, a photograph that may or may not have
+     * downloaded. It is wrong for one that arrives complete: Midea answers
+     * with the title, the gallery and the description, and leaving three
+     * hundred finished products sitting in a drafts list waiting to be ticked
+     * is not review, it is a second job nobody asked for.
+     *
+     * Only ever upward, and only for a product that has never been on sale.
+     * published_at is the record of that: null means nobody has ever shown
+     * this, while a draft that carries one is something an admin deliberately
+     * took down, and a nightly run has no business putting it back.
+     *
+     * Still gated on readyToPublish, so an uncategorised or unnamed product
+     * stays a draft however the supplier is configured — publishing one would
+     * put a card on the shop that cannot be browsed to or filtered.
+     */
+    protected function publish(Supplier $supplier, Product $product): void
+    {
+        $wanted = $supplier->config['publish_on_import'] ?? config('shop.publish_on_import', false);
+
+        if (! $wanted
+            || $product->status !== Product::STATUS_DRAFT
+            || $product->published_at !== null) {
+            return;
+        }
+
+        if (! Product::readyToPublish()->whereKey($product->id)->exists()) {
+            return;
+        }
+
+        $product->update([
+            'status' => Product::STATUS_ACTIVE,
+            'published_at' => now(),
+        ]);
+
+        $this->log('published on arrival', $supplier, null, [
+            'product' => $product->id,
+            'sku' => $product->sku,
+        ]);
     }
 
     /**
@@ -447,13 +496,14 @@ class ProductImporter
     }
 
     /** One place for import logging, on its own channel. */
-    protected function log(string $message, ?Supplier $supplier, ProductPayload $payload, array $extra = []): void
+    /** The payload is optional: some of what is worth logging happens after it. */
+    protected function log(string $message, ?Supplier $supplier, ?ProductPayload $payload, array $extra = []): void
     {
-        Log::channel('import')->info($message, array_merge([
+        Log::channel('import')->info($message, array_merge(array_filter([
             'supplier' => $supplier?->code,
-            'external' => $payload->externalId,
-            'sku' => $payload->sku,
-            'name' => $payload->translations[array_key_first($payload->translations)]['name'] ?? null,
-        ], $extra));
+            'external' => $payload?->externalId,
+            'sku' => $payload?->sku,
+            'name' => $payload ? ($payload->translations[array_key_first($payload->translations)]['name'] ?? null) : null,
+        ]), $extra));
     }
 }

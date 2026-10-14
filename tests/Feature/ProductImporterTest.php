@@ -389,6 +389,97 @@ class ProductImporterTest extends TestCase
         ]);
     }
 
+    /* ------------------------------------------------------------------ going on sale */
+
+    /** Off by default: most feeds arrive half-described and are worth a look. */
+    public function test_an_import_lands_as_a_draft(): void
+    {
+        $product = app(ProductImporter::class)->import($this->supplier, $this->payload());
+
+        $this->assertSame(Product::STATUS_DRAFT, $product->status);
+        $this->assertNull($product->published_at);
+    }
+
+    /**
+     * A supplier that answers with the whole product can go straight on sale.
+     *
+     * Three hundred finished products waiting in a drafts list to be ticked
+     * one by one is not review, it is a second job nobody asked for.
+     */
+    public function test_a_supplier_set_to_publish_puts_it_on_sale(): void
+    {
+        $this->supplier->update(['config' => ['publish_on_import' => true]]);
+
+        $product = app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload());
+
+        $this->assertSame(Product::STATUS_ACTIVE, $product->fresh()->status);
+        $this->assertNotNull($product->fresh()->published_at);
+    }
+
+    /**
+     * Not one that cannot be browsed to.
+     *
+     * readyToPublish still decides, so a product whose category nobody has
+     * mapped yet stays a draft however the supplier is configured.
+     */
+    public function test_an_uncategorised_product_stays_a_draft(): void
+    {
+        $this->supplier->update(['config' => ['publish_on_import' => true]]);
+
+        $product = app(ProductImporter::class)
+            ->import($this->supplier->fresh(), $this->payload(category: 'Nothing maps this'));
+
+        $this->assertNull($product->fresh()->category_id);
+        $this->assertSame(Product::STATUS_DRAFT, $product->fresh()->status);
+    }
+
+    /** A later run picks up the drafts that are ready now. */
+    public function test_a_draft_from_an_earlier_run_is_published_later(): void
+    {
+        $product = app(ProductImporter::class)->import($this->supplier, $this->payload());
+
+        $this->assertSame(Product::STATUS_DRAFT, $product->status);
+
+        $this->supplier->update(['config' => ['publish_on_import' => true]]);
+
+        app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload());
+
+        $this->assertSame(Product::STATUS_ACTIVE, $product->fresh()->status);
+    }
+
+    /**
+     * Something an admin took down stays down.
+     *
+     * published_at is the record of having been on sale, so a draft that
+     * carries one was drafted deliberately and a nightly run has no business
+     * putting it back.
+     */
+    public function test_a_product_taken_down_by_hand_is_left_alone(): void
+    {
+        $this->supplier->update(['config' => ['publish_on_import' => true]]);
+
+        $product = app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload());
+
+        $product->update(['status' => Product::STATUS_DRAFT]);   // published_at survives
+
+        app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload());
+
+        $this->assertSame(Product::STATUS_DRAFT, $product->fresh()->status);
+    }
+
+    public function test_an_archived_product_is_left_alone(): void
+    {
+        $this->supplier->update(['config' => ['publish_on_import' => true]]);
+
+        $product = app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload());
+
+        $product->update(['status' => Product::STATUS_ARCHIVED, 'published_at' => null]);
+
+        app(ProductImporter::class)->import($this->supplier->fresh(), $this->payload());
+
+        $this->assertSame(Product::STATUS_ARCHIVED, $product->fresh()->status);
+    }
+
     /* ------------------------------------------------------------------ the floor */
 
     /**

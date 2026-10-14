@@ -11,12 +11,12 @@ class MideaSupplierSeeder extends Seeder
     public function run(): void
     {
         Supplier::updateOrCreate(['code' => 'midea'], [
-            'name'     => 'Midea',
-            'driver'   => MideaDriver::class,
+            'name' => 'Midea',
+            'driver' => MideaDriver::class,
             'priority' => 40,
-            'config'   => [
+            'config' => [
                 'locale' => 'ka',
-                'brand'  => 'Midea',
+                'brand' => 'Midea',
 
                 /*
                  | The price list, column by column:
@@ -26,26 +26,34 @@ class MideaSupplierSeeder extends Seeder
                  | H ნაშთი       I/J გარანტია    K www.midea.ge (the site's model)
                  */
                 'columns' => [
-                    'key'         => 'C',   // barcode — the identity of a row
-                    'category'    => 'A',
-                    'model'       => 'B',
+                    'key' => 'C',   // barcode — the identity of a row
+                    'category' => 'A',
+                    'model' => 'B',
                     'description' => 'D',
-                    'retail'      => 'E',
+                    'retail' => 'E',
                     'retail_sale' => 'F',
-                    'cost'        => 'G',
-                    'stock'       => 'H',
-                    'warranty'    => 'I',
-                    'site_model'  => 'K',
+                    'cost' => 'G',
+                    'stock' => 'H',
+                    'warranty' => 'I',
+                    'site_model' => 'K',
                 ],
 
                 // 'retail' sells at Midea's own promotional price; 'dealer' applies our markup
                 'price_from' => 'retail',
 
+                /*
+                 | Midea answers with the whole product — title, gallery,
+                 | description — so nothing arrives half-described and there is
+                 | nothing for a person to fix before a customer sees it.
+                 | readyToPublish still holds back anything uncategorised.
+                 */
+                'publish_on_import' => true,
+
                 // the site is only asked for photographs and a few specs
-                'read_site'         => true,
+                'read_site' => true,
                 'read_product_page' => false,
-                'max_pages'         => 30,
-                'timeout'           => 30,
+                'max_pages' => 30,
+                'timeout' => 30,
 
                 'listings' => [
                     '/ka/products/kondicioneri/split-sistema/all/1/1/',

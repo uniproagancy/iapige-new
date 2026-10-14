@@ -135,4 +135,19 @@ return [
      */
     'require_stock' => (bool) env('IMPORT_REQUIRE_STOCK', true),
 
+    /*
+     | Whether an imported product goes on sale by itself.
+     |
+     | Off, because most feeds arrive half-described: a bare model code for a
+     | name, no category, a photograph that may or may not have downloaded.
+     | Those are worth a look before a customer sees them.
+     |
+     | A supplier that answers with the title, the gallery and the description
+     | is a different case, and turns this on with publish_on_import in its own
+     | config. Either way readyToPublish still decides: a product with no
+     | category or no name stays a draft, because publishing one puts a card on
+     | the shop that cannot be browsed to.
+     */
+    'publish_on_import' => (bool) env('IMPORT_PUBLISH', false),
+
 ];
