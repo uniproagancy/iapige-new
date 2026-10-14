@@ -5,7 +5,7 @@ namespace App\Services\Import;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Support\Redact;
-use Illuminate\Support\Facades\Http;
+use App\Support\SharedHttp;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -134,13 +134,10 @@ class ImageDownloader
         }
 
         try {
-            $response = Http::timeout(self::READ_TIMEOUT)
+            $response = SharedHttp::to($url)
+                ->timeout(self::READ_TIMEOUT)
                 ->connectTimeout(self::CONNECT_TIMEOUT)
                 ->retry(self::RETRIES, 500, throw: false)
-                ->withOptions([
-                    // Windows PHP tries IPv6 first and waits out the timeout
-                    'force_ip_resolve' => 'v4',
-                ])
                 ->withHeaders([
                     'User-Agent' => config('services.import.user_agent', 'Mozilla/5.0'),
                     // some CDNs refuse a request that arrives from nowhere

@@ -2,7 +2,7 @@
 
 namespace App\Services\Import\Drivers\Midea;
 
-use Illuminate\Support\Facades\Http;
+use App\Support\SharedHttp;
 
 /**
  * midea.ge, through the search its own header uses.
@@ -105,7 +105,10 @@ class MideaClient
             return [];
         }
 
-        $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
+        $url = $this->absolute('/ka/search');
+
+        $response = SharedHttp::to($url)
+            ->timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
             ->connectTimeout(15)
             ->asForm()
             ->withHeaders([
@@ -113,7 +116,7 @@ class MideaClient
                 'X-Requested-With' => 'XMLHttpRequest',
                 'Referer' => rtrim((string) config('services.midea.base_url'), '/').'/ka/',
             ])
-            ->post($this->absolute('/ka/search'), ['keyword' => $keyword]);
+            ->post($url, ['keyword' => $keyword]);
 
         if (! $response->successful()) {
             return [];
