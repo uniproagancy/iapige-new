@@ -7,22 +7,17 @@ use App\Models\SupplierStock;
 use App\Services\Import\Drivers\Midea\MideaDriver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
  * One slow page on their side emptied our catalogue.
  *
- * midea.ge's listing pages began timing out at ten seconds each. The exception
- * travelled up out of the crawl, through fetch(), and the job caught it — so
- * the product was skipped entirely. Not imported without a photograph:
- * not imported at all, though the price list had its price and its stock the
- * whole time.
- *
- * And it was paid for again on every product, because an index that could not
- * be built was never remembered as such: each of two hundred products spent
- * half a minute learning what the one before it had just learned.
+ * midea.ge began timing out at ten seconds a request. The exception travelled
+ * up out of the client, through fetch(), and the job caught it — so the
+ * product was skipped entirely. Not imported without a photograph: not
+ * imported at all, though the price list had its price and its stock the whole
+ * time.
  *
  * The website is an enrichment. It decides nothing about whether a product
  * exists or what it costs.
@@ -32,11 +27,6 @@ class MideaSiteUnreachableTest extends TestCase
     use RefreshDatabase;
 
     protected Supplier $supplier;
-
-    /** How many times the listing crawl was attempted. */
-    protected int $crawlAttempts = 0;
-
-    /* ------------------------------------------------------------------ the product survives */
 
     public function test_a_product_is_imported_when_the_site_times_out(): void
     {
@@ -65,53 +55,15 @@ class MideaSiteUnreachableTest extends TestCase
         $this->assertSame('წვრილი ტექნიკა FS40-21MR', $this->payload()->translations['ka']['name']);
     }
 
-    /* ------------------------------------------------------------------ the cost is paid once */
-
-    /**
-     * A source that could not be reached is not asked again immediately.
-     *
-     * Not cached as the truth — an empty crawl would otherwise be believed for
-     * six hours — but remembered as a failure, briefly.
-     */
-    public function test_a_failed_crawl_is_not_repeated_for_every_product(): void
+    /** A refusal is not a crash either: the product still arrives. */
+    public function test_a_refused_request_leaves_the_product_alone(): void
     {
-        $this->fakeTimeout();
+        Http::fake(['*' => Http::response('denied', 403)]);
 
-        $this->payload();
+        $payload = $this->payload();
 
-        $paid = $this->crawlAttempts;
-
-        $this->assertGreaterThan(0, $paid, 'the first product pays for the crawl');
-
-        $this->payload();
-
-        $this->assertSame($paid, $this->crawlAttempts, 'the second product must not pay for it again');
-    }
-
-    public function test_the_failure_is_remembered_under_its_own_key(): void
-    {
-        $this->fakeTimeout();
-
-        $this->payload();
-
-        $this->assertTrue((bool) Cache::get('import:midea:site-index:failed'));
-        $this->assertNull(Cache::get('import:midea:site-index'));
-    }
-
-    /** The next run asks again, because the site may have come back. */
-    public function test_the_next_run_tries_again(): void
-    {
-        $this->fakeTimeout();
-
-        $this->payload();
-
-        $paid = $this->crawlAttempts;
-
-        Cache::forget('import:midea:site-index:failed');
-
-        $this->payload();
-
-        $this->assertGreaterThan($paid, $this->crawlAttempts);
+        $this->assertNotNull($payload);
+        $this->assertSame([], $payload->images);
     }
 
     /* ------------------------------------------------------------------ helpers */
@@ -119,8 +71,6 @@ class MideaSiteUnreachableTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        Cache::flush();
 
         $this->supplier = Supplier::create([
             'code' => 'midea',
@@ -133,8 +83,6 @@ class MideaSiteUnreachableTest extends TestCase
                 'locale' => 'ka',
                 'brand' => 'Midea',
                 'read_site' => true,
-                'max_pages' => 1,
-                'listings' => ['/ka/products/kondicioneri/split-sistema/all/1/1/'],
                 'price_from' => 'retail',
                 'columns' => ['key' => 'C', 'category' => 'A', 'model' => 'B', 'retail' => 'E', 'stock' => 'H'],
             ],
@@ -159,18 +107,9 @@ class MideaSiteUnreachableTest extends TestCase
         return (new MideaDriver($this->supplier->fresh()))->fetch('2000000020419');
     }
 
-    /** The search answers with nothing; everything else times out. */
     protected function fakeTimeout(): void
     {
-        Http::fake(function ($request) {
-            if (str_contains($request->url(), '/search')) {
-                return Http::response(['status' => 1, 'products' => []], 200);
-            }
-
-            // counted here rather than through Http::recorded(), which does
-            // not record a request that never got a response
-            $this->crawlAttempts++;
-
+        Http::fake(function () {
             throw new ConnectionException('cURL error 28: Connection timed out after 10001 milliseconds');
         });
     }
