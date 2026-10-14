@@ -109,7 +109,9 @@ class MideaClient
 
         $response = SharedHttp::to($url)
             ->timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
-            ->connectTimeout(15)
+            // their search answers in 25 ms; fifteen seconds to open a
+            // socket only ever means a connection that is not coming
+            ->connectTimeout(5)
             ->asForm()
             ->withHeaders([
                 'User-Agent' => config('services.midea.user_agent', 'Mozilla/5.0'),

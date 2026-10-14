@@ -75,6 +75,8 @@ class ImportProductJob implements ShouldQueue
             return;
         }
 
+        $startedAt = microtime(true);
+
         try {
             $payload = $manager->driver($supplier)->fetch($this->externalId);
         } catch (\Throwable $e) {
@@ -110,7 +112,36 @@ class ImportProductJob implements ShouldQueue
             return;
         }
 
+        $fetched = microtime(true);
+
         $importer->import($supplier, $payload);
+
+        $this->reportIfSlow($supplier, $startedAt, $fetched);
+    }
+
+    /**
+     * A line when a product took long enough to wonder about.
+     *
+     * Quiet by default, because a run is thousands of these. But "the import
+     * is slow" is impossible to answer without knowing which half is slow —
+     * reaching the supplier, or writing what came back — and the answer has
+     * been guessed at twice now.
+     */
+    protected function reportIfSlow(Supplier $supplier, float $startedAt, float $fetched): void
+    {
+        $total = microtime(true) - $startedAt;
+
+        if ($total < (float) config('shop.import_slow_product', 2)) {
+            return;
+        }
+
+        Log::channel('import')->info('slow product', [
+            'supplier' => $supplier->code,
+            'external' => $this->externalId,
+            'fetch_ms' => (int) round(($fetched - $startedAt) * 1000),
+            'write_ms' => (int) round((microtime(true) - $fetched) * 1000),
+            'total_ms' => (int) round($total * 1000),
+        ]);
     }
 
     /**
