@@ -95,6 +95,25 @@ class MideaClient
 
         $response = Http::timeout($this->config['timeout'] ?? 30)
             ->connectTimeout(10)
+            /*
+             * IPv4, like every other client in this import.
+             *
+             * A host that resolves to an address the server has no route
+             * to does not refuse the connection — it says nothing, and the
+             * attempt sits there until the connect timeout gives up. Which
+             * is what "cURL error 28: Connection timed out after 10001
+             * milliseconds for /ka/search" is, and it accounts for both
+             * halves of the trouble at once: every product waits out the
+             * full timeout, and nothing comes back to download a photograph
+             * from.
+             *
+             * Zoommer, Kontakt, Alneo, Metromart and the image downloader
+             * all carry this line. Midea was written without it and is the
+             * only one that times out.
+             */
+            ->withOptions(['force_ip_resolve' => 'v4'])
+            // a dropped connection is worth one more go; a refusal is not
+            ->retry(2, 500, throw: false)
             ->asForm()
             ->withHeaders([
                 'User-Agent' => config('services.midea.user_agent', 'Mozilla/5.0'),
