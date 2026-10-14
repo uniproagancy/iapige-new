@@ -110,6 +110,70 @@ class MideaSearchTest extends TestCase
         $this->assertSame([], $this->payload()->images);
     }
 
+    /* ------------------------------------------------------------------ extra words */
+
+    /**
+     * A spreadsheet writes the brand in front of the model.
+     *
+     * The search matches the whole string and any extra word kills it outright
+     * — "MDRB489FGE02OE" finds the fridge, "Midea MDRB489FGE02OE" finds
+     * nothing. Which is why some products came in with photographs and some
+     * did not, with no pattern anyone could see from the admin: it depended on
+     * how that row happened to be typed.
+     */
+    public function test_a_model_written_with_the_brand_in_front_is_found(): void
+    {
+        $this->fakeExactSearch('FS40-21MR');
+        $this->setModel('Midea FS40-21MR');
+
+        $this->assertNotEmpty($this->payload()->images);
+    }
+
+    /** And a colour or a variant on the end. */
+    public function test_a_model_written_with_a_suffix_is_found(): void
+    {
+        $this->fakeExactSearch('FS40-21MR');
+        $this->setModel('FS40-21MR INOX');
+
+        $this->assertNotEmpty($this->payload()->images);
+    }
+
+    /** The whole string is tried first, because it is usually right. */
+    public function test_a_plain_model_costs_one_request(): void
+    {
+        $this->fakeSearch();
+        $this->setModel('FS40-21MR');
+
+        $this->payload();
+
+        Http::assertSentCount(1);
+    }
+
+    /**
+     * The warehouse's column is tried when the website's is empty.
+     *
+     * Two columns carry a model and neither is reliably filled. Only the first
+     * was ever used, so a row with an empty K and a perfectly good B was never
+     * looked up at all.
+     */
+    public function test_the_second_model_column_is_tried(): void
+    {
+        $this->fakeExactSearch('FS40-21MR');
+
+        $this->row(['site_model' => '', 'model' => 'FS40-21MR']);
+
+        $this->assertNotEmpty($this->payload()->images);
+    }
+
+    public function test_the_website_column_wins_when_both_are_filled(): void
+    {
+        $this->fakeExactSearch('SITE-MODEL');
+
+        $this->row(['site_model' => 'SITE-MODEL', 'model' => 'FS40-21MR']);
+
+        $this->assertNotEmpty($this->payload()->images);
+    }
+
     /* ------------------------------------------------------------------ the link */
 
     /** The site writes its own links with a doubled slash after the locale. */
@@ -181,10 +245,47 @@ class MideaSearchTest extends TestCase
         return $this->driver()->fetch('6939924857572');
     }
 
+    /** Replaces the stored row's models. */
+    protected function setModel(string $model): void
+    {
+        $this->row(['site_model' => $model]);
+    }
+
+    /** @param  array<string, string>  $models */
+    protected function row(array $models): void
+    {
+        $stock = SupplierStock::where('supplier_id', $this->supplier->id)->firstOrFail();
+
+        $stock->update(['data' => array_merge($stock->data, $models)]);
+    }
+
+    /**
+     * A search that only answers the exact keyword, as the real one does.
+     *
+     * Anything else comes back empty, which is what makes the extra word in a
+     * spreadsheet cell matter.
+     */
+    protected function fakeExactSearch(string $answersTo): void
+    {
+        Http::fake(function ($request) use ($answersTo) {
+            parse_str((string) $request->body(), $form);
+
+            return ($form['keyword'] ?? null) === $answersTo
+                ? Http::response($this->found($answersTo), 200)
+                : Http::response(['status' => 1, 'products' => []], 200);
+        });
+    }
+
     /** The shop's search endpoint, answering as it really does. */
     protected function fakeSearch(string $modelNumber = 'FS40-21MR'): void
     {
-        Http::fake(['*' => Http::response([
+        Http::fake(['*' => Http::response($this->found($modelNumber), 200)]);
+    }
+
+    /** @return array<string, mixed> */
+    protected function found(string $modelNumber): array
+    {
+        return [
             'status' => 1,
             'products' => [[
                 'id' => '431',
@@ -202,6 +303,6 @@ class MideaSearchTest extends TestCase
                 'weight' => '25',
                 'link' => 'https://www.midea.ge/ka//product/ventilatori-fs40-21mr/431',
             ]],
-        ], 200)]);
+        ];
     }
 }

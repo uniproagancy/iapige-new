@@ -91,7 +91,62 @@ class MideaClient
             return null;
         }
 
-        foreach ($this->search($model) as $product) {
+        foreach ($this->attempts($model) as $keyword) {
+            if ($card = $this->cardFrom($keyword, $key)) {
+                return $card;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The keywords worth asking for, in order.
+     *
+     * The search matches the whole string, and any extra word in it kills the
+     * result outright — "MDRB489FGE02OE" finds the fridge, "Midea
+     * MDRB489FGE02OE" and "MDRB489FGE02OE INOX" both find nothing. Which is
+     * what a spreadsheet hands us: a model with the brand in front of it, or a
+     * colour on the end, written differently in every row.
+     *
+     * So the whole string first — it is right often enough and costs one
+     * request — and then its words, longest first, because the model code is
+     * the longest thing in a cell like "Midea MDRB489FGE02OE INOX". Short
+     * words are not worth asking about: "INV" matches half the catalogue and
+     * the brand matches all of it.
+     *
+     * @return array<int, string>
+     */
+    protected function attempts(string $model): array
+    {
+        $model = trim($model);
+        $words = preg_split('/\s+/u', $model, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        if (count($words) < 2) {
+            return [$model];
+        }
+
+        usort($words, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        $brand = mb_strtolower((string) ($this->config['brand'] ?? 'midea'));
+
+        $words = array_values(array_filter(
+            $words,
+            fn ($word) => mb_strlen($word) >= self::MIN_KEYWORD_LENGTH
+                && mb_strtolower($word) !== $brand,
+        ));
+
+        return array_merge([$model], $words);
+    }
+
+    /**
+     * The first search result that really is this model.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function cardFrom(string $keyword, string $key): ?array
+    {
+        foreach ($this->search($keyword) as $product) {
             if (! $this->isSameModel($key, (string) ($product['model_number'] ?? ''))) {
                 continue;
             }
@@ -169,6 +224,9 @@ class MideaClient
     {
         return preg_replace('#(?<!:)//+#', '/', trim($url));
     }
+
+    /** Below this a word matches half the catalogue and is not worth a request. */
+    protected const MIN_KEYWORD_LENGTH = 5;
 
     protected function modelKey(string $model): string
     {

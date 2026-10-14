@@ -45,9 +45,19 @@ class MideaDriver implements SupplierDriver
         }
 
         $data = $row->data ?? [];
-        $model = trim((string) ($data['site_model'] ?? $data['model'] ?? ''));
 
-        return $this->toPayload($externalId, $row, $data, $this->siteCard($model));
+        /*
+         * Two columns carry a model and neither is reliably filled: K is what
+         * the website calls it, B is what the warehouse calls it. Only the
+         * first was ever tried, so a row with an empty K and a perfectly good
+         * B was never looked up at all.
+         */
+        $models = array_values(array_unique(array_filter([
+            trim((string) ($data['site_model'] ?? '')),
+            trim((string) ($data['model'] ?? '')),
+        ])));
+
+        return $this->toPayload($externalId, $row, $data, $this->siteCard(...$models));
     }
 
     /* ------------------------------------------------------------------ site */
@@ -57,11 +67,15 @@ class MideaDriver implements SupplierDriver
      * on the model code because the spreadsheet and the site agree on nothing
      * else — not even the product's name.
      */
-    protected function siteCard(string $model): array
+    protected function siteCard(string ...$models): array
     {
-        if ($model === '' || ! ($this->supplier->config['read_site'] ?? true)) {
+        $models = array_values(array_filter($models));
+
+        if (! $models || ! ($this->supplier->config['read_site'] ?? true)) {
             return [];
         }
+
+        $model = $models[0];
 
         /*
          * The site's own search first.
@@ -74,8 +88,10 @@ class MideaDriver implements SupplierDriver
          * still finds the occasional model the search does not, and it costs
          * nothing when the search answers.
          */
-        if ($card = $this->client->card($model)) {
-            return $card;
+        foreach ($models as $candidate) {
+            if ($card = $this->client->card($candidate)) {
+                return $card;
+            }
         }
 
         $index = $this->remember('site-index', fn () => $this->crawl());
