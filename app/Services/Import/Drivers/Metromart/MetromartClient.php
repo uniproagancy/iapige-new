@@ -266,12 +266,40 @@ class MetromartClient
                 continue;
             }
 
-            $key = $group ? "{$group} — {$name}" : $name;
+            $key = $this->groupName($group) ? "{$group} — {$name}" : $name;
 
             $specs[$key] = ['name' => $key, 'value' => $value];
         }
 
         return array_values($specs);
+    }
+
+    /**
+     * Whether a heading is worth putting in front of the attribute's name.
+     *
+     * The group is there to tell two attributes of the same name apart —
+     * "ზომა & წონა — სიგანე" is a different thing from a screen's width. But
+     * Odoo files everything nobody grouped under "Uncategorized", and on this
+     * shop that is most of them, so nearly every specification arrived
+     * announcing that it had no group: "Uncategorized — ფერი", "Uncategorized
+     * — ტიპი". It reads as a mistake because it is one — their mistake, shown
+     * as ours.
+     */
+    protected function groupName(?string $group): bool
+    {
+        $group = trim((string) $group);
+
+        if ($group === '') {
+            return false;
+        }
+
+        return ! in_array(mb_strtolower($group), [
+            'uncategorized',
+            'uncategorised',
+            'other',
+            'სხვა',
+            'კატეგორიის გარეშე',
+        ], true);
     }
 
     /** @return array<int, string> */

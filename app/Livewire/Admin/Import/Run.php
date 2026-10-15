@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ImportManager;
 use App\Support\Redact;
+use Illuminate\Queue\WorkerOptions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -32,6 +33,15 @@ class Run extends Component
     public array $selected = [];
 
     public bool $selectAll = false;
+
+    /* ------------------------------------------------------------------ working here */
+
+    /** The supplier whose queue the browser is working through, if any. */
+    public string $working = '';
+
+    public int $processed = 0;
+
+    public int $startedWith = 0;
 
     /** Ticking the header ticks every supplier that can actually run. */
     public function updatedSelectAll(bool $value): void
@@ -116,6 +126,116 @@ class Run extends Component
                 ? __('admin.run_some_failed', ['count' => $queued, 'failed' => implode(', ', $failed)])
                 : __('admin.run_bulk_queued', ['count' => $queued, 'suppliers' => $ran]),
         );
+    }
+
+    /**
+     * Works through a supplier's queue from the browser.
+     *
+     * A worker is the right way to do this and will always be, but it needs a
+     * terminal and a process that stays alive — and on shared hosting that is
+     * a job in itself. For a few hundred products it is quicker to leave the
+     * tab open.
+     *
+     * Only starts: the first job runs on the next request, so the button
+     * answers at once rather than appearing to hang.
+     */
+    public function workHere(string $code): void
+    {
+        $this->working = $code;
+        $this->processed = 0;
+        $this->startedWith = $this->queued($code);
+
+        if (! $this->startedWith) {
+            $this->working = '';
+
+            $this->dispatch('toast', message: __('admin.run_queue_empty'));
+        }
+    }
+
+    public function stopWorking(): void
+    {
+        $this->working = '';
+    }
+
+    /**
+     * One job, then back to the browser.
+     *
+     * Through the framework's own worker rather than by calling the job
+     * directly, so everything a real worker does still happens: the rate
+     * limit is respected, a failure is recorded as a failure, and a job that
+     * asks to be retried is released rather than lost.
+     *
+     * One per request, because a request cannot be killed the way a worker
+     * process can — a batch of them would take the whole page down with the
+     * first slow supplier.
+     */
+    public function processNext(): void
+    {
+        /*
+         * Resolved by name, not type.
+         *
+         * Worker's constructor takes a closure the container cannot make
+         * on its own, so asking for the class gives "unresolvable
+         * dependency". The queue provider binds a built one under this
+         * name, which is the same worker queue:work uses.
+         */
+        $worker = app('queue.worker');
+
+        if (! $this->working) {
+            return;
+        }
+
+        $queue = 'import:'.$this->working;
+
+        if (! $this->queued($this->working)) {
+            $this->dispatch('toast', message: __('admin.run_queue_finished', [
+                'count' => $this->processed,
+            ]));
+
+            $this->working = '';
+
+            return;
+        }
+
+        try {
+            $worker->runNextJob(config('queue.default'), $queue, new WorkerOptions(
+                maxTries: 3,
+                // a browser request has no alarm to kill it, so this is the
+                // job's own declared timeout doing the work
+                timeout: 0,
+            ));
+
+            $this->processed++;
+        } catch (\Throwable $e) {
+            Log::channel('import')->warning('a job failed while being worked from the admin', [
+                'queue' => $queue,
+                'error' => Redact::secrets($e->getMessage()),
+            ]);
+        }
+    }
+
+    /**
+     * Throws away a supplier's waiting jobs.
+     *
+     * A queue left over from a run that was started twice, or one pointed at
+     * a source that has since changed, is worth emptying rather than waiting
+     * out — and emptying it is the only way to queue a fresh run that is not
+     * simply added to the back of the old one.
+     */
+    public function clearQueue(string $code): void
+    {
+        $removed = DB::table('jobs')->where('queue', 'import:'.$code)->delete();
+
+        if ($this->working === $code) {
+            $this->working = '';
+        }
+
+        $this->dispatch('toast', message: __('admin.run_queue_cleared', ['count' => $removed]));
+    }
+
+    protected function queued(string $code): int
+    {
+        return (int) DB::table('jobs')->where('queue', 'import:'.$code)->count();
     }
 
     /**

@@ -229,6 +229,101 @@ class ImportRunScreenTest extends TestCase
 
         Queue::assertPushed(ImportProductJob::class, 1);
     }
+    /* ------------------------------------------------------------------ working here */
+
+    /**
+     * The queue, worked through from the browser.
+     *
+     * A worker is the right way and always will be, but it needs a terminal
+     * and a process that stays alive, which on shared hosting is a job in
+     * itself. For a few hundred products it is quicker to leave the tab open.
+     */
+    public function test_it_starts_working_through_a_queue(): void
+    {
+        $this->waiting('import:demo', 3);
+
+        $this->screen()
+            ->call('workHere', 'demo')
+            ->assertSet('working', 'demo')
+            ->assertSet('startedWith', 3)
+            ->assertSet('processed', 0);
+    }
+
+    /** Starting does not run anything: the first job goes on the next request. */
+    public function test_starting_runs_nothing_yet(): void
+    {
+        $this->waiting('import:demo', 2);
+
+        $this->screen()->call('workHere', 'demo');
+
+        $this->assertSame(2, DB::table('jobs')->count());
+    }
+
+    public function test_an_empty_queue_does_not_start(): void
+    {
+        $this->screen()->call('workHere', 'demo')->assertSet('working', '');
+    }
+
+    public function test_it_can_be_stopped(): void
+    {
+        $this->waiting('import:demo', 2);
+
+        $this->screen()
+            ->call('workHere', 'demo')
+            ->call('stopWorking')
+            ->assertSet('working', '');
+    }
+
+    /** It stops by itself once there is nothing left. */
+    public function test_it_stops_when_the_queue_runs_out(): void
+    {
+        $this->waiting('import:demo', 1);
+
+        $screen = $this->screen()->call('workHere', 'demo');
+
+        DB::table('jobs')->delete();
+
+        $screen->call('processNext')->assertSet('working', '');
+    }
+
+    public function test_nothing_is_processed_unless_it_was_started(): void
+    {
+        $this->waiting('import:demo', 1);
+
+        $this->screen()->call('processNext');
+
+        $this->assertSame(1, DB::table('jobs')->count());
+    }
+
+    /* ------------------------------------------------------------------ emptying it */
+
+    /**
+     * A queue left from a run started twice is worth emptying.
+     *
+     * It is also the only way to queue a fresh run that is not simply added
+     * to the back of the old one.
+     */
+    public function test_a_queue_can_be_emptied(): void
+    {
+        $this->waiting('import:demo', 4);
+        $this->waiting('import:other', 2);
+
+        $this->screen()->call('clearQueue', 'demo');
+
+        $this->assertSame(0, DB::table('jobs')->where('queue', 'import:demo')->count());
+        $this->assertSame(2, DB::table('jobs')->where('queue', 'import:other')->count());
+    }
+
+    /** Emptying the queue being worked through stops the work too. */
+    public function test_emptying_stops_the_work(): void
+    {
+        $this->waiting('import:demo', 3);
+
+        $this->screen()
+            ->call('workHere', 'demo')
+            ->call('clearQueue', 'demo')
+            ->assertSet('working', '');
+    }
     /* ------------------------------------------------------------------ failed jobs */
 
     /**

@@ -39,6 +39,33 @@
     </div>
 
     {{-- ------------------------------------------------------------ every supplier --}}
+    {{-- --------------------------------------------------------- working here --}}
+    @if ($working)
+        @php
+            $left = $busy[$working] ?? 0;
+            $percent = $startedWith > 0 ? (int) round($processed / $startedWith * 100) : 0;
+        @endphp
+
+        <div class="card border-primary" wire:poll.700ms="processNext">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-50">
+                    <span><b>{{ $working }}</b> — {{ __('admin.run_working', ['done' => $processed, 'total' => $startedWith]) }}</span>
+                    <span class="text-muted">{{ __('admin.run_left', ['count' => $left]) }}</span>
+                </div>
+
+                <div class="progress mb-1" style="height:8px">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                         style="width: {{ $percent }}%"></div>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        wire:click="stopWorking">{{ __('admin.links_stop') }}</button>
+
+                <small class="text-muted ms-1">{{ __('admin.run_working_hint') }}</small>
+            </div>
+        </div>
+    @endif
+
     <div class="card">
         <div class="card-header">
             <h4 class="card-title">{{ __('admin.run_all') }}</h4>
@@ -98,7 +125,19 @@
 
                             <td class="text-center">
                                 @if ($row['waiting'])
-                                    <span class="badge badge-light-info">{{ $row['waiting'] }}</span>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-success"
+                                                wire:click="workHere('{{ $supplier->code }}')"
+                                                title="{{ __('admin.run_work_here') }}"
+                                                @disabled($working)>
+                                            ▸ {{ $row['waiting'] }}
+                                        </button>
+
+                                        <button type="button" class="btn btn-outline-danger"
+                                                wire:click="clearQueue('{{ $supplier->code }}')"
+                                                wire:confirm="{{ __('admin.run_queue_clear_confirm', ['count' => $row['waiting']]) }}"
+                                                title="{{ __('admin.run_queue_clear') }}">×</button>
+                                    </div>
                                 @else
                                     —
                                 @endif

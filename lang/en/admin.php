@@ -449,4 +449,13 @@ return [
 Running it again doubles the queue — the same work a second time.
 
 Run it anyway?',
+    'run_work_here' => "Work through it here",
+    'run_working' => ":done of :total done",
+    'run_left' => ":count left on the queue",
+    'run_working_hint' => "Keep the tab open — closing it stops the work",
+    'run_queue_empty' => "The queue is empty",
+    'run_queue_finished' => "Queue worked through — :count jobs",
+    'run_queue_clear' => "Empty the queue",
+    'run_queue_cleared' => ":count jobs removed from the queue",
+    'run_queue_clear_confirm' => ":count jobs will be removed from the queue.\n\nThat cancels the work — nothing is updated until you run it again.\n\nRemove them?",
 ];
