@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Orders;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\Facebook\Pixel;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -13,6 +14,9 @@ use Livewire\Component;
  */
 class Show extends Component
 {
+    /** The status that means the shop has made the sale. */
+    public const COMPLETED = 'completed';
+
     public Order $order;
 
     public string $status = '';
@@ -24,7 +28,8 @@ class Show extends Component
 
     public function mount(Order $order): void
     {
-        $this->order = $order->load(['items', 'events.user', 'user']);
+        // the lines' own products come with them: one photograph each, not a query each
+        $this->order = $order->load(['items.product.images', 'events.user', 'user']);
         $this->status = $order->status;
     }
 
@@ -65,10 +70,46 @@ class Show extends Component
             }
         });
 
+        /*
+         * A completed order is a sale that happened, so Meta is told about it.
+         *
+         * Outside the transaction on purpose: it is an HTTP call to somebody
+         * else's server, and a slow or broken one must not roll back a status
+         * the operator has already been shown as saved.
+         *
+         * Reported once however often the status is walked back and forth —
+         * the snapshot's sent_at is what remembers. An order the customer paid
+         * for on the website was already reported by its bank callback, so
+         * this finds it sent and does nothing.
+         */
+        if ($this->status === self::COMPLETED) {
+            $this->reportSale();
+        }
+
         $this->note = '';
-        $this->order->refresh()->load('events.user');
+        $this->order->refresh()->load(['items.product.images', 'events.user']);
 
         $this->dispatch('toast', message: __('admin.saved'));
+    }
+
+    /** The sale itself, told to Meta — never at the cost of the order. */
+    protected function reportSale(): void
+    {
+        try {
+            $sent = app(Pixel::class)->reportPurchase($this->order->fresh('items'), offline: true);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return;
+        }
+
+        if ($sent) {
+            $this->order->events()->create([
+                'user_id' => auth()->id(),
+                'type' => 'note',
+                'note' => __('admin.purchase_reported'),
+            ]);
+        }
     }
 
     protected function restock(): void

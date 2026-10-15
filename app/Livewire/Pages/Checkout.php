@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages;
 
+use App\Livewire\Concerns\SendsToBank;
 use App\Models\Cart as CartModel;
 use App\Models\DeliveryCity;
 use App\Models\Order;
@@ -13,7 +14,6 @@ use App\Services\Cart;
 use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Facebook\Pixel;
 use App\Services\Orders\OrderLines;
-use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\PaymentManager;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +25,8 @@ use RuntimeException;
 
 class Checkout extends Component
 {
+    use SendsToBank;
+
     #[Validate('required|string|min:2|max:80')]
     public string $name = '';
 
@@ -223,12 +225,6 @@ class Checkout extends Component
         return $this->driverFor() === 'bog-installment';
     }
 
-    /** ZERO carries no handling fee: on that plan the shop pays the interest. */
-    protected function isZeroPlan(): bool
-    {
-        return $this->method()?->installment_type === BogInstallment::ZERO;
-    }
-
     /* ------------------------------------------------------------------ place */
 
     public function place()
@@ -271,7 +267,7 @@ class Checkout extends Component
         if ($this->isOnline()) {
             // the sale is not real until the bank says so; PaymentManager
             // reports it from the callback, using this snapshot
-            return $this->sendToBank($order);
+            return $this->sendToBank($order, $this->method());
         }
 
         // cash on delivery: the order itself is the conversion
@@ -355,94 +351,6 @@ class Checkout extends Component
                 fn ($q) => $q->where('session_id', session()->getId()),
             )
             ->value('id');
-    }
-
-    /* ------------------------------------------------------------------ payment */
-
-    /**
-     * Hands the customer to the bank.
-     *
-     * Instalments open the bank's own calculator in the browser, because the
-     * term is chosen there; anything else is a redirect. Either way the order
-     * already exists and is unpaid, so a customer who walks away leaves
-     * something we can call about rather than nothing.
-     */
-    protected function sendToBank(Order $order)
-    {
-        $driver = $this->driverFor();
-        $payments = app(PaymentManager::class);
-
-        if (! $driver || ! $payments->has($driver)) {
-            return $this->fallBackToCall($order, "no driver for payment method [{$this->payment}]");
-        }
-
-        // each lender refuses below its own floor; better to say so than to be refused
-        $minimum = (float) ($this->method()->min_total ?? 0);
-
-        if ($minimum > 0 && (float) $order->total < $minimum) {
-            $this->dispatch('toast', type: 'error', message: __('checkout.method_min', [
-                'amount' => money($minimum),
-            ]));
-
-            return $this->redirect(route('order', $order->number), navigate: false);
-        }
-
-        if ($driver === 'bog-installment') {
-            return $this->openCalculator($order);
-        }
-
-        try {
-            return redirect()->away($payments->start($order, $driver));
-        } catch (\Throwable $e) {
-            report($e);
-
-            return $this->fallBackToCall($order, $e->getMessage());
-        }
-    }
-
-    /**
-     * Opens the bank's calculator over the page.
-     *
-     * The widget is told the sum the customer will actually be lent: on the
-     * interest-bearing plan that includes our handling fee, on the zero plan it
-     * does not. Quoting one figure and applying for another would show terms
-     * the customer never agreed to.
-     */
-    protected function openCalculator(Order $order)
-    {
-        $method = $this->method();
-        $minimum = (float) ($method->min_total ?? config('bog.installment.min_total', 100));
-
-        if ((float) $order->total < $minimum) {
-            $this->dispatch('toast', type: 'error', message: __('checkout.installment_min', [
-                'amount' => money($minimum),
-            ]));
-
-            return $this->redirect(route('order', $order->number), navigate: false);
-        }
-
-        $fee = $this->isZeroPlan() ? 0.0 : (float) config('bog.installment.handling_fee', 0.05);
-
-        $this->dispatch($this->isZeroPlan() ? 'bog:installment-part' : 'bog:installment',
-            amount: round((float) $order->total * (1 + $fee), 2),
-            url: route('payment.bog.installment', $order->number),
-        );
-
-        // the page stays where it is: the calculator is a modal over it
-        return null;
-    }
-
-    /** The order stands; only the payment failed to start. */
-    protected function fallBackToCall(Order $order, string $reason)
-    {
-        $order->events()->create([
-            'type' => 'payment',
-            'note' => __('order.payment_start_failed').' — '.$reason,
-        ]);
-
-        session()->flash('toast', __('checkout.payment_failed'));
-
-        return $this->redirect(route('order', $order->number), navigate: false);
     }
 
     protected function storeAddress(): void

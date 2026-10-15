@@ -247,6 +247,7 @@ return [
     'restocked' => 'პროდუქცია დაბრუნდა მარაგში',
     'mark_paid' => 'გადახდილად მონიშვნა',
     'mark_paid_confirm' => 'შეკვეთა გადახდილად მოინიშნოს?',
+    'purchase_reported' => 'გაყიდვა გადაეცა Meta-ს (Purchase)',
     'marked_paid' => 'მონიშნულია გადახდილად',
     'registered_customer' => 'რეგისტრირებული მომხმარებელი',
 

@@ -191,3 +191,29 @@
 
 .picker__current:hover { border-color: var(--iapi-orange); }
 .picker__current.is-empty { opacity: .55; }
+
+/* ------------------------------------------------------------------ order lines */
+
+/*
+ | The photograph beside an order line.
+ |
+ | A fixed square whatever the picture's shape, so the names below it stay on
+ | one column and a tall photograph cannot push the row open. The empty state
+ | is the square itself: a line whose product has since been deleted keeps its
+ | place in the column rather than sliding left.
+ */
+.order-thumb {
+    display: block;
+    width: 48px;
+    height: 48px;
+    border-radius: .357rem;
+    background: rgba(255, 255, 255, .05);
+    overflow: hidden;
+}
+
+.order-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #fff;
+}

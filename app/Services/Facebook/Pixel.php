@@ -199,6 +199,55 @@ class Pixel
     }
 
     /**
+     * Reports a sale, once, from wherever the shop learned of it.
+     *
+     * The once is the snapshot's sent_at: banks resend their callbacks, the
+     * scheduler polls, and an operator may walk an order back and forth
+     * through "completed" all afternoon. Each of those is the same sale.
+     *
+     * $offline is for a sale that never had a browser — one the operator took
+     * on the phone or across the counter. There is no snapshot for it, because
+     * a snapshot is what a browser left behind, so one is written now from the
+     * order itself. Meta still matches it on the email and the telephone
+     * number, which is the whole point of sending it: without this the shop's
+     * own telephone sales are invisible beside its advertising.
+     *
+     * Note what that snapshot records. `consented` is the gate on reporting,
+     * not a claim about a cookie banner nobody was shown — there was no
+     * browser to ask. An operator marking an order completed is the shop
+     * saying it made this sale.
+     */
+    public function reportPurchase(Order $order, bool $offline = false): bool
+    {
+        $snapshot = OrderPixelData::where('order_id', $order->id)->first();
+
+        if ($snapshot?->alreadySent()) {
+            return false;
+        }
+
+        if (! $snapshot) {
+            // an order placed on the website always has one; only ours do not
+            if (! $offline) {
+                return false;
+            }
+
+            $snapshot = OrderPixelData::create([
+                'order_id' => $order->id,
+                'event_id' => self::eventId('pur'),
+                'consented' => true,
+            ]);
+        }
+
+        if (! $this->purchase($order->loadMissing('items'), $snapshot->event_id, $snapshot)) {
+            return false;
+        }
+
+        $snapshot->markSent();
+
+        return true;
+    }
+
+    /**
      * What the Purchase event says, for either half.
      *
      * The browser one has to describe exactly the same sale as the server one,

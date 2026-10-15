@@ -113,17 +113,15 @@ class PaymentManager
      * This runs from a bank callback or from payments:check, with no browser
      * anywhere — so the cookies and the address come from the snapshot taken
      * at checkout. Banks resend callbacks, hence sent_at.
+     *
+     * No snapshot means no sale to report here: this payment was started from
+     * the website, which always leaves one. The admin reports the orders that
+     * never had a browser, and says so when it does.
      */
     protected function reportPurchase(?Order $order): void
     {
-        $snapshot = $order ? OrderPixelData::where('order_id', $order->id)->first() : null;
-
-        if (! $order || ! $snapshot || $snapshot->alreadySent()) {
-            return;
-        }
-
-        if (app(Pixel::class)->purchase($order, $snapshot->event_id, $snapshot)) {
-            $snapshot->markSent();
+        if ($order) {
+            app(Pixel::class)->reportPurchase($order);
         }
     }
 }

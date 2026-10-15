@@ -62,18 +62,39 @@
                         </thead>
                         <tbody>
                             @foreach ($order->items as $item)
+                                @php($photo = $item->product?->images->first())
                                 <tr wire:key="i-{{ $item->id }}">
                                     <td>
-                                        <span class="fw-bolder d-block">{{ $item->name }}</span>
-                                        <small class="text-muted">
-                                            {{ $item->sku }}
-                                            @if ($item->is_preorder)
-                                                · <span class="text-info">{{ __('admin.preorder') }}</span>
-                                                @if ($item->release_date)
-                                                    {{ $item->release_date->format('d.m.Y') }}
+                                        <div class="d-flex align-items-center gap-1">
+                                            {{--
+                                                The picture is what the person on the phone
+                                                checks the order against: a model code reads
+                                                the same for the right item and the wrong one.
+                                                A deleted product leaves a blank square rather
+                                                than a broken image.
+                                            --}}
+                                            <span class="order-thumb flex-shrink-0">
+                                                @if ($photo)
+                                                    <a href="{{ route('admin.products.edit', $item->product_id) }}">
+                                                        <img src="{{ $photo->url() }}" alt="{{ $item->name }}"
+                                                             loading="lazy" width="48" height="48">
+                                                    </a>
                                                 @endif
-                                            @endif
-                                        </small>
+                                            </span>
+
+                                            <span>
+                                                <span class="fw-bolder d-block">{{ $item->name }}</span>
+                                                <small class="text-muted">
+                                                    {{ $item->sku }}
+                                                    @if ($item->is_preorder)
+                                                        · <span class="text-info">{{ __('admin.preorder') }}</span>
+                                                        @if ($item->release_date)
+                                                            {{ $item->release_date->format('d.m.Y') }}
+                                                        @endif
+                                                    @endif
+                                                </small>
+                                            </span>
+                                        </div>
                                     </td>
                                     <td class="text-center">{{ $item->qty }}</td>
                                     <td class="text-end">{{ money($item->price) }}</td>

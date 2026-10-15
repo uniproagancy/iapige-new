@@ -247,6 +247,7 @@ return [
     'restocked' => 'Items returned to stock',
     'mark_paid' => 'Mark as paid',
     'mark_paid_confirm' => 'Mark this order as paid?',
+    'purchase_reported' => 'The sale was reported to Meta (Purchase)',
     'marked_paid' => 'Marked as paid',
     'registered_customer' => 'Registered customer',
 

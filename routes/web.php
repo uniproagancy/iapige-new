@@ -102,6 +102,18 @@ Route::post('/payment/bog/installment/{number}', [BogInstallmentController::clas
 Route::get('/payment/credo/{number}', [CredoController::class, 'form'])
     ->name('payment.credo.form');
 
+/*
+ | Paying an order that was placed over the telephone.
+ |
+ | Outside the localised group with the rest of the payment routes, and for
+ | the same reason: the URL is signed, and localeSessionRedirect would send a
+ | customer whose session remembers another language to a different path —
+ | which is a different signature, and a refusal on the one page that must not
+ | refuse. The component checks the signature itself, so an expired link can
+ | say so in words instead of answering 403.
+ */
+Route::get('/pay/{number}', PayOrder::class)->name('order.pay');
+
 Route::middleware(['auth', 'can:admin'])
     ->prefix('admin')
     ->name('admin.')
