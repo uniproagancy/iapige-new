@@ -421,6 +421,19 @@ class Catalog
     /**
      * Filters, facets and price range for a listing.
      * $category === null means the whole catalogue (a brand filter from the home page).
+     *
+     * Everything here is counted by the database rather than in PHP, and that
+     * is not an optimisation — it is why the page renders at all. It used to
+     * fetch every listable product in the category and all its descendants,
+     * each with its brand, images, category, attribute values and running
+     * campaigns, purely to count them and to collect the brands. A leaf
+     * category survived that. The catalogue's largest root did not: it died
+     * on memory and answered 500, and it was the only page on the shop that
+     * did, which is exactly how a problem of size hides — it looks like a
+     * problem with that one category.
+     *
+     * The products it built from all that were never read by anything. The
+     * listing page queries its own, a page at a time.
      */
     public static function listing(?Category $category = null): array
     {
@@ -431,16 +444,29 @@ class Catalog
             $ids = $category->descendantAndSelfIds();
         }
 
-        $products = self::productQuery()
-            ->when($ids, fn ($q) => $q->whereIn('category_id', $ids))
-            ->orderByDesc('sales_count')
-            ->get();
+        /*
+         * What counts as "in this listing", as a condition rather than a list.
+         *
+         * Handed to whereHas as a subquery, so the ids never leave the
+         * database: a root category holds tens of thousands of them, and
+         * carrying that list back and forth is both the memory and the
+         * placeholder limit waiting to be hit.
+         */
+        $inListing = fn (Builder $q) => $q
+            ->listable()
+            ->when($ids, fn (Builder $w) => $w->whereIn('category_id', $ids));
 
-        $cards = self::cards($products);
-        $productIds = $products->pluck('id');
+        $total = $inListing(Product::query())->count();
 
-        $brands = $products->pluck('brand')->filter()->unique('id')->sortBy('name')
-            ->map(fn (Brand $b) => ['code' => $b->slug, 'label' => $b->name])->values()->all();
+        $range = $inListing(Product::query())
+            ->selectRaw('min(price) as low, max(price) as high')
+            ->first();
+
+        $brands = Brand::whereHas('products', $inListing)
+            ->orderBy('name')
+            ->get(['id', 'slug', 'name'])
+            ->map(fn (Brand $b) => ['code' => $b->slug, 'label' => $b->name])
+            ->values()->all();
 
         // options come from the pivot, not from the cards: a product may carry
         // several values of one attribute and the card array cannot show that
@@ -449,7 +475,7 @@ class Catalog
             // attribute of the same name would draw a second, conflicting one
             ->whereNotIn('code', self::RESERVED_FILTERS)
             ->with(['values' => fn ($q) => $q->withTranslation()
-                ->whereHas('products', fn ($p) => $p->whereIn('products.id', $productIds))
+                ->whereHas('products', $inListing)
                 ->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->get()
@@ -467,8 +493,7 @@ class Catalog
             ->values()
             ->all();
 
-        $prices = $products->pluck('price')->map(fn ($p) => (float) $p);
-        $max = (int) (ceil(($prices->max() ?: 1000) / 100) * 100);
+        $max = (int) (ceil(((float) ($range->high ?? 0) ?: 1000) / 100) * 100);
 
         $childCounts = $category && $category->children->isNotEmpty()
             ? self::categoryCounts()
@@ -484,7 +509,7 @@ class Catalog
             'breadcrumbs' => $category
                 ? array_map(fn (Category $c) => ['name' => $c->name, 'url' => route('catalog', $c->slug)], $category->ancestorsAndSelf())
                 : [],
-            'total' => count($cards),
+            'total' => $total,
             'subs' => $category
                 ? $category->children->map(fn (Category $c) => [
                     'id' => $c->id,
@@ -503,10 +528,9 @@ class Catalog
                 'new' => __('catalog.sort.new'),
             ],
             'groups' => $groups,
-            'priceMin' => (int) (floor(($prices->min() ?: 0) / 100) * 100),
+            'priceMin' => (int) (floor(((float) ($range->low ?? 0)) / 100) * 100),
             'priceMax' => $max,
             'perPage' => 20,
-            'products' => $cards,
         ];
     }
 

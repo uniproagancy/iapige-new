@@ -68,6 +68,19 @@ class Phone
     }
 
     /**
+     * The same number as bare digits, country code and all.
+     *
+     * What an SMS gateway wants: smsoffice.ge takes 995XXXXXXXXX and refuses
+     * a plus, while a softphone wants the plus. One cleaning, two shapes.
+     */
+    public static function digits(?string $raw): ?string
+    {
+        $number = self::dial($raw);
+
+        return $number === null ? null : ltrim($number, '+');
+    }
+
+    /**
      * The href the admin's call button carries.
      *
      * The scheme decides which program answers it; see shop.dial_scheme.

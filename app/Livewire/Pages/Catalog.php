@@ -161,24 +161,32 @@ class Catalog extends Component
         };
     }
 
-    /** How many products each option would leave — its own group is ignored. */
+    /**
+     * How many products each option would leave — its own group is ignored.
+     *
+     * The matching products go in as a subquery rather than as a list of
+     * ids. Fetching them was the same mistake the listing made: a root
+     * category holds tens of thousands, this runs once per filter group, and
+     * carrying every id back into PHP only to send it straight out again is
+     * both the memory and MySQL's placeholder limit waiting to be hit.
+     */
     protected function facets(array $groups): array
     {
         $counts = [];
 
         foreach ($groups as $group) {
             $key = $group['key'];
-            $ids = $this->query($key)->reorder()->pluck('products.id');
+            $matching = $this->query($key)->reorder()->select('products.id')->toBase();
 
             $counts[$key] = $key === 'brand'
-                ? Product::query()->whereIn('products.id', $ids)
+                ? Product::query()->whereIn('products.id', $matching)
                     ->join('brands', 'brands.id', '=', 'products.brand_id')
                     ->groupBy('brands.slug')
                     ->pluck(DB::raw('count(*)'), 'brands.slug')->all()
                 : DB::table('attribute_value_product as avp')
                     ->join('attribute_values as av', 'av.id', '=', 'avp.attribute_value_id')
                     ->join('attributes as a', 'a.id', '=', 'av.attribute_id')
-                    ->whereIn('avp.product_id', $ids)
+                    ->whereIn('avp.product_id', $matching)
                     ->where('a.code', $key)
                     ->groupBy('av.code')
                     ->pluck(DB::raw('count(*)'), 'av.code')->all();

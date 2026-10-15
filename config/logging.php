@@ -161,6 +161,21 @@ return [
             'level' => 'debug',
             'days' => 90,
         ],
+
+        /*
+         | Every text message the shop sends or fails to send.
+         |
+         | Kept apart because the question it answers is always the same one
+         | — "the customer says they got no code" — and it is unanswerable
+         | from a log with everything else in it. Numbers are written with
+         | their middle taken out; see Support\Redact.
+         */
+        'sms' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/sms.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
     ],
 
 ];

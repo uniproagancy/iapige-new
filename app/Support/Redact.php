@@ -56,4 +56,27 @@ class Redact
 
         return $text;
     }
+
+    /**
+     * A telephone number with its middle taken out.
+     *
+     * Every text message the shop sends is written down, and a log anybody
+     * with the server can read is not where a customer's number belongs. What
+     * is kept is what support actually uses it for: enough to recognise a
+     * number somebody is already holding, not enough to collect them.
+     */
+    public static function phone(?string $number): string
+    {
+        $number = trim((string) $number);
+
+        if ($number === '') {
+            return '';
+        }
+
+        if (mb_strlen($number) <= 6) {
+            return str_repeat('*', max(0, mb_strlen($number) - 2)).mb_substr($number, -2);
+        }
+
+        return mb_substr($number, 0, 3).str_repeat('*', mb_strlen($number) - 7).mb_substr($number, -4);
+    }
 }
