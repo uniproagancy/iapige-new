@@ -396,7 +396,6 @@ return [
     'order_shipping' => 'Delivery',
     'order_total' => 'Total',
 
-
     /* ------------------------------------------------------------------ adding by link */
     'links_title' => 'Add by link',
     'links_hint' => 'Paste the products’ addresses — as many as you like, at once',
@@ -413,4 +412,14 @@ return [
     'links_empty' => 'Nothing added yet',
     'links_more' => 'and :count more',
 
+    'links_fetch_title' => 'Fetch',
+    'links_fetch_hint' => 'From here, with no terminal and no queue',
+    'links_fetch' => 'Fetch (:count)',
+    'links_refresh' => 'Refresh them all (:count)',
+    'links_fetching' => 'Working: :done / :total',
+    'links_done' => ':count fetched',
+    'links_failed' => ':count failed',
+    'links_stop' => 'Stop',
+    'links_finished' => 'Finished — :done fetched, :failed failed',
+    'links_nothing_to_fetch' => 'Everything has been fetched already',
 ];

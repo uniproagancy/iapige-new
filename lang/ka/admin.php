@@ -396,7 +396,6 @@ return [
     'order_shipping' => 'მიწოდება',
     'order_total' => 'სულ',
 
-
     /* ------------------------------------------------------------------ adding by link */
     'links_title' => 'ლინკებით დამატება',
     'links_hint' => 'ჩასვი პროდუქტების მისამართები — რამდენიც გინდა, ერთად',
@@ -413,4 +412,14 @@ return [
     'links_empty' => 'ჯერ არაფერია დამატებული',
     'links_more' => 'და კიდევ :count',
 
+    'links_fetch_title' => 'ჩამოტანა',
+    'links_fetch_hint' => 'პირდაპირ აქედან — ტერმინალი და რიგი არ სჭირდება',
+    'links_fetch' => 'ჩამოტანა (:count)',
+    'links_refresh' => 'ყველას განახლება (:count)',
+    'links_fetching' => 'მიმდინარეობს: :done / :total',
+    'links_done' => ':count ჩამოვიდა',
+    'links_failed' => ':count ვერ მოვიდა',
+    'links_stop' => 'შეჩერება',
+    'links_finished' => 'დასრულდა — :done ჩამოვიდა, :failed ვერ',
+    'links_nothing_to_fetch' => 'ყველაფერი უკვე ჩამოტანილია',
 ];
