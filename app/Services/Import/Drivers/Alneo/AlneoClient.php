@@ -126,7 +126,7 @@ class AlneoClient
     /**
      * One product page, read from its structured data.
      *
-     * @return array{sku:?string, name:?string, description:?string, images:array, specs:array, price:float, old:float}|null
+     * @return array{sku:?string, name:?string, description:?string, category:?string, images:array, specs:array, price:float, old:float}|null
      */
     public function page(string $url): ?array
     {
@@ -148,6 +148,7 @@ class AlneoClient
             'sku' => trim((string) ($json['sku'] ?? '')),
             'name' => $this->clean((string) ($json['name'] ?? '')),
             'description' => $this->description($html),
+            'category' => $this->category($html),
             'images' => $this->images($json, $html),
             'specs' => $this->specs($html),
             'price' => $price,
@@ -270,7 +271,21 @@ class AlneoClient
     }
 
     /**
-     * The attributes table WooCommerce renders under a product.
+     * What the product is made of.
+     *
+     * Alneo renders no attributes table at all — neither WooCommerce's
+     * shop_attributes nor the theme's grid is anywhere on the page, which is
+     * why nothing ever reached the admin's mapping queue for this supplier.
+     * Their specifications are written into the description itself, one per
+     * line:
+     *
+     *     <div>• სიმძლავრე: 9 000 BTU</div>
+     *     <li>მაქსიმალური დატვირთვა: 50კგ</li>
+     *
+     * The container and the bullet vary from product to product, the shape
+     * does not. The two table patterns are kept above it: they cost nothing
+     * when they are absent, and a theme that grows one later should be read
+     * in preference to text we had to parse.
      *
      * @return array<int, array{name:string, value:string}>
      */
@@ -295,7 +310,128 @@ class AlneoClient
             }
         }
 
+        foreach ($this->descriptionLines($html) as $line) {
+            [$name, $value] = $this->asSpec($line);
+
+            if ($name !== null) {
+                $this->addSpec($specs, $name, $value);
+            }
+        }
+
         return array_values($specs);
+    }
+
+    /**
+     * The description, one block element per entry.
+     *
+     * Split on the closing tags rather than parsed: the markup is malformed
+     * — a <div> that closes with </p> is normal on these pages — and a
+     * reader worth the name either repairs that into a shape the lines no
+     * longer survive, or refuses it outright.
+     *
+     * @return array<int, string>
+     */
+    protected function descriptionLines(string $html): array
+    {
+        if (! preg_match('#<div class="electro-description[^"]*">(.*?)</div>\s*<div class="product_meta">#is', $html, $m)) {
+            return [];
+        }
+
+        $lines = [];
+
+        foreach (preg_split('#</(?:div|li|p|h[1-6])>|<br\s*/?>#i', $m[1]) as $chunk) {
+            $text = $this->clean(strip_tags($chunk));
+
+            if ($text !== '') {
+                $lines[] = $text;
+            }
+        }
+
+        return $lines;
+    }
+
+    /**
+     * One line of the description read as "name: value", or not at all.
+     *
+     * A description holds prose as well, and prose has colons in it. The
+     * guards are what tells the two apart: a specification's name is short,
+     * finishes no sentence of its own, and is followed by something.
+     *
+     * @return array{?string, ?string}
+     */
+    protected function asSpec(string $line): array
+    {
+        // the bullet is decoration, and it is a different character per product
+        $line = preg_replace('/^[\s\x{2022}\x{00B7}*\-\x{2013}\x{2014}]+/u', '', $line);
+
+        if (! str_contains($line, ':')) {
+            return [null, null];
+        }
+
+        [$name, $value] = array_map('trim', explode(':', $line, 2));
+
+        // a heading such as "მახასიათებლები:" names nothing
+        if ($name === '' || $value === '') {
+            return [null, null];
+        }
+
+        // a name that runs on, or closes a sentence before the colon, is prose
+        if (mb_strlen($name) > 80 || preg_match('/[.!?]\s/u', $name)) {
+            return [null, null];
+        }
+
+        if (mb_strlen($value) > 255) {
+            return [null, null];
+        }
+
+        return [$name, $value];
+    }
+
+    /**
+     * The category WooCommerce prints beneath the product.
+     *
+     * The price list has no column for one, so without this nothing Alneo
+     * imports ever appears in the admin's category queue and every product
+     * lands uncategorised with nothing to map it by.
+     *
+     * Read out of the product's own meta block and nowhere else. The shop's
+     * navigation menu lists every category it has, each one a link of exactly
+     * the same shape, so searching the page at large answers with whatever
+     * sits deepest in that menu — "Android სმარტფონები" for an air
+     * conditioner, which is what this did before the block was pinned down.
+     *
+     * Where several are listed, the one sitting deepest in their tree wins:
+     * its link carries the most path segments, and it is the most specific
+     * thing they have said about the product. The brand is printed the same
+     * way a line below, so a link only counts as a category when it is one.
+     */
+    protected function category(string $html): ?string
+    {
+        if (! preg_match('#<div class="product_meta">(.*?)</div>#is', $html, $meta)) {
+            return null;
+        }
+
+        if (! preg_match_all(
+            '#<a[^>]+href="[^"]*/product-category/([^"]*)"[^>]*>(.*?)</a>#is',
+            $meta[1], $links, PREG_SET_ORDER
+        )) {
+            return null;
+        }
+
+        $best = null;
+        $depth = -1;
+
+        foreach ($links as $link) {
+            $name = $this->clean(strip_tags($link[2]));
+            $segments = count(array_filter(explode('/', trim($link[1], '/'))));
+
+            if ($name !== '' && $segments > $depth) {
+                $best = $name;
+                $depth = $segments;
+            }
+        }
+
+        return $best;
     }
 
     protected function addSpec(array &$specs, string $name, string $value): void

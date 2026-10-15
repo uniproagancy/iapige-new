@@ -117,7 +117,16 @@ class AlneoDriver implements SupplierDriver
             oldCostPrice: $old > $price ? $old : null,
             stock: (int) $row->quantity,
             brandName: $this->supplier->config['brand'] ?? null,
-            categoryName: $data['category'] ?? null,
+            /*
+             * The spreadsheet first, the page second.
+             *
+             * Their price list has four columns and none of them says what
+             * the thing is, so this was always null: every Alneo product
+             * arrived uncategorised and its name never reached the admin's
+             * queue to be mapped. The page prints the category itself, which
+             * is the same answer the other scraped suppliers settled on.
+             */
+            categoryName: $data['category'] ?? $page['category'] ?? null,
             translations: [$locale => [
                 'name' => $name,
                 'description' => $page['description'] ?? null,
