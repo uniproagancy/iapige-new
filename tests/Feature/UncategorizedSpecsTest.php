@@ -149,6 +149,81 @@ class UncategorizedSpecsTest extends TestCase
         $this->assertSame($keep->id, (int) DB::table('product_specs')->value('attribute_id'));
     }
 
+    /**
+     * The supplier's own name is unique per supplier.
+     *
+     * The clean one is often already there — mapped by hand in the admin
+     * before the import ever wrote the prefixed one — so renaming into it is
+     * a duplicate key. That is how this failed the first time it was run
+     * against the real database.
+     */
+    public function test_a_map_row_whose_clean_name_is_taken_is_dropped(): void
+    {
+        $supplier = $this->supplier();
+        $byHand = $this->attribute('kabeli', 'კაბელის სიგრძე (მ)');
+        $imported = $this->attribute('uncat-kabeli', 'Uncategorized — კაბელის სიგრძე (მ)');
+
+        // what somebody mapped in the admin, and what the import wrote
+        $this->map($supplier, 'კაბელის სიგრძე (მ)', $byHand->id);
+        $this->map($supplier, 'Uncategorized — კაბელის სიგრძე (მ)', $imported->id);
+
+        $this->migrate();
+
+        $rows = DB::table('supplier_attribute_map')->where('supplier_id', $supplier->id)->get();
+
+        $this->assertCount(1, $rows);
+        $this->assertSame('კაბელის სიგრძე (მ)', $rows[0]->external_name);
+        $this->assertSame($byHand->id, (int) $rows[0]->attribute_id);
+    }
+
+    /** With the clean name free, the row keeps its mapping and loses the prefix. */
+    public function test_a_map_row_with_a_free_name_is_renamed(): void
+    {
+        $supplier = $this->supplier();
+        $attribute = $this->attribute('uncat-peri', 'Uncategorized — ფერი');
+
+        $this->map($supplier, 'Uncategorized — ფერი', $attribute->id);
+
+        $this->migrate();
+
+        $row = DB::table('supplier_attribute_map')->where('supplier_id', $supplier->id)->first();
+
+        $this->assertSame('ფერი', $row->external_name);
+        $this->assertSame($attribute->id, (int) $row->attribute_id);
+    }
+
+    /** Two suppliers with the same prefixed name keep one row each. */
+    public function test_each_supplier_is_tidied_on_its_own(): void
+    {
+        $first = $this->supplier('metromart');
+        $second = $this->supplier('kontakt');
+        $attribute = $this->attribute('uncat-peri', 'Uncategorized — ფერი');
+
+        $this->map($first, 'Uncategorized — ფერი', $attribute->id);
+        $this->map($second, 'Uncategorized — ფერი', $attribute->id);
+
+        $this->migrate();
+
+        $this->assertSame(2, DB::table('supplier_attribute_map')->count());
+        $this->assertSame(0, DB::table('supplier_attribute_map')
+            ->where('external_name', 'like', 'Uncategorized%')->count());
+    }
+
+    /** Run twice, it changes nothing the second time. */
+    public function test_running_it_again_is_harmless(): void
+    {
+        $supplier = $this->supplier();
+        $attribute = $this->attribute('uncat-peri', 'Uncategorized — ფერი');
+
+        $this->map($supplier, 'Uncategorized — ფერი', $attribute->id);
+
+        $this->migrate();
+        $this->migrate();
+
+        $this->assertSame(1, DB::table('supplier_attribute_map')->count());
+        $this->assertSame('ფერი', $attribute->fresh()->name);
+    }
+
     /** Anything properly named is left exactly as it was. */
     public function test_a_properly_named_attribute_is_untouched(): void
     {
@@ -202,6 +277,24 @@ class UncategorizedSpecsTest extends TestCase
         $attribute->saveTranslations(['ka' => ['name' => $name]]);
 
         return $attribute->fresh();
+    }
+
+    protected function supplier(string $code = 'metromart'): Supplier
+    {
+        return Supplier::create([
+            'code' => $code, 'name' => ucfirst($code), 'driver' => 'X',
+            'is_active' => true, 'priority' => 1,
+        ]);
+    }
+
+    protected function map(Supplier $supplier, string $name, int $attributeId): void
+    {
+        DB::table('supplier_attribute_map')->insert([
+            'supplier_id' => $supplier->id,
+            'external_name' => $name,
+            'attribute_id' => $attributeId,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
     }
 
     protected function product(): Product

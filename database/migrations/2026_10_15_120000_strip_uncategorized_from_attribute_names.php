@@ -47,6 +47,45 @@ return new class extends Migration
                 ? $this->merge($row->attribute_id, (int) $existing)
                 : $this->rename($row->attribute_id, $row->locale, $clean);
         }
+
+        // whichever way each went, the supplier's own name is tidied last
+        $this->tidyMap();
+    }
+
+    /**
+     * The supplier's own name for the attribute, with the prefix taken off.
+     *
+     * Done row by row and last, because the name is unique per supplier and
+     * the clean one is often already there — mapped by hand in the admin
+     * before the import ever wrote the prefixed one. Renaming into it is a
+     * duplicate key, which is how this migration failed the first time.
+     *
+     * Where the clean name is taken, the prefixed row is the redundant one:
+     * it says the same thing and nobody chose it.
+     */
+    protected function tidyMap(): void
+    {
+        $rows = DB::table('supplier_attribute_map')
+            ->where('external_name', 'like', self::PREFIX.'%')
+            ->get(['id', 'supplier_id', 'external_name']);
+
+        foreach ($rows as $row) {
+            $clean = trim(mb_substr($row->external_name, mb_strlen(self::PREFIX)));
+
+            if ($clean === '') {
+                continue;
+            }
+
+            $taken = DB::table('supplier_attribute_map')
+                ->where('supplier_id', $row->supplier_id)
+                ->where('external_name', $clean)
+                ->where('id', '!=', $row->id)
+                ->exists();
+
+            $taken
+                ? DB::table('supplier_attribute_map')->where('id', $row->id)->delete()
+                : DB::table('supplier_attribute_map')->where('id', $row->id)->update(['external_name' => $clean]);
+        }
     }
 
     /**
@@ -93,9 +132,5 @@ return new class extends Migration
             ->where('locale', $locale)
             ->update(['name' => $name]);
 
-        DB::table('supplier_attribute_map')
-            ->where('attribute_id', $attribute)
-            ->where('external_name', 'like', self::PREFIX.'%')
-            ->update(['external_name' => $name]);
     }
 };
