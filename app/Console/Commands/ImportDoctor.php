@@ -28,7 +28,8 @@ class ImportDoctor extends Command
 {
     protected $signature = 'import:doctor
                             {supplier : the supplier code}
-                            {--sample= : actually try this many random rows against the source}';
+                            {--sample= : actually try this many random rows against the source}
+                            {--ping= : time this many bare requests to the supplier\'s own host}';
 
     protected $description = 'Report where a supplier’s import is losing products';
 
@@ -47,11 +48,123 @@ class ImportDoctor extends Command
         $this->queue($supplier);
         $this->quality($supplier);
 
+        if ($ping = (int) $this->option('ping')) {
+            $this->ping($supplier, $ping);
+        }
+
         if ($sample = (int) $this->option('sample')) {
             $this->sample($supplier, $sample);
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * How long it takes this machine to reach the supplier at all.
+     *
+     * Every other figure in this report is about our own rules. None of them
+     * can tell a slow import from an unreachable one, and the two look
+     * identical from here: a run that crawls, and a log full of timeouts that
+     * name no cause.
+     *
+     * The split is what matters. Connecting is DNS, routing and TLS; the rest
+     * is the supplier thinking. A connect of twenty seconds is a network
+     * problem and no amount of pacing or caching will touch it; a fast connect
+     * and a slow answer is the supplier throttling, which pacing does fix.
+     */
+    protected function ping(Supplier $supplier, int $times): void
+    {
+        $url = $this->hostFor($supplier);
+
+        if (! $url) {
+            $this->newLine();
+            $this->warn('  No address to ping: this supplier has no base_url and no stored links.');
+
+            return;
+        }
+
+        $this->newLine();
+        $this->line('<options=bold>reaching them</> — '.$url);
+
+        $rows = [];
+        $connects = [];
+
+        for ($i = 0; $i < $times; $i++) {
+            $handle = curl_init($url);
+
+            curl_setopt_array($handle, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_NOBODY => true,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                CURLOPT_HTTPHEADER => ['User-Agent: Mozilla/5.0'],
+            ]);
+
+            curl_exec($handle);
+
+            $dns = curl_getinfo($handle, CURLINFO_NAMELOOKUP_TIME);
+            $connect = curl_getinfo($handle, CURLINFO_CONNECT_TIME);
+            $total = curl_getinfo($handle, CURLINFO_TOTAL_TIME);
+            $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+            $error = curl_error($handle);
+
+            curl_close($handle);
+
+            $connects[] = $connect;
+
+            $rows[] = [
+                $i + 1,
+                $code ?: '—',
+                $this->ms($dns),
+                $this->ms($connect),
+                $this->ms($total),
+                $error ? mb_substr($error, 0, 40) : '',
+            ];
+        }
+
+        $this->table(['#', 'http', 'dns', 'connect', 'total', 'error'], $rows);
+
+        $worst = max($connects);
+
+        if ($worst > 2) {
+            $this->line('  <fg=red>Connecting takes '.$this->ms($worst).'.</> That is the network, not the import:');
+            $this->line('  nothing this project can change will make it faster. Check whether the host');
+            $this->line('  can reach them at all, and whether they are refusing this server’s address.');
+        } else {
+            $this->line('  <fg=green>Connecting is quick.</> A slow run is then the supplier thinking, which');
+            $this->line('  pacing helps with — see the rate in its config.');
+        }
+    }
+
+    /** The supplier's own host, however this one happens to be configured. */
+    protected function hostFor(Supplier $supplier): ?string
+    {
+        if ($base = config('services.'.$supplier->code.'.base_url')) {
+            return rtrim((string) $base, '/').'/';
+        }
+
+        $stored = SupplierStock::where('supplier_id', $supplier->id)
+            ->whereNotNull('data')
+            ->latest('id')
+            ->take(20)
+            ->pluck('data')
+            ->map(fn ($data) => is_array($data) ? ($data['url'] ?? null) : null)
+            ->first(fn ($url) => is_string($url) && str_starts_with($url, 'http'));
+
+        if (! $stored) {
+            return null;
+        }
+
+        $parts = parse_url($stored);
+
+        return ($parts['scheme'] ?? 'https').'://'.($parts['host'] ?? '').'/';
+    }
+
+    protected function ms(float $seconds): string
+    {
+        return number_format($seconds * 1000).' ms';
     }
 
     /**

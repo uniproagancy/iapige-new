@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Jobs\ImportProductJob;
 use App\Models\Language;
 use App\Models\Order;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Services\Facebook\Pixel;
 use App\Services\Import\ImportManager;
@@ -82,9 +83,47 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function defineRateLimiters(): void
     {
-        RateLimiter::for('import', fn (ImportProductJob $job) => Limit::perMinute(
-            max(1, (int) config('shop.import_rate', 60))
-        )->by('import:'.$job->supplierId));
+        /*
+         * The pace one supplier will tolerate, which is not the same for all.
+         *
+         * The limit was already counted per supplier, but the number came from
+         * config and so was the same everywhere: four requests a second. A
+         * large shop with a CDN does not notice that; a small one starts
+         * throttling, and the shape of it is unmistakable — fast for the first
+         * minute, then twenty seconds a request for the rest of the run.
+         *
+         * And being throttled is far more expensive than going slowly. Four
+         * hundred products at twenty seconds is over two hours; the same four
+         * hundred at one every two seconds is thirteen minutes, because
+         * nothing ever throttles.
+         *
+         * So a supplier that needs a gentler pace says so in its own config,
+         * and the rest keep the old figure.
+         */
+        RateLimiter::for('import', function (ImportProductJob $job) {
+            static $rates = [];
+
+            /*
+             * A limiter must never be the thing that throws.
+             *
+             * It is asked for on every job, including in places where the
+             * suppliers table is not reachable, and a rate is not worth
+             * failing a run over: the configured figure is a perfectly good
+             * answer when the supplier's own cannot be read.
+             */
+            $rates[$job->supplierId] ??= (function () use ($job): int {
+                try {
+                    $own = Supplier::find($job->supplierId)?->config['rate'] ?? null;
+                } catch (\Throwable) {
+                    $own = null;
+                }
+
+                return (int) ($own ?? config('shop.import_rate', 60));
+            })();
+
+            return Limit::perMinute(max(1, $rates[$job->supplierId]))
+                ->by('import:'.$job->supplierId);
+        });
     }
 
     /**

@@ -80,6 +80,81 @@ class ImportRunScreenTest extends TestCase
         $this->assertNotNull($this->supplier->fresh()->last_run_at);
     }
 
+    /* ------------------------------------------------------------------ several at once */
+
+    public function test_the_selected_suppliers_are_queued(): void
+    {
+        Queue::fake();
+
+        $other = $this->other();
+
+        $this->rows('A-1', 'A-2');
+        $this->rowsFor($other, 'B-1');
+
+        $this->screen()
+            ->set('selected', ['demo', 'other'])
+            ->call('runSelected');
+
+        Queue::assertPushed(ImportProductJob::class, 3);
+    }
+
+    /** Ticking the header ticks everything that can actually run. */
+    public function test_select_all_ticks_the_active_suppliers(): void
+    {
+        $this->other();
+
+        Supplier::create([
+            'code' => 'off', 'name' => 'Switched off', 'driver' => DemoDriver::class,
+            'is_active' => false, 'priority' => 3,
+        ]);
+
+        $this->screen()
+            ->set('selectAll', true)
+            ->assertSet('selected', ['demo', 'other']);
+    }
+
+    public function test_unticking_the_header_clears_the_selection(): void
+    {
+        $this->screen()
+            ->set('selectAll', true)
+            ->set('selectAll', false)
+            ->assertSet('selected', []);
+    }
+
+    /** The selection is dropped afterwards, or the bar keeps offering it. */
+    public function test_the_selection_is_cleared_once_queued(): void
+    {
+        Queue::fake();
+
+        $this->rows('A-1');
+
+        $this->screen()
+            ->set('selected', ['demo'])
+            ->call('runSelected')
+            ->assertSet('selected', [])
+            ->assertSet('selectAll', false);
+    }
+
+    public function test_a_switched_off_supplier_in_the_selection_is_left_alone(): void
+    {
+        Queue::fake();
+
+        $this->supplier->update(['is_active' => false]);
+        $this->rows('A-1');
+
+        $this->screen()->set('selected', ['demo'])->call('runSelected');
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_selecting_nothing_is_refused(): void
+    {
+        Queue::fake();
+
+        $this->screen()->set('selected', [])->call('runSelected');
+
+        Queue::assertNothingPushed();
+    }
     /* ------------------------------------------------------------------ nothing to do */
 
     public function test_choosing_nothing_is_refused(): void
@@ -110,6 +185,50 @@ class ImportRunScreenTest extends TestCase
         Queue::assertNothingPushed();
     }
 
+    /* ------------------------------------------------------------------ running it twice */
+
+    /**
+     * A supplier still working is asked about before being started again.
+     *
+     * A run queues one job per product, so starting one that has not finished
+     * doubles the queue. Nothing is written twice — the import updates what it
+     * finds — but the second copy costs the same hour of fetching as the
+     * first, which is quite enough to want a question first.
+     */
+    public function test_a_busy_supplier_asks_before_running_again(): void
+    {
+        $this->waiting('import:demo', 3);
+
+        $this->screen()->assertSee('wire:confirm', false);
+    }
+
+    public function test_an_idle_supplier_asks_nothing(): void
+    {
+        $this->rows('A-1');
+
+        $this->screen()->assertDontSee('run_again_confirm');
+    }
+
+    /** The question names how many are already waiting, so the answer is informed. */
+    public function test_the_question_says_how_many_are_waiting(): void
+    {
+        $this->waiting('import:demo', 7);
+
+        $this->screen()->assertSee(__('admin.run_again_confirm', ['count' => 7]), false);
+    }
+
+    /** Confirmed, it runs: the question is a question, not a lock. */
+    public function test_it_still_runs_when_the_question_is_answered(): void
+    {
+        Queue::fake();
+
+        $this->waiting('import:demo', 3);
+        $this->rows('A-1');
+
+        $this->screen()->call('run', 'demo');
+
+        Queue::assertPushed(ImportProductJob::class, 1);
+    }
     /* ------------------------------------------------------------------ failed jobs */
 
     /**
@@ -176,6 +295,27 @@ class ImportRunScreenTest extends TestCase
         return Livewire::actingAs($admin)->test(Run::class);
     }
 
+    protected function other(): Supplier
+    {
+        return Supplier::create([
+            'code' => 'other', 'name' => 'Other', 'driver' => DemoDriver::class,
+            'is_active' => true, 'priority' => 2,
+        ]);
+    }
+
+    protected function rowsFor(Supplier $supplier, string ...$ids): void
+    {
+        foreach ($ids as $id) {
+            SupplierStock::create([
+                'supplier_id' => $supplier->id,
+                'external_id' => $id,
+                'quantity' => 1,
+                'data' => [],
+                'synced_at' => now(),
+            ]);
+        }
+    }
+
     protected function rows(string ...$ids): void
     {
         foreach ($ids as $id) {
@@ -185,6 +325,16 @@ class ImportRunScreenTest extends TestCase
                 'quantity' => 1,
                 'data' => [],
                 'synced_at' => now(),
+            ]);
+        }
+    }
+
+    protected function waiting(string $queue, int $count): void
+    {
+        for ($i = 0; $i < $count; $i++) {
+            DB::table('jobs')->insert([
+                'queue' => $queue, 'payload' => '{}', 'attempts' => 0,
+                'reserved_at' => null, 'available_at' => time(), 'created_at' => time(),
             ]);
         }
     }

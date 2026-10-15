@@ -55,6 +55,14 @@ class MideaSupplierSeeder extends Seeder
                 'max_pages' => 30,
                 'timeout' => 30,
 
+                /*
+                 | Requests a minute. Their shop is small and sits behind
+                 | no CDN: at the usual four a second it starts throttling,
+                 | and a throttled run takes hours where a paced one takes
+                 | minutes.
+                 */
+                'rate' => 30,
+
                 'listings' => [
                     '/ka/products/kondicioneri/split-sistema/all/1/1/',
                     '/ka/products/sarecxi-manqana/sarecxi-manqana-1/all/1/1/',

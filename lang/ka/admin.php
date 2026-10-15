@@ -441,4 +441,12 @@ return [
     'run_failed_toast' => 'ვერ ჩადგა: :error',
     'run_cleared' => ':count ჩავარდნილი წაიშალა',
     'run_worker_note' => 'რიგში :count ჯობია. დასამუშავებლად worker უნდა მუშაობდეს:',
+    'run_selected' => 'მონიშნულების გაშვება',
+    'run_bulk_queued' => ':suppliers მომწოდებელი — :count ჯობი ჩადგა',
+    'run_some_failed' => ':count ჯობი ჩადგა, ვერ ჩადგა: :failed',
+    'run_again_confirm' => 'ამ მომწოდებელს უკვე :count ჯობი აქვს რიგში და ჯერ მუშაობს.
+
+ხელახლა გაშვება რიგს გააორმაგებს — იგივე სამუშაო მეორედ გაკეთდება.
+
+მაინც გავუშვა?',
 ];

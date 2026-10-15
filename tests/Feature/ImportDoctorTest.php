@@ -222,6 +222,55 @@ class ImportDoctorTest extends TestCase
         $this->artisan('import:doctor nobody')->assertFailed();
     }
 
+    /* ------------------------------------------------------------------ reaching them */
+
+    /**
+     * Whether the trouble is the network or the supplier.
+     *
+     * Every other figure in the report is about our own rules, and none of
+     * them tells a slow import from an unreachable one — the two look
+     * identical from here. Connecting is DNS, routing and TLS; the rest is
+     * the supplier thinking, and only the second is ours to fix.
+     */
+    public function test_it_pings_the_configured_host(): void
+    {
+        config(['services.ingco.base_url' => 'https://ingco.ge']);
+
+        $this->assertStringContainsString('ingco.ge', $this->report('ingco --ping=1'));
+    }
+
+    /** A supplier with no base_url is reached through a link it stored. */
+    public function test_it_falls_back_to_a_stored_link(): void
+    {
+        config(['services.ingco.base_url' => null]);
+
+        SupplierStock::create([
+            'supplier_id' => $this->supplier->id,
+            'external_id' => 'A-1',
+            'quantity' => 1,
+            'cost_price' => 100,
+            'data' => ['url' => 'https://example.test/product/x'],
+            'synced_at' => now(),
+        ]);
+
+        $this->assertStringContainsString('example.test', $this->report('ingco --ping=1'));
+    }
+
+    public function test_a_supplier_with_no_address_says_so(): void
+    {
+        config(['services.ingco.base_url' => null]);
+
+        $this->assertStringContainsString('No address to ping', $this->report('ingco --ping=1'));
+    }
+
+    /** Without the option nothing is reached for at all. */
+    public function test_no_ping_unless_asked_for(): void
+    {
+        config(['services.ingco.base_url' => 'https://ingco.ge']);
+
+        $this->assertStringNotContainsString('reaching them', $this->report('ingco'));
+    }
+
     /* ------------------------------------------------------------------ helpers */
     /**
      * The whole report as text.
@@ -230,9 +279,9 @@ class ImportDoctorTest extends TestCase
      * chained onto one artisan() call do not both survive — and a report is
      * read as a whole anyway.
      */
-    protected function report(string $supplier): string
+    protected function report(string $arguments): string
     {
-        Artisan::call('import:doctor', ['supplier' => $supplier]);
+        Artisan::call('import:doctor '.$arguments);
 
         return Artisan::output();
     }

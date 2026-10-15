@@ -87,7 +87,8 @@ class MetromartDriver implements SupplierDriver
             oldCostPrice: $old,
             stock: $stock,
             brandName: $page['brand'] ?? null,
-            categoryName: ($row->data['category'] ?? null),
+            // a category column would win; the page's own trail is what there is
+            categoryName: $row->data['category'] ?? $page['category'] ?? null,
             translations: [$locale => [
                 'name' => $page['name'],
             ]],

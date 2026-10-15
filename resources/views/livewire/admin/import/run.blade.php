@@ -19,7 +19,10 @@
                 </div>
 
                 <div class="col-md-7 mb-1">
-                    <button type="button" class="btn btn-primary" wire:click="run" wire:loading.attr="disabled">
+                    <button type="button" class="btn btn-primary" wire:click="run" wire:loading.attr="disabled"
+                            @if ($picked && ($busy[$picked] ?? 0))
+                                wire:confirm="{{ __('admin.run_again_confirm', ['count' => $busy[$picked]]) }}"
+                            @endif>
                         <span wire:loading.remove wire:target="run">{{ __('admin.run_start') }}</span>
                         <span wire:loading wire:target="run">{{ __('admin.run_start') }}…</span>
                     </button>
@@ -29,7 +32,7 @@
             @if ($queued)
                 <div class="alert alert-info p-1 mb-0">
                     {{ __('admin.run_worker_note', ['count' => $queued]) }}
-                    <code class="d-block mt-50">php artisan queue:work --queue=import --timeout=360</code>
+                    <code class="d-block mt-50">{{ $command }}</code>
                 </div>
             @endif
         </div>
@@ -39,12 +42,32 @@
     <div class="card">
         <div class="card-header">
             <h4 class="card-title">{{ __('admin.run_all') }}</h4>
+
+            @if ($selected)
+                <div class="d-flex align-items-center gap-1">
+                    <span class="text-muted">{{ __('admin.n_selected', ['count' => count($selected)]) }}</span>
+
+                    @php $busySelected = collect($selected)->sum(fn ($c) => $busy[$c] ?? 0); @endphp
+
+                    <button type="button" class="btn btn-sm btn-primary"
+                            wire:click="runSelected" wire:loading.attr="disabled"
+                            @if ($busySelected)
+                                wire:confirm="{{ __('admin.run_again_confirm', ['count' => $busySelected]) }}"
+                            @endif>
+                        <span wire:loading.remove wire:target="runSelected">{{ __('admin.run_selected') }}</span>
+                        <span wire:loading wire:target="runSelected">{{ __('admin.run_selected') }}…</span>
+                    </button>
+                </div>
+            @endif
         </div>
 
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead>
                     <tr>
+                        <th style="width:40px">
+                            <input type="checkbox" class="form-check-input" wire:model.live="selectAll">
+                        </th>
                         <th>{{ __('admin.supplier') }}</th>
                         <th class="text-center">{{ __('admin.run_rows') }}</th>
                         <th class="text-center">{{ __('admin.run_products') }}</th>
@@ -60,6 +83,11 @@
                         @php $supplier = $row['model']; @endphp
 
                         <tr wire:key="s-{{ $supplier->id }}" @class(['opacity-50' => ! $supplier->is_active])>
+                            <td>
+                                <input type="checkbox" class="form-check-input"
+                                       value="{{ $supplier->code }}" wire:model.live="selected"
+                                       @disabled(! $supplier->is_active)>
+                            </td>
                             <td>
                                 <b>{{ $supplier->name }}</b>
                                 <small class="d-block text-muted">{{ $supplier->code }}</small>
@@ -98,6 +126,9 @@
                                 <button type="button" class="btn btn-sm btn-outline-primary"
                                         wire:click="run('{{ $supplier->code }}')"
                                         wire:loading.attr="disabled"
+                                        @if ($row['waiting'])
+                                            wire:confirm="{{ __('admin.run_again_confirm', ['count' => $row['waiting']]) }}"
+                                        @endif
                                         @disabled(! $supplier->is_active)>
                                     {{ __('admin.run_start') }}
                                 </button>

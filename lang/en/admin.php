@@ -441,4 +441,12 @@ return [
     'run_failed_toast' => 'Could not queue: :error',
     'run_cleared' => ':count failed jobs removed',
     'run_worker_note' => ':count jobs are waiting. A worker has to be running to get through them:',
+    'run_selected' => 'Run the selected',
+    'run_bulk_queued' => ':suppliers suppliers — :count jobs queued',
+    'run_some_failed' => ':count jobs queued; these could not start: :failed',
+    'run_again_confirm' => 'This supplier already has :count jobs queued and is still working.
+
+Running it again doubles the queue — the same work a second time.
+
+Run it anyway?',
 ];

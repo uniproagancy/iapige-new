@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Jobs\ImportProductJob;
+use App\Models\Supplier;
 use Illuminate\Cache\RateLimiter;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Queue\Middleware\RateLimited;
 use Tests\TestCase;
 
@@ -22,6 +24,8 @@ use Tests\TestCase;
  */
 class ImportJobTimingTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * A deadline instead of a count.
      *
@@ -68,6 +72,61 @@ class ImportJobTimingTest extends TestCase
         $second = $limiter->limiter('import')(new ImportProductJob(2, 'X-1'));
 
         $this->assertNotSame($first->key, $second->key);
+    }
+
+    /* ------------------------------------------------------------------ the pace */
+
+    /**
+     * A supplier that needs a gentler pace says so itself.
+     *
+     * The limit was counted per supplier already, but the number came from
+     * config and so was the same everywhere: four requests a second. A small
+     * shop starts throttling at that, and the shape is unmistakable — fast for
+     * the first minute, then twenty seconds a request for the rest of the run.
+     *
+     * Being throttled costs far more than going slowly: four hundred products
+     * at twenty seconds is over two hours, the same four hundred at one every
+     * two seconds is thirteen minutes.
+     */
+    public function test_a_supplier_can_ask_for_a_gentler_pace(): void
+    {
+        $supplier = Supplier::create([
+            'code' => 'slow', 'name' => 'Slow', 'driver' => 'X',
+            'is_active' => true, 'priority' => 1, 'config' => ['rate' => 30],
+        ]);
+
+        $limit = app(RateLimiter::class)->limiter('import')(new ImportProductJob($supplier->id, 'X-1'));
+
+        $this->assertSame(30, $limit->maxAttempts);
+    }
+
+    public function test_a_supplier_without_one_keeps_the_configured_pace(): void
+    {
+        config(['shop.import_rate' => 240]);
+
+        $supplier = Supplier::create([
+            'code' => 'normal', 'name' => 'Normal', 'driver' => 'X',
+            'is_active' => true, 'priority' => 1,
+        ]);
+
+        $limit = app(RateLimiter::class)->limiter('import')(new ImportProductJob($supplier->id, 'X-1'));
+
+        $this->assertSame(240, $limit->maxAttempts);
+    }
+
+    /**
+     * A limiter must never be the thing that throws.
+     *
+     * It is asked for on every job, including where the suppliers table is
+     * not reachable, and a rate is not worth failing a run over.
+     */
+    public function test_an_unknown_supplier_falls_back_rather_than_failing(): void
+    {
+        config(['shop.import_rate' => 120]);
+
+        $limit = app(RateLimiter::class)->limiter('import')(new ImportProductJob(9999, 'X-1'));
+
+        $this->assertSame(120, $limit->maxAttempts);
     }
 
     /** Something still has to stop a job that genuinely keeps throwing. */

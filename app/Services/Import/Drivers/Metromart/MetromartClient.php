@@ -72,7 +72,7 @@ class MetromartClient
     /**
      * Everything the product page carries.
      *
-     * @return array{name:?string, brand:?string, price:float, sale:float, in_stock:bool, images:array, specs:array}|null
+     * @return array{name:?string, brand:?string, category:?string, price:float, sale:float, in_stock:bool, images:array, specs:array}|null
      */
     public function page(string $url): ?array
     {
@@ -94,6 +94,7 @@ class MetromartClient
         return [
             'name' => $name,
             'brand' => $this->attr($xpath, '//meta[@itemprop="brand"]', 'content'),
+            'category' => $this->category($html, $xpath),
             'price' => (float) ($this->meta($xpath, 'product:price:amount') ?? 0),
             'sale' => (float) ($this->meta($xpath, 'product:sale_price:amount') ?? 0),
             'in_stock' => $this->availableToday($xpath),
@@ -103,6 +104,119 @@ class MetromartClient
     }
 
     /* ------------------------------------------------------------------ parts */
+
+    /**
+     * What the product is, for the mapping queue.
+     *
+     * The price list is three columns — a model, a cost and a quantity — and
+     * not one of them says what the thing is. So categoryName was always null,
+     * and the resolver only parks a name it is actually given: the admin's
+     * mapping queue stayed empty and every Metromart product sat uncategorised
+     * with nothing to map it by. The same hole Kontakt and INGCO fell into.
+     *
+     * Odoo spells its breadcrumb three ways depending on the theme and the
+     * version, so all three are tried: the structured one first because it
+     * says what it means, then the rendered list, then the bare microdata.
+     */
+    protected function category(string $html, DOMXPath $xpath): ?string
+    {
+        $names = $this->structuredTrail($html) ?: $this->renderedTrail($xpath);
+
+        if (! $names) {
+            return null;
+        }
+
+        /*
+         * The trail reads Home › Shop › Category › Product. The product's own
+         * name is the last step when the theme includes it, so it is dropped
+         * when it matches what the page calls itself; what remains is the
+         * narrowest category, which is the one worth mapping.
+         */
+        $title = $this->clean((string) ($this->text($xpath, '//h1[@itemprop="name"]') ?? ''));
+
+        if ($title !== '' && mb_strtolower((string) end($names)) === mb_strtolower($title)) {
+            array_pop($names);
+        }
+
+        $category = array_pop($names);
+
+        return in_array($category, ['მთავარი', 'Home', 'Shop', 'მაღაზია', 'Главная'], true)
+            ? null
+            : ($category ?: null);
+    }
+
+    /**
+     * The breadcrumb as structured data.
+     *
+     * @return array<int, string>
+     */
+    protected function structuredTrail(string $html): array
+    {
+        if (! preg_match_all('#<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>#si', $html, $m)) {
+            return [];
+        }
+
+        foreach ($m[1] as $raw) {
+            $data = json_decode(trim($raw), true);
+
+            if (! is_array($data)) {
+                continue;
+            }
+
+            foreach ([$data, ...array_values((array) ($data['@graph'] ?? []))] as $node) {
+                if (! is_array($node) || ! str_contains((string) ($node['@type'] ?? ''), 'BreadcrumbList')) {
+                    continue;
+                }
+
+                $names = [];
+
+                foreach ((array) ($node['itemListElement'] ?? []) as $item) {
+                    $name = $this->clean((string) ($item['name'] ?? $item['item']['name'] ?? ''));
+
+                    if ($name !== '') {
+                        $names[] = $name;
+                    }
+                }
+
+                if ($names) {
+                    return $names;
+                }
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * The breadcrumb as the page draws it.
+     *
+     * @return array<int, string>
+     */
+    protected function renderedTrail(DOMXPath $xpath): array
+    {
+        foreach ([
+            '//ol[contains(@class,"breadcrumb")]//a',
+            '//ul[contains(@class,"breadcrumb")]//a',
+            '//*[@itemprop="breadcrumb"]//a',
+            '//nav[contains(@class,"breadcrumb")]//a',
+        ] as $query) {
+            $names = [];
+
+            foreach ($xpath->query($query) ?: [] as $node) {
+                $name = $this->clean($node->textContent);
+
+                if ($name !== '') {
+                    $names[] = $name;
+                }
+            }
+
+            if ($names) {
+                return $names;
+            }
+        }
+
+        return [];
+    }
 
     /**
      * Whether the shop will hand it over in Tbilisi today.
