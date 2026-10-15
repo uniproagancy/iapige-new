@@ -170,6 +170,19 @@ class ImportDoctor extends Command
      */
     protected function warnAboutDrift(Supplier $supplier, array $config): void
     {
+        /*
+         * A supplier with no column map is not misconfigured.
+         *
+         * Some are fed by pasting addresses rather than by a spreadsheet, and
+         * telling their owner that "the price list cannot be loaded at all"
+         * sends them looking for a fault that is not there.
+         */
+        if (empty($config['columns'])) {
+            $this->line('  Fed by pasted addresses, not a price list.');
+
+            return;
+        }
+
         $expected = [
             'columns.key' => 'the price list cannot be loaded at all',
             'columns.stock' => 'every row counts as one available',
@@ -212,7 +225,9 @@ class ImportDoctor extends Command
 
         if ($rows === 0) {
             $this->newLine();
-            $this->warn('  No price list loaded at all. Run import:file first.');
+            $this->warn(empty($supplier->config['columns'])
+                ? '  Nothing added yet. Paste the addresses on the links screen first.'
+                : '  No price list loaded at all. Run import:file first.');
 
             return;
         }
