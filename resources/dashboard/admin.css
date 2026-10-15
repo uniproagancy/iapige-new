@@ -251,3 +251,33 @@
     height: 100%;
     object-fit: cover;
 }
+
+/* ------------------------------------------------------------------ the menu */
+
+/*
+ | The icons are in the markup now, not drawn by feather, so they need the
+ | spacing the template gave its own <i data-feather> elements.
+ */
+.adm-ico {
+    flex-shrink: 0;
+    margin-inline-end: 8px;
+}
+
+.dropdown-menu .adm-ico { margin-inline-end: 10px; }
+
+/* the item you are looking at, which nothing used to mark */
+.horizontal-menu-wrapper .nav-item.active > .nav-link {
+    background: var(--iapi-orange, #ff6b00);
+    color: #fff;
+    border-radius: .357rem;
+    box-shadow: 0 2px 8px rgba(255, 107, 0, .3);
+}
+
+.horizontal-menu-wrapper .nav-item.active > .nav-link .badge { background: rgba(255, 255, 255, .25); color: #fff; }
+
+.horizontal-menu-wrapper .nav-link {
+    border-radius: .357rem;
+    transition: background .15s, color .15s;
+}
+
+.horizontal-menu-wrapper .nav-item:not(.active) > .nav-link:hover { background: rgba(255, 255, 255, .06); }

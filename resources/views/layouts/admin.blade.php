@@ -82,8 +82,12 @@
 <div class="sidenav-overlay"></div>
 <div class="drag-target"></div>
 
-<button class="btn btn-primary btn-icon scroll-top" type="button">
-    <i data-feather="arrow-up"></i>
+{{-- drawn here, not by feather: see layouts.admin._header --}}
+<button class="btn btn-primary btn-icon scroll-top" type="button" aria-label="{{ __('admin.move_up') }}">
+    <svg class="adm-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+    </svg>
 </button>
 
 @livewireScripts
