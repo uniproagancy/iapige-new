@@ -22,6 +22,18 @@ class Index extends Component
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
+    /**
+     * Only the brands nobody sells.
+     *
+     * The button for this was in the view and the property never was, so the
+     * page died on "Undefined variable $onlyEmpty" the moment anybody opened
+     * it — and the filter it was meant to apply had never been written
+     * either. A brand with no products is noise in the sidebar and the point
+     * of the button is to find them.
+     */
+    #[Url(as: 'empty', except: false)]
+    public bool $onlyEmpty = false;
+
     public bool $showForm = false;
 
     public ?int $editingId = null;
@@ -53,10 +65,16 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatedOnlyEmpty(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $brands = Brand::withCount('products')
             ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->when($this->onlyEmpty, fn ($q) => $q->whereDoesntHave('products'))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate(40);
