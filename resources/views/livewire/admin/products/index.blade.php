@@ -179,7 +179,7 @@
                 {{-- moving products is a separate row: it needs two pickers and a lock --}}
                 <div class="d-flex flex-wrap align-items-center gap-1 mt-1 pt-1 border-top">
                     <div class="d-flex align-items-center gap-1">
-                        <select class="form-select form-select-sm" style="width:230px" wire:model="bulkCategory">
+                        <select class="form-select form-select-sm" style="width:230px" wire:model.live="bulkCategory">
                             <option value="">{{ __('admin.move_to') }}…</option>
                             @foreach ($categories as $option)
                                 <option value="{{ $option['id'] }}">
@@ -188,13 +188,14 @@
                             @endforeach
                         </select>
 
-                        <button type="button" class="btn btn-sm btn-primary" wire:click="bulkSetCategory">
+                        <button type="button" class="btn btn-sm btn-primary"
+                                wire:click="bulkSetCategory" @disabled(! $bulkCategory)>
                             {{ __('admin.apply') }}
                         </button>
                     </div>
 
                     <div class="d-flex align-items-center gap-1">
-                        <select class="form-select form-select-sm" style="width:180px" wire:model="bulkBrand">
+                        <select class="form-select form-select-sm" style="width:180px" wire:model.live="bulkBrand">
                             <option value="">{{ __('admin.brand') }}…</option>
                             @foreach ($brands as $brand)
                                 <option value="{{ $brand->id }}">{{ $brand->name }}</option>
