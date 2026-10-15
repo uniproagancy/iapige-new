@@ -194,7 +194,7 @@ class Catalog
      * heading, which disable themselves when there is nowhere to go, were
      * therefore dead on every section of the page.
      */
-    public static function sections(int $perSection = 20): array
+    public static function sections(int $perSection = 40): array
     {
         $banners = Store::sectionBanners();
         $counts = self::categoryCounts();
