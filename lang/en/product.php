@@ -24,7 +24,7 @@ return [
     'buy' => 'Purchase',
     'in_stock' => 'In stock',
     'out_of_stock' => 'Out of stock',
-    'installment' => '12-month instalments',
+    'installment' => '24-month instalments',
     'per_month' => ':amount ₾ / month',
     'per_month_0' => ':amount ₾ / month · 0%',
     'add' => 'Add to cart',
@@ -70,7 +70,7 @@ return [
     'prepay_label' => 'Prepayment',
     'purchase' => 'Purchase',
     'warranty' => 'Warranty',
-    'installment_12' => '12-month instalment',
+    'installment_term' => '24-month instalment',
 
     'not_available' => 'Not available right now',
 

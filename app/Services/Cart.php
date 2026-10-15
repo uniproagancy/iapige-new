@@ -169,8 +169,11 @@ class Cart
         return array_sum(array_column($this->lines(), 'sum'));
     }
 
-    public function monthly(int $months = 12): int
+    /** Over the shop's own term; see shop.instalment_months. */
+    public function monthly(?int $months = null): int
     {
+        $months = max(1, $months ?? (int) config('shop.instalment_months', 24));
+
         return (int) round($this->total() / $months);
     }
 }

@@ -155,7 +155,8 @@ class PromoPriceTest extends TestCase
     {
         $product = $this->inCampaign($this->product(1200), ['promo_price' => 600]);
 
-        $this->assertSame(50, Catalog::card($product)['monthly']);
+        // over the shop's term, which is 24 months
+        $this->assertSame(25, Catalog::card($product)['monthly']);
     }
 
     /** With no campaign, the supplier's own discount is what shows. */

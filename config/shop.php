@@ -7,6 +7,20 @@ return [
     'delivery_days' => (int) env('SHOP_DELIVERY_DAYS', 2),
 
     /*
+     | The term the "from X ₾ a month" figure is quoted over.
+     |
+     | One number, because four places print it: the product cards, the
+     | product page, the cart and both advertising feeds. The feeds already
+     | said 24 while the shop said 12, so the same television was advertised
+     | at one figure and priced at another the moment somebody clicked —
+     | which is a complaint waiting to happen rather than a rounding
+     | difference.
+     |
+     | Changing it changes every one of them, the labels included.
+     */
+    'instalment_months' => (int) env('INSTALMENT_MONTHS', 24),
+
+    /*
      | What the "call the customer" button in the admin opens.
      |
      | The browser hands the address to whichever program registered that

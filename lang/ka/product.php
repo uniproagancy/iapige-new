@@ -24,7 +24,7 @@ return [
     'buy' => 'შეძენა',
     'in_stock' => 'მარაგშია',
     'out_of_stock' => 'არ არის მარაგში',
-    'installment' => 'განვადება 12 თვე',
+    'installment' => 'განვადება 24 თვე',
     'per_month' => ':amount ₾ / თვე',
     'per_month_0' => ':amount ₾ / თვე · 0%',
     'add' => 'კალათაში',
@@ -70,7 +70,7 @@ return [
     'prepay_label' => 'წინასწარი გადახდა',
     'purchase' => 'შეძენა',
     'warranty' => 'გარანტია',
-    'installment_12' => 'განვადება 12 თვე',
+    'installment_term' => 'განვადება 24 თვე',
 
     'not_available' => 'ამჟამად მიუწვდომელია',
 

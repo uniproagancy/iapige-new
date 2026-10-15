@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ProductInteraction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 

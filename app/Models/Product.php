@@ -242,9 +242,17 @@ class Product extends Model
         return (int) round((1 - (float) $this->price / (float) $this->old_price) * 100);
     }
 
-    /** The instalment figure follows the price actually charged. */
-    public function monthlyPrice(int $months = 12): int
+    /**
+     * The instalment figure follows the price actually charged.
+     *
+     * The term is the shop's, not this method's: the cards, the product page,
+     * the cart and the advertising feeds all quote it, and they were not all
+     * quoting the same one.
+     */
+    public function monthlyPrice(?int $months = null): int
     {
+        $months = max(1, $months ?? (int) config('shop.instalment_months', 24));
+
         return (int) round($this->sellingPrice() / $months);
     }
 

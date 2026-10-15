@@ -29,7 +29,7 @@ return [
 
         // monthly instalment label, shown above this price
         'instalment_from' => 150,
-        'instalment_months' => 24,
+        'instalment_months' => (int) env('INSTALMENT_MONTHS', 24),
     ],
 
     /*
@@ -55,7 +55,7 @@ return [
         'exclude_brands' => [],
 
         'instalment_from' => 150,
-        'instalment_months' => 24,
+        'instalment_months' => (int) env('INSTALMENT_MONTHS', 24),
     ],
 
 ];
