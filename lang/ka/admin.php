@@ -422,4 +422,23 @@ return [
     'links_stop' => 'შეჩერება',
     'links_finished' => 'დასრულდა — :done ჩამოვიდა, :failed ვერ',
     'links_nothing_to_fetch' => 'ყველაფერი უკვე ჩამოტანილია',
+
+    /* ------------------------------------------------------------------ running an import */
+    'run_title' => 'იმპორტის გაშვება',
+    'run_hint' => 'აირჩიე მომწოდებელი — ჯობები რიგში ჩადგება',
+    'run_choose' => '— აირჩიე —',
+    'run_start' => 'გაშვება',
+    'run_all' => 'ყველა მომწოდებელი',
+    'run_rows' => 'სტრიქონი',
+    'run_products' => 'პროდუქტი',
+    'run_waiting' => 'რიგში',
+    'run_failed' => 'ჩავარდნილი',
+    'run_last' => 'ბოლო გაშვება',
+    'run_never' => 'არასოდეს',
+    'run_pick_one' => 'ჯერ მომწოდებელი აირჩიე',
+    'run_queued' => ':supplier — :count ჯობი ჩადგა რიგში',
+    'run_nothing' => ':supplier — ჩასადგმელი არაფერია',
+    'run_failed_toast' => 'ვერ ჩადგა: :error',
+    'run_cleared' => ':count ჩავარდნილი წაიშალა',
+    'run_worker_note' => 'რიგში :count ჯობია. დასამუშავებლად worker უნდა მუშაობდეს:',
 ];

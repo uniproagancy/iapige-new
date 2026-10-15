@@ -115,6 +115,7 @@ Route::middleware(['auth', 'can:admin'])
 
         Route::get('/import/upload', Admin\Import\Upload::class)->name('import.upload');
         Route::get('/import/links', Admin\Import\Links::class)->name('import.links');
+        Route::get('/import/run', Admin\Import\Run::class)->name('import.run');
 
         Route::get('/mapping', Admin\Mapping\Index::class)->name('mapping');
         Route::get('/attributes', Admin\Attributes\Index::class)->name('attributes');

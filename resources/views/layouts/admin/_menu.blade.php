@@ -77,7 +77,7 @@
                 </li>
 
                 {{-- suppliers and mapping --}}
-                <li class="dropdown nav-item @activeMenu('admin.suppliers', 'admin.mapping', 'admin.import.upload', 'admin.import.links')" data-menu="dropdown">
+                <li class="dropdown nav-item @activeMenu('admin.suppliers', 'admin.mapping', 'admin.import.upload', 'admin.import.links', 'admin.import.run')" data-menu="dropdown">
                     <a class="dropdown-toggle nav-link d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                         <i data-feather="download-cloud"></i><span>{{ __('admin.import') }}</span>
                         @if ($unmapped)
@@ -88,6 +88,11 @@
                         <li>
                             <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.dashboard') }}">
                                 <i data-feather="truck"></i><span>{{ __('admin.suppliers') }}</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.import.run') }}">
+                                <i data-feather="play-circle"></i><span>{{ __('admin.run_title') }}</span>
                             </a>
                         </li>
                         <li>

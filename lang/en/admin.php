@@ -422,4 +422,23 @@ return [
     'links_stop' => 'Stop',
     'links_finished' => 'Finished — :done fetched, :failed failed',
     'links_nothing_to_fetch' => 'Everything has been fetched already',
+
+    /* ------------------------------------------------------------------ running an import */
+    'run_title' => 'Run an import',
+    'run_hint' => 'Pick a supplier — the jobs go on the queue',
+    'run_choose' => '— pick one —',
+    'run_start' => 'Run',
+    'run_all' => 'Every supplier',
+    'run_rows' => 'Rows',
+    'run_products' => 'Products',
+    'run_waiting' => 'Queued',
+    'run_failed' => 'Failed',
+    'run_last' => 'Last run',
+    'run_never' => 'never',
+    'run_pick_one' => 'Pick a supplier first',
+    'run_queued' => ':supplier — :count jobs queued',
+    'run_nothing' => ':supplier — nothing to queue',
+    'run_failed_toast' => 'Could not queue: :error',
+    'run_cleared' => ':count failed jobs removed',
+    'run_worker_note' => ':count jobs are waiting. A worker has to be running to get through them:',
 ];
