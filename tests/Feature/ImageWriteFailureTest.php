@@ -102,6 +102,57 @@ class ImageWriteFailureTest extends TestCase
         $this->assertSame(1, $product->fresh()->images()->count());
     }
 
+    /* ------------------------------------------------------------------ odd addresses */
+
+    /**
+     * A filename with spaces in it.
+     *
+     * Media is whatever somebody saved it as, and "Screenshot 2026-10-09
+     * 173441.png" is a real one. cURL refuses such a URL outright —
+     * "Malformed input to a URL function" — so the picture was never fetched,
+     * the product arrived with none, and nothing in the log named the cause.
+     */
+    public function test_an_address_with_spaces_is_fetched(): void
+    {
+        Storage::fake('public');
+        Http::fake(['*' => Http::response('a picture', 200)]);
+
+        $product = $this->product();
+
+        app(ImageDownloader::class)->sync($product, [
+            'https://media.citrus.ge/images/products/CS406234/Screenshot 2026-10-09 173441.png',
+        ]);
+
+        $this->assertSame(1, ProductImage::where('product_id', $product->id)->count());
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'Screenshot%202026-10-09%20173441.png'));
+    }
+
+    /** An address that was already escaped is left as it was. */
+    public function test_an_already_encoded_address_is_not_encoded_twice(): void
+    {
+        Storage::fake('public');
+        Http::fake(['*' => Http::response('a picture', 200)]);
+
+        app(ImageDownloader::class)->sync($this->product(), [
+            'https://media.citrus.ge/images/products/CS406234/Screenshot%202026-10-09.png',
+        ]);
+
+        Http::assertSent(fn ($request) => ! str_contains($request->url(), '%25'));
+    }
+
+    /** A query string is not a path and must survive untouched. */
+    public function test_a_query_string_survives(): void
+    {
+        Storage::fake('public');
+        Http::fake(['*' => Http::response('a picture', 200)]);
+
+        app(ImageDownloader::class)->sync($this->product(), [
+            'https://cdn.example.com/image.jpg?w=800&h=600',
+        ]);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '?w=800&h=600'));
+    }
     /* ------------------------------------------------------------------ helpers */
 
     /**

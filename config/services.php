@@ -65,6 +65,11 @@ return [
         'worker_url' => env('ELITE_WORKER_URL'),
         'token' => env('ELITE_TOKEN'),
     ],
+    'citrus' => [
+        'base_url' => env('CITRUS_BASE_URL', 'https://citrus.ge'),
+        'user_agent' => env('CITRUS_USER_AGENT', 'Mozilla/5.0'),
+    ],
+
     'midea' => [
         'base_url' => env('MIDEA_BASE_URL', 'https://www.midea.ge'),
         'search_url' => env('MIDEA_SEARCH_URL'),

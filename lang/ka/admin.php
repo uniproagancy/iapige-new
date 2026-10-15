@@ -396,4 +396,21 @@ return [
     'order_shipping' => 'მიწოდება',
     'order_total' => 'სულ',
 
+
+    /* ------------------------------------------------------------------ adding by link */
+    'links_title' => 'ლინკებით დამატება',
+    'links_hint' => 'ჩასვი პროდუქტების მისამართები — რამდენიც გინდა, ერთად',
+    'links_label' => 'მისამართები',
+    'links_separators' => 'თითო ხაზზე ერთი, ან მძიმით გამოყოფილი',
+    'links_category' => 'კატეგორია (არჩევითი)',
+    'links_category_hint' => 'თუ საიტის კატეგორია არ გვარგებს',
+    'links_save' => 'დამატება',
+    'links_run' => 'იმპორტის გაშვება (:count)',
+    'links_added' => ':count დაემატა',
+    'links_updated' => ':count განახლდა',
+    'links_skipped' => ':count ვერ წავიკითხე',
+    'links_waiting' => 'დამატებული (:count)',
+    'links_empty' => 'ჯერ არაფერია დამატებული',
+    'links_more' => 'და კიდევ :count',
+
 ];

@@ -145,7 +145,7 @@ class ImageDownloader
                     // some CDNs refuse a request that arrives from nowhere
                     'Referer' => parse_url($url, PHP_URL_SCHEME).'://'.parse_url($url, PHP_URL_HOST).'/',
                 ])
-                ->get($url);
+                ->get($this->addressOf($url));
 
             if (! $response->successful()) {
                 $this->noteFailure($url);
@@ -238,6 +238,39 @@ class ImageDownloader
      * the wrong content type, because the web server decides that from the
      * extension and has no reason to doubt it.
      */
+    /**
+     * The address with anything cURL will not accept spelled out.
+     *
+     * A supplier's media filenames are whatever somebody saved them as, and
+     * "Screenshot 2026-10-09 173441.png" has spaces in it. cURL refuses such a
+     * URL outright — "Malformed input to a URL function" — so the picture was
+     * never fetched, the product arrived with none, and nothing in the log
+     * named the cause.
+     *
+     * Each path segment is decoded and encoded again rather than encoded as it
+     * stands, which leaves an address that was already escaped exactly as it
+     * was instead of turning its % signs into %25.
+     */
+    protected function addressOf(string $url): string
+    {
+        $parts = parse_url($url);
+
+        if (! isset($parts['path'])) {
+            return $url;
+        }
+
+        $path = implode('/', array_map(
+            fn (string $segment) => rawurlencode(rawurldecode($segment)),
+            explode('/', $parts['path']),
+        ));
+
+        return ($parts['scheme'] ?? 'https').'://'
+            .($parts['host'] ?? '')
+            .(isset($parts['port']) ? ':'.$parts['port'] : '')
+            .$path
+            .(isset($parts['query']) ? '?'.$parts['query'] : '');
+    }
+
     protected function extension(string $url): string
     {
         $ext = $this->extensionOf($url);

@@ -377,7 +377,7 @@ return [
     'product_not_sellable' => 'This product is not for sale — it is suspended or a pre-order',
     'order_find_customer' => 'Search by name, phone or email',
     'order_guest' => 'No account',
-    'order_guest_hint' => 'The order will not appear in anybody's profile',
+    'order_guest_hint' => 'The order will not appear in anybody’s profile',
     'order_registered' => 'Customer account',
     'order_detach_customer' => 'Detach the account',
     'order_find_product' => 'Search by name or SKU',
@@ -395,5 +395,22 @@ return [
     'order_subtotal' => 'Products',
     'order_shipping' => 'Delivery',
     'order_total' => 'Total',
+
+
+    /* ------------------------------------------------------------------ adding by link */
+    'links_title' => 'Add by link',
+    'links_hint' => 'Paste the products’ addresses — as many as you like, at once',
+    'links_label' => 'Addresses',
+    'links_separators' => 'One per line, or separated by commas',
+    'links_category' => 'Category (optional)',
+    'links_category_hint' => 'When the site’s own does not suit us',
+    'links_save' => 'Add',
+    'links_run' => 'Run the import (:count)',
+    'links_added' => ':count added',
+    'links_updated' => ':count updated',
+    'links_skipped' => ':count could not be read',
+    'links_waiting' => 'Added (:count)',
+    'links_empty' => 'Nothing added yet',
+    'links_more' => 'and :count more',
 
 ];
