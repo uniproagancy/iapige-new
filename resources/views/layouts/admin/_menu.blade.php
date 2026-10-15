@@ -133,6 +133,13 @@
 					</a>
 				</li>
 
+                {{-- the home page's carousel --}}
+                <li class="nav-item @activeMenu('admin.slides')">
+                    <a class="nav-link d-flex align-items-center" href="{{ route('admin.slides') }}">
+                        <i data-feather="image"></i><span>{{ __('admin.slides') }}</span>
+                    </a>
+                </li>
+
                 {{-- promotions --}}
                 <li class="nav-item @activeMenu('admin.promotions')">
                     <a class="nav-link d-flex align-items-center" href="{{ route('admin.promotions') }}">

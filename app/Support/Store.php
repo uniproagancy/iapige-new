@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\Slide;
+
 /**
  * Content that doesn't have a table yet: hero slides, section banners, product
  * page extras (reviews, highlights), and the contact / about / document pages.
@@ -51,7 +53,45 @@ class Store
 
     /* ------------------------------------------------------------------ home */
 
+    /**
+     * The home page's carousel.
+     *
+     * From the slides table when there is anything in it, and from the five
+     * written below when there is not. The fallback is not politeness: the
+     * carousel is the first thing on the page, and a shop that opens on a
+     * blank rectangle because nobody has added a slide yet looks broken
+     * rather than empty.
+     *
+     * The admin's slides win the moment one exists, so adding the first real
+     * one takes all five of these away together — which is what you want,
+     * rather than one new slide sitting among five placeholders.
+     */
     public static function slides(): array
+    {
+        $own = Slide::live()
+            ->withTranslation()
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->filter(fn (Slide $slide) => $slide->isDrawable());
+
+        if ($own->isNotEmpty()) {
+            return $own->map(fn (Slide $slide) => [
+                'dates' => $slide->dates,
+                'title' => $slide->title,
+                'sub' => $slide->sub,
+                'cta' => $slide->cta,
+                'url' => $slide->url,
+                'image' => $slide->imageUrl(),
+                'img' => null,
+            ])->values()->all();
+        }
+
+        return self::placeholderSlides();
+    }
+
+    /** The five that were hard-coded here, until somebody adds a real one. */
+    protected static function placeholderSlides(): array
     {
         $img = [48, 180, 160, 1082, 1076];
 
@@ -73,7 +113,8 @@ class Store
         ]);
 
         return array_map(fn ($t, $i) => [
-            'dates' => $t[0], 'title' => $t[1], 'sub' => $t[2], 'cta' => $t[3], 'img' => $img[$i],
+            'dates' => $t[0], 'title' => $t[1], 'sub' => $t[2], 'cta' => $t[3],
+            'url' => null, 'image' => null, 'img' => $img[$i],
         ], $text, array_keys($text));
     }
 

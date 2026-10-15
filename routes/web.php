@@ -138,6 +138,7 @@ Route::middleware(['auth', 'can:admin'])
         Route::get('/orders/{order}', Admin\Orders\Show::class)->name('orders.show');
 
         Route::get('/promotions', Admin\Promotions\Index::class)->name('promotions');
+        Route::get('/slides', Admin\Slides\Index::class)->name('slides');
 
         Route::get('/callbacks', Admin\Callbacks\Index::class)->name('callbacks');
         Route::get('/users', Admin\Users\Index::class)->name('users');
