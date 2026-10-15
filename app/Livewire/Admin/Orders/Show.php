@@ -3,9 +3,12 @@
 namespace App\Livewire\Admin\Orders;
 
 use App\Models\Order;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Services\Facebook\Pixel;
+use App\Services\Payments\PaymentManager;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Livewire\Component;
 
 /**
@@ -16,6 +19,14 @@ class Show extends Component
 {
     /** The status that means the shop has made the sale. */
     public const COMPLETED = 'completed';
+
+    /**
+     * How long a payment link stays good for.
+     *
+     * Long enough for a customer who says "send it, I will pay this evening",
+     * short enough that a link forwarded on months later is not still live.
+     */
+    public const LINK_DAYS = 3;
 
     public Order $order;
 
@@ -38,6 +49,7 @@ class Show extends Component
         return view('livewire.admin.orders.show', [
             'statuses' => (new Index)->statuses(),
             'events' => $this->order->events()->with('user')->latest()->get(),
+            'payLink' => $this->payLink(),
         ])->layout('layouts.admin', [
             'title' => __('admin.order').' #'.$this->order->number,
         ]);
@@ -141,6 +153,39 @@ class Show extends Component
         $this->order->load('events.user');
 
         $this->dispatch('toast', message: __('admin.saved'));
+    }
+
+    /* ------------------------------------------------------------------ paying */
+
+    /**
+     * The link that takes this order to the bank, or null if it cannot.
+     *
+     * Signed and short-lived. An order number is four or five digits — the
+     * view-order gate exists precisely because they can be guessed — and this
+     * one spends money, so it must not be reachable by trying numbers.
+     *
+     * The same link serves both ways of using it: sent to the customer so
+     * they pay on their own telephone, or opened by the operator while the
+     * customer is still on the call. They are the same payment, so making
+     * them two different pages would only mean two things to keep in step.
+     */
+    public function payLink(): ?string
+    {
+        $method = PaymentMethod::active()->where('code', $this->order->payment)->first();
+
+        $payable = $method
+            && $method->is_online
+            && $method->driver
+            && app(PaymentManager::class)->has($method->driver);
+
+        if (! $payable || $this->order->is_paid
+            || in_array($this->order->status, ['cancelled', 'returned'], true)) {
+            return null;
+        }
+
+        return URL::temporarySignedRoute('order.pay', now()->addDays(self::LINK_DAYS), [
+            'number' => $this->order->number,
+        ]);
     }
 
     /** Marks a cash order as paid; online ones are marked by their callback. */

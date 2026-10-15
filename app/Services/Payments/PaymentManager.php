@@ -3,7 +3,6 @@
 namespace App\Services\Payments;
 
 use App\Models\Order;
-use App\Models\OrderPixelData;
 use App\Models\PaymentTransaction;
 use App\Services\Facebook\Pixel;
 use App\Services\Payments\Drivers\BogCard;

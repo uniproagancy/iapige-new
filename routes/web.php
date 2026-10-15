@@ -16,6 +16,7 @@ use App\Livewire\Pages\Catalog;
 use App\Livewire\Pages\Checkout;
 use App\Livewire\Pages\Home;
 use App\Livewire\Pages\OrderPlaced;
+use App\Livewire\Pages\PayOrder;
 use App\Livewire\Pages\Product;
 use App\Livewire\Pages\Promotion;
 use App\Livewire\Pages\Promotions;

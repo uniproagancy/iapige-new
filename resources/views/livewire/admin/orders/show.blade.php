@@ -206,6 +206,55 @@
                 </div>
             </div>
 
+            {{-- ------------------------------------------------------------ paying --}}
+            @if ($payLink)
+                {{--
+                    Two ways to the same page, because a card payment over the
+                    telephone goes one of two ways: the customer pays on their
+                    own phone, or they would rather the operator did it while
+                    they are still on the line. The link is the same either
+                    way — one page, one payment, nothing to keep in step.
+                --}}
+                <div class="card">
+                    <div class="card-header pb-0">
+                        <h5 class="mb-0">{{ __('admin.pay_online') }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">{{ __('admin.pay_link_note', ['days' => \App\Livewire\Admin\Orders\Show::LINK_DAYS]) }}</p>
+
+                        {{--
+                            Plain JavaScript rather than Alpine: selecting the
+                            text is the fallback that matters, because the
+                            clipboard API is refused outside https and the
+                            admin is opened over plain http often enough.
+                        --}}
+                        <div class="input-group mb-1">
+                            <input type="text" class="form-control" readonly
+                                   value="{{ $payLink }}"
+                                   onfocus="this.select()">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="
+                                        const field = this.previousElementSibling;
+                                        field.select();
+                                        field.setSelectionRange(0, 99999);
+                                        if (navigator.clipboard) {
+                                            navigator.clipboard.writeText(field.value);
+                                        } else {
+                                            document.execCommand('copy');
+                                        }
+                                        this.textContent = @js(__('admin.copied'));
+                                    ">
+                                {{ __('admin.copy') }}
+                            </button>
+                        </div>
+
+                        <a class="btn btn-primary w-100" href="{{ $payLink }}" target="_blank" rel="noopener">
+                            {!! $icon('money', 'me-25') !!}{{ __('admin.pay_here') }}
+                        </a>
+                    </div>
+                </div>
+            @endif
+
             {{-- customer --}}
             <div class="card">
                 <div class="card-header pb-0">
@@ -216,7 +265,8 @@
 
                     <p class="mb-25 d-flex align-items-center gap-50">
                         {!! $icon('phone') !!}
-                        <a href="tel:{{ $order->phone }}">{{ $order->phone }}</a>
+                        {{-- the operator's softphone answers this; see Support\Phone --}}
+                        <a href="{{ \App\Support\Phone::link($order->phone) }}">{{ $order->phone }}</a>
                     </p>
 
                     @if ($order->email)

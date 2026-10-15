@@ -73,7 +73,9 @@
                                 </button>
 
                                 <small class="d-block">
-                                    <a href="tel:{{ $request->phone }}" class="d-inline-flex align-items-center gap-25">
+                                    {{-- cleaned, because a softphone dials the string exactly as given --}}
+                                    <a href="{{ \App\Support\Phone::link($request->phone) }}"
+                                       class="d-inline-flex align-items-center gap-25">
                                         {!! $icon('phone') !!}{{ $request->phone }}
                                     </a>
                                 </small>
@@ -110,6 +112,26 @@
                             </td>
 
                             <td class="text-end text-nowrap">
+                                {{--
+                                    The call itself, which is what this screen
+                                    is for.
+
+                                    The browser hands the address to whichever
+                                    program registered the scheme — Zoiper, on
+                                    the operator's machine — so the number has
+                                    to leave here in a shape a softphone will
+                                    dial, not in the shape the customer typed.
+                                    Marking the request as called is left to
+                                    the operator: the line may be busy, and a
+                                    row that says "called" when nobody answered
+                                    is a lead quietly dropped.
+                                --}}
+                                @if ($dial = \App\Support\Phone::link($request->phone))
+                                    <a class="btn btn-sm btn-primary" href="{{ $dial }}">
+                                        {!! $icon('phone', 'me-25') !!}{{ __('admin.cb_call') }}
+                                    </a>
+                                @endif
+
                                 {{--
                                     The order this call turned into, written
                                     from here so the Purchase can carry the

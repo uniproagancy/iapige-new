@@ -7,6 +7,29 @@ return [
     'delivery_days' => (int) env('SHOP_DELIVERY_DAYS', 2),
 
     /*
+     | What the "call the customer" button in the admin opens.
+     |
+     | The browser hands the address to whichever program registered that
+     | scheme, so this is really a question about the operator's machine
+     | rather than about the shop. Zoiper takes "tel" and "callto" when it is
+     | installed and offers to be the handler for both; "sip" and "zoiper"
+     | reach it too, and "sip" is the one to use where something else — Teams
+     | and Skype both do this — has taken "tel" for itself.
+     |
+     | Changed in .env, because two operators may not have the same softphone.
+     */
+    'dial_scheme' => env('DIAL_SCHEME', 'tel'),
+
+    /*
+     | The country a bare local number belongs to.
+     |
+     | Customers write "599 12 34 56", and a softphone dialling a SIP trunk
+     | needs the whole number. A number that already carries its own country
+     | code is left exactly as it is.
+     */
+    'phone_country' => env('PHONE_COUNTRY', '995'),
+
+    /*
      | The shop's own profiles, published as schema.org sameAs. Google uses them
      | to tie the site to the brand it already knows; a wrong one ties it to
      | somebody else, so an unset line is left out rather than guessed.
