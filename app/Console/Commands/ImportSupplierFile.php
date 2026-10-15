@@ -12,6 +12,10 @@ use RuntimeException;
  *
  * The reading itself lives in PriceListLoader, because the admin uploads the
  * same spreadsheets through the browser and the two must not drift apart.
+ *
+ * Replaces the supplier's catalogue by default, which is what a weekly price
+ * list is. Pass --merge for a file that covers only part of it, so the rows
+ * it does not mention keep the stock they have.
  */
 class ImportSupplierFile extends Command
 {
@@ -19,7 +23,8 @@ class ImportSupplierFile extends Command
                             {supplier : the supplier code}
                             {file : path to .xlsx or .csv}
                             {--sheet=1}
-                            {--skip-rows=1 : header rows to ignore}';
+                            {--skip-rows=1 : header rows to ignore}
+                            {--merge : add to what is already loaded instead of replacing it}';
 
     protected $description = 'Import a supplier price list (xlsx or csv)';
 
@@ -33,6 +38,7 @@ class ImportSupplierFile extends Command
                 $this->argument('file'),
                 (int) $this->option('sheet'),
                 (int) $this->option('skip-rows'),
+                $this->option('merge') ? PriceListLoader::MODE_MERGE : PriceListLoader::MODE_REPLACE,
             );
         } catch (RuntimeException $e) {
             $this->error($e->getMessage());
@@ -55,7 +61,9 @@ class ImportSupplierFile extends Command
             $this->warn("{$result['missing_url']} rows carry no link and will be skipped.");
         }
 
-        $this->info("{$supplier->code}: {$result['read']} rows loaded, {$result['zeroed']} zeroed out.");
+        $this->option('merge')
+            ? $this->info("{$supplier->code}: {$result['read']} rows merged in; nothing was zeroed out.")
+            : $this->info("{$supplier->code}: {$result['read']} rows loaded, {$result['zeroed']} zeroed out.");
         $this->line("Next: php artisan import:run {$supplier->code}");
 
         return self::SUCCESS;

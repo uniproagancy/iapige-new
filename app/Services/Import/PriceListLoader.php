@@ -11,9 +11,14 @@ use RuntimeException;
  * Loads a supplier's price list into supplier_stocks.
  *
  * The column map lives on the supplier, because every supplier writes a
- * different spreadsheet and none of them will change it for us. The file is
- * treated as the whole truth: a code missing from it drops to zero, so a
- * product that ran out simply stops being available.
+ * different spreadsheet and none of them will change it for us.
+ *
+ * What the file MEANS is the caller's to say, and it is not always the same
+ * thing. A weekly price list is the whole truth — a code missing from it has
+ * run out, and zeroing it is the only way the shop stops offering it. But a
+ * supplier may just as well send a second file covering a different part of
+ * their catalogue, and treating that one as the whole truth empties
+ * everything the first file brought. Hence the two modes.
  *
  * This used to live inside the artisan command, which meant the only way to
  * load a price list was to put the file on the server first. The admin now
@@ -21,15 +26,33 @@ use RuntimeException;
  */
 class PriceListLoader
 {
+    /** The file is the supplier's whole catalogue: anything absent has run out. */
+    public const MODE_REPLACE = 'replace';
+
+    /** The file is a part of it: rows it does not mention are left alone. */
+    public const MODE_MERGE = 'merge';
+
+    public const MODES = [self::MODE_REPLACE, self::MODE_MERGE];
+
     /**
-     * @return array{read:int, zeroed:int, missing_url:int, no_stock_column:bool}
+     * @param  string  $mode  self::MODE_REPLACE or self::MODE_MERGE
+     * @return array{read:int, zeroed:int, missing_url:int, no_stock_column:bool, mode:string}
      *
-     * @throws RuntimeException when the file or the supplier is not usable
+     * @throws RuntimeException when the file, the supplier or the mode is not usable
      */
-    public function load(Supplier $supplier, string $path, int $sheet = 1, int $skipRows = 1): array
-    {
+    public function load(
+        Supplier $supplier,
+        string $path,
+        int $sheet = 1,
+        int $skipRows = 1,
+        string $mode = self::MODE_REPLACE,
+    ): array {
         if (! is_file($path)) {
             throw new RuntimeException("File not found: {$path}");
+        }
+
+        if (! in_array($mode, self::MODES, true)) {
+            throw new RuntimeException("Unknown load mode [{$mode}].");
         }
 
         $map = $supplier->config['columns'] ?? null;
@@ -69,7 +92,13 @@ class PriceListLoader
         }
 
         if (! $rows) {
-            return ['read' => 0, 'zeroed' => 0, 'missing_url' => 0, 'no_stock_column' => empty($map['stock'])];
+            return [
+                'read' => 0,
+                'zeroed' => 0,
+                'missing_url' => 0,
+                'no_stock_column' => empty($map['stock']),
+                'mode' => $mode,
+            ];
         }
 
         foreach (array_chunk($rows, 500) as $chunk) {
@@ -88,11 +117,17 @@ class PriceListLoader
          * are indistinguishable by time — which is exactly what happens when
          * a corrected file goes up straight after a mistaken one, and the
          * mistake stayed in stock.
+         *
+         * Only in replace mode. A merged file says nothing about the rows it
+         * leaves out, and reading silence as "sold out" would take the first
+         * file's whole catalogue off sale the moment a second one arrived.
          */
-        $zeroed = SupplierStock::where('supplier_id', $supplier->id)
-            ->whereNotIn('external_id', array_column($rows, 'external_id'))
-            ->where('quantity', '>', 0)
-            ->update(['quantity' => 0, 'synced_at' => $now]);
+        $zeroed = $mode === self::MODE_REPLACE
+            ? SupplierStock::where('supplier_id', $supplier->id)
+                ->whereNotIn('external_id', array_column($rows, 'external_id'))
+                ->where('quantity', '>', 0)
+                ->update(['quantity' => 0, 'synced_at' => $now])
+            : 0;
 
         return [
             'read' => $read,
@@ -110,6 +145,7 @@ class PriceListLoader
              * nothing anywhere looked wrong.
              */
             'no_stock_column' => empty($map['stock']),
+            'mode' => $mode,
         ];
     }
 

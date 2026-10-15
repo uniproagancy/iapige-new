@@ -36,7 +36,18 @@ class Upload extends Component
 
     public int $skipRows = 1;
 
-    /** @var array{read:int, zeroed:int, missing_url:int, no_stock_column:bool}|null */
+    /**
+     * What this file means: the supplier's whole catalogue, or part of it.
+     *
+     * Replacing is right for the weekly price list and is what the screen has
+     * always done. It is wrong for the second file a supplier sends covering
+     * different products — loading that as the whole truth takes everything
+     * the first one brought off sale, and the only sign of it is a zeroed
+     * count nobody reads until the shop is half empty.
+     */
+    public string $mode = PriceListLoader::MODE_REPLACE;
+
+    /** @var array{read:int, zeroed:int, missing_url:int, no_stock_column:bool, mode:string}|null */
     public ?array $result = null;
 
     public function mount(): void
@@ -64,7 +75,8 @@ class Upload extends Component
 
     public function updatedCode(): void
     {
-        $this->reset(['file', 'result']);
+        // the mode goes back to the safe reading too, not just the file
+        $this->reset(['file', 'result', 'mode']);
     }
 
     public function load(PriceListLoader $loader): void
@@ -78,6 +90,8 @@ class Upload extends Component
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:20480'],
             'sheet' => ['integer', 'min:1'],
             'skipRows' => ['integer', 'min:0', 'max:20'],
+            // it arrives from the browser, so it is checked rather than trusted
+            'mode' => ['required', 'in:'.implode(',', PriceListLoader::MODES)],
         ]);
 
         if (! $supplier = $this->supplier()) {
@@ -90,7 +104,13 @@ class Upload extends Component
          * again, so keeping it would only fill the disk.
          */
         try {
-            $this->result = $loader->load($supplier, $this->file->getRealPath(), $this->sheet, $this->skipRows);
+            $this->result = $loader->load(
+                $supplier,
+                $this->file->getRealPath(),
+                $this->sheet,
+                $this->skipRows,
+                $this->mode,
+            );
         } catch (RuntimeException $e) {
             $this->addError('file', $e->getMessage());
 

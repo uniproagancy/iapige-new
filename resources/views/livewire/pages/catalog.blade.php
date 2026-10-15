@@ -188,7 +188,7 @@
                         </button>
 
                         <span class="toolbar__count">
-                            {{ __('catalog.found') }} <b>{{ $total }}</b> {{ __('common.products') }}
+                            {!! __('catalog.found_html', ['count' => $total]) !!}
                         </span>
 
                         <div class="sortwrap">

@@ -57,6 +57,38 @@
             {{-- ------------------------------------------------- the upload --}}
             <div class="card">
                 <div class="card-body">
+                    {{--
+                        What the file means, asked before it is read.
+
+                        The two are not variations of one another: replacing
+                        takes everything the file omits off sale, which is the
+                        point for a weekly price list and a disaster for a
+                        second file covering different products.
+                    --}}
+                    <div class="row g-1 mb-1">
+                        <div class="col-md-6">
+                            <div class="form-check border rounded p-1 ps-3 h-100">
+                                <input class="form-check-input" type="radio" id="modeReplace"
+                                       value="replace" wire:model="mode">
+                                <label class="form-check-label d-block" for="modeReplace">
+                                    <span class="fw-bolder">{{ __('admin.import_mode_replace') }}</span>
+                                    <small class="d-block text-muted">{{ __('admin.import_mode_replace_hint') }}</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check border rounded p-1 ps-3 h-100">
+                                <input class="form-check-input" type="radio" id="modeMerge"
+                                       value="merge" wire:model="mode">
+                                <label class="form-check-label d-block" for="modeMerge">
+                                    <span class="fw-bolder">{{ __('admin.import_mode_merge') }}</span>
+                                    <small class="d-block text-muted">{{ __('admin.import_mode_merge_hint') }}</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-1 align-items-end">
                         <div class="col-md-6">
                             <label class="form-label" for="priceList">{{ __('admin.import_file') }}</label>
@@ -110,7 +142,11 @@
 
                         <ul class="list-unstyled mb-1">
                             <li>{{ __('admin.import_rows_loaded', ['count' => $result['read']]) }}</li>
-                            <li>{{ __('admin.import_rows_zeroed', ['count' => $result['zeroed']]) }}</li>
+                            @if (($result['mode'] ?? 'replace') === 'merge')
+                                <li class="text-muted">{{ __('admin.import_rows_kept') }}</li>
+                            @else
+                                <li>{{ __('admin.import_rows_zeroed', ['count' => $result['zeroed']]) }}</li>
+                            @endif
                             @if ($result['missing_url'])
                                 <li class="text-warning">
                                     {{ __('admin.import_rows_no_link', ['count' => $result['missing_url']]) }}
