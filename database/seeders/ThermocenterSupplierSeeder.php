@@ -23,6 +23,11 @@ class ThermocenterSupplierSeeder extends Seeder
                     'url' => 'B',
                 ],
 
+                'scan' => true,
+                'catalogue_url' => 'https://thermocenter.ge/თერმო-ცენტრი-კატეგორიები',
+                'scan_per_page' => 250,
+                'scan_max_pages' => 40,
+
                 'min_cost' => 100,
 
                 'replace' => [

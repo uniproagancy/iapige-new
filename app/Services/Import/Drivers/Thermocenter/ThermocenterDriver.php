@@ -18,10 +18,61 @@ class ThermocenterDriver implements SupplierDriver
 
     public function ids(): iterable
     {
+        if ($this->supplier->config['scan'] ?? false) {
+            $this->scan();
+        }
+
         return SupplierStock::where('supplier_id', $this->supplier->id)
             ->orderBy('external_id')
             ->lazyById(500)
             ->map(fn (SupplierStock $s) => $s->external_id);
+    }
+
+    public function scan(): int
+    {
+        $links = $this->client->links();
+
+        if (! $links) {
+            return 0;
+        }
+
+        $now = now();
+        $rows = [];
+
+        foreach ($links as $url) {
+            $rows[] = [
+                'supplier_id' => $this->supplier->id,
+                'external_id' => $this->codeFor($url),
+                'quantity' => 1,
+                'data' => json_encode(['url' => $url], JSON_UNESCAPED_UNICODE),
+                'synced_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        foreach (array_chunk($rows, 500) as $chunk) {
+            SupplierStock::upsert(
+                $chunk,
+                ['supplier_id', 'external_id'],
+                ['quantity', 'data', 'synced_at', 'updated_at'],
+            );
+        }
+
+        SupplierStock::where('supplier_id', $this->supplier->id)
+            ->whereNotIn('external_id', array_column($rows, 'external_id'))
+            ->where('quantity', '>', 0)
+            ->update(['quantity' => 0, 'synced_at' => $now]);
+
+        return count($rows);
+    }
+
+    protected function codeFor(string $url): string
+    {
+        $slug = trim((string) parse_url($url, PHP_URL_PATH), '/');
+        $slug = rawurldecode($slug);
+
+        return mb_substr($slug, 0, 180) ?: md5($url);
     }
 
     public function fetch(string $externalId): ?ProductPayload

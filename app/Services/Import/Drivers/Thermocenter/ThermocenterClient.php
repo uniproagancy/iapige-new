@@ -4,6 +4,7 @@ namespace App\Services\Import\Drivers\Thermocenter;
 
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ThermocenterClient
 {
@@ -39,6 +40,77 @@ class ThermocenterClient
             'product_id' => $this->productId($html),
             'specs' => $this->specs($html),
         ];
+    }
+
+    public function links(): array
+    {
+        $catalogue = $this->config['catalogue_url'] ?? null;
+
+        if (! $catalogue) {
+            return [];
+        }
+
+        $perPage = max(1, (int) ($this->config['scan_per_page'] ?? 250));
+        $maxPages = max(1, (int) ($this->config['scan_max_pages'] ?? 40));
+
+        $links = [];
+
+        for ($page = 1; $page <= $maxPages; $page++) {
+            $url = $catalogue.(str_contains($catalogue, '?') ? '&' : '?')
+                .http_build_query(['items_per_page' => $perPage, 'page' => $page]);
+
+            $html = $this->get($url);
+
+            if ($html === null) {
+                Log::channel('import')->warning('thermocenter catalogue page unreachable', [
+                    'page' => $page,
+                    'url' => $url,
+                ]);
+
+                continue;
+            }
+
+            $found = $this->linksOn($html);
+
+            if (! $found) {
+                break;
+            }
+
+            $before = count($links);
+
+            foreach ($found as $link) {
+                $links[$link] = true;
+            }
+
+            if (count($links) === $before) {
+                break;
+            }
+        }
+
+        Log::channel('import')->info('thermocenter catalogue scanned', ['products' => count($links)]);
+
+        return array_keys($links);
+    }
+
+    protected function linksOn(string $html): array
+    {
+        $pattern = '#<a\b(?=[^>]*\bclass="[^"]*product-title[^"]*")(?=[^>]*\bhref="([^"]+)")#i';
+
+        if (! preg_match_all($pattern, $html, $matches)) {
+            return [];
+        }
+
+        $links = [];
+
+        foreach ($matches[1] as $href) {
+            $href = html_entity_decode(trim($href), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            if (str_starts_with($href, 'http')) {
+                $links[] = strtok($href, '?');
+            }
+        }
+
+        return array_values(array_unique($links));
     }
 
     protected function specs(string $html): array
