@@ -4,7 +4,6 @@ namespace App\Livewire\Admin\Orders;
 
 use App\Models\Order;
 use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Services\Facebook\Pixel;
 use App\Services\Payments\PaymentManager;
 use Illuminate\Support\Facades\DB;
@@ -22,8 +21,6 @@ class Show extends Component
     public string $status = '';
 
     public string $note = '';
-
-    public bool $restock = true;
 
     public function mount(Order $order): void
     {
@@ -62,9 +59,6 @@ class Show extends Component
                 'note' => $this->note ?: null,
             ]);
 
-            if (in_array($this->status, ['cancelled', 'returned'], true) && $this->restock) {
-                $this->restock();
-            }
         });
 
         if ($this->status === self::COMPLETED) {
@@ -94,19 +88,6 @@ class Show extends Component
                 'note' => __('admin.purchase_reported'),
             ]);
         }
-    }
-
-    protected function restock(): void
-    {
-        foreach ($this->order->items as $item) {
-            Product::whereKey($item->product_id)->increment('stock', (int) $item->qty);
-        }
-
-        $this->order->events()->create([
-            'user_id' => auth()->id(),
-            'type' => 'note',
-            'note' => __('admin.restocked'),
-        ]);
     }
 
     public function addNote(): void

@@ -266,8 +266,6 @@ return [
     'history' => 'History',
     'add_note' => 'Note…',
     'add' => 'Add',
-    'restock' => 'Return to stock',
-    'restocked' => 'Items returned to stock',
     'mark_paid' => 'Mark as paid',
     'mark_paid_confirm' => 'Mark this order as paid?',
     'purchase_reported' => 'The sale was reported to Meta (Purchase)',

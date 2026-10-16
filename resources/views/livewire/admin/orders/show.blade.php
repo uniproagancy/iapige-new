@@ -184,14 +184,6 @@
                         @endforeach
                     </select>
 
-                    @if (in_array($status, ['cancelled', 'returned'], true) && $status !== $order->status)
-
-                        <div class="form-check form-switch mb-1">
-                            <input type="checkbox" class="form-check-input" id="restock" wire:model="restock">
-                            <label class="form-check-label" for="restock">{{ __('admin.restock') }}</label>
-                        </div>
-                    @endif
-
                     <button type="button" class="btn btn-primary w-100"
                             wire:click="changeStatus" @disabled($status === $order->status)>
                         {{ __('admin.save') }}

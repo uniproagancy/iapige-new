@@ -72,6 +72,14 @@ class ThermocenterDriver implements SupplierDriver
                 'name' => $this->rewrite($page['name']),
                 'description' => $this->rewrite($page['description']),
             ]],
+            specs: array_map(fn (array $spec) => [
+                'name' => $spec['name'],
+                'value' => $spec['value'],
+                'locale' => $locale,
+                'key' => false,
+                'filterable' => false,
+                'color' => null,
+            ], $page['specs'] ?? []),
             images: $page['images'] ?? [],
         );
     }

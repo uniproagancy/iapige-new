@@ -37,7 +37,32 @@ class ThermocenterClient
             'old_price' => $this->oldPrice($html, $price),
             'in_stock' => str_contains((string) ($offer['availability'] ?? ''), 'InStock'),
             'product_id' => $this->productId($html),
+            'specs' => $this->specs($html),
         ];
+    }
+
+    protected function specs(string $html): array
+    {
+        $pattern = '#ty-product-feature__label["\'][^>]*>(.*?)</span>\s*<span[^>]*>(.*?)</span>#is';
+
+        if (! preg_match_all($pattern, $html, $rows, PREG_SET_ORDER)) {
+            return [];
+        }
+
+        $specs = [];
+
+        foreach ($rows as $row) {
+            $name = trim($this->clean(strip_tags($row[1])), " \t:");
+            $value = $this->clean(strip_tags($row[2]));
+
+            if ($name === '' || $value === '' || $value === '-' || isset($specs[$name])) {
+                continue;
+            }
+
+            $specs[$name] = ['name' => $name, 'value' => $value];
+        }
+
+        return array_values($specs);
     }
 
     protected function get(string $url): ?string

@@ -58,10 +58,6 @@ class OrderLines
                 continue;
             }
 
-            Product::whereKey($item['product_id'])
-                ->where('stock', '>=', $item['qty'])
-                ->decrement('stock', $item['qty']);
-
             Product::whereKey($item['product_id'])->increment('sales_count', $item['qty']);
         }
     }

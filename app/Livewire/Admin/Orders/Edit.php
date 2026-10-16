@@ -240,7 +240,7 @@ class Edit extends Component
         DB::transaction(function () {
             $order = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
 
-            $this->moveStock($order);
+            $this->moveSales($order);
 
             $lines = $this->lines();
             $shipping = $this->shipping();
@@ -294,7 +294,7 @@ class Edit extends Component
         return $this->redirect(route('admin.orders.show', $this->order), navigate: true);
     }
 
-    protected function moveStock(Order $order): void
+    protected function moveSales(Order $order): void
     {
         $before = $order->items()->pluck('qty', 'product_id');
 
@@ -302,17 +302,14 @@ class Edit extends Component
             $delta = (int) $qty - (int) ($before[$id] ?? 0);
 
             if ($delta > 0) {
-                Product::whereKey($id)->where('stock', '>=', $delta)->decrement('stock', $delta);
                 Product::whereKey($id)->increment('sales_count', $delta);
             } elseif ($delta < 0) {
-                Product::whereKey($id)->increment('stock', -$delta);
                 Product::whereKey($id)->decrement('sales_count', -$delta);
             }
         }
 
         foreach ($before as $id => $qty) {
             if (! isset($this->qty[$id])) {
-                Product::whereKey($id)->increment('stock', (int) $qty);
                 Product::whereKey($id)->decrement('sales_count', (int) $qty);
             }
         }

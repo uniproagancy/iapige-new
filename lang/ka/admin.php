@@ -266,8 +266,6 @@ return [
     'history' => 'ისტორია',
     'add_note' => 'შენიშვნა…',
     'add' => 'დამატება',
-    'restock' => 'მარაგში დაბრუნება',
-    'restocked' => 'პროდუქცია დაბრუნდა მარაგში',
     'mark_paid' => 'გადახდილად მონიშვნა',
     'mark_paid_confirm' => 'შეკვეთა გადახდილად მოინიშნოს?',
     'purchase_reported' => 'გაყიდვა გადაეცა Meta-ს (Purchase)',
