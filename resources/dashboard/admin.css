@@ -329,10 +329,6 @@
 .table > :not(caption) > * > * { padding: .7rem .9rem; }
 
 .table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: #283046;
     font-size: .76rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -346,13 +342,6 @@
 /* a sum reads as a sum when the digits line up */
 .table td.text-end,
 .table th.text-end { font-variant-numeric: tabular-nums; }
-
-/*
- | A long table scrolls inside its card instead of the page.
- |
- | The sticky header above is only useful with something to stick to.
- */
-.table-responsive { max-height: 70vh; }
 
 /* ------------------------------------------------------------------ the quiet states */
 

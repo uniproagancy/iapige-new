@@ -79,6 +79,11 @@ class Index extends Component
             ->when($this->brandId, fn ($q) => $q->where('brand_id', $this->brandId))
             ->when($this->supplierId, fn ($q) => $q->whereHas('offers', fn ($o) => $o->where('supplier_id', $this->supplierId)))
 
+            ->when($this->issue === 'live', fn ($q) => $q->listable())
+            ->when($this->issue === 'hidden', fn ($q) => $q->where(fn ($w) => $w
+                ->where('status', '!=', Product::STATUS_ACTIVE)
+                ->orWhere('published_at', '>', now())
+                ->orWhere(fn ($x) => $x->where('stock', '<=', 0)->where('is_preorder', false))))
             ->when($this->issue === 'ready', fn ($q) => $q->readyToPublish()->where('status', Product::STATUS_DRAFT))
             ->when($this->issue === 'nocat', fn ($q) => $q->whereNull('category_id'))
             ->when($this->issue === 'nobrand', fn ($q) => $q->whereNull('brand_id'))
@@ -153,6 +158,9 @@ class Index extends Component
             'nophoto' => Product::whereDoesntHave('images')->count(),
 
             'ready' => Product::readyToPublish()->where('status', Product::STATUS_DRAFT)->count(),
+
+            'live' => $live = Product::listable()->count(),
+            'hidden' => max(0, Product::count() - $live),
         ];
     }
 

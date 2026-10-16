@@ -148,6 +148,8 @@ return [
     'seen_in' => 'Seen in',
 
     /* ------------------------------------------------------------ ready */
+    'on_the_site' => 'On the site',
+    'off_the_site' => 'Not on the site',
     'ready_to_publish' => 'Ready to publish',
     'not_ready' => 'Not ready to publish',
 

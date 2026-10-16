@@ -29,6 +29,8 @@
 
     <div class="d-flex flex-wrap gap-1 mb-2">
         @foreach ([
+            'live'     => ['label' => __('admin.on_the_site'),  'tone' => 'success'],
+            'hidden'   => ['label' => __('admin.off_the_site'), 'tone' => 'secondary'],
             'ready'    => ['label' => __('admin.ready_to_publish'), 'tone' => 'success'],
             'nocat'    => ['label' => __('admin.no_category'), 'tone' => 'danger'],
             'nobrand'  => ['label' => __('admin.no_brand'),    'tone' => 'warning'],
