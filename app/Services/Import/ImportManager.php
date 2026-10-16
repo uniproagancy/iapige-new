@@ -25,13 +25,18 @@ class ImportManager
         return $this->drivers[$supplier->id] ??= new $supplier->driver($supplier);
     }
 
-    public function run(Supplier $supplier): int
+    public function run(Supplier $supplier, ?array $only = null): int
     {
         $empty = $this->settleEmptyRows($supplier);
+        $wanted = $only === null ? null : array_flip(array_map('strval', $only));
         $queued = 0;
 
         foreach ($this->driver($supplier)->ids() as $externalId) {
             if (isset($empty[(string) $externalId])) {
+                continue;
+            }
+
+            if ($wanted !== null && ! isset($wanted[(string) $externalId])) {
                 continue;
             }
 

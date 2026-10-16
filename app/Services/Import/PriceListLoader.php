@@ -73,6 +73,7 @@ class PriceListLoader
                 'missing_url' => 0,
                 'no_stock_column' => empty($map['stock']),
                 'mode' => $mode,
+                'codes' => [],
             ];
         }
 
@@ -98,6 +99,7 @@ class PriceListLoader
 
             'no_stock_column' => empty($map['stock']),
             'mode' => $mode,
+            'codes' => array_column($rows, 'external_id'),
         ];
     }
 

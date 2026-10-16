@@ -6,6 +6,8 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ImportManager;
 use App\Services\Import\PriceListLoader;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -27,6 +29,8 @@ class Upload extends Component
     public string $mode = PriceListLoader::MODE_REPLACE;
 
     public ?array $result = null;
+
+    public ?string $batch = null;
 
     public function mount(): void
     {
@@ -54,7 +58,7 @@ class Upload extends Component
     public function updatedCode(): void
     {
 
-        $this->reset(['file', 'result', 'mode']);
+        $this->reset(['file', 'result', 'mode', 'batch']);
     }
 
     public function load(PriceListLoader $loader): void
@@ -73,7 +77,7 @@ class Upload extends Component
         }
 
         try {
-            $this->result = $loader->load(
+            $result = $loader->load(
                 $supplier,
                 $this->file->getRealPath(),
                 $this->sheet,
@@ -86,6 +90,18 @@ class Upload extends Component
             return;
         }
 
+        $this->batch = null;
+
+        if ($result['mode'] === PriceListLoader::MODE_MERGE && $result['codes']) {
+            $this->batch = (string) Str::uuid();
+
+            Cache::put(self::batchKey($this->batch), $result['codes'], now()->addHours(6));
+        }
+
+        unset($result['codes']);
+
+        $this->result = $result;
+
         $this->reset('file');
 
         $this->dispatch('toast', message: __('admin.import_rows_loaded', ['count' => $this->result['read']]));
@@ -97,9 +113,19 @@ class Upload extends Component
             return;
         }
 
-        $queued = $manager->run($supplier);
+        $queued = $manager->run($supplier, $this->justLoaded());
 
         $this->dispatch('toast', message: __('admin.import_queued', ['count' => $queued]));
+    }
+
+    protected function justLoaded(): ?array
+    {
+        return $this->batch ? Cache::get(self::batchKey($this->batch)) : null;
+    }
+
+    protected static function batchKey(string $batch): string
+    {
+        return 'import:merged:'.$batch;
     }
 
     protected function supplier(): ?Supplier
