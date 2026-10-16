@@ -16,7 +16,7 @@ class Category extends Model
     protected array $translatable = ['name', 'slug', 'description', 'meta_title', 'meta_description'];
 
     protected $fillable = [
-        'parent_id', 'image', 'icon', 'is_active', 'show_on_home', 'sort_order',
+        'parent_id', 'image', 'icon', 'is_active', 'show_on_home', 'show_in_menu', 'sort_order',
         'in_feed', 'google_category_id',
     ];
 

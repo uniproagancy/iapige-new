@@ -132,13 +132,14 @@ class Catalog
     public static function sections(int $perSection = 40): array
     {
         $banners = Store::sectionBanners();
-        $counts = self::categoryCounts();
+        $stocked = self::stocked();
 
         return Category::active()->roots()->where('show_on_home', true)
             ->withTranslation()
             ->with(['children' => fn ($q) => $q->active()->withTranslation()])
             ->get()
-            ->map(function (Category $category) use ($perSection, $banners, $counts) {
+            ->filter(fn (Category $category) => isset($stocked[$category->id]))
+            ->map(function (Category $category) use ($perSection, $banners, $stocked) {
                 $ids = $category->descendantAndSelfIds();
                 $key = $category->translate(Language::defaultCode(), false)?->slug;
 
@@ -148,12 +149,14 @@ class Catalog
                     'url' => route('catalog', $category->slug),
 
                     'count' => __('common.products_count', [
-                        'count' => collect($ids)->sum(fn ($id) => $counts[$id] ?? 0),
+                        'count' => $stocked[$category->id],
                     ]),
-                    'subs' => $category->children->map(fn (Category $c) => [
-                        'name' => $c->name,
-                        'url' => route('catalog', $c->slug),
-                    ])->all(),
+                    'subs' => $category->children
+                        ->filter(fn (Category $c) => isset($stocked[$c->id]))
+                        ->map(fn (Category $c) => [
+                            'name' => $c->name,
+                            'url' => route('catalog', $c->slug),
+                        ])->values()->all(),
                     'banner' => $banners[$key]['banner'] ?? null,
                     'duo' => $banners[$key]['duo'] ?? null,
 
@@ -164,6 +167,7 @@ class Catalog
                         ->get()),
                 ];
             })
+            ->values()
             ->all();
     }
 
@@ -225,7 +229,7 @@ class Catalog
                 ];
             }
 
-            return $nodes;
+            return array_values(array_filter($nodes, fn (array $node) => $node['total'] > 0));
         };
 
         $decorate = function (array $nodes, int $depth) use (&$decorate): array {
@@ -247,17 +251,21 @@ class Catalog
 
     public static function menu(int $limit = 6): array
     {
+        $stocked = self::stocked();
+
         return Category::active()->roots()
             ->where('show_in_menu', true)
             ->withTranslation()
             ->orderBy('sort_order')
-            ->limit($limit)
             ->get()
+            ->filter(fn (Category $c) => isset($stocked[$c->id]))
+            ->take($limit)
             ->map(fn (Category $c) => [
                 'id' => $c->id,
                 'name' => $c->name,
                 'url' => route('catalog', $c->slug),
             ])
+            ->values()
             ->all();
     }
 
@@ -269,6 +277,35 @@ class Catalog
             ->pluck('n', 'category_id');
     }
 
+    public static function stocked(): array
+    {
+        $counts = self::categoryCounts();
+        $parent = [];
+        $total = [];
+
+        foreach (Category::active()->get(['id', 'parent_id']) as $category) {
+            $parent[$category->id] = $category->parent_id;
+            $total[$category->id] = (int) ($counts[$category->id] ?? 0);
+        }
+
+        foreach ($total as $id => $own) {
+            if ($own === 0) {
+                continue;
+            }
+
+            $up = $parent[$id] ?? null;
+            $seen = [];
+
+            while ($up !== null && ! isset($seen[$up]) && array_key_exists($up, $total)) {
+                $seen[$up] = true;
+                $total[$up] += $own;
+                $up = $parent[$up] ?? null;
+            }
+        }
+
+        return array_filter($total);
+    }
+
     public static function index(): array
     {
         $roots = Category::active()->roots()->withTranslation()
@@ -276,27 +313,25 @@ class Catalog
                 ->with(['children' => fn ($q) => $q->active()->withTranslation()])])
             ->get();
 
-        $counts = self::categoryCounts();
+        $stocked = self::stocked();
 
-        $count = function (Category $c) use (&$count, $counts): int {
-            return ($counts[$c->id] ?? 0) + $c->children->sum(fn (Category $child) => $count($child));
-        };
-
-        return $roots->map(fn (Category $root) => [
-            'id' => $root->id,
-            'name' => $root->name,
-            'url' => route('catalog', $root->slug),
-            'image' => $root->imageUrl() ?? Store::img('iapi-cat-'.$root->id, 0, 320, 240),
-            'total' => $count($root),
-            'subs' => $root->children
-                ->map(fn (Category $sub) => [
-                    'name' => $sub->name,
-                    'url' => route('catalog', $sub->slug),
-                    'total' => $count($sub),
-                ])
-                ->filter(fn ($sub) => $sub['total'] > 0)
-                ->values()->all(),
-        ])->values()->all();
+        return $roots
+            ->filter(fn (Category $root) => isset($stocked[$root->id]))
+            ->map(fn (Category $root) => [
+                'id' => $root->id,
+                'name' => $root->name,
+                'url' => route('catalog', $root->slug),
+                'image' => $root->imageUrl() ?? Store::img('iapi-cat-'.$root->id, 0, 320, 240),
+                'total' => $stocked[$root->id],
+                'subs' => $root->children
+                    ->filter(fn (Category $sub) => isset($stocked[$sub->id]))
+                    ->map(fn (Category $sub) => [
+                        'name' => $sub->name,
+                        'url' => route('catalog', $sub->slug),
+                        'total' => $stocked[$sub->id],
+                    ])
+                    ->values()->all(),
+            ])->values()->all();
     }
 
     public static function category(?string $slug): Category
