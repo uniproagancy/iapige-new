@@ -36,23 +36,22 @@
 
     <div class="content-wrapper container-xxl p-0">
         @unless (isset($blank_page))
+            @php($adminHome = request()->routeIs('admin.dashboard'))
+
             <div class="content-header row">
                 <div class="content-header-left col-md-9 col-12 mb-2">
-                    <div class="row breadcrumbs-top">
-                        <div class="col-12">
-                            <h2 class="content-header-title float-start mb-0">{{ $title ?? __('admin.dashboard') }}</h2>
-                            <div class="breadcrumb-wrapper">
-                                <ol class="breadcrumb">
-                                    <li class="breadcrumb-item">
-                                        <a href="{{ route('admin.dashboard') }}">{{ __('admin.dashboard') }}</a>
-                                    </li>
-                                    @isset($title)
-                                        <li class="breadcrumb-item active">{{ $title }}</li>
-                                    @endisset
-                                </ol>
-                            </div>
+                    <h2 class="content-header-title mb-0">{{ $title ?? __('admin.dashboard') }}</h2>
+
+                    @unless ($adminHome)
+                        <div class="breadcrumb-wrapper">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="{{ route('admin.dashboard') }}">{{ __('admin.dashboard') }}</a>
+                                </li>
+                                <li class="breadcrumb-item active">{{ $title ?? '' }}</li>
+                            </ol>
                         </div>
-                    </div>
+                    @endunless
                 </div>
 
                 @isset($actions)

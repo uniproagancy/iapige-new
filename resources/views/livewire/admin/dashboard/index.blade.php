@@ -1,42 +1,56 @@
 @php
     $max = max(1, collect($week)->max('revenue'));
+
+    $orders = route('admin.orders');
+
+    $cards = [
+        [
+            'value' => $today['orders'],
+            'label' => __('admin.orders_today'),
+            'url' => $orders,
+            'note' => $today['orders_yesterday']
+                ? __('admin.yesterday').': '.$today['orders_yesterday']
+                : null,
+        ],
+        [
+            'value' => money($today['revenue']),
+            'label' => __('admin.revenue_today'),
+            'url' => $orders,
+        ],
+        [
+            'value' => $waiting['new_orders'],
+            'label' => __('admin.awaiting_call'),
+            'url' => $orders.'?status=new',
+            'alarm' => $waiting['new_orders'] > 0,
+        ],
+        [
+            'value' => $waiting['callbacks'],
+            'label' => __('admin.callbacks'),
+            'url' => route('admin.callbacks'),
+            'alarm' => $waiting['callbacks'] > 0,
+        ],
+    ];
 @endphp
 
 <div>
 
     <div class="row">
-        <div class="col-lg-3 col-6">
-            <div class="card"><div class="card-body">
-                <h3 class="mb-0">{{ $today['orders'] }}</h3>
-                <small class="text-muted">{{ __('admin.orders_today') }}</small>
-                @if ($today['orders_yesterday'])
-                    <small class="d-block text-muted">
-                        {{ __('admin.yesterday') }}: {{ $today['orders_yesterday'] }}
-                    </small>
-                @endif
-            </div></div>
-        </div>
+        @foreach ($cards as $card)
+            <div class="col-lg-3 col-6">
+                <a class="card stat" href="{{ $card['url'] }}">
+                    <div class="card-body">
+                        <span class="stat__value {{ ($card['alarm'] ?? false) ? 'text-danger' : '' }}">
+                            {{ $card['value'] }}
+                        </span>
+                        <span class="stat__label">{{ $card['label'] }}</span>
 
-        <div class="col-lg-3 col-6">
-            <div class="card"><div class="card-body">
-                <h3 class="mb-0">{{ money($today['revenue']) }}</h3>
-                <small class="text-muted">{{ __('admin.revenue_today') }}</small>
-            </div></div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-            <div class="card"><div class="card-body">
-                <h3 class="mb-0 {{ $waiting['new_orders'] ? 'text-danger' : '' }}">{{ $waiting['new_orders'] }}</h3>
-                <small class="text-muted">{{ __('admin.awaiting_call') }}</small>
-            </div></div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-            <div class="card"><div class="card-body">
-                <h3 class="mb-0 {{ $waiting['callbacks'] ? 'text-danger' : '' }}">{{ $waiting['callbacks'] }}</h3>
-                <small class="text-muted">{{ __('admin.callbacks') }}</small>
-            </div></div>
-        </div>
+                        @if ($card['note'] ?? null)
+                            <small class="d-block text-muted mt-25">{{ $card['note'] }}</small>
+                        @endif
+                    </div>
+                </a>
+            </div>
+        @endforeach
     </div>
 
     <div class="row">
@@ -45,12 +59,15 @@
             <div class="card">
                 <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.week_revenue') }}</h5></div>
                 <div class="card-body">
-                    <div class="d-flex align-items-end gap-1" style="height:140px">
+                    <div class="spark">
                         @foreach ($week as $day)
-                            <div class="flex-fill text-center">
-                                <div style="height:{{ max(4, round($day['revenue'] / $max * 110)) }}px;background:var(--bs-primary,#7367F0);border-radius:6px 6px 0 0"
-                                     title="{{ money($day['revenue']) }}"></div>
-                                <small class="text-muted d-block mt-50">{{ $day['label'] }}</small>
+                            <div class="spark__col">
+                                <span class="spark__value">
+                                    {{ $day['revenue'] > 0 ? money($day['revenue']) : '—' }}
+                                </span>
+                                <div class="spark__bar"
+                                     style="height:{{ max(3, round($day['revenue'] / $max * 110)) }}px"></div>
+                                <span class="spark__day">{{ $day['label'] }}</span>
                             </div>
                         @endforeach
                     </div>
