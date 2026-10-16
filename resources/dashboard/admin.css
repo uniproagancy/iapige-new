@@ -376,3 +376,20 @@
     opacity: .45;
     margin-top: .4rem;
 }
+
+/* ------------------------------------------------------------------ the page title */
+
+/*
+ | The template sets the title in #636363 with a border on its right, because
+ | it was drawn to sit inline with the breadcrumb on a white page. On the dark
+ | layout that grey is barely legible, and with the breadcrumb moved beneath
+ | it the border is a line hanging in empty space.
+ */
+html .content .content-wrapper .content-header-title {
+    color: rgba(255, 255, 255, .85);
+    padding-right: 0;
+    border-right: 0;
+}
+
+html .content .content-wrapper .content-header .breadcrumb-item a { opacity: .65; }
+html .content .content-wrapper .content-header .breadcrumb-item.active { opacity: .85; }

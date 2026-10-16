@@ -138,6 +138,8 @@ return [
     'showing' => 'Showing :shown of :total',
     'found_n' => ':count found',
     'search_products' => 'Search by name or SKU',
+    'sort_by' => 'Sort by',
+    'per_page' => 'Per page',
     'sort_new' => 'Newest first',
     'sort_old' => 'Oldest first',
     'sort_price_asc' => 'Price ↑',

@@ -50,9 +50,21 @@
     </div>
 
     <div class="card">
-        <div class="card-body pb-1">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-1">
+            <h4 class="card-title mb-0">
+                {{ __('admin.products') }}
+                <span class="badge rounded-pill badge-light-secondary ms-50">{{ number_format($products->total()) }}</span>
+            </h4>
+
+            <a class="btn btn-primary" href="{{ route('admin.products.create') }}">
+                {!! $icon('plus', 'me-25') !!}{{ __('admin.create') }}
+            </a>
+        </div>
+
+        <div class="card-body">
             <div class="row g-1">
                 <div class="col-lg-4 col-md-6">
+                    <label class="form-label">{{ __('admin.search') }}</label>
                     <div class="input-group input-group-merge">
                         <span class="input-group-text">{!! $icon('search') !!}</span>
                         <input type="text" class="form-control"
@@ -62,6 +74,7 @@
                 </div>
 
                 <div class="col-lg-2 col-md-6">
+                    <label class="form-label">{{ __('admin.status') }}</label>
                     <select class="form-select" wire:model.live="status">
                         <option value="">{{ __('admin.any_state') }}</option>
                         @foreach ($statuses as $value => $label)
@@ -71,6 +84,7 @@
                 </div>
 
                 <div class="col-lg-3 col-md-6">
+                    <label class="form-label">{{ __('admin.category') }}</label>
                     <select class="form-select" wire:model.live="categoryId">
                         <option value="">{{ __('admin.all_categories') }}</option>
                         @foreach ($categories as $option)
@@ -82,40 +96,28 @@
                 </div>
 
                 <div class="col-lg-3 col-md-6">
-                    <div class="row g-1">
-                        <div class="col-6">
-                            <select class="form-select" wire:model.live="brandId">
-                                <option value="">{{ __('admin.all_brands') }}</option>
-                                @foreach ($brands as $brand)
-                                    <option value="{{ $brand->id }}">{{ $brand->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <select class="form-select" wire:model.live="supplierId">
-                                <option value="">{{ __('admin.all_suppliers') }}</option>
-                                @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
+                    <label class="form-label">{{ __('admin.brand') }}</label>
+                    <select class="form-select" wire:model.live="brandId">
+                        <option value="">{{ __('admin.all_brands') }}</option>
+                        @foreach ($brands as $brand)
+                            <option value="{{ $brand->id }}">{{ $brand->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
-            </div>
 
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-1 mt-1 pb-1">
-                <small class="text-muted d-flex align-items-center gap-1">
-                    {{ __('admin.found_n', ['count' => $products->total()]) }}
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">{{ __('admin.supplier') }}</label>
+                    <select class="form-select" wire:model.live="supplierId">
+                        <option value="">{{ __('admin.all_suppliers') }}</option>
+                        @foreach ($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                    @if ($this->hasFilters())
-                        <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="resetFilters">
-                            {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
-                        </button>
-                    @endif
-                </small>
-
-                <div class="d-flex align-items-center gap-1">
-                    <select class="form-select form-select-sm" style="width:auto" wire:model.live="sort">
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">{{ __('admin.sort_by') }}</label>
+                    <select class="form-select" wire:model.live="sort">
                         <option value="new">{{ __('admin.sort_new') }}</option>
                         <option value="old">{{ __('admin.sort_old') }}</option>
                         <option value="price-asc">{{ __('admin.sort_price_asc') }}</option>
@@ -123,17 +125,24 @@
                         <option value="stock">{{ __('admin.sort_stock') }}</option>
                         <option value="sales">{{ __('admin.sort_sales') }}</option>
                     </select>
+                </div>
 
-                    <select class="form-select form-select-sm" style="width:auto" wire:model.live="perPage">
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label">{{ __('admin.per_page') }}</label>
+                    <select class="form-select" wire:model.live="perPage">
                         <option value="25">25</option>
                         <option value="50">50</option>
                         <option value="100">100</option>
                     </select>
-
-                    <a class="btn btn-primary btn-sm" href="{{ route('admin.products.create') }}">
-                        {!! $icon('plus', 'me-25') !!}{{ __('admin.create') }}
-                    </a>
                 </div>
+
+                @if ($this->hasFilters())
+                    <div class="col-lg-4 col-md-8 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-secondary" wire:click="resetFilters">
+                            {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
+                        </button>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

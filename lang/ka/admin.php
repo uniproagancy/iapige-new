@@ -138,6 +138,8 @@ return [
     'showing' => 'ნაჩვენებია :shown / :total',
     'found_n' => 'ნაპოვნია :count',
     'search_products' => 'ძებნა სახელით ან კოდით',
+    'sort_by' => 'დალაგება',
+    'per_page' => 'გვერდზე',
     'sort_new' => 'ახლები ჯერ',
     'sort_old' => 'ძველები ჯერ',
     'sort_price_asc' => 'ფასი ↑',

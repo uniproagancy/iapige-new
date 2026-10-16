@@ -1,6 +1,12 @@
 @php
     $max = max(1, collect($week)->max('revenue'));
 
+    $tone = [
+        'new' => 'danger', 'confirmed' => 'info', 'packed' => 'info',
+        'shipped' => 'primary', 'completed' => 'success',
+        'cancelled' => 'secondary', 'returned' => 'warning',
+    ];
+
     $orders = route('admin.orders');
 
     $cards = [
@@ -82,26 +88,39 @@
                     </a>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-sm mb-0 align-middle">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ __('admin.order') }}</th>
+                                <th>{{ __('admin.customer') }}</th>
+                                <th class="text-center" style="width:140px">{{ __('admin.status') }}</th>
+                                <th class="text-end" style="width:120px">{{ __('admin.total') }}</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             @forelse ($recent as $order)
                                 <tr wire:key="o-{{ $order->id }}">
                                     <td>
-                                        <a class="fw-bolder" href="{{ route('admin.orders.show', $order) }}">
+                                        <a class="fw-bold d-block" href="{{ route('admin.orders.show', $order) }}">
                                             #{{ $order->number }}
                                         </a>
+                                        <small class="text-muted">{{ $order->created_at->diffForHumans() }}</small>
                                     </td>
-                                    <td class="text-muted">{{ $order->name }}</td>
-                                    <td class="text-muted">{{ $order->created_at->diffForHumans() }}</td>
+                                    <td>
+                                        <span class="d-block">{{ $order->name }}</span>
+                                        <small class="text-muted">{{ $order->phone }}</small>
+                                    </td>
                                     <td class="text-center">
-                                        <span class="badge rounded-pill badge-light-secondary">
+                                        <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
                                             {{ __('order.status.'.$order->status) }}
                                         </span>
                                     </td>
-                                    <td class="text-end fw-bolder">{{ money($order->total) }}</td>
+                                    <td class="text-end fw-bold">{{ money($order->total) }}</td>
                                 </tr>
                             @empty
-                                <tr><td class="text-muted py-2">{{ __('admin.nothing_here') }}</td></tr>
+                                <tr>
+                                    <td colspan="4" class="admin-empty">{{ __('admin.nothing_here') }}</td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>
