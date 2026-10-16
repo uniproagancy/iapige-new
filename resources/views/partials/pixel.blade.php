@@ -14,13 +14,28 @@
     $pixelMatch = [];
 
     if ($pixelUser = auth()->user()) {
-        $pixelPhone = preg_replace('/\D/', '', (string) $pixelUser->phone);
-
         $pixelMatch = array_filter([
             'em'          => $pixelUser->email,
-            'ph'          => strlen((string) $pixelPhone) >= 9 ? $pixelPhone : null,
+
+            /*
+             | With the country code, because that is the shape Meta
+             | normalises to. "599123456" hashes to something their
+             | "995599123456" never matches, so every Georgian customer went
+             | unrecognised on the one field most likely to identify them.
+             */
+            'ph'          => \App\Support\Phone::digits($pixelUser->phone),
             'fn'          => $pixelUser->firstName(),
-            'external_id' => (string) $pixelUser->id,
+
+            /*
+             | Hashed here, unlike the fields above.
+             |
+             | The pixel hashes em, ph, fn and country itself and pre-hashing
+             | those would hash them twice. It does not touch external_id —
+             | so this one has to be hashed by us, or the browser sends "7"
+             | while the Conversions API sends its sha256 and Meta counts one
+             | signed-in person as two.
+             */
+            'external_id' => hash('sha256', (string) $pixelUser->id),
             'country'     => 'ge',
         ]);
     }

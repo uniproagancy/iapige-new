@@ -5,6 +5,7 @@ namespace App\Services\Facebook;
 use App\Models\Order;
 use App\Models\OrderPixelData;
 use App\Models\User;
+use App\Support\Phone;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -320,9 +321,7 @@ class Pixel
             $out['em'] = hash('sha256', Str::lower($email));
         }
 
-        $phone = preg_replace('/\D/', '', (string) ($identity['phone'] ?? ''));
-
-        if (strlen((string) $phone) >= 9) {
+        if ($phone = Phone::digits($identity['phone'] ?? null)) {
             $out['ph'] = hash('sha256', $phone);
         }
 
