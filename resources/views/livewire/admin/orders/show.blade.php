@@ -33,12 +33,12 @@
 
             <h4 class="mb-0">#{{ $order->number }}</h4>
 
-            <span class="badge badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
+            <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
                 {{ $statuses[$order->status] ?? $order->status }}
             </span>
 
             @if ($order->is_paid)
-                <span class="badge badge-light-success">{{ __('admin.paid') }}</span>
+                <span class="badge rounded-pill badge-light-success">{{ __('admin.paid') }}</span>
             @endif
         </div>
 
@@ -131,7 +131,7 @@
 
             <div class="card">
                 <div class="card-header pb-0">
-                    <h5 class="mb-0">{{ __('admin.history') }}</h5>
+                    <h4 class="card-title mb-0">{{ __('admin.history') }}</h4>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled mb-1">
@@ -203,7 +203,7 @@
 
                 <div class="card">
                     <div class="card-header pb-0">
-                        <h5 class="mb-0">{{ __('admin.pay_online') }}</h5>
+                        <h4 class="card-title mb-0">{{ __('admin.pay_online') }}</h4>
                     </div>
                     <div class="card-body">
                         <p class="text-muted">{{ __('admin.pay_link_note', ['days' => \App\Livewire\Admin\Orders\Show::LINK_DAYS]) }}</p>
@@ -243,7 +243,7 @@
 
             <div class="card">
                 <div class="card-header pb-0">
-                    <h5 class="mb-0">{{ __('admin.customer') }}</h5>
+                    <h4 class="card-title mb-0">{{ __('admin.customer') }}</h4>
                 </div>
                 <div class="card-body">
                     <p class="fw-bolder mb-25">{{ $order->name }}</p>
@@ -271,7 +271,7 @@
 
             <div class="card">
                 <div class="card-header pb-0">
-                    <h5 class="mb-0">{{ __('admin.delivery') }}</h5>
+                    <h4 class="card-title mb-0">{{ __('admin.delivery') }}</h4>
                 </div>
                 <div class="card-body">
                     <p class="mb-25 d-flex align-items-start gap-50">

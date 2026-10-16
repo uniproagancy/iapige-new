@@ -28,7 +28,7 @@
                         wire:click="select({{ $p->id }})">
                     {{ $p->title ?: $p->code }}
                     @unless ($p->is_active)
-                        <span class="badge badge-light-secondary ms-50">{{ __('admin.inactive') }}</span>
+                        <span class="badge rounded-pill badge-light-secondary ms-50">{{ __('admin.inactive') }}</span>
                     @endunless
                 </button>
             @empty
@@ -162,7 +162,7 @@
                                     {{ money($p->price) }}
 
                                     @if ($d = $p->discountPercent())
-                                        <span class="badge badge-light-danger ms-50">−{{ $d }}%</span>
+                                        <span class="badge rounded-pill badge-light-danger ms-50">−{{ $d }}%</span>
                                         <small class="d-block text-muted">{{ money($p->old_price) }}</small>
                                     @endif
                                 </td>

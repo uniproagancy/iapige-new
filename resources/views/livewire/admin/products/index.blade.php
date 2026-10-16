@@ -290,7 +290,7 @@
                                 @if ($problems->isNotEmpty())
                                     <div class="mt-25">
                                         @foreach ($problems as $problem)
-                                            <span class="badge badge-light-danger me-25">{{ $problem }}</span>
+                                            <span class="badge rounded-pill badge-light-danger me-25">{{ $problem }}</span>
                                         @endforeach
                                     </div>
                                 @endif
@@ -307,11 +307,11 @@
 
                             <td class="text-center">
                                 @if ($product->is_preorder && $product->stock < 1)
-                                    <span class="badge badge-light-info">{{ __('admin.preorder') }}</span>
+                                    <span class="badge rounded-pill badge-light-info">{{ __('admin.preorder') }}</span>
                                 @elseif ($product->stock > 0)
-                                    <span class="badge badge-light-success">{{ $product->stock }}</span>
+                                    <span class="badge rounded-pill badge-light-success">{{ $product->stock }}</span>
                                 @else
-                                    <span class="badge badge-light-secondary">0</span>
+                                    <span class="badge rounded-pill badge-light-secondary">0</span>
                                 @endif
                             </td>
 

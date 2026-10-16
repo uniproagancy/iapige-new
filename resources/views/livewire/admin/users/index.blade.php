@@ -70,7 +70,7 @@
                                 </a>
 
                                 @if ($user->is_admin)
-                                    <span class="badge badge-light-primary ms-25">{{ __('admin.admin') }}</span>
+                                    <span class="badge rounded-pill badge-light-primary ms-25">{{ __('admin.admin') }}</span>
                                 @endif
 
                                 @if ($user->accepts_marketing)

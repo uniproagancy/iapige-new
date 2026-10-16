@@ -137,7 +137,7 @@
                                         </span>
 
                                         @if ($row['system'])
-                                            <span class="badge badge-light-secondary ms-25">{{ __('admin.system') }}</span>
+                                            <span class="badge rounded-pill badge-light-secondary ms-25">{{ __('admin.system') }}</span>
                                         @endif
 
                                         @if ($row['children'])
@@ -151,7 +151,7 @@
 
                             <td class="text-center">
                                 @if ($row['products'])
-                                    <a class="badge badge-light-primary text-decoration-none"
+                                    <a class="badge rounded-pill badge-light-primary text-decoration-none"
                                        href="{{ route('admin.products', ['cat' => $row['id']]) }}">
                                         {{ $row['products'] }}
                                     </a>

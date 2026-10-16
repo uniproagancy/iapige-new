@@ -113,10 +113,10 @@
                             <td class="text-center">
                                 @if ($brand->products_count)
                                     <a href="{{ route('admin.products') }}?brand={{ $brand->id }}">
-                                        <span class="badge badge-light-secondary">{{ $brand->products_count }}</span>
+                                        <span class="badge rounded-pill badge-light-secondary">{{ $brand->products_count }}</span>
                                     </a>
                                 @else
-                                    <span class="badge badge-light-warning">0</span>
+                                    <span class="badge rounded-pill badge-light-warning">0</span>
                                 @endif
                             </td>
 

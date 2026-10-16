@@ -83,8 +83,8 @@
 
             <small class="text-muted d-flex flex-wrap align-items-center gap-1 mt-1 pb-1">
                 {{ __('admin.mapping_lead') }}
-                <span class="badge badge-light-warning">{{ __('admin.pending_n', ['count' => $pending[$tab]]) }}</span>
-                <span class="badge badge-light-success">{{ __('admin.mapped_n', ['count' => max(0, $rows->total() - $pending[$tab])]) }}</span>
+                <span class="badge rounded-pill badge-light-warning">{{ __('admin.pending_n', ['count' => $pending[$tab]]) }}</span>
+                <span class="badge rounded-pill badge-light-success">{{ __('admin.mapped_n', ['count' => max(0, $rows->total() - $pending[$tab])]) }}</span>
             </small>
         </div>
     </div>

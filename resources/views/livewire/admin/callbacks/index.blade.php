@@ -81,7 +81,7 @@
                                 </small>
 
                                 @if ($request->user)
-                                    <small class="badge badge-light-secondary">{{ __('admin.registered_customer') }}</small>
+                                    <small class="badge rounded-pill badge-light-secondary">{{ __('admin.registered_customer') }}</small>
                                 @endif
                             </td>
 
@@ -102,7 +102,7 @@
                             </td>
 
                             <td class="text-center">
-                                <span class="badge badge-light-{{ $tone[$request->status] ?? 'secondary' }}">
+                                <span class="badge rounded-pill badge-light-{{ $tone[$request->status] ?? 'secondary' }}">
                                     {{ $statuses[$request->status] ?? $request->status }}
                                 </span>
                             </td>

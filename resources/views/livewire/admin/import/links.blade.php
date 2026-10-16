@@ -91,10 +91,10 @@
                             @endif
 
                             <div class="d-flex gap-1 align-items-center">
-                                <span class="badge badge-light-success">{{ __('admin.links_done', ['count' => $done]) }}</span>
+                                <span class="badge rounded-pill badge-light-success">{{ __('admin.links_done', ['count' => $done]) }}</span>
 
                                 @if ($failed)
-                                    <span class="badge badge-light-danger">{{ __('admin.links_failed', ['count' => $failed]) }}</span>
+                                    <span class="badge rounded-pill badge-light-danger">{{ __('admin.links_failed', ['count' => $failed]) }}</span>
                                 @endif
 
                                 <button type="button" class="btn btn-sm btn-outline-secondary ms-auto"

@@ -102,7 +102,7 @@
 
             <div class="card">
                 <div class="card-header pb-0">
-                    <h5 class="mb-0">{{ __('admin.images') }}</h5>
+                    <h4 class="card-title mb-0">{{ __('admin.images') }}</h4>
                 </div>
                 <div class="card-body">
                     @if (! $product)
@@ -115,7 +115,7 @@
                                          width="92" height="92" style="object-fit:cover">
 
                                     @if ($loop->first)
-                                        <span class="badge badge-light-primary position-absolute top-0 start-0 m-25">
+                                        <span class="badge rounded-pill badge-light-primary position-absolute top-0 start-0 m-25">
                                             {{ __('admin.main_image') }}
                                         </span>
                                     @else
@@ -155,7 +155,7 @@
 
             <div class="card">
                 <div class="card-header pb-0">
-                    <h5 class="mb-0">{{ __('admin.specs') }}</h5>
+                    <h4 class="card-title mb-0">{{ __('admin.specs') }}</h4>
                 </div>
                 <div class="card-body">
                     @if (! $product)
@@ -340,7 +340,7 @@
             @if ($offers->isNotEmpty())
                 <div class="card">
                     <div class="card-header pb-0">
-                        <h5 class="mb-0">{{ __('admin.suppliers') }}</h5>
+                        <h4 class="card-title mb-0">{{ __('admin.suppliers') }}</h4>
                     </div>
                     <div class="card-body">
                         <table class="table table-sm mb-0">
@@ -351,7 +351,7 @@
                                         <td class="text-muted">{{ $offer->external_id }}</td>
                                         <td class="text-end">{{ money($offer->cost_price) }}</td>
                                         <td class="text-center">
-                                            <span class="badge badge-light-secondary">{{ $offer->stock }}</span>
+                                            <span class="badge rounded-pill badge-light-secondary">{{ $offer->stock }}</span>
                                         </td>
                                     </tr>
                                 @endforeach

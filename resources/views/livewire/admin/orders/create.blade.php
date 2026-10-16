@@ -35,7 +35,7 @@
                 @endforeach
 
                 @if ($callbackId)
-                    <span class="badge badge-light-info ms-auto">{{ __('admin.order_from_callback') }}</span>
+                    <span class="badge rounded-pill badge-light-info ms-auto">{{ __('admin.order_from_callback') }}</span>
                 @endif
             </div>
         </div>
@@ -137,9 +137,9 @@
                                             <span class="text-nowrap">
                                                 {{ money($product->sellingPrice()) }}
                                                 @if ($product->stock > 0)
-                                                    <span class="badge badge-light-success ms-50">{{ __('admin.order_in_stock', ['n' => $product->stock]) }}</span>
+                                                    <span class="badge rounded-pill badge-light-success ms-50">{{ __('admin.order_in_stock', ['n' => $product->stock]) }}</span>
                                                 @else
-                                                    <span class="badge badge-light-danger ms-50">{{ __('admin.order_no_stock') }}</span>
+                                                    <span class="badge rounded-pill badge-light-danger ms-50">{{ __('admin.order_no_stock') }}</span>
                                                 @endif
                                             </span>
                                         </button>

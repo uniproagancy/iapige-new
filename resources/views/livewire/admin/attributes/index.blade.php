@@ -114,7 +114,7 @@
 
                             <td class="text-center">
                                 @if ($reach)
-                                    <span class="badge badge-light-secondary">{{ $reach }}</span>
+                                    <span class="badge rounded-pill badge-light-secondary">{{ $reach }}</span>
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif
@@ -157,7 +157,7 @@
                                 <td colspan="7" class="bg-transparent">
                                     <div class="d-flex flex-wrap gap-1 py-1">
                                         @forelse ($values as $value)
-                                            <span class="badge badge-light-secondary d-inline-flex align-items-center gap-25"
+                                            <span class="badge rounded-pill badge-light-secondary d-inline-flex align-items-center gap-25"
                                                   wire:key="val-{{ $value->id }}">
                                                 @if ($value->color_hex)
                                                     <span style="width:10px;height:10px;border-radius:50%;background:{{ $value->color_hex }};display:inline-block"></span>

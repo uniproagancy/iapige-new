@@ -65,7 +65,7 @@
     @if ($showForm)
         <div class="card border-primary">
             <div class="card-header pb-0">
-                <h5 class="mb-0">{{ $editingId ? __('admin.edit') : __('admin.create') }}</h5>
+                <h4 class="card-title mb-0">{{ $editingId ? __('admin.edit') : __('admin.create') }}</h4>
             </div>
 
             <div class="card-body">
@@ -136,10 +136,10 @@
                 @foreach ($languages as $language)
                     <div class="mb-2" wire:key="lang-{{ $language->code }}">
                         <div class="d-flex align-items-center gap-50 mb-50">
-                            <span class="badge badge-light-secondary text-uppercase">{{ $language->code }}</span>
+                            <span class="badge rounded-pill badge-light-secondary text-uppercase">{{ $language->code }}</span>
                             <span class="fw-bolder">{{ $language->native_name }}</span>
                             @if ($language->code === $default)
-                                <span class="badge badge-light-primary">{{ __('admin.required') }}</span>
+                                <span class="badge rounded-pill badge-light-primary">{{ __('admin.required') }}</span>
                             @endif
                         </div>
 
@@ -225,7 +225,7 @@
 
                                     <div class="mt-25 d-flex flex-wrap align-items-center gap-50">
                                         @if ($slide->cta)
-                                            <span class="badge badge-light-secondary">{{ $slide->cta }}</span>
+                                            <span class="badge rounded-pill badge-light-secondary">{{ $slide->cta }}</span>
                                         @endif
 
                                         @if ($slide->url)
@@ -239,15 +239,15 @@
                                 <td>
 
                                     @if (! $slide->is_active)
-                                        <span class="badge badge-light-secondary">{{ __('admin.inactive') }}</span>
+                                        <span class="badge rounded-pill badge-light-secondary">{{ __('admin.inactive') }}</span>
                                     @elseif ($slide->starts_at && $slide->starts_at->isFuture())
-                                        <span class="badge badge-light-info">
+                                        <span class="badge rounded-pill badge-light-info">
                                             {!! $icon('clock') !!} {{ $slide->starts_at->format('d.m.Y') }}
                                         </span>
                                     @elseif ($slide->ends_at && $slide->ends_at->isPast())
-                                        <span class="badge badge-light-warning">{{ __('admin.slide_finished') }}</span>
+                                        <span class="badge rounded-pill badge-light-warning">{{ __('admin.slide_finished') }}</span>
                                     @else
-                                        <span class="badge badge-light-success">
+                                        <span class="badge rounded-pill badge-light-success">
                                             {!! $icon('eye') !!} {{ __('admin.slide_showing') }}
                                         </span>
                                     @endif

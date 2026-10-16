@@ -28,7 +28,7 @@
             <h4 class="mb-0">{{ $user->name }}</h4>
 
             @if ($user->is_admin)
-                <span class="badge badge-light-primary">{{ __('admin.admin') }}</span>
+                <span class="badge rounded-pill badge-light-primary">{{ __('admin.admin') }}</span>
             @endif
         </div>
 
@@ -68,7 +68,7 @@
         <div class="col-lg-8">
 
             <div class="card">
-                <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.orders') }}</h5></div>
+                <div class="card-header pb-0"><h4 class="card-title mb-0">{{ __('admin.orders') }}</h4></div>
                 <div class="table-responsive">
                     <table class="table table-sm mb-0 align-middle">
                         <tbody>
@@ -82,7 +82,7 @@
                                     <td class="text-muted">{{ $order->created_at->format('d.m.Y') }}</td>
                                     <td class="text-center">{{ $order->items->sum('qty') }}</td>
                                     <td class="text-center">
-                                        <span class="badge badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
+                                        <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
                                             {{ __('order.status.'.$order->status) }}
                                         </span>
                                     </td>
@@ -98,7 +98,7 @@
 
             @if ($callbacks->isNotEmpty())
                 <div class="card">
-                    <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.callbacks') }}</h5></div>
+                    <div class="card-header pb-0"><h4 class="card-title mb-0">{{ __('admin.callbacks') }}</h4></div>
                     <div class="card-body">
                         @foreach ($callbacks as $callback)
                             <div class="d-flex justify-content-between gap-1 py-50 border-bottom" wire:key="cb-{{ $callback->id }}">
@@ -108,7 +108,7 @@
                                         <span class="d-block">{{ $callback->comment }}</span>
                                     @endif
                                 </span>
-                                <span class="badge badge-light-secondary align-self-start">
+                                <span class="badge rounded-pill badge-light-secondary align-self-start">
                                     {{ __('admin.cb_'.$callback->status) }}
                                 </span>
                             </div>
@@ -150,7 +150,7 @@
 
             @if ($addresses->isNotEmpty())
                 <div class="card">
-                    <div class="card-header pb-0"><h5 class="mb-0">{{ __('account.addresses') }}</h5></div>
+                    <div class="card-header pb-0"><h4 class="card-title mb-0">{{ __('account.addresses') }}</h4></div>
                     <div class="card-body">
                         @foreach ($addresses as $address)
                             <p class="mb-1 d-flex gap-50" wire:key="a-{{ $address->id }}">

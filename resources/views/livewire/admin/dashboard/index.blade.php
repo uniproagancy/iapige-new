@@ -57,7 +57,7 @@
         <div class="col-lg-8">
 
             <div class="card">
-                <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.week_revenue') }}</h5></div>
+                <div class="card-header pb-0"><h4 class="card-title mb-0">{{ __('admin.week_revenue') }}</h4></div>
                 <div class="card-body">
                     <div class="spark">
                         @foreach ($week as $day)
@@ -76,7 +76,7 @@
 
             <div class="card">
                 <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ __('admin.recent_orders') }}</h5>
+                    <h4 class="card-title mb-0">{{ __('admin.recent_orders') }}</h4>
                     <a class="btn btn-sm btn-outline-secondary" href="{{ route('admin.orders') }}">
                         {{ __('admin.all') }}
                     </a>
@@ -94,7 +94,7 @@
                                     <td class="text-muted">{{ $order->name }}</td>
                                     <td class="text-muted">{{ $order->created_at->diffForHumans() }}</td>
                                     <td class="text-center">
-                                        <span class="badge badge-light-secondary">
+                                        <span class="badge rounded-pill badge-light-secondary">
                                             {{ __('order.status.'.$order->status) }}
                                         </span>
                                     </td>
@@ -112,7 +112,7 @@
         <div class="col-lg-4">
 
             <div class="card">
-                <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.waiting') }}</h5></div>
+                <div class="card-header pb-0"><h4 class="card-title mb-0">{{ __('admin.waiting') }}</h4></div>
                 <div class="card-body">
                     @foreach ([
                         ['label' => __('admin.awaiting_call'), 'n' => $waiting['new_orders'], 'url' => route('admin.orders').'?status=new'],
@@ -132,7 +132,7 @@
             </div>
 
             <div class="card">
-                <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.catalogue_health') }}</h5></div>
+                <div class="card-header pb-0"><h4 class="card-title mb-0">{{ __('admin.catalogue_health') }}</h4></div>
                 <div class="card-body">
                     @foreach ([
                         ['label' => __('admin.status_draft'), 'n' => $problems['drafts'],  'q' => 'status=draft'],
@@ -144,7 +144,7 @@
                         <a class="d-flex justify-content-between align-items-center py-50 text-body"
                            href="{{ route('admin.products') }}?{{ $item['q'] }}">
                             <span>{{ $item['label'] }}</span>
-                            <span class="badge badge-light-warning">{{ $item['n'] }}</span>
+                            <span class="badge rounded-pill badge-light-warning">{{ $item['n'] }}</span>
                         </a>
                     @endforeach
 

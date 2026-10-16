@@ -173,14 +173,14 @@
 
                             <td class="text-center">
                                 @if ($order->is_paid)
-                                    <span class="badge badge-light-success">{{ __('admin.paid') }}</span>
+                                    <span class="badge rounded-pill badge-light-success">{{ __('admin.paid') }}</span>
                                 @else
-                                    <span class="badge badge-light-warning">{{ __('admin.unpaid') }}</span>
+                                    <span class="badge rounded-pill badge-light-warning">{{ __('admin.unpaid') }}</span>
                                 @endif
                             </td>
 
                             <td class="text-center">
-                                <span class="badge badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
+                                <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
                                     {{ $statuses[$order->status] ?? $order->status }}
                                 </span>
                             </td>

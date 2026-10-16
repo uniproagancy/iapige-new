@@ -117,7 +117,7 @@
                             {{ __('admin.import_columns') }}
                             @foreach ($columns as $role => $column)
                                 @if (is_string($column))
-                                    <span class="badge badge-light-secondary ms-50">{{ $role }}: {{ $column }}</span>
+                                    <span class="badge rounded-pill badge-light-secondary ms-50">{{ $role }}: {{ $column }}</span>
                                 @endif
                             @endforeach
                         </p>
