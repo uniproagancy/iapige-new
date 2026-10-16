@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Jobs\ImportProductJob;
 use App\Models\Language;
 use App\Models\Order;
+use App\Models\Setting;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\Facebook\Pixel;
@@ -35,6 +36,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Setting::apply();
+
         $this->defineGates();
         $this->useBootstrapPagination();
         $this->defineRateLimiters();

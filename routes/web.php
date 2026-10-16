@@ -108,6 +108,8 @@ Route::middleware(['auth', 'can:admin'])
         Route::get('/slides', Admin\Slides\Index::class)->name('slides');
 
         Route::get('/callbacks', Admin\Callbacks\Index::class)->name('callbacks');
+        Route::get('/suppliers', Admin\Suppliers\Index::class)->name('suppliers');
+        Route::get('/settings', Admin\Settings\Index::class)->name('settings');
         Route::get('/users', Admin\Users\Index::class)->name('users');
         Route::get('/users/{user}', Admin\Users\Show::class)->name('users.show');
 
