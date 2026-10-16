@@ -5,6 +5,7 @@ namespace App\Services\Facebook;
 use App\Models\Order;
 use App\Models\OrderPixelData;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -38,8 +39,17 @@ class Pixel
             && $this->consented();
     }
 
+    public function staff(): bool
+    {
+        return Gate::allows('admin');
+    }
+
     public function consented(): bool
     {
+        if ($this->staff()) {
+            return false;
+        }
+
         return request()->cookie('cookie_consent') === 'all';
     }
 

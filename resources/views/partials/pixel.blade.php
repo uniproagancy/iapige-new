@@ -2,6 +2,10 @@
 @php
     $pixelId = config('services.facebook.pixel_id');
 
+    if (app(\App\Services\Facebook\Pixel::class)->staff()) {
+        $pixelId = null;
+    }
+
     /*
      | Advanced matching. These go over in plain text on purpose: the pixel
      | hashes them in the browser before anything leaves it, and pre-hashing

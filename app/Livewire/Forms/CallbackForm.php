@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Jobs\SendSmsJob;
 use App\Models\CallbackRequest;
 use App\Services\Facebook\Pixel;
 use Illuminate\Support\Facades\Auth;
@@ -73,6 +74,8 @@ class CallbackForm extends Component
             'source_url' => url()->previous(),
             'consented' => $pixel->consented(),
         ]);
+
+        SendSmsJob::dispatch($this->phone, __('sms.callback'));
 
         $this->sent = true;
 

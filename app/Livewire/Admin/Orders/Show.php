@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Orders;
 
+use App\Jobs\SendSmsJob;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Services\Facebook\Pixel;
 use App\Services\Payments\PaymentManager;
+use App\Support\Phone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Livewire\Component;
@@ -125,6 +127,39 @@ class Show extends Component
         return URL::temporarySignedRoute('order.pay', now()->addDays(self::LINK_DAYS), [
             'number' => $this->order->number,
         ]);
+    }
+
+    public function sendPayLink(): void
+    {
+        $link = $this->payLink();
+
+        if (! $link) {
+            $this->dispatch('toast', type: 'error', message: __('admin.pay_link_unavailable'));
+
+            return;
+        }
+
+        if (Phone::dial($this->order->phone) === null) {
+            $this->dispatch('toast', type: 'error', message: __('admin.pay_link_no_phone'));
+
+            return;
+        }
+
+        SendSmsJob::dispatch($this->order->phone, __('sms.pay_link', [
+            'number' => $this->order->number,
+            'total' => money($this->order->total),
+            'link' => $link,
+        ]));
+
+        $this->order->events()->create([
+            'user_id' => auth()->id(),
+            'type' => 'payment',
+            'note' => __('admin.pay_link_sent', ['phone' => $this->order->phone]),
+        ]);
+
+        $this->order->refresh()->load(['items.product.images', 'events.user']);
+
+        $this->dispatch('toast', message: __('admin.pay_link_sent_toast'));
     }
 
     public function markPaid(): void

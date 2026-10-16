@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages;
 
+use App\Jobs\SendSmsJob;
 use App\Livewire\Concerns\SendsToBank;
 use App\Models\Cart as CartModel;
 use App\Models\DeliveryCity;
@@ -229,6 +230,11 @@ class Checkout extends Component
 
         session()->push('placed_orders', $order->id);
         $this->placedNumber = $order->number;
+
+        SendSmsJob::dispatch($order->phone, __('sms.order_placed', [
+            'number' => $order->number,
+            'total' => money($order->total),
+        ]));
 
         $snapshot = $this->snapshotForPixel($order);
 

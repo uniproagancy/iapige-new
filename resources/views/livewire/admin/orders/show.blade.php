@@ -228,6 +228,12 @@
                             </button>
                         </div>
 
+                        <button type="button" class="btn btn-outline-primary w-100 mb-1"
+                                wire:click="sendPayLink" wire:loading.attr="disabled"
+                                wire:confirm="{{ __('admin.pay_link_sms_confirm', ['phone' => $order->phone]) }}">
+                            {!! $icon('phone', 'me-25') !!}{{ __('admin.pay_link_sms') }}
+                        </button>
+
                         <a class="btn btn-primary w-100" href="{{ $payLink }}" target="_blank" rel="noopener">
                             {!! $icon('money', 'me-25') !!}{{ __('admin.pay_here') }}
                         </a>
