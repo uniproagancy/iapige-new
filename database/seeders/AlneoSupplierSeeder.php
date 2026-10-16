@@ -26,15 +26,16 @@ class AlneoSupplierSeeder extends Seeder
                 ],
 
                 'site_price_uplift' => 100,
+
+                'replace' => [
+                    'alneo.com.ge' => 'iapi.ge',
+                    'alneo.ge' => 'iapi.ge',
+                    'Alneo' => 'IAPI.GE',
+                ],
             ],
             'markup' => [
                 ['up_to' => 500, 'percent' => 20],
                 ['percent' => 15],
-            ],
-            'replace' => [
-                'alneo.com.ge' => 'iapi.ge',
-                'alneo.ge' => 'iapi.ge',
-                'Alneo' => 'IAPI.GE',
             ],
         ]);
     }
