@@ -174,7 +174,7 @@ class Catalog
     public static function brands(): array
     {
         return Brand::active()->where('is_featured', true)
-
+            ->whereHas('products', fn (Builder $q) => $q->listable())
             ->withCount(['products' => fn ($q) => $q->listable()])
             ->get()
             ->map(fn (Brand $b) => [

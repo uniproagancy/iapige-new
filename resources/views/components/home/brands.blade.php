@@ -1,5 +1,6 @@
 @props(['brands'])
 
+@if (! empty($brands))
 <section class="brands" aria-label="{{ __('home.brands') }}">
     <h2 class="m-title">{{ __('home.brands') }}</h2>
     <div class="brands__wrap">
@@ -17,3 +18,4 @@
         <button type="button" class="brands__btn brands__btn--next" data-rail="brandsRail" data-dir="1" aria-label="{{ __('common.next_items') }}"><x-icon name="caret-right" size="14" /></button>
     </div>
 </section>
+@endif
