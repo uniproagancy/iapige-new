@@ -8,13 +8,6 @@ use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-/**
- * metromart.ge, an Odoo shop.
- *
- * Its search is a JSON-RPC call that will only answer a request carrying a
- * CSRF token and the session cookie that token was minted with — so the two
- * are fetched together and kept for the run rather than per product.
- */
 class MetromartClient
 {
     protected const BASE = 'https://metromart.ge';
@@ -25,7 +18,6 @@ class MetromartClient
 
     public function __construct(protected array $config = []) {}
 
-    /** The product page for a model code, or null when the shop has none. */
     public function findUrl(string $model): ?string
     {
         if (! $this->session()) {
@@ -69,11 +61,6 @@ class MetromartClient
         return $id ? self::BASE.'/ka_GE/shop/product/'.$id : null;
     }
 
-    /**
-     * Everything the product page carries.
-     *
-     * @return array{name:?string, brand:?string, category:?string, price:float, sale:float, in_stock:bool, images:array, specs:array}|null
-     */
     public function page(string $url): ?array
     {
         $html = $this->get($url);
@@ -103,21 +90,6 @@ class MetromartClient
         ];
     }
 
-    /* ------------------------------------------------------------------ parts */
-
-    /**
-     * What the product is, for the mapping queue.
-     *
-     * The price list is three columns — a model, a cost and a quantity — and
-     * not one of them says what the thing is. So categoryName was always null,
-     * and the resolver only parks a name it is actually given: the admin's
-     * mapping queue stayed empty and every Metromart product sat uncategorised
-     * with nothing to map it by. The same hole Kontakt and INGCO fell into.
-     *
-     * Odoo spells its breadcrumb three ways depending on the theme and the
-     * version, so all three are tried: the structured one first because it
-     * says what it means, then the rendered list, then the bare microdata.
-     */
     protected function category(string $html, DOMXPath $xpath): ?string
     {
         $names = $this->structuredTrail($html) ?: $this->renderedTrail($xpath);
@@ -126,12 +98,6 @@ class MetromartClient
             return null;
         }
 
-        /*
-         * The trail reads Home › Shop › Category › Product. The product's own
-         * name is the last step when the theme includes it, so it is dropped
-         * when it matches what the page calls itself; what remains is the
-         * narrowest category, which is the one worth mapping.
-         */
         $title = $this->clean((string) ($this->text($xpath, '//h1[@itemprop="name"]') ?? ''));
 
         if ($title !== '' && mb_strtolower((string) end($names)) === mb_strtolower($title)) {
@@ -145,11 +111,6 @@ class MetromartClient
             : ($category ?: null);
     }
 
-    /**
-     * The breadcrumb as structured data.
-     *
-     * @return array<int, string>
-     */
     protected function structuredTrail(string $html): array
     {
         if (! preg_match_all('#<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>#si', $html, $m)) {
@@ -187,11 +148,6 @@ class MetromartClient
         return [];
     }
 
-    /**
-     * The breadcrumb as the page draws it.
-     *
-     * @return array<int, string>
-     */
     protected function renderedTrail(DOMXPath $xpath): array
     {
         foreach ([
@@ -218,12 +174,6 @@ class MetromartClient
         return [];
     }
 
-    /**
-     * Whether the shop will hand it over in Tbilisi today.
-     *
-     * A product listed but held in another city is one we cannot promise, so
-     * only the "today" button counts as stock.
-     */
     protected function availableToday(DOMXPath $xpath): bool
     {
         $nodes = $xpath->query('//*[contains(@class,"js-availability-button-buy") and contains(@class,"get_today")]');
@@ -231,14 +181,6 @@ class MetromartClient
         return $nodes !== false && $nodes->length > 0;
     }
 
-    /**
-     * The full specification table, flattened.
-     *
-     * Odoo groups rows under headings spanning both columns; the group is kept
-     * in the name so "Display / Diagonal" does not collide with "Body / Depth".
-     *
-     * @return array<int, array{name:string, value:string}>
-     */
     protected function specs(DOMXPath $xpath): array
     {
         $specs = [];
@@ -274,17 +216,6 @@ class MetromartClient
         return array_values($specs);
     }
 
-    /**
-     * Whether a heading is worth putting in front of the attribute's name.
-     *
-     * The group is there to tell two attributes of the same name apart —
-     * "ზომა & წონა — სიგანე" is a different thing from a screen's width. But
-     * Odoo files everything nobody grouped under "Uncategorized", and on this
-     * shop that is most of them, so nearly every specification arrived
-     * announcing that it had no group: "Uncategorized — ფერი", "Uncategorized
-     * — ტიპი". It reads as a mistake because it is one — their mistake, shown
-     * as ours.
-     */
     protected function groupName(?string $group): bool
     {
         $group = trim((string) $group);
@@ -302,12 +233,10 @@ class MetromartClient
         ], true);
     }
 
-    /** @return array<int, string> */
     protected function images(DOMXPath $xpath, string $url): array
     {
         $images = [];
 
-        // Odoo serves the main picture from the template's own endpoint
         if (preg_match('/-(\d+)$/', basename(parse_url($url, PHP_URL_PATH)), $m)) {
             $images[] = self::BASE."/web/image/product.template/{$m[1]}/image";
         }
@@ -323,16 +252,12 @@ class MetromartClient
                 $src = self::BASE.$src;
             }
 
-            // a trailing /640x480 asks for a thumbnail; without it the original comes
             $images[] = preg_replace('#/\d+x\d+$#', '', $src);
         }
 
         return array_values(array_unique(array_filter($images)));
     }
 
-    /* ------------------------------------------------------------------ session */
-
-    /** The CSRF token and the cookie it belongs to, fetched once per run. */
     protected function session(): bool
     {
         if ($this->token !== null) {
@@ -363,8 +288,6 @@ class MetromartClient
         return true;
     }
 
-    /* ------------------------------------------------------------------ http */
-
     protected function get(string $url): ?string
     {
         $response = Http::withOptions(['force_ip_resolve' => 'v4'])
@@ -387,7 +310,6 @@ class MetromartClient
         return config('services.metromart.user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
     }
 
-    /** Invisible characters travel in spreadsheets and break an exact search. */
     protected function normalise(string $model): string
     {
         $model = preg_replace('/[\x{00A0}\x{200B}-\x{200D}\x{2060}\x{FEFF}]/u', ' ', $model);

@@ -16,20 +16,12 @@ use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-/**
- * One product, edited by hand.
- *
- * Anything changed here can be overwritten by the next import, which is what
- * the two locks are for: price_lock keeps our price, taxonomy_lock keeps our
- * category and brand. Everything else is the supplier's to refresh.
- */
 class Form extends Component
 {
     use WithFileUploads;
 
     public ?Product $product = null;
 
-    /* ---- identity ---- */
     public string $sku = '';
 
     public string $status = Product::STATUS_DRAFT;
@@ -40,7 +32,6 @@ class Form extends Component
 
     public bool $taxonomy_lock = false;
 
-    /* ---- money ---- */
     public ?string $price = null;
 
     public ?string $old_price = null;
@@ -49,14 +40,12 @@ class Form extends Component
 
     public bool $price_lock = false;
 
-    /* ---- availability ---- */
     public int $stock = 0;
 
     public bool $is_preorder = false;
 
     public ?string $release_date = null;
 
-    /* ---- shipping ---- */
     public ?string $weight = null;
 
     public ?string $length = null;
@@ -67,20 +56,16 @@ class Form extends Component
 
     public bool $is_bulky = false;
 
-    /** ['ka' => ['name' =>, 'slug' =>, 'summary' =>, 'description' =>], …] */
     public array $translations = [];
 
-    /** spec id => value, in the default language */
     public array $specs = [];
 
-    /** a spec being added by hand */
     public ?int $newAttribute = null;
 
     public string $newValue = '';
 
     public $upload = [];
 
-    /** Whether this save made the product, so the form can move to its page. */
     protected bool $justCreated = false;
 
     public function mount(?Product $product = null): void
@@ -91,8 +76,6 @@ class Form extends Component
             ? $this->fillFrom($this->product)
             : $this->fillBlank();
     }
-
-    /* ------------------------------------------------------------------ load */
 
     protected function fillFrom(Product $product): void
     {
@@ -138,8 +121,6 @@ class Form extends Component
             ->all();
     }
 
-    /* ------------------------------------------------------------------ render */
-
     public function render()
     {
         return view('livewire.admin.products.form', [
@@ -177,8 +158,6 @@ class Form extends Component
         return $flat;
     }
 
-    /* ------------------------------------------------------------------ save */
-
     public function save(bool $andPublish = false)
     {
         $default = Language::defaultCode();
@@ -187,12 +166,7 @@ class Form extends Component
             'sku' => ['required', 'string', 'max:64'],
             "translations.{$default}.name" => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
-            /*
-             * Above the price, or not at all. A "was" price below the one being
-             * charged strikes through a smaller number than the one beside it,
-             * which reads as a price rise — and discountPercent() refuses to
-             * work it out, so the card showed a sale tag with no percentage.
-             */
+
             'old_price' => ['nullable', 'numeric', 'gt:price'],
             'stock' => ['integer', 'min:0'],
             'category_id' => ['nullable', 'exists:categories,id'],
@@ -200,14 +174,6 @@ class Form extends Component
             'release_date' => ['nullable', 'date'],
         ], $this->slugRules()));
 
-        /*
-         * The same two conditions saveAndPublish() checks.
-         *
-         * They were enforced on that button alone, so choosing "active" in the
-         * status list and pressing Save published a product with no category
-         * and no price — one that appears in listings and cannot be reached by
-         * browsing, because browsing goes through categories.
-         */
         if (($andPublish || $this->status === Product::STATUS_ACTIVE) && ! $this->publishable()) {
             return null;
         }
@@ -258,11 +224,6 @@ class Form extends Component
 
             $product->saveTranslations($rows);
 
-            /*
-             * Spec values are edited in the default language only; the rest
-             * stay. Fetched in one query rather than one per row, and scoped
-             * to this product because the ids arrive from the browser.
-             */
             $rows = ProductSpec::whereKey(array_keys($this->specs))
                 ->where('product_id', $product->id)
                 ->get();
@@ -273,13 +234,6 @@ class Form extends Component
                     : $spec->saveTranslations([$default => ['value' => $this->specs[$spec->id]]]);
             }
 
-            /*
-             * Asked before the refresh. fresh() fetches the row again, and a
-             * model that came back from a query was not recently created — so
-             * this was always false and a new product never moved on to its own
-             * edit page. It stayed on the create URL, where a reload lost it
-             * and the next save made a second product.
-             */
             $this->justCreated = $product->wasRecentlyCreated;
 
             $this->product = $product->fresh();
@@ -299,7 +253,6 @@ class Form extends Component
         return $this->publishable() ? $this->save(andPublish: true) : null;
     }
 
-    /** What a product needs before anybody can be shown it. */
     protected function publishable(): bool
     {
         $problems = [];
@@ -321,13 +274,6 @@ class Form extends Component
         return false;
     }
 
-    /**
-     * A slug is unique per language, and the admin may type one.
-     *
-     * Without this a slug already in use threw a duplicate-key error straight
-     * out of the database — a five-hundred page over a typo, with everything
-     * else the form had just written rolled back with it.
-     */
     protected function slugRules(): array
     {
         $rules = [];
@@ -343,8 +289,6 @@ class Form extends Component
 
         return $rules;
     }
-
-    /* ------------------------------------------------------------------ specs */
 
     public function addSpec(): void
     {
@@ -371,15 +315,12 @@ class Form extends Component
         unset($this->specs[$id]);
     }
 
-    /* ------------------------------------------------------------------ images */
-
     public function uploadImages(): void
     {
         if (! $this->product || ! $this->upload) {
             return;
         }
 
-        // mimes, not image: the image rule accepts SVG, which is a script file
         $this->validate(['upload.*' => ['mimes:jpg,jpeg,png,webp,avif', 'max:4096']]);
 
         $order = (int) ProductImage::where('product_id', $this->product->id)->max('sort_order');
@@ -396,7 +337,6 @@ class Form extends Component
         $this->dispatch('toast', message: __('admin.saved'));
     }
 
-    /** The first image is the one every listing shows, so promoting is a reorder. */
     public function makeMain(int $id): void
     {
         $image = ProductImage::whereKey($id)->where('product_id', $this->product?->id)->first();
@@ -419,8 +359,6 @@ class Form extends Component
             return;
         }
 
-        // the row went and the file stayed, so every deletion left a picture
-        // on disk that nothing would ever reference again
         if (! str_starts_with($image->path, 'http')) {
             Storage::disk('public')->delete($image->path);
         }

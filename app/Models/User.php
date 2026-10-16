@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,17 +10,8 @@ use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /*
-     | provider and provider_id are deliberately absent.
-     |
-     | They say who somebody is as far as Google or Facebook is concerned, and
-     | a mass assignment that reached them would let a request claim an
-     | identity it has not proved. SocialAuthController sets them explicitly,
-     | after the provider has.
-     */
     protected $fillable = [
         'name',
         'email',
@@ -43,7 +33,6 @@ class User extends Authenticatable
         ];
     }
 
-    /** Digits only, so "+995 555 12 34 56" and "555123456" match the same row. */
     public static function normalisePhone(string $phone): string
     {
         return ltrim(preg_replace('/\D+/', '', $phone), '0');
@@ -54,7 +43,6 @@ class User extends Authenticatable
         $this->attributes['phone'] = $value ? static::normalisePhone($value) : null;
     }
 
-    /** First name for the header greeting. */
     public function firstName(): string
     {
         return Str::of($this->name)->trim()->explode(' ')->first() ?: $this->name;

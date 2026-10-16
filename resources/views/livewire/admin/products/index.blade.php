@@ -26,8 +26,7 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ what needs work
-         "ready" leads and is the only green one: that pile wants a click, not a fix --}}
+
     <div class="d-flex flex-wrap gap-1 mb-2">
         @foreach ([
             'ready'    => ['label' => __('admin.ready_to_publish'), 'tone' => 'success'],
@@ -48,7 +47,6 @@
         @endforeach
     </div>
 
-    {{-- ------------------------------------------------------------ filters --}}
     <div class="card">
         <div class="card-body pb-1">
             <div class="row g-1">
@@ -138,7 +136,6 @@
         </div>
     </div>
 
-    {{-- ------------------------------------------------------------ bulk bar --}}
     @if ($selected)
         <div class="card border-primary">
             <div class="card-body py-1">
@@ -176,7 +173,6 @@
                     </button>
                 </div>
 
-                {{-- moving products is a separate row: it needs two pickers and a lock --}}
                 <div class="d-flex flex-wrap align-items-center gap-1 mt-1 pt-1 border-top">
                     <div class="d-flex align-items-center gap-1">
                         <select class="form-select form-select-sm" style="width:230px" wire:model.live="bulkCategory">
@@ -209,7 +205,7 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-1 ms-auto">
-                        {{-- without the lock the next import puts the supplier's own values back --}}
+
                         <button type="button" class="btn btn-sm btn-outline-warning"
                                 wire:click="bulkLockTaxonomy(true)">
                             {!! $icon('lock', 'me-25') !!}{{ __('admin.lock') }}
@@ -227,7 +223,6 @@
         </div>
     @endif
 
-    {{-- ------------------------------------------------------------ list --}}
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">

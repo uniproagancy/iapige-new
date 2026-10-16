@@ -19,7 +19,7 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ header --}}
+
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-2">
         <a class="btn btn-outline-secondary btn-sm" href="{{ route('admin.products') }}">
             {!! $icon('back', 'me-25') !!}{{ __('admin.products') }}
@@ -47,9 +47,9 @@
     </div>
 
     <div class="row">
-        {{-- ------------------------------------------------------------ left --}}
+
         <div class="col-lg-8">
-            {{-- text --}}
+
             <div class="card">
                 <div class="card-body">
                     <ul class="nav nav-tabs" role="tablist">
@@ -100,7 +100,6 @@
                 </div>
             </div>
 
-            {{-- images --}}
             <div class="card">
                 <div class="card-header pb-0">
                     <h5 class="mb-0">{{ __('admin.images') }}</h5>
@@ -154,7 +153,6 @@
                 </div>
             </div>
 
-            {{-- specs --}}
             <div class="card">
                 <div class="card-header pb-0">
                     <h5 class="mb-0">{{ __('admin.specs') }}</h5>
@@ -215,9 +213,8 @@
             </div>
         </div>
 
-        {{-- ------------------------------------------------------------ right --}}
         <div class="col-lg-4">
-            {{-- status and taxonomy --}}
+
             <div class="card">
                 <div class="card-body">
                     <div class="mb-1">
@@ -266,7 +263,6 @@
                 </div>
             </div>
 
-            {{-- money --}}
             <div class="card">
                 <div class="card-body">
                     <div class="row g-1">
@@ -302,7 +298,6 @@
                 </div>
             </div>
 
-            {{-- pre-order --}}
             <div class="card">
                 <div class="card-body">
                     <div class="form-check form-switch mb-1">
@@ -318,7 +313,6 @@
                 </div>
             </div>
 
-            {{-- shipping --}}
             <div class="card">
                 <div class="card-body">
                     <div class="row g-1">
@@ -343,7 +337,6 @@
                 </div>
             </div>
 
-            {{-- what the suppliers offer, for reference only --}}
             @if ($offers->isNotEmpty())
                 <div class="card">
                     <div class="card-header pb-0">

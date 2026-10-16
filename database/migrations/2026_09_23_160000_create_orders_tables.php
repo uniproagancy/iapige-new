@@ -10,26 +10,22 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('number', 20)->unique();              // IAPI-260923-0042
+            $table->string('number', 20)->unique();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('cart_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('status', 24)->default('new');        // new | confirmed | shipped | done | cancelled
+            $table->string('status', 24)->default('new');
 
-            // who
             $table->string('name');
             $table->string('phone', 32);
             $table->string('email')->nullable();
 
-            // where
-            $table->string('delivery', 16)->default('courier');  // courier | pickup
+            $table->string('delivery', 16)->default('courier');
             $table->string('city')->nullable();
             $table->string('address')->nullable();
             $table->text('comment')->nullable();
 
-            // how
-            $table->string('payment', 16)->default('cash');      // cash | card | installment
+            $table->string('payment', 16)->default('cash');
 
-            // money — snapshot, never recalculated later
             $table->decimal('subtotal', 10, 2);
             $table->decimal('shipping', 10, 2)->default(0);
             $table->decimal('total', 10, 2);
@@ -45,7 +41,7 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->string('sku', 64)->nullable();
-            $table->string('name');                              // name at the time of ordering
+            $table->string('name');
             $table->decimal('price', 10, 2);
             $table->unsignedInteger('qty');
             $table->decimal('sum', 10, 2);

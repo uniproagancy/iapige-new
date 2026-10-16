@@ -21,7 +21,6 @@
     @stack('styles')
 </head>
 
-{{-- data-asset-path stays: the template's own app.js reads its images from there --}}
 <body class="horizontal-layout horizontal-menu navbar-floating footer-static @isset($blank_page) blank-page @endisset"
       data-open="hover" data-menu="horizontal-menu" data-col=""
       data-asset-path="{{ asset('dashboard-assets/') }}">
@@ -31,10 +30,6 @@
     @include('layouts.admin._menu')
 @endunless
 
-{{--
-    The template positions everything from these three wrappers: without them
-    the navbar floats over the page and the content starts under the header.
---}}
 <div class="app-content content">
     <div class="content-overlay"></div>
     <div class="header-navbar-shadow"></div>
@@ -60,7 +55,6 @@
                     </div>
                 </div>
 
-                {{-- a page can push its own buttons up here --}}
                 @isset($actions)
                     <div class="content-header-right text-md-end col-md-3 col-12 d-md-block d-none">
                         {{ $actions }}
@@ -82,7 +76,6 @@
 <div class="sidenav-overlay"></div>
 <div class="drag-target"></div>
 
-{{-- drawn here, not by feather: see layouts.admin._header --}}
 <button class="btn btn-primary btn-icon scroll-top" type="button" aria-label="{{ __('admin.move_up') }}">
     <svg class="adm-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

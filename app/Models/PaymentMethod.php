@@ -7,10 +7,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * @property string|null $name
- * @property string|null $note
- */
 class PaymentMethod extends Model
 {
     use HasTranslations;
@@ -36,7 +32,6 @@ class PaymentMethod extends Model
         return $query->where('is_active', true)->orderBy('sort_order')->orderBy('id');
     }
 
-    /** Instalments below their floor (or above their ceiling) must not be offered. */
     public function fitsTotal(float $total): bool
     {
         return ($this->min_total === null || $total >= (float) $this->min_total)

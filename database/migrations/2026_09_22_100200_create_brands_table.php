@@ -4,10 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Brand names are the same in every language (Apple, Sony), so no
- * translation table. Add one later if brands get translated descriptions.
- */
 return new class extends Migration
 {
     public function up(): void
@@ -16,9 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->string('logo')->nullable();             // storage path
+            $table->string('logo')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->boolean('is_featured')->default(false); // home page brand rail
+            $table->boolean('is_featured')->default(false);
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
 

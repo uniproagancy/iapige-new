@@ -11,18 +11,6 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use RuntimeException;
 
-/**
- * A price list, uploaded rather than left on the server by hand.
- *
- * import:file reads a path, so until now a new spreadsheet meant opening an
- * FTP client, finding the right directory and then reaching for a terminal —
- * for a file that arrives by email every week.
- *
- * The reading is PriceListLoader's, the same code the command runs, so the
- * two cannot drift. What this adds is the part a person needs: which
- * suppliers can take a file at all, what the last one did, and the button
- * that queues the import afterwards.
- */
 class Upload extends Component
 {
     use WithFileUploads;
@@ -36,18 +24,8 @@ class Upload extends Component
 
     public int $skipRows = 1;
 
-    /**
-     * What this file means: the supplier's whole catalogue, or part of it.
-     *
-     * Replacing is right for the weekly price list and is what the screen has
-     * always done. It is wrong for the second file a supplier sends covering
-     * different products — loading that as the whole truth takes everything
-     * the first one brought off sale, and the only sign of it is a zeroed
-     * count nobody reads until the shop is half empty.
-     */
     public string $mode = PriceListLoader::MODE_REPLACE;
 
-    /** @var array{read:int, zeroed:int, missing_url:int, no_stock_column:bool, mode:string}|null */
     public ?array $result = null;
 
     public function mount(): void
@@ -75,22 +53,18 @@ class Upload extends Component
 
     public function updatedCode(): void
     {
-        // the mode goes back to the safe reading too, not just the file
+
         $this->reset(['file', 'result', 'mode']);
     }
 
     public function load(PriceListLoader $loader): void
     {
-        /*
-         * mimes, not the file size alone: a spreadsheet is the only thing this
-         * screen does anything with, and an "image" or "file" rule would let
-         * through whatever else was dragged onto it by mistake.
-         */
+
         $this->validate([
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:20480'],
             'sheet' => ['integer', 'min:1'],
             'skipRows' => ['integer', 'min:0', 'max:20'],
-            // it arrives from the browser, so it is checked rather than trusted
+
             'mode' => ['required', 'in:'.implode(',', PriceListLoader::MODES)],
         ]);
 
@@ -98,11 +72,6 @@ class Upload extends Component
             return;
         }
 
-        /*
-         * Read from the temporary upload rather than a copy of our own: the
-         * price list is this week's truth and nothing after the load reads it
-         * again, so keeping it would only fill the disk.
-         */
         try {
             $this->result = $loader->load(
                 $supplier,
@@ -122,7 +91,6 @@ class Upload extends Component
         $this->dispatch('toast', message: __('admin.import_rows_loaded', ['count' => $this->result['read']]));
     }
 
-    /** Queue the products themselves, which is the step the command prints. */
     public function queueImport(ImportManager $manager): void
     {
         if (! $supplier = $this->supplier()) {
@@ -139,13 +107,6 @@ class Upload extends Component
         return $this->code ? Supplier::where('code', $this->code)->first() : null;
     }
 
-    /**
-     * Only the suppliers that read a file.
-     *
-     * The others fetch over the network and have nothing to upload, so
-     * offering them here would only invite the question of why it does
-     * nothing.
-     */
     protected function suppliers()
     {
         return Supplier::orderBy('name')

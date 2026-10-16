@@ -4,20 +4,10 @@ namespace App\Services\Import\Drivers\Kontakt;
 
 use Illuminate\Support\Facades\Http;
 
-/**
- * kontakt.ge product pages.
- *
- * The site publishes each product as structured data and renders its
- * specifications in a pair of divs, so both are read rather than scraped from
- * the surrounding layout.
- */
 class KontaktClient
 {
     public function __construct(protected array $config = []) {}
 
-    /**
-     * @return array{name:?string, description:?string, brand:?string, category:?string, image:?string, specs:array, in_stock:bool, price:float}|null
-     */
     public function page(string $url): ?array
     {
         $html = $this->get($this->normalise($url));
@@ -49,7 +39,7 @@ class KontaktClient
         $images = [];
 
         foreach ($this->galleryItems($html) as $item) {
-            // "full" is the original; "img" is what the gallery displays
+
             $url = $item['full'] ?? $item['img'] ?? null;
 
             if (is_string($url) && $url !== '') {
@@ -57,7 +47,6 @@ class KontaktClient
             }
         }
 
-        // the structured data names the main picture, for pages with no gallery
         if (! $images) {
             foreach ((array) ($json['image'] ?? []) as $image) {
                 $url = is_string($image) ? $image : ($image['url'] ?? null);
@@ -68,12 +57,6 @@ class KontaktClient
             }
         }
 
-        /*
-         * Every link in the gallery is a cached thumbnail. The original sits at
-         * the same path without the cache segment and is about twice the size,
-         * which is worth it: a photograph is the one thing a customer judges
-         * before buying.
-         */
         $images = array_map(
             fn ($url) => preg_replace('#/cache/[0-9a-f]{32}/#i', '/', $url),
             $images,
@@ -82,15 +65,6 @@ class KontaktClient
         return array_values(array_unique(array_filter($images)));
     }
 
-    /**
-     * The gallery's JSON array.
-     *
-     * Its entries carry nested objects — a srcset per picture — so the array is
-     * found by counting brackets rather than by a lazy pattern, which would
-     * stop at the first bracket the nesting closes and return one picture.
-     *
-     * @return array<int, array>
-     */
     protected function galleryItems(string $html): array
     {
         $start = strpos($html, '"mage/gallery/gallery"');
@@ -124,7 +98,6 @@ class KontaktClient
         return [];
     }
 
-    /** The site serves the same product under /ka/, /en/ and /ru/; one is enough. */
     protected function normalise(string $url): string
     {
         return preg_replace('#^(https?://[^/]+)/(?:en|ka|ru)(/|$)#i', '$1/', trim($url));
@@ -135,13 +108,6 @@ class KontaktClient
         return $this->ldJson($html, 'Product');
     }
 
-    /**
-     * The first structured-data node of a given type.
-     *
-     * The site publishes its Product and its BreadcrumbList the same way, so
-     * both are read through here rather than through two copies of the same
-     * script-tag scan.
-     */
     protected function ldJson(string $html, string $type): ?array
     {
         if (! preg_match_all('#<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>#si', $html, $m)) {
@@ -169,20 +135,6 @@ class KontaktClient
         return null;
     }
 
-    /**
-     * The category, taken from the page's own breadcrumb.
-     *
-     * Nothing in the price list says what a product is — the column map holds a
-     * code, a link, a price and a quantity, and no category — so every Kontakt
-     * product arrived with categoryName null. The resolver parks a name it does
-     * not recognise so an admin can map it, but it was never given one to park:
-     * the mapping queue stayed empty and the products stayed uncategorised, with
-     * nothing to map them by.
-     *
-     * The trail reads Home › Category › Product, so the category is the entry
-     * before the last. A deeper trail yields the most specific one, which is
-     * the one worth mapping.
-     */
     protected function category(string $html): ?string
     {
         $names = [];
@@ -195,20 +147,14 @@ class KontaktClient
             }
         }
 
-        array_pop($names);              // the product itself
-        $category = array_pop($names);  // what it sits under
+        array_pop($names);
+        $category = array_pop($names);
 
-        // a product linked straight off the front page has no category to give
         return in_array($category, ['მთავარი', 'Home', 'Главная'], true)
             ? null
             : ($category ?: null);
     }
 
-    /**
-     * The specification list, written as paired divs.
-     *
-     * @return array<int, array{name:string, value:string}>
-     */
     protected function specs(string $html): array
     {
         $specs = [];
@@ -221,7 +167,6 @@ class KontaktClient
             $name = $this->clean(strip_tags($row[1]));
             $value = $this->clean(strip_tags($row[2]));
 
-            // the site writes "unavailable" where it has no answer
             if ($name === '' || $value === '' || $value === '-'
                 || mb_strpos($value, 'მიუწვდომელია') !== false) {
                 continue;

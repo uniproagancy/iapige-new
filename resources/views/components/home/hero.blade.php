@@ -26,7 +26,7 @@
                     <h2 class="hero__title">{{ $s['title'] }}</h2>
                     <span class="hero__sub">{{ $s['sub'] }}</span>
                     <div class="hero__cta">
-                        {{-- a slide may point anywhere; the catalogue is the default --}}
+
                         <a class="hero__btn" href="{{ ($s['url'] ?? null) ?: route('catalog') }}">{{ $s['cta'] }}</a>
                         <button type="button" class="hero__btn hero__btn--ghost" data-open="catalog">{{ __('home.see_catalog') }}</button>
                     </div>

@@ -9,7 +9,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
-/** The page the password-reset email links to. */
 class ResetPassword extends Component
 {
     public string $token = '';

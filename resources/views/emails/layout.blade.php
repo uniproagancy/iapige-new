@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'IAPI.GE' }}</title>
 </head>
-{{--
-    One table, inline styles, no stylesheet: mail clients strip anything
-    cleverer, and a broken confirmation is worse than a plain one.
---}}
+
 <body style="margin:0;padding:0;background:#F6F7F8;font-family:Arial,Helvetica,sans-serif;color:#1A1D21">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F7F8;padding:24px 12px">
         <tr>

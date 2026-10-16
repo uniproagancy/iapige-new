@@ -5,12 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Which payment methods owe the customer an invoice.
- *
- * A bank transfer cannot be completed on the site: the customer needs our
- * account details and a reference, in writing, before they can pay at all.
- */
 return new class extends Migration
 {
     public function up(): void

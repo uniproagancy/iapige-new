@@ -10,49 +10,18 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-/**
- * File names carry the sku, the position and a hash of the source URL:
- *     products/142/nrd-p14-4070-01-9c3f1a2b4d5e.jpg
- * The hash makes the name unique and lets a second run skip a file it already
- * has, instead of downloading the same image again.
- */
 class ImageDownloader
 {
     protected const DISK = 'public';
 
-    /** How many photographs of one product are worth keeping. */
     public const MAX_IMAGES = 8;
 
-    /*
-     | A photograph is worth waiting a few seconds for, not a few minutes.
-     |
-     | The old budget was 30s read + 10s connect with two retries, per image,
-     | for up to eight images: a single product whose CDN had gone quiet could
-     | hold the importer for twelve minutes. These numbers cap one product's
-     | gallery at roughly half a minute.
-     */
-    /*
-     | Connecting is the slow part, not the download.
-     |
-     | At five seconds s3.zoommer.ge lost whole galleries to what was only a
-     | cold DNS and TLS handshake — one product came out of a thirty-id run with
-     | no photographs at all. Ten is the figure that stops happening, and since
-     | the gallery is fetched outside the transaction it costs nobody a lock;
-     | a host that is genuinely down is still cut off after five tries.
-     */
     protected const CONNECT_TIMEOUT = 10;
 
     protected const READ_TIMEOUT = 10;
 
     protected const RETRIES = 1;
 
-    /**
-     * How long one product's gallery may take, in seconds.
-     *
-     * Comfortably inside ImportProductJob::$timeout, with room left for the
-     * API calls and the database work that share the same job. Both come from
-     * config/shop.php, so they are raised together.
-     */
     protected function budget(): int
     {
         return (int) config('shop.import_image_budget', 120);
@@ -60,27 +29,14 @@ class ImageDownloader
 
     protected const FAILURES_BEFORE_SKIP = 5;
 
-    /** host => consecutive failures, for the life of this worker process */
     protected static array $failures = [];
 
-    /** @param  array<int, string>  $urls */
     public function sync(Product $product, array $urls, int $limit = self::MAX_IMAGES): void
     {
         $deadline = microtime(true) + $this->budget();
 
         foreach (array_slice(array_values(array_filter($urls)), 0, $limit) as $i => $url) {
-            /*
-             * Eight photographs can each spend twenty seconds reaching a slow
-             * host, which is far longer than the job is allowed to live. The
-             * worker then kills it mid-download: no exception is recorded, only
-             * a spent attempt, and after three of those the job dies of
-             * "attempted too many times" with nothing in the log to say why.
-             *
-             * Stopping early is safe because import() asks again for whatever
-             * is missing on the next run, and a file already on disk costs no
-             * request at all — so the gallery fills in over a run or two
-             * instead of taking the job down on the first.
-             */
+
             if (microtime(true) >= $deadline) {
                 Log::channel('import')->info('image budget spent', [
                     'product' => $product->id,
@@ -94,7 +50,7 @@ class ImageDownloader
             try {
                 $path = $this->store($product, $url, $i);
             } catch (\Throwable $e) {
-                // one unreachable photograph must not cost us the gallery
+
                 Log::channel('import')->warning('image skipped', [
                     'product' => $product->id,
                     'url' => Redact::secrets($url),
@@ -137,12 +93,12 @@ class ImageDownloader
                 ->connectTimeout(self::CONNECT_TIMEOUT)
                 ->retry(self::RETRIES, 500, throw: false)
                 ->withOptions([
-                    // Windows PHP tries IPv6 first and waits out the timeout
+
                     'force_ip_resolve' => 'v4',
                 ])
                 ->withHeaders([
                     'User-Agent' => config('services.import.user_agent', 'Mozilla/5.0'),
-                    // some CDNs refuse a request that arrives from nowhere
+
                     'Referer' => parse_url($url, PHP_URL_SCHEME).'://'.parse_url($url, PHP_URL_HOST).'/',
                 ])
                 ->get($this->addressOf($url));
@@ -159,21 +115,6 @@ class ImageDownloader
 
             unset(self::$failures[$this->hostOf($url)]);
 
-            /*
-             * Whether the file was actually written.
-             *
-             * The public disk is configured with 'throw' => false and
-             * 'report' => false, so a write it cannot make returns false and
-             * says nothing at all — no exception, no log line, nothing. The
-             * return value was not read, so a product whose photographs could
-             * not be stored still got a product_images row for every one of
-             * them, pointing at files that were never there. Nothing in the
-             * admin could tell that apart from a product with pictures: the
-             * "no photo" filter counts rows.
-             *
-             * A directory the web user cannot write to is the usual cause, and
-             * it fails for every image of every product at once.
-             */
             if (Storage::disk(self::DISK)->put($path, $response->body()) === false) {
                 Log::channel('import')->error('image could not be written to disk', [
                     'product' => $product->id,
@@ -197,16 +138,6 @@ class ImageDownloader
         }
     }
 
-    /* ------------------------------------------------------------------ circuit breaker */
-
-    /**
-     * A host that has failed this many times in a row is treated as down for
-     * the rest of the run.
-     *
-     * Without this, a supplier whose image server is offline costs every one of
-     * its products the full timeout budget — thousands of products each waiting
-     * on the same dead host, one after another.
-     */
     protected function hostIsDown(string $url): bool
     {
         return (self::$failures[$this->hostOf($url)] ?? 0) >= self::FAILURES_BEFORE_SKIP;
@@ -227,30 +158,6 @@ class ImageDownloader
         return (string) (parse_url($url, PHP_URL_HOST) ?: 'unknown');
     }
 
-    /**
-     * The extension to store the file under.
-     *
-     * A proxied address carries the real one in its query rather than its path:
-     * ...workers.dev?type=image&url=https%3A%2F%2Fstatic.ee.ge%2F...png
-     *
-     * Reading only the path there gives nothing, so every picture fetched
-     * through a worker was saved as .jpg — and a PNG named .jpg is served with
-     * the wrong content type, because the web server decides that from the
-     * extension and has no reason to doubt it.
-     */
-    /**
-     * The address with anything cURL will not accept spelled out.
-     *
-     * A supplier's media filenames are whatever somebody saved them as, and
-     * "Screenshot 2026-10-09 173441.png" has spaces in it. cURL refuses such a
-     * URL outright — "Malformed input to a URL function" — so the picture was
-     * never fetched, the product arrived with none, and nothing in the log
-     * named the cause.
-     *
-     * Each path segment is decoded and encoded again rather than encoded as it
-     * stands, which leaves an address that was already escaped exactly as it
-     * was instead of turning its % signs into %25.
-     */
     protected function addressOf(string $url): string
     {
         $parts = parse_url($url);

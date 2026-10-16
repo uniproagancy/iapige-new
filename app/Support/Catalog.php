@@ -13,35 +13,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
-/**
- * Reads the catalogue from the database and returns the array shapes the
- * Blade components already use (<x-product-card :product="…"> etc.).
- * Everything here respects the current locale through HasTranslations.
- */
 class Catalog
 {
-    /** Relations every product card needs. */
-    /**
-     * Relations every product card needs.
-     *
-     * The running campaigns are among them: a card has to know whether the
-     * product it is drawing is on offer, and asking per product turns one
-     * listing into a query per row.
-     */
     public const CARD_RELATIONS = [
         'brand', 'images', 'category', 'attributeValues.attribute', 'livePromotions',
     ];
 
-    /** A filter option longer than this is a free-text spec, not a choice. */
     protected const MAX_OPTION_LENGTH = 24;
 
-    /**
-     * Attributes the sidebar builds itself and must not draw twice.
-     * The brand group comes from the products' own brand, not from a spec.
-     */
     protected const RESERVED_FILTERS = ['brand', 'brendi', 'manufacturer'];
-
-    /* ================================================================== product card */
 
     public static function productQuery(): Builder
     {
@@ -54,12 +34,10 @@ class Catalog
             ]));
     }
 
-    /** One product in the shape of <x-product-card>. */
     public static function card(Product $p): array
     {
         $images = $p->images->map->url()->values()->all() ?: [Store::img("p{$p->id}")];
 
-        // a product may carry several values of one attribute, so every code is kept
         $filters = ['brand' => $p->brand?->slug];
 
         foreach ($p->attributeValues as $value) {
@@ -78,18 +56,6 @@ class Catalog
                 : $value->code;
         }
 
-        /*
-         | A campaign price belongs on every card, not only on the deals rail.
-         |
-         | The rail applied it and nothing else did, so a product the shop had
-         | marked down itself was advertised at one price on the front page and
-         | listed at another in its category, in search and among related
-         | products — the same figure the cart used to disagree with. One place
-         | works it out now, and every listing draws from here.
-         |
-         | A supplier's own discount still shows when there is no campaign: the
-         | two never both apply, so there is nothing to conflict.
-         */
         $price = (float) $p->price;
         $promo = $p->promoPrice();
 
@@ -122,13 +88,11 @@ class Catalog
         ];
     }
 
-    /** @param  Collection<int, Product>  $products */
     public static function cards(Collection $products): array
     {
         return $products->map(fn (Product $p) => self::card($p))->all();
     }
 
-    /** Payload the add-to-cart button sends (the server re-reads price itself). */
     public static function cartPayload(array $card): array
     {
         return [
@@ -138,21 +102,6 @@ class Catalog
         ];
     }
 
-    /* ================================================================== home */
-
-    /**
-     * The running "deal" campaign. Its price wins over the catalogue price and
-     * the regular price becomes the struck-through one — nothing is written to
-     * products, so the campaign simply expires.
-     */
-    /**
-     * The campaign the deals rail is showing, if any is running.
-     *
-     * Separate from deals() because the rail needs its title as well as its
-     * products: the heading above the rail was a fixed phrase from the
-     * language file, so a campaign called "Black Friday" in the admin still
-     * announced itself as the offer of the week.
-     */
     public static function dealCampaign(): ?Promotion
     {
         return static::$dealMemo[app()->getLocale()] ??= Promotion::live()
@@ -172,28 +121,14 @@ class Catalog
             ->listable()
             ->withTranslation()
             ->with(self::CARD_RELATIONS)
-            // no order at all meant the database chose, and it chose the oldest
+
             ->orderByDesc('products.id')
             ->limit($limit)
             ->get();
 
-        /*
-         * No special pricing here any more. card() applies the campaign, which
-         * is what stopped the rail and the rest of the shop disagreeing — this
-         * method used to be the only place that knew about offers at all.
-         */
         return self::cards($products);
     }
 
-    /** Root categories flagged show_on_home, each with its best sellers. */
-    /**
-     * The home page's category rails.
-     *
-     * Twenty a rail, not five. The rail fits exactly five cards across, so a
-     * section holding five had nothing to scroll — and the arrows beside its
-     * heading, which disable themselves when there is nowhere to go, were
-     * therefore dead on every section of the page.
-     */
     public static function sections(int $perSection = 40): array
     {
         $banners = Store::sectionBanners();
@@ -211,7 +146,7 @@ class Catalog
                     'slug' => $category->slug,
                     'name' => $category->name,
                     'url' => route('catalog', $category->slug),
-                    // counted from the same map as everywhere else, not a query per section
+
                     'count' => __('common.products_count', [
                         'count' => collect($ids)->sum(fn ($id) => $counts[$id] ?? 0),
                     ]),
@@ -221,14 +156,7 @@ class Catalog
                     ])->all(),
                     'banner' => $banners[$key]['banner'] ?? null,
                     'duo' => $banners[$key]['duo'] ?? null,
-                    /*
-                     * Newest first. Ordering by sales_count put the oldest
-                     * products at the top of every section, because nothing
-                     * has sold yet and a column of equal values leaves the
-                     * order to the database — which hands back insertion
-                     * order. A shop still filling its catalogue wants its
-                     * newest arrivals seen.
-                     */
+
                     'products' => self::cards(self::productQuery()
                         ->whereIn('category_id', $ids)
                         ->orderByDesc('id')
@@ -239,11 +167,10 @@ class Catalog
             ->all();
     }
 
-    /** Featured brands for the home page rail; each links to a filtered listing. */
     public static function brands(): array
     {
         return Brand::active()->where('is_featured', true)
-            // counted the same way the listings are, or the number lies
+
             ->withCount(['products' => fn ($q) => $q->listable()])
             ->get()
             ->map(fn (Brand $b) => [
@@ -255,12 +182,8 @@ class Catalog
             ->all();
     }
 
-    /* ================================================================== category tree (drawer + sidebar) */
-
-    /** Built once per request and language — the drawer, the footer and the sidebar all use it. */
     protected static array $treeMemo = [];
 
-    /** @var array<string, ?Promotion> */
     protected static array $dealMemo = [];
 
     public static function tree(): array
@@ -268,36 +191,12 @@ class Catalog
         return static::$treeMemo[app()->getLocale()] ??= static::buildTree();
     }
 
-    /**
-     * Forgets the built tree.
-     *
-     * Static state outlives a request in a test run and under a persistent
-     * worker, where "once per request" quietly becomes "once per process" and
-     * a category added afterwards never appears.
-     */
     public static function flushTree(): void
     {
         static::$treeMemo = [];
         static::$dealMemo = [];
     }
 
-    /**
-     * The whole tree, however deep it goes.
-     *
-     * This used to eager-load exactly two levels of children and shape them as
-     * root → subs → leaves, with a leaf being a flat [name, count, url] triple.
-     * A shop built three deep fitted that exactly — and the moment a fourth
-     * level was added it could not be rendered at all, because a leaf had
-     * nowhere to put children. Those categories were reachable only by typing
-     * their address.
-     *
-     * Every node now carries `children`, so depth is whatever the data says.
-     * `subs` stays as an alias because the sidebar and footer read it.
-     *
-     * One query for the lot. The old count closure walked `$c->children` past
-     * the two loaded levels, which lazy-loaded a query per node — invisible on
-     * a small tree and a few hundred queries on a large one.
-     */
     protected static function buildTree(): array
     {
         $byParent = Category::active()->withTranslation()
@@ -317,7 +216,7 @@ class Catalog
                     'id' => $category->id,
                     'name' => $category->name,
                     'url' => route('catalog', $category->slug),
-                    // only the first level is shown with a picture
+
                     'image' => $depth === 1
                         ? ($category->imageUrl() ?? Store::img('iapi-cat-'.$category->id, 0, 76, 76))
                         : null,
@@ -331,7 +230,7 @@ class Catalog
 
         $decorate = function (array $nodes, int $depth) use (&$decorate): array {
             foreach ($nodes as &$node) {
-                // the first level prints the word, the rest just the number
+
                 $node['count'] = $depth === 1
                     ? __('common.products_count', ['count' => $node['total']])
                     : (string) $node['total'];
@@ -346,7 +245,6 @@ class Catalog
         return $decorate($build(null, 1), 1);
     }
 
-    /** Root categories flagged for the main navigation. */
     public static function menu(int $limit = 6): array
     {
         return Category::active()->roots()
@@ -363,7 +261,6 @@ class Catalog
             ->all();
     }
 
-    /** category_id => how many obtainable products sit directly in it. */
     protected static function categoryCounts()
     {
         return Product::listable()
@@ -372,13 +269,6 @@ class Catalog
             ->pluck('n', 'category_id');
     }
 
-    /* ================================================================== catalog page */
-
-    /**
-     * The catalog landing page: every root category with its sub-categories
-     * and how many products sit underneath (the whole branch, not just the
-     * products attached directly to that category).
-     */
     public static function index(): array
     {
         $roots = Category::active()->roots()->withTranslation()
@@ -418,23 +308,6 @@ class Catalog
         return Category::active()->withTranslation()->whereTranslation('slug', $slug, false)->firstOrFail();
     }
 
-    /**
-     * Filters, facets and price range for a listing.
-     * $category === null means the whole catalogue (a brand filter from the home page).
-     *
-     * Everything here is counted by the database rather than in PHP, and that
-     * is not an optimisation — it is why the page renders at all. It used to
-     * fetch every listable product in the category and all its descendants,
-     * each with its brand, images, category, attribute values and running
-     * campaigns, purely to count them and to collect the brands. A leaf
-     * category survived that. The catalogue's largest root did not: it died
-     * on memory and answered 500, and it was the only page on the shop that
-     * did, which is exactly how a problem of size hides — it looks like a
-     * problem with that one category.
-     *
-     * The products it built from all that were never read by anything. The
-     * listing page queries its own, a page at a time.
-     */
     public static function listing(?Category $category = null): array
     {
         $ids = null;
@@ -444,14 +317,6 @@ class Catalog
             $ids = $category->descendantAndSelfIds();
         }
 
-        /*
-         * What counts as "in this listing", as a condition rather than a list.
-         *
-         * Handed to whereHas as a subquery, so the ids never leave the
-         * database: a root category holds tens of thousands of them, and
-         * carrying that list back and forth is both the memory and the
-         * placeholder limit waiting to be hit.
-         */
         $inListing = fn (Builder $q) => $q
             ->listable()
             ->when($ids, fn (Builder $w) => $w->whereIn('category_id', $ids));
@@ -468,11 +333,8 @@ class Catalog
             ->map(fn (Brand $b) => ['code' => $b->slug, 'label' => $b->name])
             ->values()->all();
 
-        // options come from the pivot, not from the cards: a product may carry
-        // several values of one attribute and the card array cannot show that
         $attributeGroups = Attribute::filterable()->withTranslation()
-            // the brand group is built above from the products themselves; an
-            // attribute of the same name would draw a second, conflicting one
+
             ->whereNotIn('code', self::RESERVED_FILTERS)
             ->with(['values' => fn ($q) => $q->withTranslation()
                 ->whereHas('products', $inListing)
@@ -484,12 +346,12 @@ class Catalog
                 'key' => $a->code,
                 'open' => true,
                 'items' => $a->values
-                    // a nameless or free-text value is a spec, never a filter option
+
                     ->filter(fn (AttributeValue $v) => filled($v->label) && mb_strlen($v->label) <= self::MAX_OPTION_LENGTH)
                     ->map(fn (AttributeValue $v) => ['code' => $v->code, 'label' => $v->label])
                     ->values()->all(),
             ])
-            ->filter(fn ($g) => count($g['items']) > 1)   // a single option filters nothing
+            ->filter(fn ($g) => count($g['items']) > 1)
             ->values()
             ->all();
 
@@ -518,7 +380,7 @@ class Catalog
                     'image' => $c->imageUrl() ?? Store::img('iapi-cat-'.$c->id, 0, 320, 240),
                     'total' => collect($c->descendantAndSelfIds())->sum(fn ($id) => $childCounts[$id] ?? 0),
                 ])
-                    ->filter(fn ($sub) => $sub['total'] > 0)   // an empty sub-category helps nobody
+                    ->filter(fn ($sub) => $sub['total'] > 0)
                     ->values()->all()
                 : [],
             'sorts' => [
@@ -534,16 +396,6 @@ class Catalog
         ];
     }
 
-    /* ================================================================== campaigns */
-
-    /**
-     * Every campaign a shopper may look at right now.
-     *
-     * Only the running ones: a campaign that has not started is an unpublished
-     * plan, and one that has ended would advertise prices we no longer honour.
-     *
-     * @return array<int, array<string, mixed>>
-     */
     public static function campaigns(): array
     {
         return Promotion::live()
@@ -566,33 +418,17 @@ class Catalog
             ->all();
     }
 
-    /**
-     * One running campaign, by the slug that stands in its URL.
-     *
-     * Looked up in any language rather than the current one, so a link shared
-     * in Georgian still opens when the reader is browsing in English — the
-     * page then renders in whatever language they are in.
-     */
     public static function campaign(string $slug): Promotion
     {
         return Promotion::live()
             ->withTranslation()
             ->where(fn ($q) => $q
                 ->whereTranslation('slug', $slug, false)
-                // the code answers too, so links made before slugs still open
+
                 ->orWhere('code', $slug))
             ->firstOrFail();
     }
 
-    /**
-     * A campaign's own page.
-     *
-     * The products come through card() like every other listing, so the price
-     * shown here is the campaign price and matches the rail, the category page
-     * and the cart.
-     *
-     * @return array<string, mixed>
-     */
     public static function campaignPage(Promotion $promotion): array
     {
         $products = $promotion->products()
@@ -613,8 +449,6 @@ class Catalog
         ];
     }
 
-    /* ================================================================== product page */
-
     public static function product(string $slug): Product
     {
         return Product::active()->withTranslation()->whereTranslation('slug', $slug, false)
@@ -634,12 +468,10 @@ class Catalog
         $card = self::card($product);
         $gallery = $product->images->map->url()->values()->all() ?: $card['images'];
 
-        // the switchers cover this product and every sibling that shares its group
         $variants = self::variantSwitchers($product);
 
         [$colors, $storage] = self::splitVariants($variants);
 
-        // a spec with no value would render as an empty row
         $usable = fn ($row) => filled($row[0]) && filled($row[1]) && ! in_array(trim($row[1]), ['-', '—', 'N/A'], true);
 
         $specs = $product->specs
@@ -677,7 +509,7 @@ class Catalog
                     $product->category->ancestorsAndSelf(),
                 ) : [],
             ],
-            'model' => $product,      // the Eloquent model for the Livewire components
+            'model' => $product,
             'colors' => $colors,
             'configs' => $storage,
             'bundleIds' => array_column($bundle, 'id'),
@@ -689,30 +521,13 @@ class Catalog
             'services' => $extras['services'],
             'bundle' => $bundle,
             'related' => $related,
-            // the "all" button beside them: the same category they came from
+
             'relatedUrl' => $product->category?->slug
                 ? route('catalog', $product->category->slug)
                 : route('catalog'),
         ];
     }
 
-    /**
-     * What else to show somebody looking at this product.
-     *
-     * Its own category first. The row used to be filled from the whole of the
-     * parent's subtree, which on a shop this wide meant a washing machine was
-     * shown beside an oven and an extractor hood — related only in the sense
-     * that both are appliances. Somebody comparing washing machines wants the
-     * other washing machines.
-     *
-     * A narrow category cannot always fill five cards, though, and three
-     * products under a half-empty row looks like the shop has nothing. So what
-     * the category cannot fill is topped up from its siblings, in the order
-     * they would have come anyway — which is the old behaviour, kept for
-     * exactly the case it was right for.
-     *
-     * @return array<int, array<string, mixed>>
-     */
     public static function related(Product $product, int $limit = 5): array
     {
         $found = $product->category_id
@@ -722,7 +537,7 @@ class Catalog
                 ->orderByDesc('sales_count')
                 ->limit($limit)
                 ->get()
-            // an Eloquent collection even when empty, because cards() wants one
+
             : new EloquentCollection;
 
         $missing = $limit - $found->count();
@@ -742,23 +557,6 @@ class Catalog
         return self::cards($found);
     }
 
-    /**
-     * The same article in its other shapes.
-     *
-     * Two ways of knowing, and the second is the one that does the work.
-     *
-     * variant_group comes from the supplier's own list of related products,
-     * which it does not always send — and when it is missing the colours on a
-     * product page had nothing to point at.
-     *
-     * The sku is the barcode, and a barcode names an article rather than a
-     * listing: a phone's black and white versions carry the same one. So
-     * products sharing a sku are the same thing in different colours, which is
-     * exactly the relationship wanted here, and it is already in the database
-     * without asking the supplier anything.
-     *
-     * @return Collection<int, Product>
-     */
     protected static function siblingsOf(Product $product): Collection
     {
         $query = Product::active()->withTranslation()
@@ -771,31 +569,9 @@ class Catalog
             return $query->where('variant_group', $product->variant_group)->get();
         }
 
-        /*
-         * Only when more than one product carries it. A sku the importer had
-         * to invent — "ZOOM-54321", for a row the supplier gave no barcode —
-         * is unique to one product and groups nothing.
-         */
         return $query->where('sku', $product->sku)->get();
     }
 
-    /**
-     * Which switcher is the colour row and which is the memory row.
-     *
-     * These were picked by attribute code — "color" and "storage" — and the
-     * codes are made from the supplier's own words. A Georgian shop importing
-     * Georgian names gets "feri" and "mekhsiereba", so neither ever matched
-     * and the product page showed no switchers at all however carefully the
-     * attributes were marked as variants in the admin.
-     *
-     * Decided on what the options are instead of what they are called: a
-     * colour is the group whose values carry a swatch, which is the one thing
-     * only a colour has. Whatever else is marked as a variant becomes the
-     * second row.
-     *
-     * @param  array<string, array<int, array<string, mixed>>>  $variants
-     * @return array{0: array<int, mixed>, 1: array<int, mixed>}
-     */
     protected static function splitVariants(array $variants): array
     {
         $colors = [];
@@ -813,21 +589,11 @@ class Catalog
             $other[$code] = $options;
         }
 
-        /*
-         * The page has one row for the rest, so with several the first is
-         * shown — by code, so the choice does not move about between requests.
-         */
         ksort($other);
 
         return [$colors, $other ? reset($other) : []];
     }
 
-    /**
-     * The colour / memory switchers on the product page: one entry per sibling
-     * product, so choosing an option navigates to the product that has it.
-     *
-     * @return array<string, array<int, array{code:string,label:?string,hex:?string,url:?string,current:bool}>>
-     */
     public static function variantSwitchers(Product $product): array
     {
         $siblings = self::siblingsOf($product);
@@ -848,8 +614,6 @@ class Catalog
 
                 $code = $value->attribute->code;
 
-                // the first sibling carrying an option owns it, unless the option
-                // belongs to the product being viewed — that one always wins
                 if ($isCurrent || ! isset($switchers[$code][$value->code])) {
                     $switchers[$code][$value->code] = [
                         'code' => $value->code,
@@ -865,9 +629,6 @@ class Catalog
         return array_map('array_values', $switchers);
     }
 
-    /* ================================================================== header search */
-
-    /** Header search: translated name or summary, brand name, or sku. */
     public static function search(string $term, int $limit = 5): array
     {
         $products = self::productQuery()

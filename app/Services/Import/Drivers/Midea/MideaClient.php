@@ -4,26 +4,10 @@ namespace App\Services\Import\Drivers\Midea;
 
 use Illuminate\Support\Facades\Http;
 
-/**
- * midea.ge, through the search its own header uses.
- *
- * One POST to /ka/search answers with everything about a product: the title,
- * the description, both prices, the main photograph, the gallery, the model
- * number and the stock flag. There is nothing else to ask the site for.
- *
- * searchByName() returns the fields the working version of this importer was
- * written against — sku, name, brand, price, sale_price, description, images
- * — so the driver reads what it always read.
- */
 class MideaClient
 {
     public function __construct(protected array $config = []) {}
 
-    /**
-     * The product, or nothing.
-     *
-     * @return array<string, mixed>|null
-     */
     public function searchByName(string $name): ?array
     {
         $wanted = $this->key($name);
@@ -43,19 +27,6 @@ class MideaClient
         return null;
     }
 
-    /* ------------------------------------------------------------------ asking */
-
-    /**
-     * What to ask for, in order.
-     *
-     * The search matches the whole string and any extra word kills it:
-     * "MDRB489FGE02OE" finds the fridge, "Midea MDRB489FGE02OE" and
-     * "MDRB489FGE02OE INOX" both find nothing. A price list writes it all
-     * three ways, so the whole string is tried first and then its words,
-     * longest first — the model code is the longest thing in the cell.
-     *
-     * @return array<int, string>
-     */
     protected function keywords(string $name): array
     {
         $name = trim($name);
@@ -69,20 +40,11 @@ class MideaClient
 
         $brand = mb_strtolower((string) ($this->config['brand'] ?? 'midea'));
 
-        // a short word matches half the catalogue and the brand matches all of it
         $words = array_filter($words, fn ($w) => mb_strlen($w) >= 5 && mb_strtolower($w) !== $brand);
 
         return array_merge([$name], array_values($words));
     }
 
-    /**
-     * The endpoint, called the way the site's own script calls it.
-     *
-     * A POST. Every GET shape answers {"status":0,"products":null}, which
-     * reads like "nothing found" and means "I did not understand you".
-     *
-     * @return array<int, array<string, mixed>>
-     */
     public function search(string $keyword): array
     {
         $keyword = trim($keyword);
@@ -95,24 +57,9 @@ class MideaClient
 
         $response = Http::timeout($this->config['timeout'] ?? 30)
             ->connectTimeout(10)
-            /*
-             * IPv4, like every other client in this import.
-             *
-             * A host that resolves to an address the server has no route
-             * to does not refuse the connection — it says nothing, and the
-             * attempt sits there until the connect timeout gives up. Which
-             * is what "cURL error 28: Connection timed out after 10001
-             * milliseconds for /ka/search" is, and it accounts for both
-             * halves of the trouble at once: every product waits out the
-             * full timeout, and nothing comes back to download a photograph
-             * from.
-             *
-             * Zoommer, Kontakt, Alneo, Metromart and the image downloader
-             * all carry this line. Midea was written without it and is the
-             * only one that times out.
-             */
+
             ->withOptions(['force_ip_resolve' => 'v4'])
-            // a dropped connection is worth one more go; a refusal is not
+
             ->retry(2, 500, throw: false)
             ->asForm()
             ->withHeaders([
@@ -133,9 +80,6 @@ class MideaClient
             : [];
     }
 
-    /* ------------------------------------------------------------------ reading */
-
-    /** @return array<string, mixed> */
     protected function take(array $product): array
     {
         $price = (float) ($product['price'] ?? 0);
@@ -146,7 +90,7 @@ class MideaClient
             'name' => $this->clean((string) ($product['title'] ?? '')),
             'brand' => $this->config['brand'] ?? 'Midea',
             'price' => $price,
-            // the site writes 0 for "no discount", which is not a price
+
             'sale_price' => $sale > 0 && $sale < $price ? $sale : null,
             'description' => $this->clean((string) ($product['text'] ?? $product['short_text'] ?? '')) ?: null,
             'images' => $this->images($product),
@@ -155,17 +99,6 @@ class MideaClient
         ];
     }
 
-    /**
-     * Whether a result is the model that was asked for.
-     *
-     * A search is a search: ask it for "MFM-60" and it answers with
-     * MFM-60ARN1-RB6. A product wearing another product's photographs is
-     * worse than one with none.
-     *
-     * Neither side can be required to equal the other, because the site
-     * writes the bare code on one product and the brand in front of it on the
-     * next.
-     */
     protected function matches(string $wanted, string $found): bool
     {
         $found = $this->key($found);
@@ -173,14 +106,6 @@ class MideaClient
         return $found !== '' && (str_contains($found, $wanted) || str_contains($wanted, $found));
     }
 
-    /**
-     * The main photograph and the gallery.
-     *
-     * Both arrive as bare filenames under the site's media path, and the
-     * gallery arrives as JSON inside the JSON.
-     *
-     * @return array<int, string>
-     */
     protected function images(array $product): array
     {
         $path = '/'.trim((string) config('services.midea.image_path', '/uploads/products/'), '/').'/';
@@ -205,14 +130,11 @@ class MideaClient
         )));
     }
 
-    /* ------------------------------------------------------------------ helpers */
-
     protected function base(): string
     {
         return rtrim((string) config('services.midea.base_url', 'https://www.midea.ge'), '/');
     }
 
-    /** Model codes differ in case and punctuation between a file and the site. */
     protected function key(string $model): string
     {
         return strtoupper(preg_replace('/[^A-Z0-9]/i', '', $model));

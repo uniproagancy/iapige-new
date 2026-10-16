@@ -10,16 +10,6 @@ use App\Support\Redact;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
-/**
- * Says whether Elite answers this machine, for the API and for the pictures.
- *
- * Elite's API already goes through a worker, so a blocked address shows up only
- * in the gallery — the pictures are fetched straight from their CDN by the
- * shared downloader, which knows nothing about workers. A product can therefore
- * arrive complete and bare, which looks like a bug in the importer and is not.
- *
- * Read-only: it fetches one product and one picture, and writes nothing.
- */
 class CheckEliteAccess extends Command
 {
     protected $signature = 'import:check-elite {--product= : an id known to exist}';
@@ -73,11 +63,6 @@ class CheckEliteAccess extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * A product the stock file lets through, so the test is of the real path.
-     *
-     * @return array{0: ?string, 1: array<int, string>}
-     */
     protected function sampleProduct(ImportManager $manager, Supplier $supplier): array
     {
         $driver = $manager->driver($supplier);
@@ -88,10 +73,6 @@ class CheckEliteAccess extends Command
             return [$chosen, $payload?->images ?? []];
         }
 
-        /*
-         * Walked rather than guessed: an id only yields a payload when its
-         * barcode is in the latest spreadsheet, and most ids are not.
-         */
         foreach (range(1, 400) as $id) {
             try {
                 $payload = $driver->fetch((string) $id);
@@ -100,7 +81,7 @@ class CheckEliteAccess extends Command
 
                 return [null, []];
             } catch (\Throwable $e) {
-                // a slow id is not a blocked one; try the next
+
                 continue;
             }
 
@@ -112,7 +93,6 @@ class CheckEliteAccess extends Command
         return [null, []];
     }
 
-    /** @return array{status: int|string, body: string, type: string} */
     protected function direct(string $url): array
     {
         return $this->request($url, [
@@ -121,7 +101,6 @@ class CheckEliteAccess extends Command
         ]);
     }
 
-    /** @return array{status: int|string, body: string, type: string} */
     protected function viaWorker(string $worker, string $url): array
     {
         if ($worker === '') {
@@ -135,10 +114,6 @@ class CheckEliteAccess extends Command
         ])), []);
     }
 
-    /**
-     * @param  array<string, string>  $headers
-     * @return array{status: int|string, body: string, type: string}
-     */
     protected function request(string $url, array $headers): array
     {
         try {
@@ -157,10 +132,6 @@ class CheckEliteAccess extends Command
         }
     }
 
-    /**
-     * @param  array{status: int|string, body: string, type: string}  $result
-     * @return array{0: string, 1: string}
-     */
     protected function describe(array $result): array
     {
         $isImage = str_starts_with($result['type'], 'image/');
@@ -175,10 +146,6 @@ class CheckEliteAccess extends Command
         return [$isImage ? '<fg=green>'.$result['status'].'</>' : '<fg=red>'.$result['status'].'</>', $said];
     }
 
-    /**
-     * @param  array{status: int|string, body: string, type: string}  $direct
-     * @param  array{status: int|string, body: string, type: string}  $viaWorker
-     */
     protected function verdict(array $direct, array $viaWorker): void
     {
         $ok = fn (array $r) => str_starts_with($r['type'], 'image/');

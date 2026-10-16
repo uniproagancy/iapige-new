@@ -2,18 +2,6 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Third Party Services
-    |--------------------------------------------------------------------------
-    |
-    | This file is for storing the credentials for third party services such
-    | as Resend, Postmark, AWS, and more. This file provides the de facto
-    | location for this type of information, allowing packages to have
-    | a conventional file to locate the various service credentials.
-    |
-    */
-
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
@@ -40,13 +28,9 @@ return [
         'user_agent' => env('ZOOMMER_USER_AGENT'),
         'sec_ch_ua' => env('ZOOMMER_SEC_CH_UA'),
         'access_token' => env('ZOOMMER_ACCESS_TOKEN'),
-        // kept for compatibility; measured against the live API, this cookie is
-        // not checked at all — only zoommer-access_token is
+
         'cf_clearance' => env('ZOOMMER_CF_CLEARANCE'),
 
-        // set this to reach the source through the shop's worker, as the Elite
-        // and Alta drivers do; a 403 is Cloudflare refusing a server address,
-        // not a bad cookie, so no header can fix it from here
         'worker_url' => env('ZOOMMER_WORKER_URL'),
     ],
     'alta' => [
@@ -55,9 +39,7 @@ return [
         'password' => env('ALTA_B2B_PASSWORD'),
         'worker_url' => env('ALTA_WORKER_URL'),
         'token' => env('ALTA_ACCESS_TOKEN'),
-        // alta.ge serves a Cloudflare browser challenge, so a clearance taken
-        // from a browser is forwarded with the request; it is bound to the
-        // user agent it was issued for, so the two travel together
+
         'cf_clearance' => env('ALTA_CF_CLEARANCE'),
         'user_agent' => env('ALTA_USER_AGENT', 'Mozilla/5.0'),
     ],
@@ -75,13 +57,7 @@ return [
         'search_url' => env('MIDEA_SEARCH_URL'),
         'search_param' => env('MIDEA_SEARCH_PARAM', 'search'),
         'user_agent' => env('MIDEA_USER_AGENT', 'Mozilla/5.0'),
-        /*
-         | Where the site keeps product photographs, used to tell them from
-         | logos and banners. The default was /storage/, which this site does
-         | not use: everything it serves sits under /uploads/products/, so the
-         | filter threw away every real photograph and any product whose images
-         | came from its own page arrived with none.
-         */
+
         'image_path' => env('MIDEA_IMAGE_PATH', '/uploads/products/'),
         'spec_xpath' => [
             '//table//tr[td]',
@@ -110,20 +86,7 @@ return [
     'metromart' => [
         'user_agent' => env('METROMART_USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
     ],
-    /*
-     | .env.example has documented these four keys all along; the values were
-     | written in here instead, which put a live access token in the repository
-     | and — worse for the ad account — pinned test_event_code on. Every event
-     | the shop has sent since then landed in Test Events, where Meta counts
-     | none of them as conversions.
-     */
-    /*
-     | Signing in with Google or Facebook.
-     |
-     | The redirect must match the one registered with the provider exactly,
-     | down to the scheme and any trailing slash, or the provider refuses the
-     | callback with no explanation worth reading.
-     */
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

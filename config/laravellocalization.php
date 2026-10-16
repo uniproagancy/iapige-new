@@ -1,14 +1,5 @@
 <?php
 
-/*
- * mcamara/laravel-localization
- *
- * Languages are managed in the database (App\Models\Language). At boot,
- * App\Providers\AppServiceProvider replaces `supportedLocales` and
- * `localesOrder` below with the active rows of the `languages` table and
- * sets app.locale to the default language. The list here is only the
- * fallback used before the table is migrated and seeded.
- */
 return [
 
     'supportedLocales' => [

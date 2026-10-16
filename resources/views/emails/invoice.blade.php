@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ __('invoice.title', ['number' => $order->number]) }}</title>
 </head>
-{{--
-    Styles are inline because mail clients strip stylesheets, and the layout is
-    a single table for the same reason: anything cleverer breaks in Outlook.
---}}
+
 <body style="margin:0;padding:0;background:#F6F7F8;font-family:Arial,Helvetica,sans-serif;color:#1A1D21">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F7F8;padding:24px 12px">
         <tr>
@@ -32,7 +29,6 @@
                         </td>
                     </tr>
 
-                    {{-- the details without which the payment cannot be made --}}
                     <tr>
                         <td style="padding:16px 28px">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
@@ -79,7 +75,6 @@
                                 </td></tr>
                             </table>
 
-                            {{-- the reference is what lets us match a transfer to an order --}}
                             <p style="margin:12px 0 0;font-size:12px;color:#92400E;background:#FEF3C7;padding:10px 12px;border-radius:8px;line-height:1.55">
                                 {{ __('invoice.reference_note', ['number' => $order->number]) }}
                             </p>

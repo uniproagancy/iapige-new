@@ -6,13 +6,6 @@ use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentManager;
 use Illuminate\Console\Command;
 
-/**
- * Asks each bank what became of the payments still waiting.
- *
- * This is the real source of truth: callbacks are missed, blocked by
- * firewalls, or sent to the wrong URL, while a question we ask ourselves
- * always gets an answer.
- */
 class CheckPayments extends Command
 {
     protected $signature = 'payments:check {--hours=48 : how far back to look}';
@@ -42,7 +35,6 @@ class CheckPayments extends Command
             try {
                 $confirmed = $payments->driver($transaction->driver)->confirm($transaction);
 
-                // only a confirmed payment changes anything; the rest stays pending
                 if ($confirmed) {
                     $payments->settle($transaction, true);
                     $paid++;

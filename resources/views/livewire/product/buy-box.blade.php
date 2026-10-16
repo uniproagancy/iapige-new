@@ -1,15 +1,7 @@
 <div>
-    {{--
-        The colour and size options used to live here.
-
-        They are navigation — each one opens a different product — so they are
-        links now, in <x-product.variants>, beside the specifications they
-        describe. This component keeps what genuinely needs a server: the
-        quantity and the basket.
-    --}}
 
     <div class="buyrow">
-        {{-- a pre-order has nothing to count, so the stepper goes with the button --}}
+
         @if ($product->isSellable())
             <div class="stepper">
                 <button type="button" wire:click="decrement" @disabled($qty <= 1) aria-label="{{ __('common.decrease') }}">
@@ -32,7 +24,7 @@
                 <span wire:loading wire:target="add">{{ __('common.wait') }}</span>
             </button>
         @elseif ($product->is_preorder)
-            {{-- information, not an offer: it cannot be bought until it arrives --}}
+
             <button type="button" class="btn-main is-pre" disabled>
                 <x-icon name="truck" size="18" />
                 {{ __('product.preorder_label') }}

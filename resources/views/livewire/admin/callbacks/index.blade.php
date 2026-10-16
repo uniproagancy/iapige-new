@@ -73,7 +73,7 @@
                                 </button>
 
                                 <small class="d-block">
-                                    {{-- cleaned, because a softphone dials the string exactly as given --}}
+
                                     <a href="{{ \App\Support\Phone::link($request->phone) }}"
                                        class="d-inline-flex align-items-center gap-25">
                                         {!! $icon('phone') !!}{{ $request->phone }}
@@ -92,11 +92,7 @@
                                     </a>
                                     <small class="d-block">{{ money($request->product->sellingPrice()) }}</small>
                                 @elseif ($request->page)
-                                    {{--
-                                        Calls left on the general form carry no
-                                        product, so the page they were on is the
-                                        next best thing an operator can open.
-                                    --}}
+
                                     <a href="{{ $request->page }}" target="_blank" rel="noopener">
                                         {{ __('admin.cb_from_page') }}
                                     </a>
@@ -112,47 +108,20 @@
                             </td>
 
                             <td class="text-end text-nowrap">
-                                {{--
-                                    The call itself, which is what this screen
-                                    is for.
 
-                                    The browser hands the address to whichever
-                                    program registered the scheme — Zoiper, on
-                                    the operator's machine — so the number has
-                                    to leave here in a shape a softphone will
-                                    dial, not in the shape the customer typed.
-                                    Marking the request as called is left to
-                                    the operator: the line may be busy, and a
-                                    row that says "called" when nobody answered
-                                    is a lead quietly dropped.
-                                --}}
                                 @if ($dial = \App\Support\Phone::link($request->phone))
                                     <a class="btn btn-sm btn-primary" href="{{ $dial }}">
                                         {!! $icon('phone', 'me-25') !!}{{ __('admin.cb_call') }}
                                     </a>
                                 @endif
 
-                                {{--
-                                    The order this call turned into, written
-                                    from here so the Purchase can carry the
-                                    identifiers the browser had when the
-                                    number was left. Once written, the button
-                                    leads to it rather than making a second.
-                                --}}
                                 @if ($request->order_id)
                                     <a class="btn btn-sm btn-outline-success"
                                        href="{{ route('admin.orders.show', $request->order_id) }}">
                                         {!! $icon('cart', 'me-25') !!}{{ __('admin.cb_see_order') }}
                                     </a>
                                 @else
-                                    {{--
-                                        Two ways, because a call is one of two
-                                        things: they want the thing they rang
-                                        about, or they want to talk it through.
-                                        The first is one click; the second opens
-                                        the operator's own checkout, filled in
-                                        as far as the call got.
-                                    --}}
+
                                     <button type="button" class="btn btn-sm btn-success"
                                             wire:click="createOrder({{ $request->id }})"
                                             wire:loading.attr="disabled">

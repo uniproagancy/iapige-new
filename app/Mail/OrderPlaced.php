@@ -9,13 +9,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * The confirmation a customer gets the moment an order exists.
- *
- * Its job is not to sell anything: it is proof that the money and the details
- * arrived somewhere real, which is the only thing a person wants to know in
- * the minute after paying a shop they have not used before.
- */
 class OrderPlaced extends Mailable
 {
     use Queueable, SerializesModels;

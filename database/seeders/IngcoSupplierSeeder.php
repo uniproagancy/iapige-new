@@ -19,28 +19,10 @@ class IngcoSupplierSeeder extends Seeder
                 'locale' => 'ka',
                 'brand' => 'INGCO',
 
-                /*
-                 | Below this the handling costs more than the tool returns.
-                 | Measured against the promotional price in column B, which is
-                 | what the supplier actually charges — not the list price in C.
-                 */
                 'min_price' => 120,
 
-                /*
-                 | Fewer than this in stock reads as unavailable rather than
-                 | being sold: the last two of a line are the ones that turn
-                 | into a cancelled order, and the list is a day old by the time
-                 | anybody buys. The product stays, so it returns on its own
-                 | when the supplier restocks.
-                 */
                 'min_stock' => 5,
 
-                /*
-                 | The price list, column by column:
-                 |
-                 | A model (the key)   B promotional price
-                 | C list price        D quantity
-                 */
                 'columns' => [
                     'key' => 'A',
                     'sale' => 'B',

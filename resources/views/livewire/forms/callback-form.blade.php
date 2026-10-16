@@ -1,6 +1,6 @@
 <div class="callback">
     @if ($sent)
-        {{-- the answer to a sent form is what happens next, not a tick --}}
+
         <div class="callback__done">
             <span class="callback__tick" aria-hidden="true">
                 <x-icon name="check" size="16" />

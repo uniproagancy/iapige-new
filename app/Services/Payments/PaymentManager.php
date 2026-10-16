@@ -13,15 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-/**
- * Chooses a driver and keeps the order in step with it.
- *
- * The order's own payment state is written here rather than in the drivers, so
- * a new bank cannot invent its own idea of what "paid" means.
- */
 class PaymentManager
 {
-    /** @var array<string, class-string<PaymentDriver>> */
     protected array $drivers = [
         'bog-installment' => BogInstallment::class,
         'bog-card' => BogCard::class,
@@ -45,7 +38,6 @@ class PaymentManager
         return isset($this->drivers[$name]);
     }
 
-    /** @return string the URL to send the customer to */
     public function start(Order $order, string $driver, array $options = []): string
     {
         $transaction = $this->driver($driver)->start($order, $options);
@@ -57,12 +49,6 @@ class PaymentManager
         return $transaction->redirect_url;
     }
 
-    /**
-     * Applies a confirmed payment to its order — once.
-     *
-     * Banks resend callbacks and the scheduler polls, so this is called more
-     * often than it acts; the second call must change nothing.
-     */
     public function settle(PaymentTransaction $transaction, bool $paid): void
     {
         $order = $transaction->order;
@@ -79,7 +65,7 @@ class PaymentManager
             ]);
 
             if (! $paid || $order->is_paid) {
-                return;   // nothing to do twice
+                return;
             }
 
             $order->update([
@@ -106,17 +92,6 @@ class PaymentManager
         }
     }
 
-    /**
-     * Tells Meta about the sale, once.
-     *
-     * This runs from a bank callback or from payments:check, with no browser
-     * anywhere — so the cookies and the address come from the snapshot taken
-     * at checkout. Banks resend callbacks, hence sent_at.
-     *
-     * No snapshot means no sale to report here: this payment was started from
-     * the website, which always leaves one. The admin reports the orders that
-     * never had a browser, and says so when it does.
-     */
     protected function reportPurchase(?Order $order): void
     {
         if ($order) {

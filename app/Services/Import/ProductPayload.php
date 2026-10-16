@@ -2,18 +2,8 @@
 
 namespace App\Services\Import;
 
-/**
- * What every driver must produce, whatever the source looks like.
- * Translations and specs are keyed by locale, so a single-language feed
- * simply fills one key and the rest fall back at read time.
- */
 class ProductPayload
 {
-    /**
-     * @param  array<string, array{name?:string, summary?:string, description?:string}>  $translations
-     * @param  array<int, array{name:string, value:string, locale:string, key?:bool}>  $specs
-     * @param  array<int, string>  $images
-     */
     public function __construct(
         public readonly string $externalId,
         public readonly string $sku,

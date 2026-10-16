@@ -13,33 +13,17 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Where a supplier's own names are tied to ours.
- *
- * Nothing here guesses: an unmapped category leaves its products without one
- * until a human decides, because a wrong category is worse than none. Rows are
- * ordered by how often each name arrived, so the first ten minutes spent here
- * cover most of the catalogue.
- */
 class Index extends Component
 {
     use WithPagination;
 
-    /** categories | attributes */
     #[Url(as: 'tab', except: 'categories')]
     public string $tab = 'categories';
 
-    /**
-     * The row whose list is open, and what has been typed into it.
-     *
-     * One at a time: a picker is something somebody is in the middle of, and
-     * two half-finished ones on a screen is a way to assign the wrong row.
-     */
     public ?int $picking = null;
 
     public string $pick = '';
 
-    /** Enough to choose from without turning the page into a list. */
     protected const SUGGESTIONS = 12;
 
     #[Url(as: 'supplier', except: null)]
@@ -48,31 +32,19 @@ class Index extends Component
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
-    /** '' | 'mapped' | 'unmapped' — everything by default, unmapped first */
     #[Url(as: 'state', except: '')]
     public string $stateFilter = '';
 
     public int $perPage = 40;
 
-    /** How many categories to name per attribute before it stops being useful. */
     protected const CONTEXT_CATEGORIES = 3;
 
-    /** row id => target id, for the bulk save */
     public array $choice = [];
 
-    /** how many products are waiting behind each unmapped name */
     public bool $showImpact = true;
 
-    /** '' | 'mapped' | 'unmapped' — the only states the query knows about. */
     protected const STATES = ['', 'mapped', 'unmapped'];
 
-    /**
-     * A state the query cannot answer is no state at all.
-     *
-     * stateFilter comes off the query string, so a stale or hand-typed value
-     * sticks to the component while the select shows nothing selected — the
-     * screen then looks filtered by something invisible.
-     */
     public function mount(): void
     {
         if (! in_array($this->stateFilter, self::STATES, true)) {
@@ -88,8 +60,6 @@ class Index extends Component
         }
     }
 
-    /* ------------------------------------------------------------------ shape */
-
     protected function table(): string
     {
         return $this->tab === 'attributes' ? 'supplier_attribute_map' : 'supplier_category_map';
@@ -99,8 +69,6 @@ class Index extends Component
     {
         return $this->tab === 'attributes' ? 'attribute_id' : 'category_id';
     }
-
-    /* ------------------------------------------------------------------ render */
 
     public function render()
     {
@@ -123,12 +91,11 @@ class Index extends Component
             'impact' => $this->showImpact ? $this->impact($rows) : [],
             'context' => $this->categoryContext($rows),
             'canRelink' => $this->canRelink(),
-            // only built when a list is actually open
+
             'suggestions' => $this->picking ? $this->suggestions() : [],
         ])->layout('layouts.admin', ['title' => __('admin.mapping')]);
     }
 
-    /** What a row can be mapped onto: id => readable path. */
     protected function targets(): array
     {
         if ($this->tab === 'attributes') {
@@ -137,7 +104,6 @@ class Index extends Component
                 ->all();
         }
 
-        // the full path, so two different "Cases" are told apart at a glance
         $byParent = Category::withTranslation()->orderBy('sort_order')->orderBy('id')->get()->groupBy('parent_id');
         $flat = [];
 
@@ -154,23 +120,6 @@ class Index extends Component
         return $flat;
     }
 
-    /**
-     * Where each attribute's products actually sit, for the rows on this page.
-     *
-     * Mapping "ეკრანის ზომა" by hand is guesswork without knowing whether it
-     * arrived on a phone or a television — the name alone does not say, and the
-     * same wording means different things per department.
-     *
-     * Nothing links an attribute to a category directly, so the answer comes
-     * the only way it can: attribute -> specs -> products -> category. That
-     * chain runs through product_specs, which is why a reset that deletes the
-     * attributes also takes this context with it and the column comes back
-     * empty; attributes:reset --keep-attributes is the one that preserves it.
-     *
-     * One query for the page, not one per row.
-     *
-     * @return array<int, array<int, array{name: string, products: int}>>
-     */
     protected function categoryContext($rows): array
     {
         if ($this->tab !== 'attributes') {
@@ -201,7 +150,7 @@ class Index extends Component
         return $counts
             ->groupBy('attribute_id')
             ->map(fn ($group) => $group
-                // the busiest departments first; a long tail helps nobody
+
                 ->take(self::CONTEXT_CATEGORIES)
                 ->map(fn ($row) => [
                     'name' => $names[$row->category_id] ?? '—',
@@ -220,12 +169,6 @@ class Index extends Component
         ];
     }
 
-    /**
-     * How many products each unmapped category name is holding up — the number
-     * that turns "47 names to map" into "these three are worth doing first".
-     *
-     * @return array<string, int> external_name => products
-     */
     protected function impact($rows): array
     {
         if ($this->tab !== 'categories' || ! $this->canRelink()) {
@@ -247,15 +190,11 @@ class Index extends Component
             ->all();
     }
 
-    /** Re-linking needs the supplier's own category name kept on the offer. */
     protected function canRelink(): bool
     {
         return Schema::hasColumn('product_offers', 'external_category');
     }
 
-    /* ------------------------------------------------------------------ actions */
-
-    /** Map one row; the choice applies the moment it is made. */
     public function openPicker(int $id): void
     {
         $this->picking = $id;
@@ -268,7 +207,6 @@ class Index extends Component
         $this->pick = '';
     }
 
-    /** Chosen from the list, which is the only way to choose. */
     public function choose(int $id, int $targetId): void
     {
         $this->assign($id, $targetId);
@@ -281,15 +219,6 @@ class Index extends Component
         $this->closePicker();
     }
 
-    /**
-     * What to offer for what has been typed so far.
-     *
-     * Matched anywhere in the trail rather than only at the start, because
-     * the part somebody remembers is usually the last word — "watches", not
-     * "Mobile phones and accessories".
-     *
-     * @return array<int, string>
-     */
     public function suggestions(): array
     {
         $targets = $this->targets();
@@ -316,7 +245,6 @@ class Index extends Component
         }
     }
 
-    /** Apply every choice ticked in the list at once. */
     public function saveAll(): void
     {
         $saved = 0;
@@ -338,10 +266,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.mapped', ['count' => $saved]));
     }
 
-    /**
-     * Push the mapping onto products that arrived before it existed.
-     * Products whose category was set by hand are left alone.
-     */
     public function relink(): void
     {
         if ($this->tab !== 'categories') {
@@ -373,10 +297,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.relinked', ['count' => $updated]));
     }
 
-    /**
-     * Create our category straight from the supplier's name and map to it —
-     * the common case when a whole section is missing from our tree.
-     */
     public function createAndMap(int $id, ?int $parentId = null): void
     {
         if ($this->tab !== 'categories') {
@@ -412,7 +332,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.category_created', ['name' => $category->name ?? $row->external_name]));
     }
 
-    /** Forget a name entirely; it returns on the next import if still in use. */
     public function forget(int $id): void
     {
         DB::table($this->table())->where('id', $id)->delete();

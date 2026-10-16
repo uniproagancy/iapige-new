@@ -7,14 +7,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * One slide of the home page's carousel.
- *
- * @property string|null $dates
- * @property string|null $title
- * @property string|null $sub
- * @property string|null $cta
- */
 class Slide extends Model
 {
     use HasTranslations;
@@ -33,7 +25,6 @@ class Slide extends Model
         ];
     }
 
-    /** Showing right now — switched on, and inside its dates if it has any. */
     public function scopeLive(Builder $query): Builder
     {
         return $query->where('is_active', true)
@@ -52,14 +43,6 @@ class Slide extends Model
             : Storage::disk('public')->url($this->image);
     }
 
-    /**
-     * Whether this slide is worth drawing.
-     *
-     * A picture with nothing written on it is a banner; words with no picture
-     * are a blank rectangle. Either on its own is fine — both missing is not
-     * a slide at all, and one saved half-finished should not leave a hole in
-     * the carousel.
-     */
     public function isDrawable(): bool
     {
         return (bool) ($this->image || $this->title);

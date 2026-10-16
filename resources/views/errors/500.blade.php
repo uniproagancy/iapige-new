@@ -11,7 +11,6 @@
                 <a class="btn-main" href="{{ route('home') }}">{{ __('errors.to_home') }}</a>
             </div>
 
-            {{-- an order half-placed is exactly when somebody needs a telephone --}}
             <p class="errpage__help">
                 {{ __('errors.call_us') }}
                 <a href="tel:{{ preg_replace('/\s/', '', config('shop.phone')) }}">{{ config('shop.phone') }}</a>

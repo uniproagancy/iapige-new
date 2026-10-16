@@ -8,13 +8,6 @@ use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
-/**
- * The first screen of the day.
- *
- * It answers what somebody opening the admin actually wants to know: what came
- * in overnight, what is waiting on me, and what is broken in the catalogue.
- * Everything else belongs on its own page.
- */
 class Dashboard extends Component
 {
     public function render()
@@ -28,11 +21,9 @@ class Dashboard extends Component
         ])->layout('layouts.admin', ['title' => __('admin.dashboard')]);
     }
 
-    /** Today against yesterday, because a number alone says nothing. */
     protected function today(): array
     {
-        // one row per day: the count and the takings come back together, so
-        // there is no second query that can fall out of step with the first
+
         $rows = DB::table('orders')
             ->selectRaw('date(created_at) as day, count(*) as orders, coalesce(sum(total), 0) as revenue')
             ->whereDate('created_at', '>=', now()->subDay()->toDateString())
@@ -50,7 +41,6 @@ class Dashboard extends Component
         ];
     }
 
-    /** What is on somebody's desk right now. */
     protected function waiting(): array
     {
         return [
@@ -63,7 +53,6 @@ class Dashboard extends Component
         ];
     }
 
-    /** Catalogue faults, each a link to the filtered list that fixes them. */
     protected function problems(): array
     {
         $row = DB::table('products')
@@ -83,7 +72,6 @@ class Dashboard extends Component
         ];
     }
 
-    /** Seven days of revenue, for the shape rather than the figures. */
     protected function week(): array
     {
         $rows = DB::table('orders')

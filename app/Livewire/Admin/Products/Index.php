@@ -11,13 +11,6 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * The product list: where imported products are reviewed and published.
- *
- * The filters mirror the questions actually asked of this screen — "what is
- * still draft", "what has no category", "what has no photo" — because those
- * are what stand between an import and a shop.
- */
 class Index extends Component
 {
     use WithPagination;
@@ -37,7 +30,6 @@ class Index extends Component
     #[Url(as: 'supplier', except: null)]
     public ?int $supplierId = null;
 
-    /** '' | ready | nocat | nobrand | nophoto | noprice | out | preorder | noweight */
     #[Url(as: 'issue', except: '')]
     public string $issue = '';
 
@@ -47,12 +39,10 @@ class Index extends Component
     #[Url(as: 'per', except: 25)]
     public int $perPage = 25;
 
-    /** @var array<int, int> ids ticked for a bulk action */
     public array $selected = [];
 
     public bool $selectPage = false;
 
-    /* ---- bulk pickers ---- */
     public ?int $bulkCategory = null;
 
     public ?int $bulkBrand = null;
@@ -64,8 +54,6 @@ class Index extends Component
             $this->clearSelection();
         }
     }
-
-    /* ------------------------------------------------------------------ query */
 
     protected function query()
     {
@@ -90,7 +78,7 @@ class Index extends Component
             ))
             ->when($this->brandId, fn ($q) => $q->where('brand_id', $this->brandId))
             ->when($this->supplierId, fn ($q) => $q->whereHas('offers', fn ($o) => $o->where('supplier_id', $this->supplierId)))
-            // a draft the publish button would accept: nothing left to fix on it
+
             ->when($this->issue === 'ready', fn ($q) => $q->readyToPublish()->where('status', Product::STATUS_DRAFT))
             ->when($this->issue === 'nocat', fn ($q) => $q->whereNull('category_id'))
             ->when($this->issue === 'nobrand', fn ($q) => $q->whereNull('brand_id'))
@@ -124,7 +112,6 @@ class Index extends Component
         ])->layout('layouts.admin', ['title' => __('admin.products')]);
     }
 
-    /** The tree as a flat list, so a sub-category is pickable and still readable. */
     protected function categoryOptions(): array
     {
         $byParent = Category::withTranslation()->orderBy('sort_order')->orderBy('id')->get()->groupBy('parent_id');
@@ -142,7 +129,6 @@ class Index extends Component
         return $flat;
     }
 
-    /** One query for the whole problem bar, instead of seven counts. */
     protected function issueCounts(): array
     {
         $row = DB::table('products')
@@ -165,7 +151,7 @@ class Index extends Component
             'out' => (int) ($row->out ?? 0),
             'noweight' => (int) ($row->noweight ?? 0),
             'nophoto' => Product::whereDoesntHave('images')->count(),
-            // its own query: the rule reaches into product_translations
+
             'ready' => Product::readyToPublish()->where('status', Product::STATUS_DRAFT)->count(),
         ];
     }
@@ -183,8 +169,6 @@ class Index extends Component
             || $this->brandId || $this->supplierId || $this->issue;
     }
 
-    /* ------------------------------------------------------------------ selection */
-
     public function updatedSelectPage(bool $value): void
     {
         $this->selected = $value
@@ -192,7 +176,6 @@ class Index extends Component
             : [];
     }
 
-    /** Everything the current filters match, not just the page in view. */
     public function selectAllFiltered(): void
     {
         $this->selected = $this->query()->reorder()->pluck('id')->map(fn ($id) => (int) $id)->all();
@@ -206,8 +189,6 @@ class Index extends Component
         $this->bulkCategory = null;
         $this->bulkBrand = null;
     }
-
-    /* ------------------------------------------------------------------ single row */
 
     public function publish(int $id): void
     {
@@ -237,25 +218,14 @@ class Index extends Component
 
     public function delete(int $id): void
     {
-        Product::findOrFail($id)->delete();   // soft delete
+        Product::findOrFail($id)->delete();
         $this->dispatch('toast', message: __('admin.deleted'));
     }
 
-    /* ------------------------------------------------------------------ bulk */
-
-    /**
-     * Publishes everything selected that is ready, in two statements.
-     *
-     * Asked product by product this read $product->name, which lazy-loads the
-     * translations — one query per product, so publishing a page of a hundred
-     * cost a hundred and one. The rule is a scope, so the database can answer
-     * for the whole selection at once.
-     */
     public function bulkPublish(): void
     {
         $ready = Product::readyToPublish()->whereKey($this->selected)->pluck('id');
 
-        // first, or the status update makes "never published" indistinguishable
         Product::whereKey($ready)->whereNull('published_at')->update(['published_at' => now()]);
         Product::whereKey($ready)->update(['status' => Product::STATUS_ACTIVE]);
 
@@ -280,10 +250,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.saved'));
     }
 
-    /**
-     * Category and brand are set together, because they are what the import
-     * also sets — and both skip products whose taxonomy was locked by hand.
-     */
     public function bulkSetCategory(): void
     {
         if (! $this->bulkCategory) {
@@ -320,10 +286,6 @@ class Index extends Component
             : __('admin.bulk_branded', ['count' => $changed]));
     }
 
-    /**
-     * Locking is what makes a bulk edit last: without it the next import puts
-     * the supplier's own category and brand back.
-     */
     public function bulkLockTaxonomy(bool $locked = true): void
     {
         Product::whereKey($this->selected)->update(['taxonomy_lock' => $locked]);
@@ -346,15 +308,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.bulk_deleted', ['count' => $count]));
     }
 
-    /**
-     * A product with no category, name or price would be invisible or broken on
-     * the storefront, so publishing it is refused rather than half-done.
-     *
-     * The verdict comes from the scope, never from a second copy of the rule
-     * here — otherwise the "ready" filter and this button could disagree about
-     * the same product. The checks below only name what is missing, for the
-     * message, and are reached when the answer is already no.
-     */
     protected function readyToPublish(Product $product): bool
     {
         if (Product::readyToPublish()->whereKey($product->id)->exists()) {

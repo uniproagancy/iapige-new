@@ -6,12 +6,6 @@ use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * One row of the product spec table. The label is the attribute's name,
- * the value is translated here: "პროცესორი — Ryzen 9 7940HS · 8 ბირთვი".
- *
- * @property string|null $value
- */
 class ProductSpec extends Model
 {
     use HasTranslations;

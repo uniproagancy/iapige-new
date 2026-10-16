@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductInteraction extends Model
 {
-    public const UPDATED_AT = null;   // append-only
+    public const UPDATED_AT = null;
 
     public const CART_ADD = 'cart_add';
 

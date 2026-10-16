@@ -4,26 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Payment methods the checkout offers. `driver` stays null until the bank
- * integration lands — such a method simply creates the order and waits for a
- * manual confirmation.
- */
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 40)->unique();            // bog_card, tbc_installment …
-            $table->string('driver')->nullable();            // App\Services\Payments\Drivers\BogDriver
+            $table->string('code', 40)->unique();
+            $table->string('driver')->nullable();
             $table->string('logo')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->boolean('is_online')->default(true);     // redirects to the bank
-            $table->decimal('min_total', 10, 2)->nullable(); // instalments usually have a floor
+            $table->boolean('is_online')->default(true);
+            $table->decimal('min_total', 10, 2)->nullable();
             $table->decimal('max_total', 10, 2)->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->json('config')->nullable();              // keys and endpoints, per method
+            $table->json('config')->nullable();
             $table->timestamps();
 
             $table->index(['is_active', 'sort_order']);
@@ -34,7 +29,7 @@ return new class extends Migration
             $table->foreignId('payment_method_id')->constrained()->cascadeOnDelete();
             $table->string('locale', 10);
             $table->string('name');
-            $table->string('note')->nullable();              // "approved in 3 minutes"
+            $table->string('note')->nullable();
 
             $table->unique(['payment_method_id', 'locale']);
             $table->foreign('locale')->references('code')->on('languages')

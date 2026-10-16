@@ -6,17 +6,6 @@ use App\Models\Product;
 use App\Support\Catalog;
 use Illuminate\Console\Command;
 
-/**
- * Why a product's colour and memory switchers behave as they do.
- *
- * Three things have to line up before one works: the product and its siblings
- * must share a variant_group, the attribute must be marked as a variant, and
- * each option must belong to a different product. When an option is carried
- * by the product being viewed there is nowhere to send anybody, so the button
- * draws and does nothing — which looks exactly like a broken link.
- *
- * Searched by name, because a slug is the one thing nobody remembers.
- */
 class ShowProductVariants extends Command
 {
     protected $signature = 'product:variants {search : part of the name, the sku, or a slug}';
@@ -45,11 +34,6 @@ class ShowProductVariants extends Command
         $this->line("  sku {$product->sku} · id {$product->id}");
         $this->line('');
 
-        /*
-         * Grouped the same way the page groups them: the supplier's own list
-         * when it sent one, and otherwise the barcode, which names an article
-         * rather than a listing and so is shared by a phone's colours.
-         */
         $by = $product->variant_group ? 'variant_group' : 'sku';
         $value = $product->variant_group ?: $product->sku;
 
@@ -101,10 +85,6 @@ class ShowProductVariants extends Command
             );
         }
 
-        /*
-         * The failure this command exists to name: every option belongs to the
-         * product being looked at, so none of them can lead anywhere.
-         */
         $dead = collect($switchers)->flatten(1)->every(fn (array $o) => empty($o['url']));
 
         if ($dead) {
@@ -116,18 +96,9 @@ class ShowProductVariants extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * Products that are plainly the same thing, and what keeps them apart.
-     *
-     * The usual answer to "no siblings" is not that they are missing but that
-     * each ended up in a group of its own. The supplier builds a group from
-     * the list of related ids it sends with each product, so a product whose
-     * list arrived short — or arrived on a different day — gets a group
-     * nobody else shares. Shown side by side, that is obvious at a glance.
-     */
     protected function nearby(Product $product): void
     {
-        // the name up to the part that differs, which is usually the colour
+
         $stem = trim(implode(' ', array_slice(preg_split('/\s+/', (string) $product->name), 0, 6)));
 
         $others = Product::withTranslation()

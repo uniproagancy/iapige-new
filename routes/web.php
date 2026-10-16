@@ -30,7 +30,6 @@ Route::group([
     'middleware' => ['localeSessionRedirect', 'localizationRedirect'],
 ], function () {
 
-    // Livewire requests keep the page's language: /en/livewire-…/update
     Livewire::setUpdateRoute(fn ($handle, $path) => Route::post($path, $handle));
 
     Route::get('/', Home::class)->name('home');
@@ -38,13 +37,6 @@ Route::group([
     Route::get('/catalog/{slug?}', Catalog::class)->name('catalog');
     Route::get('/product/{slug}', Product::class)->name('product');
 
-    /*
-     | Campaigns.
-     |
-     | Addressed by a slug per language, as categories and products are, so the
-     | URL reads like the campaign rather than like the handle somebody typed
-     | into an admin field.
-     */
     Route::get('/promotions', Promotions::class)->name('promotions');
     Route::get('/promotions/{slug}', Promotion::class)->name('promotion');
     Route::get('/checkout', Checkout::class)->name('checkout');
@@ -67,12 +59,6 @@ Route::group([
 
 });
 
-/*
- | Signing in with Google or Facebook.
- |
- | Outside the {locale} group: the callback address is registered with the
- | provider once and cannot carry a language that changes per visitor.
- */
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
     ->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
@@ -80,16 +66,6 @@ Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
-/*
- | The Facebook / Instagram catalogue.
- |
- | Outside the {locale} group on purpose: Facebook stores the one URL it was
- | given and refetches it for years, so a locale prefix would freeze the feed
- | to whichever language happened to be active when it was pasted in. The feed
- | declares its own locale in config/feeds.php.
- |
- | The file is built by the scheduler, never by this request.
- */
 Route::get('/feed/facebook.xml', [FeedController::class, 'facebook'])->name('feed.facebook');
 Route::get('/feed/google.xml', [FeedController::class, 'google'])->name('feed.google');
 
@@ -103,16 +79,6 @@ Route::post('/payment/bog/installment/{number}', [BogInstallmentController::clas
 Route::get('/payment/credo/{number}', [CredoController::class, 'form'])
     ->name('payment.credo.form');
 
-/*
- | Paying an order that was placed over the telephone.
- |
- | Outside the localised group with the rest of the payment routes, and for
- | the same reason: the URL is signed, and localeSessionRedirect would send a
- | customer whose session remembers another language to a different path —
- | which is a different signature, and a refusal on the one page that must not
- | refuse. The component checks the signature itself, so an expired link can
- | say so in words instead of answering 403.
- */
 Route::get('/pay/{number}', PayOrder::class)->name('order.pay');
 
 Route::middleware(['auth', 'can:admin'])
@@ -135,6 +101,7 @@ Route::middleware(['auth', 'can:admin'])
 
         Route::get('/orders', Admin\Orders\Index::class)->name('orders');
         Route::get('/orders/create', Admin\Orders\Create::class)->name('orders.create');
+        Route::get('/orders/{order}/edit', Admin\Orders\Edit::class)->name('orders.edit');
         Route::get('/orders/{order}', Admin\Orders\Show::class)->name('orders.show');
 
         Route::get('/promotions', Admin\Promotions\Index::class)->name('promotions');

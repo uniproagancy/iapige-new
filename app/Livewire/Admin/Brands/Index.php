@@ -10,11 +10,6 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
-/**
- * Brands are not translated — the name is the same everywhere — so this is a
- * plain list with an inline form, plus a merge action for the duplicates an
- * import inevitably creates ("Samsung" / "SAMSUNG").
- */
 class Index extends Component
 {
     use WithFileUploads, WithPagination;
@@ -22,15 +17,6 @@ class Index extends Component
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
-    /**
-     * Only the brands nobody sells.
-     *
-     * The button for this was in the view and the property never was, so the
-     * page died on "Undefined variable $onlyEmpty" the moment anybody opened
-     * it — and the filter it was meant to apply had never been written
-     * either. A brand with no products is noise in the sidebar and the point
-     * of the button is to find them.
-     */
     #[Url(as: 'empty', except: false)]
     public bool $onlyEmpty = false;
 
@@ -38,7 +24,6 @@ class Index extends Component
 
     public ?int $editingId = null;
 
-    /* ---- form ---- */
     public string $name = '';
 
     public string $slug = '';
@@ -53,7 +38,6 @@ class Index extends Component
 
     public ?string $currentLogo = null;
 
-    /* ---- merge ---- */
     public bool $showMerge = false;
 
     public ?int $mergeFrom = null;
@@ -84,8 +68,6 @@ class Index extends Component
             'all' => Brand::orderBy('name')->get(['id', 'name']),
         ])->layout('layouts.admin', ['title' => __('admin.brands')]);
     }
-
-    /* ------------------------------------------------------------------ form */
 
     public function create(): void
     {
@@ -169,8 +151,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.deleted'));
     }
 
-    /* ------------------------------------------------------------------ merge duplicates */
-
     public function startMerge(int $id): void
     {
         $this->mergeFrom = $id;
@@ -178,7 +158,6 @@ class Index extends Component
         $this->showMerge = true;
     }
 
-    /** Move every product onto the kept brand, then drop the duplicate. */
     public function merge(): void
     {
         $this->validate([

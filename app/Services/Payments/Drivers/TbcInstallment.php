@@ -10,18 +10,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-/**
- * TBC online instalments, spoken to directly.
- *
- * The published package stopped at PHP 7, and the protocol is three requests:
- * a token, an application, and a status. Writing them out is less code than
- * carrying a dependency that pins Guzzle a major version back.
- *
- * TBC sends no callbacks, so payments:check is what closes these orders.
- */
 class TbcInstallment implements PaymentDriver
 {
-    /** What the bank's status endpoint means by its numbers. */
     protected const STATUS_PENDING = 0;
 
     protected const STATUS_SUCCESS = 2;
@@ -30,11 +20,6 @@ class TbcInstallment implements PaymentDriver
     {
         $fee = (float) config('tbc.installment.handling_fee', 0.05);
 
-        /*
-         * The bank checks that the product rows add up to priceTotal, so both
-         * are built from the same rounded figures — rounding each line and the
-         * total separately is what makes an application bounce.
-         */
         $products = $order->items->map(fn ($item) => [
             'name' => mb_substr($item->name, 0, 100),
             'price' => round((float) $item->price * (1 + $fee), 2),
@@ -61,7 +46,6 @@ class TbcInstallment implements PaymentDriver
 
         $data = $response->json() ?? [];
 
-        // the redirect is a header, not a field, which is easy to miss
         $redirect = $response->header('Location');
 
         if (! $response->successful() || empty($data['sessionId']) || ! $redirect) {
@@ -86,13 +70,6 @@ class TbcInstallment implements PaymentDriver
         ]);
     }
 
-    /**
-     * Asks the bank what became of an application.
-     *
-     * Status 0 means the customer has not finished, which is not a failure: it
-     * stays pending so the next run asks again. Anything else that is not
-     * success is a refusal and closes the transaction.
-     */
     public function confirm(PaymentTransaction $transaction): bool
     {
         if (! $transaction->external_id) {
@@ -102,7 +79,7 @@ class TbcInstallment implements PaymentDriver
         $response = Http::withToken($this->token())
             ->acceptJson()
             ->timeout(20)
-            // the bank wants its key in the body of a GET, which is unusual but required
+
             ->withBody(
                 json_encode(['merchantKey' => (string) config('tbc.installment.merchant_key')]),
                 'application/json',
@@ -139,15 +116,9 @@ class TbcInstallment implements PaymentDriver
 
     public function handleCallback(array $payload): ?PaymentTransaction
     {
-        return null;   // TBC does not send any
+        return null;
     }
 
-    /**
-     * Cancels an application the shop no longer wants to honour.
-     *
-     * Not part of the interface, but the admin needs it when an order is
-     * cancelled before the bank has disbursed.
-     */
     public function cancel(PaymentTransaction $transaction): bool
     {
         if (! $transaction->external_id) {
@@ -169,8 +140,6 @@ class TbcInstallment implements PaymentDriver
 
         return $response->successful();
     }
-
-    /* ------------------------------------------------------------------ plumbing */
 
     protected function token(): string
     {

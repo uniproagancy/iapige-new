@@ -21,7 +21,7 @@ class SupplierSeeder extends Seeder
                 'locales' => ['ka', 'en'],
                 'stock_cities' => ['თბილისი', 'Tbilisi'],
                 'stock_units' => 5,
-                // the Tbilisi branches are what a customer can collect from
+
                 'require_stock' => true,
                 'headers' => [
                     'User-Agent' => env('ZOOMMER_USER_AGENT', ''),

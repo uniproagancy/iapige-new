@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/** One supplier's price and stock for one product. */
 class ProductOffer extends Model
 {
     protected $fillable = [

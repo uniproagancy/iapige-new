@@ -18,7 +18,7 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ filters --}}
+
     <div class="card">
         <div class="card-body pb-1">
             <div class="row g-1">
@@ -63,7 +63,7 @@
                 </small>
 
                 <div class="d-flex gap-1">
-                    {{-- the shortcut that turns an imported mess into a usable sidebar --}}
+
                     <button type="button" class="btn btn-sm btn-outline-primary"
                             wire:click="enableUseful"
                             wire:confirm="{{ __('admin.enable_useful_confirm') }}">
@@ -80,7 +80,6 @@
         </div>
     </div>
 
-    {{-- ------------------------------------------------------------ list --}}
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
@@ -153,7 +152,6 @@
                             </td>
                         </tr>
 
-                        {{-- the values of one attribute, opened in place --}}
                         @if ($valuesFor === $attribute->id)
                             <tr wire:key="vals-{{ $attribute->id }}">
                                 <td colspan="7" class="bg-transparent">
@@ -200,7 +198,6 @@
         </div>
     </div>
 
-    {{-- ------------------------------------------------------------ form --}}
     @if ($showForm)
         <div class="modal fade show d-block" tabindex="-1" style="background:rgba(34,41,47,.5)">
             <div class="modal-dialog modal-dialog-centered">

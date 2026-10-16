@@ -20,12 +20,6 @@
     };
 @endphp
 
-{{--
-    navbar-dark, because the layout is.
-
-    The body carries dark-layout and this bar carried navbar-light, so a white
-    strip floated above a dark page with pale-grey text on it.
---}}
 <nav class="header-navbar navbar navbar-expand-lg align-items-center floating-nav navbar-dark navbar-shadow container-xxl">
     <div class="navbar-container d-flex content">
         <div class="bookmark-wrapper d-flex align-items-center">
@@ -37,22 +31,7 @@
         </div>
 
         <ul class="nav navbar-nav align-items-center ms-auto">
-            {{--
-                The template's light/dark switch used to sit here. Nothing
-                listened to it — the admin is dark either way — so it was a
-                button that did nothing but invite a click.
-            --}}
 
-            {{--
-                No link to the storefront here either.
-
-                It was the last item of the menu below and has been taken out
-                rather than moved up: the label is still used on the product
-                screens, where "view site" means this one product on the shop,
-                which is the only place it says anything.
-            --}}
-
-            {{-- who is signed in --}}
             <li class="nav-item dropdown dropdown-user">
                 <a class="nav-link dropdown-toggle dropdown-user-link" href="#" data-bs-toggle="dropdown">
                     <div class="user-nav d-sm-flex d-none">

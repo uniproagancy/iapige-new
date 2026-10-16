@@ -30,7 +30,6 @@ class Brand extends Model
         return $query->where('is_active', true)->orderBy('sort_order')->orderBy('name');
     }
 
-    /** Absolute URLs and /public paths are used as-is; anything else is a storage path. */
     public function logoUrl(): ?string
     {
         if (! $this->logo) {

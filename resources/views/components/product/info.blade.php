@@ -13,7 +13,7 @@
                 <div class="krow"><span class="krow__k">{{ $k }}</span><span class="krow__v">{{ $v }}</span></div>
             @endforeach
         </div>
-        {{-- the other shapes this product comes in, under the specs they differ by --}}
+
         <x-product.variants :colors="$colors" :configs="$configs" />
 
         <button type="button" class="showall" data-tab="specs" data-scroll-tabs>

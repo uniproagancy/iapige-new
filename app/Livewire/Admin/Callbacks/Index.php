@@ -11,12 +11,6 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Callback requests, worked from the top.
- *
- * The screen opens on what nobody has answered yet, because a lead goes cold
- * in hours and this list is the only place it exists.
- */
 class Index extends Component
 {
     use WithPagination;
@@ -27,7 +21,6 @@ class Index extends Component
     #[Url(as: 'status', except: 'new')]
     public string $status = 'new';
 
-    /** the request opened in place */
     public ?int $open = null;
 
     public string $note = '';
@@ -65,7 +58,6 @@ class Index extends Component
         ])->layout('layouts.admin', ['title' => __('admin.callbacks')]);
     }
 
-    /** @return array<string, int> */
     protected function counts(): array
     {
         return CallbackRequest::select('status', DB::raw('count(*) as n'))
@@ -80,12 +72,6 @@ class Index extends Component
         $this->note = $this->open ? (string) CallbackRequest::find($id)?->note : '';
     }
 
-    /**
-     * Marks a request as handled.
-     *
-     * Who answered and when is recorded, because a customer who says "somebody
-     * called me" deserves an answer better than "which somebody".
-     */
     public function setStatus(int $id, string $status): void
     {
         $request = CallbackRequest::findOrFail($id);
@@ -100,21 +86,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.saved'));
     }
 
-    /**
-     * Turn a phone call into an order.
-     *
-     * The operator has rung back and agreed the purchase; this writes the
-     * order so they do not have to retype the name, the number and the
-     * product they were already looking at.
-     *
-     * What matters beyond the typing is the pixel data. Meta sees a Lead when
-     * the number is left and a Purchase when the order is paid, and only
-     * recognises them as one person if the Purchase carries the identifiers
-     * the browser had. Written from the admin, the Purchase has none of them
-     * — a different request, a different machine, no cookies — so the sale was
-     * credited to nothing and the campaign only ever got the Lead. They were
-     * kept on the call for exactly this moment.
-     */
     public function createOrder(int $id)
     {
         $request = CallbackRequest::with('product')->findOrFail($id);
@@ -134,11 +105,7 @@ class Index extends Component
                 'name' => $request->name,
                 'phone' => $request->phone,
                 'email' => $request->user?->email,
-                /*
-                 * The columns' own defaults, not nulls: both are NOT NULL,
-                 * and the operator changes them on the order itself once the
-                 * customer has said how they want it.
-                 */
+
                 'delivery' => 'courier',
                 'payment' => 'cash',
                 'comment' => $request->comment,
@@ -158,11 +125,6 @@ class Index extends Component
                 ]);
             }
 
-            /*
-             * The snapshot the Purchase will be sent with, copied from the
-             * call rather than read from this request — this one is the
-             * operator's browser, not the customer's.
-             */
             OrderPixelData::create([
                 'order_id' => $order->id,
                 'event_id' => Pixel::eventId('pur'),

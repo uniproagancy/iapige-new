@@ -8,17 +8,8 @@ use App\Services\Import\SupplierDriver;
 use DOMDocument;
 use DOMXPath;
 
-/**
- * Allmarket.
- *
- * The whole catalogue arrives in one response. There is no specifications
- * field, but the description carries one — written either as a bulleted
- * "label: value" list or as HTML list items where <strong> separates the two.
- * Both are read, because this supplier sends both.
- */
 class AllmarketDriver implements SupplierDriver
 {
-    /** A value longer than this is prose, not a specification. */
     protected const MAX_SPEC_LENGTH = 120;
 
     protected AllmarketClient $client;
@@ -28,10 +19,9 @@ class AllmarketDriver implements SupplierDriver
         $this->client = new AllmarketClient($supplier->config ?? []);
     }
 
-    /** Every product code in the feed, fetched once. */
     public function ids(): iterable
     {
-        // a fresh run must not walk yesterday's catalogue
+
         $this->client->forget();
 
         return array_keys($this->client->feed());
@@ -44,8 +34,6 @@ class AllmarketDriver implements SupplierDriver
         return $product ? $this->toPayload($externalId, $product) : null;
     }
 
-    /* ------------------------------------------------------------------ mapping */
-
     protected function toPayload(string $code, array $data): ?ProductPayload
     {
         $locale = $this->supplier->config['locale'] ?? 'ka';
@@ -55,17 +43,11 @@ class AllmarketDriver implements SupplierDriver
             return null;
         }
 
-        /*
-         * The supplier sends a recommended retail price and, sometimes, a
-         * discounted one. What we pay is the lower figure; the higher becomes
-         * the struck-through comparison, exactly as the supplier intends.
-         */
         $retail = (float) ($data['rrp']['original'] ?? 0);
         $sale = (float) ($data['rrp']['discounted'] ?? 0);
 
         [$price, $old] = $sale > 0 && $sale < $retail ? [$sale, $retail] : [$retail, null];
 
-        // the supplier's own field is spelled "descrption"; both are read
         $description = (string) ($data['description'] ?? $data['descrption'] ?? '');
 
         $specs = $this->specs($description, $locale);
@@ -92,11 +74,6 @@ class AllmarketDriver implements SupplierDriver
         );
     }
 
-    /**
-     * The description, read as a specification table.
-     *
-     * @return array<int, array>
-     */
     protected function specs(string $description, string $locale): array
     {
         if (trim($description) === '') {
@@ -119,7 +96,7 @@ class AllmarketDriver implements SupplierDriver
                 'value' => $value,
                 'locale' => $locale,
                 'key' => false,
-                // nothing is filterable on arrival; that is decided in the admin
+
                 'filterable' => false,
                 'color' => null,
             ];
@@ -128,15 +105,6 @@ class AllmarketDriver implements SupplierDriver
         return $specs;
     }
 
-    /**
-     * HTML list items: "<li>Brand<strong>DeLonghi</strong></li>".
-     *
-     * The label is whatever sits before the bold part, so a row without one
-     * cannot be split — its label and value run together with no separator at
-     * all — and is skipped rather than guessed at.
-     *
-     * @return array<string, string>
-     */
     protected function pairsFromHtml(string $html): array
     {
         $document = new DOMDocument;
@@ -154,7 +122,7 @@ class AllmarketDriver implements SupplierDriver
             $bold = $xpath->query('.//strong | .//b', $item)?->item(0);
 
             if (! $bold) {
-                // a colon may still separate the two when the markup does not
+
                 $text = $this->clean($item->textContent);
 
                 if (str_contains($text, ':')) {
@@ -170,7 +138,6 @@ class AllmarketDriver implements SupplierDriver
 
             $value = $this->clean($bold->textContent);
 
-            // everything in the item that is not the bold part is the label
             $label = $this->clean(str_replace($bold->textContent, '', $item->textContent));
             $label = rtrim($label, " \t:：-–");
 
@@ -182,16 +149,6 @@ class AllmarketDriver implements SupplierDriver
         return $pairs;
     }
 
-    /**
-     * Plain bullets: "* label: value".
-     *
-     * A label with no value opens a block whose sub-lines belong to it — the
-     * dimensions are written that way — and the block closes at the first line
-     * whose value no longer looks like a measurement, so the weight and colour
-     * that follow stay specifications of their own.
-     *
-     * @return array<string, string>
-     */
     protected function pairsFromText(string $description): array
     {
         $pairs = [];
@@ -226,7 +183,6 @@ class AllmarketDriver implements SupplierDriver
         return $pairs;
     }
 
-    /** A measurement like "7.95 x 35.0 x 35.1 cm" continues a dimensions block. */
     protected function looksLikeMeasurement(string $value): bool
     {
         return (bool) preg_match('/\d+([.,]\d+)?\s*[x×хX]\s*\d/u', $value);
@@ -244,12 +200,6 @@ class AllmarketDriver implements SupplierDriver
         return trim(preg_replace('/\s+/u', ' ', html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
     }
 
-    /**
-     * A spec by any of its names — the brand is sometimes only in the list.
-     *
-     * @param  array<int, array>  $specs
-     * @param  array<int, string>  $names
-     */
     protected function valueOf(array $specs, array $names): ?string
     {
         foreach ($specs as $spec) {

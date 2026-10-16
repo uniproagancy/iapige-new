@@ -21,7 +21,6 @@
                         <x-icon name="caret-right" size="14" class="cat__chev" />
                     </button>
 
-                    {{-- mobile accordion --}}
                     <div class="cat__kids">
                         @foreach ($cat['subs'] as $sub)
                             <div>
@@ -44,7 +43,6 @@
         </div>
     </div>
 
-    {{-- desktop: second level, one panel per category --}}
     <div class="catalog__l2" id="catalogL2">
         @foreach ($tree as $i => $cat)
             <div data-l2="{{ $i }}" @if ($i) hidden @endif>
@@ -58,11 +56,7 @@
 
                 <div class="subs">
                     @foreach ($cat['subs'] as $sub)
-                        {{--
-                            The second level is a block, not a link: its own link is the
-                            heading, so the third level below can be clickable too — an
-                            <a> inside an <a> is invalid and the inner one stops working.
-                        --}}
+
                         <div class="sub">
                             <a class="sub__head" href="{{ $sub['url'] }}">
                                 <span class="sub__name">{{ $sub['name'] }}</span>

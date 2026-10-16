@@ -41,12 +41,6 @@ class PageController extends Controller
         ]);
     }
 
-    /**
-     * The shared part of an info page's structured data.
-     *
-     * @param  array<int, array{name: string, url: string}>  $parents
-     * @return array<string, mixed>
-     */
     protected function seo(string $type, string $heading, string $canonical, array $parents = []): array
     {
         return [

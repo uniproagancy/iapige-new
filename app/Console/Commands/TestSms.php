@@ -6,15 +6,6 @@ use App\Services\Sender\SmsOffice;
 use App\Support\Phone;
 use Illuminate\Console\Command;
 
-/**
- * Sends one real text message and prints what happened.
- *
- * The unit tests fake the HTTP layer, so they prove the request is built
- * correctly and never that smsoffice accepts it — a wrong key, an
- * unregistered sender name or an empty balance all pass those tests and
- * deliver nothing. This is how that gets found before a customer waits for a
- * code that is not coming.
- */
 class TestSms extends Command
 {
     protected $signature = 'sms:test

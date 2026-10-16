@@ -44,19 +44,13 @@ class Checkout extends Component
 
     public string $comment = '';
 
-    /**
-     * A method that exists — the field is a code posted by the browser, so on
-     * its own it would let any string end up in orders.payment.
-     */
     #[Validate('required|string|exists:payment_methods,code')]
     public string $payment = '';
 
-    /** a signed-in customer keeps the address for next time */
     public bool $saveAddress = true;
 
     public ?int $addressId = null;
 
-    /** set once the order exists, so the page can speak about it */
     public ?string $placedNumber = null;
 
     #[Url(as: 'product', except: null)]
@@ -72,7 +66,6 @@ class Checkout extends Component
         $this->qty = max(1, min(99, $this->qty));
         $this->buyNow = $this->productId !== null;
 
-        // a pre-order cannot be bought, so buy-now must not smuggle one through
         if ($this->buyNow && ! Product::active()->whereKey($this->productId)->where('is_preorder', false)->exists()) {
             $this->buyNow = false;
             $this->productId = null;
@@ -98,13 +91,6 @@ class Checkout extends Component
         $this->trackCheckoutStarted();
     }
 
-    /**
-     * Keeps what the browser knows, for a Purchase reported later.
-     *
-     * A card payment is confirmed by a bank callback hours after the customer
-     * has gone, and Meta still wants their cookies and user agent — this is the
-     * last moment those exist.
-     */
     protected function snapshotForPixel(Order $order): OrderPixelData
     {
         $pixel = app(Pixel::class);
@@ -121,7 +107,6 @@ class Checkout extends Component
         ]);
     }
 
-    /** Reaching this page with something to buy is the start of a checkout. */
     protected function trackCheckoutStarted(): void
     {
         $lines = $this->lines();
@@ -135,7 +120,6 @@ class Checkout extends Component
         $this->dispatch('pixel', app(Pixel::class)->initiateCheckout($lines, $subtotal + $this->shipping()));
     }
 
-    /** The address the customer used last time, so the form opens filled in. */
     protected function fillFromDefaultAddress(): void
     {
         $address = UserAddress::where('user_id', Auth::id())
@@ -176,8 +160,6 @@ class Checkout extends Component
         $this->phone = $address->phone ?: $this->phone;
     }
 
-    /* ------------------------------------------------------------------ money */
-
     protected function deliveryCity(): ?DeliveryCity
     {
         return $this->cityId ? DeliveryCity::active()->find($this->cityId) : null;
@@ -197,19 +179,11 @@ class Checkout extends Component
         return PaymentMethod::active()->where('code', $this->payment)->first();
     }
 
-    /**
-     * The driver the chosen method names.
-     *
-     * It comes from the database rather than from the method's code, because a
-     * method renamed in the admin would otherwise fall through to a driver that
-     * does not exist — and only at the moment the customer pays.
-     */
     protected function driverFor(): ?string
     {
         return $this->method()?->driver;
     }
 
-    /** Whether the chosen method sends the customer to a bank that can take it. */
     public function isOnline(): bool
     {
         $method = $this->method();
@@ -225,14 +199,10 @@ class Checkout extends Component
         return $this->driverFor() === 'bog-installment';
     }
 
-    /* ------------------------------------------------------------------ place */
-
     public function place()
     {
         $this->validate();
 
-        // `exists` cannot see is_active, and a method switched off while the
-        // page was open must not be the one the order is placed on
         if (! $this->method()) {
             $this->addError('payment', __('checkout.payment_unavailable'));
 
@@ -253,24 +223,20 @@ class Checkout extends Component
             return null;
         }
 
-        // the cart only empties once the order is safely on disk
         if (! $this->buyNow) {
             app(Cart::class)->clear();
         }
 
-        // a guest has to be able to see the page they are about to land on
         session()->push('placed_orders', $order->id);
         $this->placedNumber = $order->number;
 
         $snapshot = $this->snapshotForPixel($order);
 
         if ($this->isOnline()) {
-            // the sale is not real until the bank says so; PaymentManager
-            // reports it from the callback, using this snapshot
+
             return $this->sendToBank($order, $this->method());
         }
 
-        // cash on delivery: the order itself is the conversion
         if (app(Pixel::class)->purchase($order->loadMissing('items'), $snapshot->event_id)) {
             $snapshot->markSent();
         }
@@ -280,21 +246,9 @@ class Checkout extends Component
         return $this->redirect(route('order', $order->number), navigate: false);
     }
 
-    /**
-     * Everything that must not half-happen, in one transaction.
-     *
-     * Prices are re-read from the database inside it: a cart lives in the
-     * browser, so its numbers are a request rather than a fact.
-     */
     protected function createOrder(array $lines): Order
     {
-        /*
-         * Priced by OrderLines, which the operator's own screen in the admin
-         * uses too. The rules it applies — the price from the database, a
-         * withdrawn product refused, a pre-order refused — have to be the same
-         * whichever way an order is placed, and they were a copy each until
-         * there were two ways.
-         */
+
         $priced = app(OrderLines::class)->price($lines);
 
         $items = $priced['items'];
@@ -330,7 +284,6 @@ class Checkout extends Component
             'note' => __('order.placed_by_customer'),
         ]);
 
-        // the basket becomes history rather than an abandoned cart
         if ($order->cart_id) {
             CartModel::whereKey($order->cart_id)->update(['status' => 'ordered']);
         }
@@ -373,8 +326,6 @@ class Checkout extends Component
         }
     }
 
-    /* ------------------------------------------------------------------ lines */
-
     protected function lines(): array
     {
         if (! $this->buyNow) {
@@ -414,8 +365,6 @@ class Checkout extends Component
         }
     }
 
-    /* ------------------------------------------------------------------ render */
-
     public function render()
     {
         $lines = $this->lines();
@@ -441,7 +390,7 @@ class Checkout extends Component
             'tab' => '',
             'pageCss' => 'checkout',
             'title' => __('checkout.title').' — IAPI.GE',
-            // a cart is one person's session, never an index entry
+
             'seo' => ['robots' => 'noindex, nofollow'],
         ])->section('content');
     }

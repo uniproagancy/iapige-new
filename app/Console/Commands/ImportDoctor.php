@@ -8,22 +8,9 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ImportManager;
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Why a supplier imported what it imported.
- *
- * A run that produces a tenth of what the price list holds is the normal
- * complaint, and answering it has meant three separate guesses: whether the
- * file loaded, whether the limits are cutting it, whether the queue is still
- * working. Each is a different query and none of them is obvious.
- *
- * So this counts the whole funnel in one pass — rows in, rows each rule lets
- * through, products that actually exist, jobs still waiting — and the step
- * where the number collapses is the answer.
- */
 class ImportDoctor extends Command
 {
     protected $signature = 'import:doctor
@@ -59,19 +46,6 @@ class ImportDoctor extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * How long it takes this machine to reach the supplier at all.
-     *
-     * Every other figure in this report is about our own rules. None of them
-     * can tell a slow import from an unreachable one, and the two look
-     * identical from here: a run that crawls, and a log full of timeouts that
-     * name no cause.
-     *
-     * The split is what matters. Connecting is DNS, routing and TLS; the rest
-     * is the supplier thinking. A connect of twenty seconds is a network
-     * problem and no amount of pacing or caching will touch it; a fast connect
-     * and a slow answer is the supplier throttling, which pacing does fix.
-     */
     protected function ping(Supplier $supplier, int $times): void
     {
         $url = $this->hostFor($supplier);
@@ -138,7 +112,6 @@ class ImportDoctor extends Command
         }
     }
 
-    /** The supplier's own host, however this one happens to be configured. */
     protected function hostFor(Supplier $supplier): ?string
     {
         if ($base = config('services.'.$supplier->code.'.base_url')) {
@@ -167,21 +140,6 @@ class ImportDoctor extends Command
         return number_format($seconds * 1000).' ms';
     }
 
-    /**
-     * What a run would actually produce, measured rather than guessed.
-     *
-     * Every number above this is a count of rows and rules. None of them can
-     * say whether the supplier's own source will describe a row when asked —
-     * and for the suppliers whose catalogue is larger than their website, that
-     * is the figure that decides everything. INGCO's price list carries nine
-     * thousand models and its site sells a fraction of them, so a run that
-     * looked like it would import nine thousand imported a few hundred, over
-     * several hours, with nothing to say why until it finished.
-     *
-     * So a handful of rows are put through the real driver — the same fetch an
-     * import job makes — and what comes back is the hit rate. Thirty rows and
-     * a minute, instead of the whole catalogue and an afternoon.
-     */
     protected function sample(Supplier $supplier, int $size): void
     {
         $ids = SupplierStock::where('supplier_id', $supplier->id)
@@ -234,8 +192,6 @@ class ImportDoctor extends Command
             .number_format((int) round($queued * $rate / 100)).'</> products.');
     }
 
-    /* ------------------------------------------------------------------ settings */
-
     protected function settings(Supplier $supplier): void
     {
         $config = $supplier->config ?? [];
@@ -258,38 +214,14 @@ class ImportDoctor extends Command
 
         $this->table(['setting', 'value'], $rows);
 
-        /*
-         * The whole config, printed.
-         *
-         * A seeder only runs on a fresh database, so the row a supplier
-         * actually holds drifts from the one the code was written against —
-         * and every time it has, the symptom was somewhere else entirely. A
-         * missing stock column made INGCO report one of everything; read_site
-         * set to false made every Midea product arrive with no photograph and
-         * a name assembled out of the spreadsheet. Neither was visible without
-         * looking at this.
-         */
         $this->line('  full config: '.json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
         $this->warnAboutDrift($supplier, $config);
     }
 
-    /**
-     * Settings a driver needs that this row does not carry.
-     *
-     * Only the ones whose absence is silent — a driver that reads a flag with
-     * `?? true` behaves differently depending on whether the key is missing or
-     * false, and nothing anywhere says which it was.
-     */
     protected function warnAboutDrift(Supplier $supplier, array $config): void
     {
-        /*
-         * A supplier with no column map is not misconfigured.
-         *
-         * Some are fed by pasting addresses rather than by a spreadsheet, and
-         * telling their owner that "the price list cannot be loaded at all"
-         * sends them looking for a fault that is not there.
-         */
+
         if (empty($config['columns'])) {
             $this->line('  Fed by pasted addresses, not a price list.');
 
@@ -317,15 +249,6 @@ class ImportDoctor extends Command
         }
     }
 
-    /* ------------------------------------------------------------------ the funnel */
-
-    /**
-     * Every step between the price list and a product, counted.
-     *
-     * The limits are read from the supplier's own config rather than assumed,
-     * because they are a commercial decision somebody changes without telling
-     * the code.
-     */
     protected function funnel(Supplier $supplier): void
     {
         $config = $supplier->config ?? [];
@@ -368,14 +291,6 @@ class ImportDoctor extends Command
             ['  of those, on sale now', $live, $this->share($live, $rows)],
         ]);
 
-        /*
-         * The gap nothing else explains.
-         *
-         * Everything above is a rule we chose. What is left between the last
-         * rule and the products we hold is the supplier's own site refusing to
-         * describe them — a model the price list carries and the website does
-         * not sell.
-         */
         if ($offers < $clearBoth) {
             $missing = $clearBoth - $offers;
 
@@ -384,21 +299,6 @@ class ImportDoctor extends Command
         }
     }
 
-    /**
-     * How many rows clear the price floor, and how many clear it and the stock.
-     *
-     * Counted in PHP rather than in SQL: the figure a floor is measured
-     * against lives inside the stored row's JSON, and reaching into that is
-     * written differently by every database — the query that worked on the
-     * server returned "no such function" against the test's SQLite. A
-     * diagnostic that only runs on one of the two is not much of a diagnostic.
-     *
-     * The price we pay is the promotional one where the list carries two, not
-     * the list price beside it: measuring a floor against the wrong figure
-     * lets a product through on a number nobody was charged.
-     *
-     * @return array{0: int, 1: int}
-     */
     protected function countByPrice(Supplier $supplier, float $minPrice, int $minStock, int $rows, int $clearStock): array
     {
         if ($minPrice <= 0) {
@@ -428,8 +328,6 @@ class ImportDoctor extends Command
         return [$clearPrice, $clearBoth];
     }
 
-    /* ------------------------------------------------------------------ the queue */
-
     protected function queue(Supplier $supplier): void
     {
         $queue = 'import:'.$supplier->code;
@@ -453,8 +351,6 @@ class ImportDoctor extends Command
             $this->line('  Nothing queued and nothing failed: the last run finished.');
         }
     }
-
-    /* ------------------------------------------------------------------ what arrived */
 
     protected function quality(Supplier $supplier): void
     {
@@ -483,22 +379,6 @@ class ImportDoctor extends Command
         $this->checkImageFiles($ids);
     }
 
-    /**
-     * Photographs the database claims and the disk does not have.
-     *
-     * The public disk is configured not to throw, so a write it cannot make
-     * returns false and says nothing. A product whose pictures could not be
-     * stored still carried a row for every one of them, and every count in the
-     * admin agreed it had photographs — the "no photo" filter counts rows, not
-     * files. The shop then served broken images and nothing anywhere had
-     * complained.
-     *
-     * A sample, because checking every file of every product is a lot of
-     * stat() calls for a report. When the disk is the problem it is the
-     * problem for all of them, so a hundred rows is plenty to see it.
-     *
-     * @param  Collection<int, int>  $ids
-     */
     protected function checkImageFiles($ids): void
     {
         $rows = DB::table('product_images')
@@ -522,8 +402,6 @@ class ImportDoctor extends Command
         $this->line('  Disk root: '.config('filesystems.disks.public.root'));
         $this->line('  Check that the directory exists and the web user can write to it.');
     }
-
-    /* ------------------------------------------------------------------ helpers */
 
     protected function share(int $part, int $whole): string
     {

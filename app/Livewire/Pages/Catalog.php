@@ -11,10 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * /catalog            → every category as a grid
- * /catalog/{slug}     → products of that category, with filters in the URL
- */
 class Catalog extends Component
 {
     public ?int $categoryId = null;
@@ -28,26 +24,19 @@ class Catalog extends Component
     #[Url(as: 'max', except: null)]
     public ?int $max = null;
 
-    /** ['brand' => ['norda'], 'ram' => ['16gb']] */
     #[Url(as: 'f', except: [])]
     public array $picked = [];
 
     public int $perPage = 40;
 
-    /*
-     | How many more "show more" fetches each time.
-     |
-     | The same as the first page, so the listing grows in even blocks rather
-     | than filling a row and leaving the next one short.
-     */
     protected int $step = 40;
 
     public function mount(?string $slug = null)
     {
         if ($slug === null) {
-            // /catalog?f[brand][]=apple → a filtered listing across every category
+
             if (! $this->picked && $this->max === null) {
-                return; // plain landing page
+                return;
             }
         } else {
             $category = CatalogData::category($slug);
@@ -59,8 +48,6 @@ class Catalog extends Component
             $this->categoryId = $category->getKey();
         }
     }
-
-    /* ------------------------------------------------------------------ actions */
 
     public function toggle(string $key, string $code): void
     {
@@ -116,14 +103,11 @@ class Catalog extends Component
             + ($this->max !== null ? 1 : 0);
     }
 
-    /* ------------------------------------------------------------------ queries */
-
     protected function category(): Category
     {
         return Category::withTranslation()->findOrFail($this->categoryId);
     }
 
-    /** The category's products with every filter applied except $skip's group. */
     protected function query(?string $skip = null): Builder
     {
         $query = CatalogData::productQuery();
@@ -161,15 +145,6 @@ class Catalog extends Component
         };
     }
 
-    /**
-     * How many products each option would leave — its own group is ignored.
-     *
-     * The matching products go in as a subquery rather than as a list of
-     * ids. Fetching them was the same mistake the listing made: a root
-     * category holds tens of thousands, this runs once per filter group, and
-     * carrying every id back into PHP only to send it straight out again is
-     * both the memory and MySQL's placeholder limit waiting to be hit.
-     */
     protected function facets(array $groups): array
     {
         $counts = [];
@@ -211,17 +186,6 @@ class Catalog extends Component
             ])->section('content');
     }
 
-    /**
-     * What this listing tells a crawler.
-     *
-     * Filters, sorting and "show more" all produce the same products in a
-     * different order, so they are pointed back at the clean category URL and
-     * kept out of the index — otherwise one category competes with a dozen
-     * copies of itself.
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
     protected function seo(array $data): array
     {
         $narrowed = $this->picked || $this->max !== null || $this->sub !== null || $this->sort !== 'popular';
@@ -236,7 +200,7 @@ class Catalog extends Component
             : [['name' => __('catalog.index_title'), 'url' => route('catalog')]];
 
         return [
-            // the admin may write its own meta; otherwise it is composed
+
             'title' => $category?->meta_title ?: $title.' — '.config('app.name'),
             'description' => $category?->meta_description
                 ?: ($category?->description ?: __('catalog.index_lead')),

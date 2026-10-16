@@ -14,7 +14,7 @@ class SupplierStock extends Model
         return [
             'quantity' => 'integer',
             'cost_price' => 'decimal:2',
-            'data' => 'array',        // ← ეს აკლია
+            'data' => 'array',
             'synced_at' => 'datetime',
         ];
     }

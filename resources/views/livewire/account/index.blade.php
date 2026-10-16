@@ -16,7 +16,6 @@
         <span>{{ __('account.title') }}</span>
     </nav>
 
-    {{-- ------------------------------------------------------------ who --}}
     <header class="acc-head">
         <span class="acc-avatar" aria-hidden="true">{{ $initials ?: '•' }}</span>
 
@@ -32,7 +31,7 @@
     </header>
 
     <div class="acc">
-        {{-- ------------------------------------------------------------ tabs --}}
+
         <aside class="acc__nav">
             @foreach ([
                 'overview'  => __('account.overview'),
@@ -56,7 +55,6 @@
 
         <div class="acc__body">
 
-            {{-- ============================================================ overview --}}
             @if ($tab === 'overview')
                 <div class="acc-stats">
                     <div class="acc-stat">
@@ -73,7 +71,6 @@
                     </div>
                 </div>
 
-                {{-- the question people actually arrive with --}}
                 @if ($active)
                     @php $step = $this->trackStep($active); @endphp
 
@@ -130,7 +127,6 @@
                 </div>
             @endif
 
-            {{-- ============================================================ orders --}}
             @if ($tab === 'orders')
                 <div class="acc__filters">
                     @foreach ([
@@ -178,16 +174,6 @@
                                         {{ __('account.reorder') }}
                                     </button>
 
-                                    {{--
-                                        Cancelling is the shop's to do.
-
-                                        A customer pressing this put stock back
-                                        and closed the order without anybody
-                                        knowing why — and after goods are picked
-                                        or paid for that is a conversation, not a
-                                        button. The admin cancels from the order
-                                        itself, where the reason is recorded.
-                                    --}}
                                 </div>
                             </div>
                         @endif
@@ -206,7 +192,6 @@
                 @endif
             @endif
 
-            {{-- ============================================================ addresses --}}
             @if ($tab === 'addresses')
                 <div class="acc__toolbar">
                     <button type="button" class="btn-main" wire:click="newAddress">{{ __('account.add_address') }}</button>
@@ -313,7 +298,6 @@
                 @endif
             @endif
 
-            {{-- ============================================================ wishlist --}}
             @if ($tab === 'wishlist')
                 @if ($wishlist)
                     <div class="grid">
@@ -329,7 +313,6 @@
                 @endif
             @endif
 
-            {{-- ============================================================ profile --}}
             @if ($tab === 'profile')
                 <form class="acc__form" wire:submit="saveProfile">
                     <h2 class="acc__h2">{{ __('account.personal_data') }}</h2>
@@ -365,7 +348,6 @@
                 </form>
             @endif
 
-            {{-- ============================================================ security --}}
             @if ($tab === 'security')
                 <form class="acc__form" wire:submit="changePassword">
                     <h2 class="acc__h2">{{ __('account.change_password') }}</h2>
@@ -411,7 +393,6 @@
                     </div>
                 </div>
 
-                {{-- last, and visibly separate: this one does not come back --}}
                 <div class="acc__form acc__form--danger">
                     <h2 class="acc__h2">{{ __('account.close_account') }}</h2>
                     <p class="acc__note">{{ __('account.close_account_hint') }}</p>

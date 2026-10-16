@@ -29,7 +29,6 @@
         <div class="spin" aria-hidden="true"></div>
         <p>{{ __('checkout.redirecting_to', ['name' => 'Credo']) }}</p>
 
-        {{-- submitted on load; the button is for anyone with JavaScript off --}}
         <form action="{{ $action }}" method="post" id="credoForm">
             <input type="hidden" name="credoinstallment" value='{{ $data }}'>
             <button type="submit">{{ __('checkout.continue') }}</button>

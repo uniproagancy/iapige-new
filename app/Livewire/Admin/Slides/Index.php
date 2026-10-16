@@ -9,17 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-/**
- * The home page's carousel, edited rather than deployed.
- *
- * The five slides lived in Support\Store with their pictures fetched from
- * picsum.photos by number, so changing the dates on the banner meant editing
- * PHP — which is why it still said "26—31 August" in the middle of October.
- *
- * A short list with an inline form, like brands and categories: there are
- * five of these, not five thousand, and the useful things to do to one are
- * switch it off, move it and change its picture.
- */
 class Index extends Component
 {
     use WithFileUploads;
@@ -28,7 +17,6 @@ class Index extends Component
 
     public ?int $editingId = null;
 
-    /* ---- form ---- */
     public $image = null;
 
     public ?string $currentImage = null;
@@ -43,7 +31,6 @@ class Index extends Component
 
     public int $sort_order = 0;
 
-    /** @var array<string, array<string, string>> */
     public array $translations = [];
 
     public function render()
@@ -51,19 +38,17 @@ class Index extends Component
         return view('livewire.admin.slides.index', [
             'slides' => Slide::withTranslation()->orderBy('sort_order')->orderBy('id')->get(),
             'languages' => Language::active(),
-            // what the shop is drawing right now, which is not always what is listed
+
             'liveCount' => Slide::live()->count(),
         ])->layout('layouts.admin', ['title' => __('admin.slides')]);
     }
-
-    /* ------------------------------------------------------------------ the form */
 
     public function create(): void
     {
         $this->reset(['editingId', 'image', 'currentImage', 'url', 'starts_at', 'ends_at']);
 
         $this->is_active = true;
-        // a new slide goes to the end, where it cannot displace what is running
+
         $this->sort_order = (int) Slide::max('sort_order') + 1;
         $this->translations = $this->blankTranslations();
 
@@ -102,11 +87,7 @@ class Index extends Component
         $default = Language::defaultCode();
 
         $this->validate([
-            /*
-             * mimes rather than the image rule: that one lets an SVG through,
-             * and an SVG is a document that can carry script. This picture is
-             * served from our own domain across the whole front page.
-             */
+
             'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'url' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['integer', 'min:0'],
@@ -129,7 +110,7 @@ class Index extends Component
             ]);
 
             if ($this->image) {
-                // the one it replaces is of no use to anybody afterwards
+
                 $this->forgetImage($slide);
 
                 $slide->image = $this->image->store('slides', 'public');
@@ -140,11 +121,7 @@ class Index extends Component
             $rows = [];
 
             foreach ($this->translations as $locale => $fields) {
-                /*
-                 * A language nobody filled in is left out rather than written
-                 * blank: HasTranslations falls back to the default one, so an
-                 * empty row would replace a readable slide with nothing.
-                 */
+
                 if (blank($fields['title'] ?? null)) {
                     continue;
                 }
@@ -171,8 +148,6 @@ class Index extends Component
         $this->resetValidation();
     }
 
-    /* ------------------------------------------------------------------ the list */
-
     public function toggleActive(int $id): void
     {
         $slide = Slide::findOrFail($id);
@@ -180,13 +155,6 @@ class Index extends Component
         $slide->update(['is_active' => ! $slide->is_active]);
     }
 
-    /**
-     * Moves a slide up or down the carousel.
-     *
-     * Swapped with its neighbour rather than renumbered, so two slides
-     * sharing a sort_order — which nothing prevents — still move one past the
-     * other instead of sitting still.
-     */
     public function move(int $id, int $by): void
     {
         $slides = Slide::orderBy('sort_order')->orderBy('id')->get();
@@ -199,10 +167,9 @@ class Index extends Component
         $to = $at + $by;
 
         if ($to < 0 || $to >= $slides->count()) {
-            return;   // already at the end it is being pushed towards
+            return;
         }
 
-        // renumbered from the order they are actually in, then the two swap
         $order = $slides->pluck('id')->all();
         [$order[$at], $order[$to]] = [$order[$to], $order[$at]];
 
@@ -218,7 +185,7 @@ class Index extends Component
         $slide = Slide::findOrFail($id);
 
         $this->forgetImage($slide);
-        $slide->delete();   // its translations go with it
+        $slide->delete();
 
         if ($this->editingId === $id) {
             $this->showForm = false;
@@ -227,15 +194,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.deleted'));
     }
 
-    /* ------------------------------------------------------------------ helpers */
-
-    /**
-     * Takes the picture off the disk with the slide that referred to it.
-     *
-     * Nothing else points at it — the path is this slide's own column — so a
-     * deleted slide otherwise leaves its photograph behind for ever, and the
-     * carousel is where the largest pictures on the site are uploaded.
-     */
     protected function forgetImage(Slide $slide): void
     {
         if ($slide->image && ! str_starts_with($slide->image, 'http')) {
@@ -243,7 +201,6 @@ class Index extends Component
         }
     }
 
-    /** @return array<string, array<string, string>> */
     protected function blankTranslations(): array
     {
         return Language::active()->mapWithKeys(fn (Language $l) => [

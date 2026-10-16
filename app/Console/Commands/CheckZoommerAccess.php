@@ -5,16 +5,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
-/**
- * Says why Zoommer is or is not answering this machine.
- *
- * The same refusal has three different causes with three different answers —
- * the token, the calling address, or the worker in front of it — and telling
- * them apart from a stack trace meant reading a message that scrolls off the
- * screen. This asks every route once and prints what came back.
- *
- * Read-only: it fetches one product and writes nothing.
- */
 class CheckZoommerAccess extends Command
 {
     protected $signature = 'import:check-zoommer {--product=54500 : an id known to exist}';
@@ -49,7 +39,6 @@ class CheckZoommerAccess extends Command
         return self::SUCCESS;
     }
 
-    /** @return array{status: int|string, body: string} */
     protected function direct(string $id, string $token): array
     {
         return $this->request('https://zoommer.ge/api/proxy/v1/Products/details?productId='.$id, array_filter([
@@ -63,7 +52,6 @@ class CheckZoommerAccess extends Command
         ]));
     }
 
-    /** @return array{status: int|string, body: string} */
     protected function viaWorker(string $worker, string $id, string $token): array
     {
         return $this->request(rtrim($worker, '/').'?'.http_build_query(array_filter([
@@ -73,10 +61,6 @@ class CheckZoommerAccess extends Command
         ])), ['Accept' => 'application/json']);
     }
 
-    /**
-     * @param  array<string, string>  $headers
-     * @return array{status: int|string, body: string}
-     */
     protected function request(string $url, array $headers): array
     {
         try {
@@ -91,10 +75,6 @@ class CheckZoommerAccess extends Command
         }
     }
 
-    /**
-     * @param  array{status: int|string, body: string}  $result
-     * @return array{0: string, 1: string}
-     */
     protected function describe(array $result): array
     {
         $data = json_decode($result['body'], true);
@@ -113,13 +93,6 @@ class CheckZoommerAccess extends Command
         return ["<fg={$colour}>{$result['status']}</>", $said];
     }
 
-    /**
-     * Cloudflare's own numbered refusals, spelled out.
-     *
-     * The body of one of these says only "error code: 1006", which is the
-     * difference between an address somebody has banned and a challenge that
-     * would pass on a retry — and nobody should have to go and look it up.
-     */
     protected function cloudflareCode(string $body): ?string
     {
         if (! preg_match('/error code:\s*(\d{4})/i', $body, $m)) {
@@ -140,7 +113,6 @@ class CheckZoommerAccess extends Command
         return "Cloudflare {$code} — {$meaning}";
     }
 
-    /** @param  array<int, array<int, string>>  $rows */
     protected function verdict(array $rows, string $worker, string $token): void
     {
         $status = fn (int $i) => (int) filter_var($rows[$i][1] ?? '', FILTER_SANITIZE_NUMBER_INT);

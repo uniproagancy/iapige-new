@@ -19,23 +19,9 @@ class ZoommerDriver implements SupplierDriver
         $this->client = new ZoommerClient($supplier->config ?? []);
     }
 
-    /**
-     * This source has no catalogue endpoint, so we walk its id range.
-     *
-     * One request first, to find out whether the source is talking to us at
-     * all. Without it a blocked address queued the whole range and every job
-     * failed in turn — a thousand identical warnings saying the same thing,
-     * where one refusal up front says it once and stops.
-     *
-     * @throws BlockedByZoommer
-     */
     public function ids(): iterable
     {
-        /*
-         * One request before the rest, so a closed door is found now rather
-         * than after thousands of jobs have been queued against it. A missing
-         * product answers with an empty array; only a refusal throws.
-         */
+
         $this->client->fetch((string) ($this->supplier->config['from'] ?? 1), ['ka']);
 
         yield from $this->idsToScan(defaultTo: 1000);
@@ -47,8 +33,6 @@ class ZoommerDriver implements SupplierDriver
 
         return $byLocale ? $this->toPayload($externalId, $byLocale) : null;
     }
-
-    /* ------------------------------------------------------------------ mapping */
 
     protected function toPayload(string $externalId, array $byLocale): ?ProductPayload
     {
@@ -71,7 +55,7 @@ class ZoommerDriver implements SupplierDriver
             foreach ($p['specificationGroup'] ?? [] as $group) {
                 foreach ($group['specifications'] ?? [] as $spec) {
                     if (! ($spec['isInProductPage'] ?? true)) {
-                        continue;   // the source hides it, so do we
+                        continue;
                     }
 
                     $specs[] = [
@@ -80,8 +64,7 @@ class ZoommerDriver implements SupplierDriver
                         'locale' => $locale,
                         'group' => trim($group['groupName'] ?? ''),
                         'key' => (bool) ($spec['isMainSpecification'] ?? false),
-                        // the source links a spec to its own filter page exactly
-                        // when that spec is filterable — no dedicated flag exists
+
                         'filterable' => filled($spec['specificationLinkedUrl'] ?? null),
                         'color' => ($spec['isColor'] ?? false) ? ($spec['colorValue'] ?? null) : null,
                     ];
@@ -89,7 +72,6 @@ class ZoommerDriver implements SupplierDriver
             }
         }
 
-        // "-" means the source has no value; storing it is worse than storing nothing
         $specs = array_values(array_filter(
             $specs,
             fn ($s) => $s['name'] !== '' && $s['value'] !== '' && $s['value'] !== '-',
@@ -102,8 +84,7 @@ class ZoommerDriver implements SupplierDriver
             oldCostPrice: $oldCostPrice,
             stock: $this->stock($base),
             brandName: $product['brandName'] ?? null,
-            // the subcategory too: "Laptop accessories" alone covers a mouse
-            // mat and a monitor stand, which cannot both be mapped to one place
+
             categoryName: TaxonomyResolver::trail(
                 $product['categoryName'] ?? null,
                 $product['subCategoryName'] ?? null,
@@ -117,19 +98,6 @@ class ZoommerDriver implements SupplierDriver
         );
     }
 
-    /**
-     * The barcode the source carries, which is the number on the box.
-     *
-     * A barcode is the same article wherever it is bought, so using it here is
-     * what lets one product collect an offer from every supplier that stocks
-     * it instead of appearing once per supplier. The source's own id stays as
-     * the fallback for the rows that have no barcode at all.
-     *
-     * Two colour variants of one model share a barcode. find() already refuses
-     * to merge them, and freeSku() keeps the unique index happy.
-     *
-     * @param  array<string, mixed>  $product
-     */
     protected function sku(string $externalId, array $product): string
     {
         $barcode = trim((string) ($product['barCode'] ?? ''));
@@ -137,22 +105,6 @@ class ZoommerDriver implements SupplierDriver
         return $barcode !== '' ? $barcode : 'ZOOM-'.$externalId;
     }
 
-    /**
-     * What we pay, and the figure to strike through.
-     *
-     * This source's "price" is what it sells for today and "previousPrice" is
-     * what it cost before the discount, so previousPrice is the HIGHER of the
-     * two. Reading it as the cost meant buying a discounted product at its
-     * pre-discount price: a 1399 television was imported as 1599, the markup
-     * was applied to that, and the real 1399 became the struck-through "old"
-     * price — so the page advertised a price rise and showed no discount.
-     *
-     * The lower figure is the cost whichever way round this source sends them.
-     * Zoommer only: Elite's API looks identical but prices a different thing,
-     * so it reads its own pair and this must not be shared with it.
-     *
-     * @return array{0: float, 1: ?float}
-     */
     protected function prices(array $product): array
     {
         $current = (float) ($product['price'] ?? 0);
@@ -162,29 +114,14 @@ class ZoommerDriver implements SupplierDriver
             return [min($current, $previous), max($current, $previous)];
         }
 
-        // only one of them is usable, so there is nothing to compare against
         return [$current ?: $previous, null];
     }
 
-    /**
-     * The photo the source declares for this variant comes first; the rest of
-     * the model's photos follow as a gallery.
-     *
-     * @return array<int, string>
-     */
     protected function images(array $product): array
     {
         $main = trim((string) ($product['imageUrl'] ?? ''));
         $rest = array_values(array_filter($product['images'] ?? []));
 
-        /*
-         * Straight to the pictures, never through the worker.
-         *
-         * The API is refused from the shop's server but s3.zoommer.ge answers
-         * it fine — checked with curl from that machine — so routing eight
-         * photographs per product through the worker would be a hop that buys
-         * nothing and spends the worker's quota on every one of them.
-         */
         if ($main === '') {
             return $rest;
         }
@@ -192,11 +129,6 @@ class ZoommerDriver implements SupplierDriver
         return array_values(array_unique(array_merge([$main], $rest)));
     }
 
-    /**
-     * Every version of one model lists all its siblings, so the smallest id in
-     * that set is a key each of them computes identically — no extra table and
-     * no second pass needed.
-     */
     protected function variantGroup(string $externalId, array $product): ?string
     {
         $ids = [(int) $externalId];
@@ -213,10 +145,9 @@ class ZoommerDriver implements SupplierDriver
 
         return count($ids) > 1
             ? $this->supplier->code.'-'.min($ids)
-            : null;   // a product with no siblings needs no group
+            : null;
     }
 
-    /** Only the stores we can actually collect from count as stock. */
     protected function stock(array $data): int
     {
         $product = $data['product'] ?? [];
@@ -237,12 +168,6 @@ class ZoommerDriver implements SupplierDriver
 
             $city = mb_strtolower(trim((string) ($store['city'] ?? '')));
 
-            /*
-             * Contains, not equals. A branch reports its city as "თბილისი,
-             * ვაჟა-ფშაველა" as often as plain "თბილისი", and an exact match
-             * read every one of those as a different town — so a product sitting
-             * on a shelf in Tbilisi came through as out of stock.
-             */
             $matches = ! $cities || array_filter($cities, fn ($c) => str_contains($city, $c));
 
             if ($matches) {

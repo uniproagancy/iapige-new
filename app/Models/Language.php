@@ -8,16 +8,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use LogicException;
 
-/**
- * @property string $code
- * @property string $name
- * @property string $native_name
- * @property string|null $short_name
- * @property string|null $regional
- * @property string $script
- * @property bool $is_default
- * @property bool $is_active
- */
 class Language extends Model
 {
     public const CACHE_KEY = 'languages.active';
@@ -27,7 +17,6 @@ class Language extends Model
         'flag', 'is_default', 'is_active', 'sort_order',
     ];
 
-    /** Per-request memo on top of the cache — translations call this for every attribute. */
     protected static ?Collection $memo = null;
 
     protected function casts(): array
@@ -41,14 +30,13 @@ class Language extends Model
 
     protected static function booted(): void
     {
-        // the default language is always active
+
         static::saving(function (Language $language) {
             if ($language->is_default) {
                 $language->is_active = true;
             }
         });
 
-        // …and there is only ever one of it
         static::saved(function (Language $language) {
             if ($language->is_default) {
                 static::whereKeyNot($language->getKey())->where('is_default', true)->update(['is_default' => false]);
@@ -65,9 +53,6 @@ class Language extends Model
         static::deleted(fn () => static::flushCache());
     }
 
-    /* ------------------------------------------------------------------ lookups */
-
-    /** Active languages in display order (cached). */
     public static function active(): Collection
     {
         if (static::$memo !== null) {
@@ -75,7 +60,7 @@ class Language extends Model
         }
 
         try {
-            // cache plain rows, not models: a serialized model breaks on deploys
+
             $rows = Cache::rememberForever(self::CACHE_KEY, fn () => static::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -86,7 +71,7 @@ class Language extends Model
 
             return static::$memo = static::hydrate($rows);
         } catch (QueryException) {
-            return new Collection; // table not migrated yet
+            return new Collection;
         }
     }
 
@@ -105,11 +90,6 @@ class Language extends Model
         return static::active()->firstWhere('is_default', true)?->code ?? config('app.locale', 'ka');
     }
 
-    /**
-     * The shape mcamara/laravel-localization expects in `supportedLocales`.
-     *
-     * @return array<string, array{name:string, native:string, script:string, regional:string, short:string}>
-     */
     public static function supportedLocales(): array
     {
         return static::active()->mapWithKeys(fn (Language $l) => [$l->code => [

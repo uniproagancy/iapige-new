@@ -22,7 +22,7 @@
         </div>
 
         @if ($campaign['ends_at'])
-            {{-- a campaign with no end date simply says nothing, rather than "until null" --}}
+
             <p class="promo-page__until">
                 {{ __('promo.until', ['date' => \Illuminate\Support\Carbon::parse($campaign['ends_at'])->translatedFormat('j F')]) }}
             </p>

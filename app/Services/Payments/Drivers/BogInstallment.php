@@ -10,21 +10,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-/**
- * Bank of Georgia online instalments.
- *
- * Two products share one endpoint:
- *   STANDARD — the customer pays the bank's interest, and the shop adds a
- *              handling fee on top of the price it would otherwise charge;
- *   ZERO     — the shop carries the cost, so the amount is the cart total.
- *
- * The bank's redirect is not proof of anything: a customer can close the tab
- * at the bank's own page. The verdict is only ever read back from the bank,
- * which is what payments:check does.
- */
 class BogInstallment implements PaymentDriver
 {
-    /** Terms the shop offers, in months. */
     public const MONTHS = [3, 6, 12, 18, 24];
 
     public const STANDARD = 'STANDARD';
@@ -40,7 +27,6 @@ class BogInstallment implements PaymentDriver
             throw new RuntimeException("Implausible instalment term: {$months} months.");
         }
 
-        // the handling fee applies to the interest-bearing product only
         $fee = $type === self::STANDARD ? (float) config('bog.installment.handling_fee', 0.05) : 0.0;
         $amount = round((float) $order->total * (1 + $fee), 2);
 
@@ -76,13 +62,6 @@ class BogInstallment implements PaymentDriver
         ]);
     }
 
-    /**
-     * Asks the bank what became of an application.
-     *
-     * Only an explicit success counts: everything else — "processing",
-     * "in_progress", an empty answer — leaves the transaction pending so the
-     * next run asks again.
-     */
     public function confirm(PaymentTransaction $transaction): bool
     {
         if (! $transaction->external_id) {
@@ -111,8 +90,6 @@ class BogInstallment implements PaymentDriver
             'checked_at' => now(),
         ]);
 
-        // the bank echoes our own order number back; a mismatch means we asked
-        // about somebody else's application and must not act on the answer
         $echoed = (string) ($data['shop_order_id'] ?? '');
 
         if ($echoed !== '' && $transaction->order && $echoed !== (string) $transaction->order->number) {
@@ -134,7 +111,6 @@ class BogInstallment implements PaymentDriver
         return $status === 'success';
     }
 
-    /** The bank posts here when it sends a callback at all. */
     public function handleCallback(array $payload): ?PaymentTransaction
     {
         $externalId = $payload['order_id'] ?? $payload['body']['order_id'] ?? null;
@@ -154,9 +130,6 @@ class BogInstallment implements PaymentDriver
         return $transaction;
     }
 
-    /* ------------------------------------------------------------------ plumbing */
-
-    /** Cached five minutes short of its life, so none travels expiring. */
     protected function token(): string
     {
         $cached = Cache::get('bog:installment:token');
@@ -181,7 +154,6 @@ class BogInstallment implements PaymentDriver
 
         $token = (string) $response->json('access_token');
 
-        // the bank states its own lifetime; a minute is kept back for the trip
         $ttl = max(30, (int) $response->json('expires_in', 300) - 60);
 
         Cache::put('bog:installment:token', $token, now()->addSeconds($ttl));
@@ -189,10 +161,6 @@ class BogInstallment implements PaymentDriver
         return $token;
     }
 
-    /**
-     * The redirect sits in a links array whose order the bank does not promise,
-     * so it is found by relation rather than by position.
-     */
     protected function redirectFrom(array $data): ?string
     {
         foreach ($data['links'] ?? [] as $link) {
@@ -204,7 +172,6 @@ class BogInstallment implements PaymentDriver
         return $data['links'][1]['href'] ?? $data['links'][0]['href'] ?? null;
     }
 
-    /** @return array<string, mixed> */
     protected function payload(Order $order, int $months, string $type, float $fee, float $amount): array
     {
         $items = $order->items->map(function ($item) use ($fee) {
@@ -224,7 +191,7 @@ class BogInstallment implements PaymentDriver
             'intent' => 'LOAN',
             'installment_month' => $months,
             'installment_type' => $type,
-            // the order number, not the id: it is what the bank echoes back
+
             'shop_order_id' => (string) $order->number,
             'success_redirect_url' => route('payment.return', ['number' => $order->number, 'status' => 'success']),
             'fail_redirect_url' => route('payment.return', ['number' => $order->number, 'status' => 'fail']),

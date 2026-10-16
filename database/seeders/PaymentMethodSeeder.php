@@ -34,11 +34,11 @@ class PaymentMethodSeeder extends Seeder
 
         foreach ($methods as $i => [$code, $logo, $online, $min, $names]) {
             $method = PaymentMethod::updateOrCreate(['code' => $code], [
-                'logo'       => $logo,
-                'is_online'  => $online,
-                'min_total'  => $min,
+                'logo' => $logo,
+                'is_online' => $online,
+                'min_total' => $min,
                 'sort_order' => $i + 1,
-                'driver'     => null,   // filled in when the bank integration lands
+                'driver' => null,
             ]);
 
             $method->saveTranslations([

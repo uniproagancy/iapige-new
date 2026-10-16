@@ -7,13 +7,6 @@ use App\Models\SupplierStock;
 use Illuminate\Console\Command;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-/**
- * Loads a supplier's stock spreadsheet into supplier_stocks.
- *
- * The file is treated as the whole truth: a barcode missing from it is set to
- * zero, so a product that ran out simply stops being available — no deletes,
- * nothing to undo when the next file arrives.
- */
 class ImportStockFile extends Command
 {
     protected $signature = 'import:stock-file
@@ -86,7 +79,6 @@ class ImportStockFile extends Command
             SupplierStock::upsert($chunk, ['supplier_id', 'external_id'], ['quantity', 'synced_at', 'updated_at']);
         }
 
-        // whatever the new file does not mention is out of stock
         $zeroed = SupplierStock::where('supplier_id', $supplier->id)
             ->where('synced_at', '<', $now)
             ->update(['quantity' => 0, 'synced_at' => $now]);

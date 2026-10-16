@@ -8,15 +8,6 @@ use App\Services\Import\HasStockFeed;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 
-/**
- * Alta publishes stock and product details separately:
- *
- *   B2B (SOAP)  → which items exist and how many are held  → supplier_stocks
- *   website     → name, specs, images                      → ProductPayload
- *
- * So ids() walks the stock table instead of a numeric range: we only ever ask
- * the website about products the supplier actually has.
- */
 class AltaDriver implements HasStockFeed, SupplierDriver
 {
     protected AltaClient $client;
@@ -28,8 +19,6 @@ class AltaDriver implements HasStockFeed, SupplierDriver
         $this->client = new AltaClient($supplier->config ?? []);
         $this->stock = new AltaStockClient($supplier->config ?? []);
     }
-
-    /* ------------------------------------------------------------------ stock feed */
 
     public function refreshStock(): int
     {
@@ -49,7 +38,6 @@ class AltaDriver implements HasStockFeed, SupplierDriver
             );
         }
 
-        // items that dropped out of the feed are no longer held
         SupplierStock::where('supplier_id', $this->supplier->id)
             ->where('synced_at', '<', $now)
             ->update(['quantity' => 0, 'synced_at' => $now]);
@@ -57,9 +45,6 @@ class AltaDriver implements HasStockFeed, SupplierDriver
         return count($rows);
     }
 
-    /* ------------------------------------------------------------------ catalogue */
-
-    /** Only items the supplier holds in a sellable quantity. */
     public function ids(): iterable
     {
         $min = (int) ($this->supplier->config['min_quantity'] ?? 2);
@@ -84,8 +69,6 @@ class AltaDriver implements HasStockFeed, SupplierDriver
         return $data ? $this->toPayload($externalId, $data) : null;
     }
 
-    /* ------------------------------------------------------------------ mapping */
-
     protected function toPayload(string $externalId, array $data): ?ProductPayload
     {
         $p = $data['product'];
@@ -105,8 +88,7 @@ class AltaDriver implements HasStockFeed, SupplierDriver
                     'locale' => $locale,
                     'group' => trim($group['groupName'] ?? ''),
                     'key' => (bool) ($spec['isMainSpecification'] ?? false),
-                    // the source links a spec to its own filter page exactly when
-                    // that spec is filterable
+
                     'filterable' => filled($spec['specificationLinkedUrl'] ?? null),
                     'color' => ($spec['isColor'] ?? false) ? ($spec['colorValue'] ?? null) : null,
                 ];
@@ -118,7 +100,6 @@ class AltaDriver implements HasStockFeed, SupplierDriver
             fn ($s) => $s['name'] !== '' && $s['value'] !== '' && $s['value'] !== '-',
         ));
 
-        // the B2B feed is the truth about stock; the website only says "in store"
         $quantity = (int) SupplierStock::where('supplier_id', $this->supplier->id)
             ->where('external_id', $externalId)
             ->value('quantity');
@@ -126,8 +107,7 @@ class AltaDriver implements HasStockFeed, SupplierDriver
         return new ProductPayload(
             externalId: $externalId,
             sku: $this->supplier->code.'-'.$externalId,
-            // the site shows the discounted price in "price" and the original in
-            // "previousPrice", so the higher one is the regular price
+
             costPrice: (float) ($p['previousPrice'] ?? $p['price'] ?? 0),
             oldCostPrice: isset($p['previousPrice']) ? (float) $p['price'] : null,
             stock: $quantity,
@@ -142,7 +122,6 @@ class AltaDriver implements HasStockFeed, SupplierDriver
         );
     }
 
-    /** The brand lives in the specs on this source, with the field as a fallback. */
     protected function brand(array $product): ?string
     {
         foreach ($product['specificationGroup'] ?? [] as $group) {

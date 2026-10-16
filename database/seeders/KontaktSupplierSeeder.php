@@ -11,29 +11,24 @@ class KontaktSupplierSeeder extends Seeder
     public function run(): void
     {
         Supplier::updateOrCreate(['code' => 'kontakt'], [
-            'name'     => 'Kontakt Home',
-            'driver'   => KontaktDriver::class,
+            'name' => 'Kontakt Home',
+            'driver' => KontaktDriver::class,
             'priority' => 80,
-            'config'   => [
+            'config' => [
                 'timeout' => 30,
-                'locale'  => 'ka',
+                'locale' => 'ka',
 
-                /*
-                 | The price list, column by column. The product's address is a
-                 | hyperlink behind column A rather than a column of its own.
-                 */
                 'columns' => [
-                    'key'   => 'A',
-                    'url'   => 'A',
+                    'key' => 'A',
+                    'url' => 'A',
                     'stock' => 'B',
-                    'cost'  => 'C',
-                    'sale'  => 'D',
+                    'cost' => 'C',
+                    'sale' => 'D',
                 ],
 
-                // their shop out of our copy
                 'replace' => [
                     'www.kontakt.ge' => 'iapi.ge',
-                    'kontakt.ge'     => 'iapi.ge',
+                    'kontakt.ge' => 'iapi.ge',
                     'შიდა განვადება' => '',
                 ],
             ],

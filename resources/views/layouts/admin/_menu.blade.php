@@ -83,7 +83,6 @@
                     </a>
                 </li>
 
-                {{-- catalogue --}}
                 <li class="dropdown nav-item {{ $on('admin.products', 'admin.products.*', 'admin.categories', 'admin.brands') }}"
                     data-menu="dropdown">
                     <a class="dropdown-toggle nav-link d-flex align-items-center" href="#" data-bs-toggle="dropdown">
@@ -117,7 +116,6 @@
                     </ul>
                 </li>
 
-                {{-- orders --}}
                 <li class="nav-item {{ $on('admin.orders', 'admin.orders.*') }}">
                     <a class="nav-link d-flex align-items-center" href="{{ route('admin.orders') }}">
                         {!! $icon('cart') !!}<span>{{ __('admin.orders') }}</span>
@@ -125,7 +123,6 @@
                     </a>
                 </li>
 
-                {{-- suppliers and mapping --}}
                 <li class="dropdown nav-item {{ $on('admin.mapping', 'admin.attributes', 'admin.import.*') }}"
                     data-menu="dropdown">
                     <a class="dropdown-toggle nav-link d-flex align-items-center" href="#" data-bs-toggle="dropdown">
@@ -169,7 +166,6 @@
                     </ul>
                 </li>
 
-                {{-- callbacks --}}
                 <li class="nav-item {{ $on('admin.callbacks') }}">
                     <a class="nav-link d-flex align-items-center" href="{{ route('admin.callbacks') }}">
                         {!! $icon('phone') !!}<span>{{ __('admin.callbacks') }}</span>
@@ -177,14 +173,12 @@
                     </a>
                 </li>
 
-                {{-- the home page's carousel --}}
                 <li class="nav-item {{ $on('admin.slides') }}">
                     <a class="nav-link d-flex align-items-center" href="{{ route('admin.slides') }}">
                         {!! $icon('image') !!}<span>{{ __('admin.slides') }}</span>
                     </a>
                 </li>
 
-                {{-- promotions --}}
                 <li class="nav-item {{ $on('admin.promotions') }}">
                     <a class="nav-link d-flex align-items-center" href="{{ route('admin.promotions') }}">
                         {!! $icon('percent') !!}<span>{{ __('admin.promotions') }}</span>

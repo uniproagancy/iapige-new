@@ -11,16 +11,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * Clears the mappings the importer made for itself, so a person can make them.
- *
- * Unknown attributes are created and mapped automatically, which keeps specs
- * from being lost but fills the taxonomy with one attribute per supplier's
- * wording. Starting the mapping over by hand means putting those rows back to
- * unmapped and taking the invented attributes out.
- *
- * Nothing happens without --force. The default is a report.
- */
 class ResetAttributeMappings extends Command
 {
     protected $signature = 'attributes:reset
@@ -32,7 +22,6 @@ class ResetAttributeMappings extends Command
 
     protected $description = 'Put supplier attribute mappings back to unmapped, ready to be mapped by hand';
 
-    /** Attributes the chosen category shares with others, for the report. */
     protected $shared;
 
     public function handle(): int
@@ -66,7 +55,6 @@ class ResetAttributeMappings extends Command
             ->when($category, fn ($q) => $q->whereIn('attribute_id', $this->attributesOf($category)))
             ->get();
 
-        // named first, so even "nothing to do" says what it looked at
         $this->scope($supplier, $category);
 
         if ($rows->isEmpty()) {
@@ -90,7 +78,7 @@ class ResetAttributeMappings extends Command
             ->update(['attribute_id' => null, 'updated_at' => now()]);
 
         if ($invented->isNotEmpty()) {
-            // cascades to attribute_translations, attribute_values, product_specs
+
             Attribute::whereIn('id', $invented->pluck('id'))->delete();
         }
 
@@ -101,12 +89,6 @@ class ResetAttributeMappings extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * What this run is about.
-     *
-     * A count on its own does not say what it counted, and --category takes an
-     * id — the easiest thing in the world to mistype into another department.
-     */
     protected function scope(?Supplier $supplier, ?Category $category): void
     {
         $this->newLine();
@@ -117,7 +99,6 @@ class ResetAttributeMappings extends Command
             .($category && $this->option('only-exclusive') ? '  [only what no other category uses]' : ''));
     }
 
-    /** Root > ... > this, so an id cannot be mistaken for a different department. */
     protected function trail(Category $category): string
     {
         return collect($category->ancestorsAndSelf())
@@ -132,20 +113,6 @@ class ResetAttributeMappings extends Command
             : Category::whereTranslation('slug', $name, false)->first();
     }
 
-    /**
-     * The attributes a category's products actually carry.
-     *
-     * Nothing ties an attribute to a category directly — the only path is
-     * category → products → specs → attribute, so "this category's attributes"
-     * means the ones its products happen to use.
-     *
-     * Which is why the overlap is reported rather than glossed over: a mapping
-     * row is (supplier, name) => attribute for the whole shop, so unmapping
-     * "მწარმოებელი" because the phones use it unmaps it for the televisions
-     * too. --only-exclusive narrows this to the attributes nothing else uses.
-     *
-     * @return Collection<int, int>
-     */
     protected function attributesOf(Category $category): Collection
     {
         $ids = $category->descendantAndSelfIds();
@@ -168,18 +135,6 @@ class ResetAttributeMappings extends Command
             : $used;
     }
 
-    /**
-     * The attributes the importer invented for these names.
-     *
-     * There is no flag saying so, but there is something better: the code an
-     * invented attribute carries is produced from the supplier's own wording by
-     * a function with no choices in it, so running the wording through the same
-     * rule names the attribute it would have created. An attribute whose code
-     * matches nothing in the mapping table was made by a person and is left
-     * alone.
-     *
-     * @param  Collection  $rows
-     */
     protected function inventedBy($rows): Collection
     {
         $codes = $rows->pluck('external_name')->map(fn ($name) => $this->codeFor($name))->unique();
@@ -187,7 +142,6 @@ class ResetAttributeMappings extends Command
         return Attribute::whereIn('code', $codes)->get(['id', 'code']);
     }
 
-    /** The same rule TaxonomyResolver uses, so the two cannot disagree. */
     protected function codeFor(string $name): string
     {
         $code = Slug::make($name) ?: Str::slug($name);
@@ -200,11 +154,6 @@ class ResetAttributeMappings extends Command
         $specs = DB::table('product_specs')->whereIn('attribute_id', $invented->pluck('id'))->count();
         $values = DB::table('attribute_values')->whereIn('attribute_id', $invented->pluck('id'))->count();
 
-        /*
-         * Said out loud, because a count on its own does not tell anybody what
-         * it counted — and --category takes an id, which is the easiest thing
-         * in the world to mistype into a different department.
-         */
         $this->newLine();
         $this->table(['what', 'count'], [
             ['mappings set back to unmapped', $rows->count()],
@@ -227,13 +176,6 @@ class ResetAttributeMappings extends Command
         }
     }
 
-    /**
-     * The one thing that makes this pointless if nobody says it.
-     *
-     * TaxonomyResolver maps a name it finds unmapped by creating an attribute
-     * for it, which is the behaviour this command just undid — so a run started
-     * before the mapping is done puts every invented attribute straight back.
-     */
     protected function warnAboutTheNextRun(): void
     {
         $this->newLine();

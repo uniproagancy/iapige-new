@@ -10,12 +10,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
-/**
- * One customer, with everything they have ever done in one place.
- *
- * An operator on the phone needs the history, not a form — so the orders,
- * addresses and callbacks are shown first and the editable fields last.
- */
 class Show extends Component
 {
     public User $user;
@@ -94,12 +88,6 @@ class Show extends Component
         $this->dispatch('toast', message: __('admin.saved'));
     }
 
-    /**
-     * Closes the account without losing its orders.
-     *
-     * The orders are our accounting record as much as the customer's history,
-     * so the person is anonymised and the rows stay where they are.
-     */
     public function anonymise(): void
     {
         if ($this->user->is_admin) {

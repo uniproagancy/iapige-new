@@ -22,22 +22,17 @@
          data-index="0"
          data-order="{{ $p['order'] ?? 0 }}"
          @if ($many) data-images="{{ json_encode($images, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}" @endif>
-    {{--
-        A div, not a link: the arrows and dots sit on top of the picture, and a
-        button inside an anchor is invalid markup whose clicks the anchor takes
-        for itself. The link covers the picture alone.
-    --}}
+
     <div class="card__media">
         <a class="card__media-link" href="{{ $p['url'] }}" aria-label="{{ $p['name'] }}">
             <img class="card__img" data-img src="{{ $p['thumb'] }}" alt="{{ $p['name'] }}"
                  loading="lazy" onerror="this.classList.add('is-broken')">
         </a>
 
-        {{-- the suppliers' photographs fail often enough to be worth a shape --}}
         <span class="card__fallback" aria-hidden="true">IAPI.GE</span>
 
         @if (! empty($p['preorder']))
-            {{-- a pre-order outranks "sale" and "new": it changes how you buy it --}}
+
             <span class="card__tag card__tag--pre">{{ __('card.preorder') }}</span>
         @elseif (! empty($p['tag']))
             <span @class(['card__tag', 'card__tag--sale' => $p['tag'] === 'sale', 'card__tag--new' => $p['tag'] === 'new'])>
@@ -99,7 +94,7 @@
                 <span class="card__cart-label">{{ __('cart.add') }}</span>
             </button>
         @else
-            {{-- a pre-order cannot be bought yet, so the button opens the page instead --}}
+
             <a class="card__cart card__cart--pre" href="{{ $p['url'] }}">
                 <x-icon name="truck" size="16" />
                 <span class="card__cart-label">{{ __('cart.preorder') }}</span>

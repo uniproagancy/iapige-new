@@ -1,15 +1,4 @@
-{{--
-    Meta pixel, the browser half.
 
-    It is not loaded until the cookie banner has been answered with "all": the
-    shop asks before it tracks, so "necessary only" has to actually mean that.
-    The same choice is mirrored into a cookie, which is what App\Services\
-    Facebook\Pixel reads before it sends anything from the server.
-
-    Every event carries an eventID. The server sends the same event with the
-    same id, and Meta keeps one of the two — that is what makes the pair add up
-    to one conversion instead of two.
---}}
 @php
     $pixelId = config('services.facebook.pixel_id');
 

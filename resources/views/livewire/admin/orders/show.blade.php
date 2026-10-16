@@ -9,6 +9,7 @@
             'clock'  => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
             'user'   => '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
             'check'  => '<polyline points="20 6 9 17 4 12"/>',
+            'edit'   => '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>',
         ];
 
         return '<svg class="ic '.$class.'" width="16" height="16" viewBox="0 0 24 24" fill="none"'
@@ -41,13 +42,21 @@
             @endif
         </div>
 
-        <small class="text-muted d-flex align-items-center gap-25">
-            {!! $icon('clock') !!}{{ $order->created_at->format('d.m.Y H:i') }}
-        </small>
+        <div class="d-flex align-items-center gap-1">
+            @unless (in_array($order->status, ['cancelled', 'returned'], true))
+                <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.orders.edit', $order) }}" wire:navigate>
+                    {!! $icon('edit', 'me-25') !!}{{ __('admin.order_edit') }}
+                </a>
+            @endunless
+
+            <small class="text-muted d-flex align-items-center gap-25">
+                {!! $icon('clock') !!}{{ $order->created_at->format('d.m.Y H:i') }}
+            </small>
+        </div>
     </div>
 
     <div class="row">
-        {{-- ------------------------------------------------------------ items --}}
+
         <div class="col-lg-8">
             <div class="card">
                 <div class="table-responsive">
@@ -66,13 +75,7 @@
                                 <tr wire:key="i-{{ $item->id }}">
                                     <td>
                                         <div class="d-flex align-items-center gap-1">
-                                            {{--
-                                                The picture is what the person on the phone
-                                                checks the order against: a model code reads
-                                                the same for the right item and the wrong one.
-                                                A deleted product leaves a blank square rather
-                                                than a broken image.
-                                            --}}
+
                                             <span class="order-thumb flex-shrink-0">
                                                 @if ($photo)
                                                     <a href="{{ route('admin.products.edit', $item->product_id) }}">
@@ -126,7 +129,6 @@
                 </div>
             </div>
 
-            {{-- ------------------------------------------------------------ history --}}
             <div class="card">
                 <div class="card-header pb-0">
                     <h5 class="mb-0">{{ __('admin.history') }}</h5>
@@ -171,9 +173,8 @@
             </div>
         </div>
 
-        {{-- ------------------------------------------------------------ side --}}
         <div class="col-lg-4">
-            {{-- status --}}
+
             <div class="card">
                 <div class="card-body">
                     <label class="form-label">{{ __('admin.status') }}</label>
@@ -184,7 +185,7 @@
                     </select>
 
                     @if (in_array($status, ['cancelled', 'returned'], true) && $status !== $order->status)
-                        {{-- goods only return to stock when someone confirms they did --}}
+
                         <div class="form-check form-switch mb-1">
                             <input type="checkbox" class="form-check-input" id="restock" wire:model="restock">
                             <label class="form-check-label" for="restock">{{ __('admin.restock') }}</label>
@@ -206,15 +207,8 @@
                 </div>
             </div>
 
-            {{-- ------------------------------------------------------------ paying --}}
             @if ($payLink)
-                {{--
-                    Two ways to the same page, because a card payment over the
-                    telephone goes one of two ways: the customer pays on their
-                    own phone, or they would rather the operator did it while
-                    they are still on the line. The link is the same either
-                    way — one page, one payment, nothing to keep in step.
-                --}}
+
                 <div class="card">
                     <div class="card-header pb-0">
                         <h5 class="mb-0">{{ __('admin.pay_online') }}</h5>
@@ -222,12 +216,6 @@
                     <div class="card-body">
                         <p class="text-muted">{{ __('admin.pay_link_note', ['days' => \App\Livewire\Admin\Orders\Show::LINK_DAYS]) }}</p>
 
-                        {{--
-                            Plain JavaScript rather than Alpine: selecting the
-                            text is the fallback that matters, because the
-                            clipboard API is refused outside https and the
-                            admin is opened over plain http often enough.
-                        --}}
                         <div class="input-group mb-1">
                             <input type="text" class="form-control" readonly
                                    value="{{ $payLink }}"
@@ -255,7 +243,6 @@
                 </div>
             @endif
 
-            {{-- customer --}}
             <div class="card">
                 <div class="card-header pb-0">
                     <h5 class="mb-0">{{ __('admin.customer') }}</h5>
@@ -265,7 +252,7 @@
 
                     <p class="mb-25 d-flex align-items-center gap-50">
                         {!! $icon('phone') !!}
-                        {{-- the operator's softphone answers this; see Support\Phone --}}
+
                         <a href="{{ \App\Support\Phone::link($order->phone) }}">{{ $order->phone }}</a>
                     </p>
 
@@ -284,7 +271,6 @@
                 </div>
             </div>
 
-            {{-- delivery --}}
             <div class="card">
                 <div class="card-header pb-0">
                     <h5 class="mb-0">{{ __('admin.delivery') }}</h5>

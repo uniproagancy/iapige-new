@@ -4,26 +4,19 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Suppliers and their offers.
- *
- * A product exists once in the catalogue; every supplier that carries it adds
- * an offer. The product's own price and stock are derived from the offers, so
- * the same laptop never shows up twice in the listing.
- */
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 40)->unique();              // zoommer, alta …
+            $table->string('code', 40)->unique();
             $table->string('name');
-            $table->string('driver');                          // App\Services\Import\Drivers\…
+            $table->string('driver');
             $table->boolean('is_active')->default(true);
-            $table->unsignedSmallInteger('priority')->default(100); // lower wins on equal price
-            $table->json('config')->nullable();                // endpoints, tokens, id range
-            $table->json('markup')->nullable();                // [{"up_to":100,"add":30}, …]
+            $table->unsignedSmallInteger('priority')->default(100);
+            $table->json('config')->nullable();
+            $table->json('markup')->nullable();
             $table->timestamp('last_run_at')->nullable();
             $table->timestamps();
         });
@@ -45,14 +38,13 @@ return new class extends Migration
 
         Schema::table('products', function (Blueprint $table) {
             $table->decimal('cost_price', 10, 2)->nullable()->after('old_price');
-            $table->boolean('price_lock')->default(false)->after('cost_price');    // a hand-set price wins
-            $table->boolean('taxonomy_lock')->default(false)->after('price_lock'); // a hand-set category wins
+            $table->boolean('price_lock')->default(false)->after('cost_price');
+            $table->boolean('taxonomy_lock')->default(false)->after('price_lock');
             $table->timestamp('synced_at')->nullable()->after('published_at');
 
             $table->index('synced_at');
         });
 
-        /* Their names → ours. Unknown names are parked here for the admin to map. */
         Schema::create('supplier_category_map', function (Blueprint $table) {
             $table->id();
             $table->foreignId('supplier_id')->constrained()->cascadeOnDelete();

@@ -6,7 +6,7 @@
             </div>
         </div>
     @else
-        {{-- ------------------------------------------------------ the supplier --}}
+
         <div class="card">
             <div class="card-body d-flex flex-wrap align-items-center gap-1">
                 @foreach ($suppliers as $s)
@@ -24,7 +24,7 @@
         </div>
 
         @if ($supplier)
-            {{-- ------------------------------------------------- what is loaded --}}
+
             <div class="row">
                 <div class="col-md-4">
                     <div class="card">
@@ -54,17 +54,9 @@
                 </div>
             </div>
 
-            {{-- ------------------------------------------------- the upload --}}
             <div class="card">
                 <div class="card-body">
-                    {{--
-                        What the file means, asked before it is read.
 
-                        The two are not variations of one another: replacing
-                        takes everything the file omits off sale, which is the
-                        point for a weekly price list and a disaster for a
-                        second file covering different products.
-                    --}}
                     <div class="row g-1 mb-1">
                         <div class="col-md-6">
                             <div class="form-check border rounded p-1 ps-3 h-100">
@@ -120,7 +112,6 @@
                         </div>
                     </div>
 
-                    {{-- the map is the supplier's, and a file that ignores it loads nothing --}}
                     @if ($columns)
                         <p class="text-muted mt-1 mb-0">
                             {{ __('admin.import_columns') }}
@@ -134,7 +125,6 @@
                 </div>
             </div>
 
-            {{-- ------------------------------------------------- the result --}}
             @if ($result)
                 <div class="card">
                     <div class="card-body">

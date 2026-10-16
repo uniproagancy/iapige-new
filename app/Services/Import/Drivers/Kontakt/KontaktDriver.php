@@ -7,13 +7,6 @@ use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 
-/**
- * Kontakt.
- *
- * The price list carries the model, the quantity, the prices — and, behind the
- * model's own cell, a link to the product's page. So the spreadsheet decides
- * what exists and what it costs, and the link says where to read the rest.
- */
 class KontaktDriver implements SupplierDriver
 {
     protected KontaktClient $client;
@@ -45,7 +38,7 @@ class KontaktDriver implements SupplierDriver
         $url = $data['url'] ?? null;
 
         if (! $url || ! str_starts_with($url, 'http')) {
-            return null;   // without a link there is nothing to describe
+            return null;
         }
 
         $page = $this->client->page($url);
@@ -53,13 +46,10 @@ class KontaktDriver implements SupplierDriver
         return $page && $page['name'] ? $this->toPayload($externalId, $row, $data, $page) : null;
     }
 
-    /* ------------------------------------------------------------------ mapping */
-
     protected function toPayload(string $model, SupplierStock $row, array $data, array $page): ?ProductPayload
     {
         $locale = $this->supplier->config['locale'] ?? 'ka';
 
-        // the price list wins; the page's own price is the fallback
         $cost = (float) $row->cost_price ?: (float) $page['price'];
 
         if ($cost <= 0) {
@@ -74,16 +64,11 @@ class KontaktDriver implements SupplierDriver
             'value' => $spec['value'],
             'locale' => $locale,
             'key' => false,
-            // nothing is filterable on arrival; that is decided in the admin
+
             'filterable' => false,
             'color' => null,
         ], $page['specs'] ?? []);
 
-        /*
-         * Both sources must agree before a product counts as available: the
-         * page says whether it is sold at all, the spreadsheet how many are
-         * left. Either one alone has been wrong before.
-         */
         $stock = $page['in_stock'] ? max(1, (int) $row->quantity) : 0;
 
         return new ProductPayload(
@@ -93,8 +78,7 @@ class KontaktDriver implements SupplierDriver
             oldCostPrice: $old,
             stock: $stock,
             brandName: $page['brand'] ?? null,
-            // the price list has no category column, so the page's breadcrumb is
-            // what reaches the mapping queue; a column named one would still win
+
             categoryName: $data['category'] ?? $page['category'] ?? null,
             translations: [$locale => [
                 'name' => $this->rewrite($page['name']),
@@ -105,13 +89,6 @@ class KontaktDriver implements SupplierDriver
         );
     }
 
-    /**
-     * Their name out of our copy.
-     *
-     * A supplier writes its own shop into every description, which would send
-     * our customers to them. The pairs are configured rather than written in,
-     * because each supplier does this with a different word.
-     */
     protected function rewrite(?string $text): ?string
     {
         if (! $text) {

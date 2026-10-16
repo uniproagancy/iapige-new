@@ -45,18 +45,11 @@ class CallbackRequest extends Model
         return $this->status === self::NEW;
     }
 
-    /** The order an operator wrote from this call, if it came to one. */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    /**
-     * What the browser knew when the number was left.
-     *
-     * Handed to the Purchase the operator writes later, which happens in the
-     * admin where none of it can be read any more.
-     */
     public function pixelData(): array
     {
         return array_filter([

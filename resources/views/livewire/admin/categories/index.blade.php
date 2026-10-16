@@ -26,7 +26,7 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ filters --}}
+
     <div class="card">
         <div class="card-body pb-1">
             <div class="row g-1">
@@ -91,7 +91,6 @@
         </div>
     </div>
 
-    {{-- ------------------------------------------------------------ tree --}}
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover cat-table mb-0">
@@ -107,7 +106,6 @@
                     </tr>
                 </thead>
 
-                {{-- rows carry their parent, so a drag never escapes its own level --}}
                 <tbody data-sortable-tree>
                     @forelse ($tree as $row)
                         <tr wire:key="cat-{{ $row['id'] }}"
@@ -219,7 +217,6 @@
         </div>
     </div>
 
-    {{-- ------------------------------------------------------------ form --}}
     @if ($showForm)
         <div class="modal fade show d-block" tabindex="-1" style="background:rgba(34,41,47,.5)">
             <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -276,7 +273,7 @@
                             <div class="row">
                                 <div class="col-md-8 mb-1">
                                     <label class="form-label">{{ __('admin.parent') }}</label>
-                                    {{-- any level can be a parent: the storefront draws three --}}
+
                                     <select class="form-select @error('parent_id') is-invalid @enderror" wire:model="parent_id">
                                         <option value="">— {{ __('admin.root') }} —</option>
                                         @foreach ($options as $option)
@@ -331,7 +328,6 @@
         </div>
     @endif
 
-    {{-- ------------------------------------------------------------ delete --}}
     @if ($showDelete)
         <div class="modal fade show d-block" tabindex="-1" style="background:rgba(34,41,47,.5)">
             <div class="modal-dialog modal-dialog-centered">

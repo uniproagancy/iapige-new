@@ -27,14 +27,13 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ an order taken by phone --}}
+
     <div class="d-flex justify-content-end mb-1">
         <a class="btn btn-sm btn-primary" href="{{ route('admin.orders.create') }}" wire:navigate>
             {!! $icon('cart', 'me-25') !!}{{ __('admin.order_create') }}
         </a>
     </div>
 
-    {{-- ------------------------------------------------------------ what is waiting --}}
     <div class="d-flex flex-wrap gap-1 mb-2">
         @foreach ($statuses as $key => $label)
             @continue (! ($counts[$key] ?? 0))
@@ -49,7 +48,6 @@
         @endforeach
     </div>
 
-    {{-- ------------------------------------------------------------ filters --}}
     <div class="card">
         <div class="card-body pb-1">
             <div class="row g-1">
@@ -94,7 +92,6 @@
                 </div>
             </div>
 
-            {{-- the totals follow the filters, so they always describe what is on screen --}}
             <div class="d-flex flex-wrap align-items-center gap-2 mt-1 pb-1 text-muted small">
                 <span class="d-flex align-items-center gap-25">
                     {!! $icon('cart') !!} {{ __('admin.orders_n', ['count' => $totals['orders']]) }}
@@ -106,7 +103,6 @@
         </div>
     </div>
 
-    {{-- ------------------------------------------------------------ bulk --}}
     @if ($selected)
         <div class="card border-primary">
             <div class="card-body py-1 d-flex flex-wrap align-items-center gap-1">
@@ -124,7 +120,6 @@
         </div>
     @endif
 
-    {{-- ------------------------------------------------------------ list --}}
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">

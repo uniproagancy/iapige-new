@@ -4,29 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Hand-picked campaigns: "deal of the week", a seasonal sale, a bundle offer.
- *
- * A campaign carries its own price per product, so a discount never touches
- * products.price — when the campaign ends, the catalogue price is simply
- * itself again, with nothing to restore.
- */
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('promotions', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 40)->unique();            // week-deal, black-friday
-            $table->string('type', 16)->default('deal');     // deal | banner | bundle
-            $table->string('image')->nullable();             // banner artwork
-            $table->string('url')->nullable();               // where the banner leads
-            $table->string('badge', 24)->nullable();         // "-20%", "NEW"
+            $table->string('code', 40)->unique();
+            $table->string('type', 16)->default('deal');
+            $table->string('image')->nullable();
+            $table->string('url')->nullable();
+            $table->string('badge', 24)->nullable();
             $table->string('badge_color', 9)->nullable();
 
             $table->boolean('is_active')->default(true);
-            $table->timestamp('starts_at')->nullable();      // null = already running
-            $table->timestamp('ends_at')->nullable();        // null = no end
+            $table->timestamp('starts_at')->nullable();
+            $table->timestamp('ends_at')->nullable();
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
 
@@ -40,7 +33,7 @@ return new class extends Migration
             $table->string('locale', 10);
             $table->string('title');
             $table->string('subtitle')->nullable();
-            $table->string('cta')->nullable();               // button label
+            $table->string('cta')->nullable();
 
             $table->unique(['promotion_id', 'locale']);
             $table->foreign('locale')->references('code')->on('languages')
@@ -52,11 +45,10 @@ return new class extends Migration
             $table->foreignId('promotion_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
 
-            // exactly one of these: a fixed price, or a percentage off the current one
             $table->decimal('promo_price', 10, 2)->nullable();
             $table->unsignedTinyInteger('discount_percent')->nullable();
 
-            $table->unsignedInteger('stock_limit')->nullable();  // how many go at this price
+            $table->unsignedInteger('stock_limit')->nullable();
             $table->unsignedInteger('sold')->default(0);
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('delivery_rates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('delivery_city_id')->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('up_to_weight');   // grams — this tier applies up to here
+            $table->unsignedInteger('up_to_weight');
             $table->decimal('fee', 8, 2);
             $table->timestamps();
 

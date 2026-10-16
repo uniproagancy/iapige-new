@@ -25,7 +25,7 @@
         </div>
 
         @if ($mode === 'login')
-            {{-- sign in --}}
+
             <form class="auth__form" wire:submit="submit" novalidate>
                 <div class="field">
                     <label class="field__label" for="loginUser">{{ __('auth.login_field') }}</label>
@@ -59,7 +59,7 @@
             </form>
 
         @elseif ($mode === 'forgot')
-            {{-- forgot password --}}
+
             <form class="auth__form" wire:submit="submit" novalidate>
                 <div class="field">
                     <label class="field__label" for="forgotEmail">{{ __('auth.email') }}</label>
@@ -82,7 +82,7 @@
             </form>
 
         @else
-            {{-- register --}}
+
             <form class="auth__form" wire:submit="submit" novalidate>
                 <div class="field">
                     <label class="field__label" for="regName">{{ __('auth.name') }}</label>

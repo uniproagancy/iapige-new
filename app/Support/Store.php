@@ -4,14 +4,6 @@ namespace App\Support;
 
 use App\Models\Slide;
 
-/**
- * Content that doesn't have a table yet: hero slides, section banners, product
- * page extras (reviews, highlights), and the contact / about / document pages.
- * Products, categories and brands come from the database — see Catalog.
- *
- * Each block is keyed by locale and falls back to Georgian. These move to the
- * database with the content tables (slides, banners, pages, reviews).
- */
 class Store
 {
     public static function img(string $seed, int $i = 0, int $w = 480, int $h = 360): string
@@ -19,13 +11,10 @@ class Store
         return 'https://picsum.photos/seed/'.rawurlencode("{$seed}-{$i}")."/{$w}/{$h}";
     }
 
-    /** Pick the current locale's version, falling back to Georgian. */
     protected static function localized(array $byLocale): mixed
     {
         return $byLocale[app()->getLocale()] ?? $byLocale['ka'];
     }
-
-    /* ------------------------------------------------------------------ footer */
 
     public static function pay(): array
     {
@@ -51,21 +40,6 @@ class Store
         ]);
     }
 
-    /* ------------------------------------------------------------------ home */
-
-    /**
-     * The home page's carousel.
-     *
-     * From the slides table when there is anything in it, and from the five
-     * written below when there is not. The fallback is not politeness: the
-     * carousel is the first thing on the page, and a shop that opens on a
-     * blank rectangle because nobody has added a slide yet looks broken
-     * rather than empty.
-     *
-     * The admin's slides win the moment one exists, so adding the first real
-     * one takes all five of these away together — which is what you want,
-     * rather than one new slide sitting among five placeholders.
-     */
     public static function slides(): array
     {
         $own = Slide::live()
@@ -90,7 +64,6 @@ class Store
         return self::placeholderSlides();
     }
 
-    /** The five that were hard-coded here, until somebody adds a real one. */
     protected static function placeholderSlides(): array
     {
         $img = [48, 180, 160, 1082, 1076];
@@ -118,7 +91,6 @@ class Store
         ], $text, array_keys($text));
     }
 
-    /** Banners under home sections, keyed by the section's default-language slug. */
     public static function sectionBanners(): array
     {
         $b = self::localized([
@@ -159,9 +131,6 @@ class Store
         ];
     }
 
-    /* ------------------------------------------------------------------ product page */
-
-    /** Blocks of the product page that don't have tables yet. */
     public static function productExtras(): array
     {
         return [
@@ -196,8 +165,6 @@ class Store
             ],
         ]);
     }
-
-    /* ------------------------------------------------------------------ contact / about / documents */
 
     public static function info(): array
     {

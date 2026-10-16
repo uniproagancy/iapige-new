@@ -3,18 +3,6 @@
     'configs' => [],
 ])
 
-{{--
-    Choosing a colour or a size means opening another product, so each option
-    is a link.
-
-    These were buttons inside the buy box, and a click went to the server,
-    through a Livewire component, to be answered with a redirect. An anchor
-    cannot fail to navigate, opens in a new tab when somebody wants that, and
-    tells a crawler the variants exist — none of which a button does.
-
-    The one belonging to this product is not a link, because there is nowhere
-    for it to lead.
---}}
 @if ($colors || $configs)
     <div class="opts">
         @if ($colors)

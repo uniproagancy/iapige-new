@@ -18,15 +18,8 @@ class MideaSupplierSeeder extends Seeder
                 'locale' => 'ka',
                 'brand' => 'Midea',
 
-                /*
-                 | The price list, column by column:
-                 |
-                 | A კატეგორია   B მოდელი      C შტრიხკოდი   D აღწერა
-                 | E საცალო      F საცალო აქცია  G სადილერო აქცია
-                 | H ნაშთი       I/J გარანტია    K www.midea.ge (the site's model)
-                 */
                 'columns' => [
-                    'key' => 'C',   // barcode — the identity of a row
+                    'key' => 'C',
                     'category' => 'A',
                     'model' => 'B',
                     'description' => 'D',
@@ -38,29 +31,15 @@ class MideaSupplierSeeder extends Seeder
                     'site_model' => 'K',
                 ],
 
-                // 'retail' sells at Midea's own promotional price; 'dealer' applies our markup
                 'price_from' => 'retail',
 
-                /*
-                 | Midea answers with the whole product — title, gallery,
-                 | description — so nothing arrives half-described and there is
-                 | nothing for a person to fix before a customer sees it.
-                 | readyToPublish still holds back anything uncategorised.
-                 */
                 'publish_on_import' => true,
 
-                // the site is only asked for photographs and a few specs
                 'read_site' => true,
                 'read_product_page' => false,
                 'max_pages' => 30,
                 'timeout' => 30,
 
-                /*
-                 | Requests a minute. Their shop is small and sits behind
-                 | no CDN: at the usual four a second it starts throttling,
-                 | and a throttled run takes hours where a paced one takes
-                 | minutes.
-                 */
                 'rate' => 30,
 
                 'listings' => [
@@ -73,7 +52,6 @@ class MideaSupplierSeeder extends Seeder
                 ],
             ],
 
-            // unused while price_from is 'retail'; kept for when it is not
             'markup' => [
                 ['up_to' => 500, 'percent' => 25],
                 ['percent' => 20],

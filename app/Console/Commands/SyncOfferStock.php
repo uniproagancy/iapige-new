@@ -8,11 +8,6 @@ use App\Models\SupplierStock;
 use App\Services\Import\ProductImporter;
 use Illuminate\Console\Command;
 
-/**
- * Pushes a refreshed stock feed onto the offers we already have, without
- * touching the website. Running this after import:stock keeps the shop's
- * availability current between full imports.
- */
 class SyncOfferStock extends Command
 {
     protected $signature = 'import:sync-stock {supplier}';

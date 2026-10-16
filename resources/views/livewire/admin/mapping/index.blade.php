@@ -18,7 +18,7 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ which side --}}
+
     <ul class="nav nav-pills mb-2">
         <li class="nav-item">
             <button type="button" @class(['nav-link', 'active' => $tab === 'categories'])
@@ -40,7 +40,6 @@
         </li>
     </ul>
 
-    {{-- ------------------------------------------------------------ filters --}}
     <div class="card">
         <div class="card-body pb-1">
             <div class="row g-1">
@@ -99,22 +98,12 @@
         </div>
     @endunless
 
-    {{-- ------------------------------------------------------------ rows --}}
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        {{--
-                            The category column takes what is left, and the
-                            rest are held to what they need.
 
-                            A full trail runs to "Small kitchen appliances ›
-                            Blenders and choppers" and the field was given a
-                            fixed share of the table, so most of a name was cut
-                            off exactly where it starts to matter — the end,
-                            which is the part that tells two of them apart.
-                        --}}
                         <th style="width:110px">{{ __('admin.supplier') }}</th>
                         <th style="width:18%">{{ __('admin.external_name') }}</th>
                         <th class="text-center" style="width:70px">{{ __('admin.hits') }}</th>
@@ -122,7 +111,7 @@
                             <th class="text-center" style="width:90px">{{ __('admin.products') }}</th>
                         @endif
                         @if ($tab === 'attributes')
-                            {{-- which department the name arrived from; the name alone does not say --}}
+
                             <th style="width:14%">{{ __('admin.seen_in') }}</th>
                         @endif
                         <th>{{ $tab === 'attributes' ? __('admin.attribute') : __('admin.category') }}</th>
@@ -170,7 +159,7 @@
                             @if ($tab === 'categories' && $canRelink)
                                 <td class="text-center">
                                     @if ($waiting)
-                                        {{-- how many products this one name is holding up --}}
+
                                         <span @class([
                                             'badge',
                                             'badge-light-warning' => ! $current,
@@ -183,17 +172,7 @@
                             @endif
 
                             <td>
-                                {{--
-                                    A list of our own, not the browser's.
 
-                                    A datalist filters natively and costs
-                                    nothing, but the box it draws belongs to
-                                    the browser: its width, its height and how
-                                    many lines it shows are not ours to set.
-                                    With labels that run to three levels the
-                                    end of the path — the part that tells two
-                                    apart — was always the part cut off.
-                                --}}
                                 @if ($picking === $row->id)
                                     <div class="picker">
                                         <input type="text" class="form-control form-control-sm"
@@ -238,7 +217,7 @@
 
                             <td class="text-end text-nowrap">
                                 @if ($tab === 'categories' && ! $current)
-                                    {{-- the supplier's name becomes our category, in one click --}}
+
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-primary"
                                             wire:click="createAndMap({{ $row->id }})"
                                             title="{{ __('admin.create_from_name') }}">

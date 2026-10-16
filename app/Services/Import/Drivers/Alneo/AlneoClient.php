@@ -6,25 +6,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-/**
- * alneo.ge, a WooCommerce shop.
- *
- * The shop will list its whole catalogue on one page and writes each product's
- * SKU into the card markup, so the entire index — code to URL — comes from a
- * single request. Reading each product page to learn its code would be a
- * thousand requests for the same answer.
- */
 class AlneoClient
 {
     protected const INDEX_KEY = 'import:alneo:index';
 
     public function __construct(protected array $config = []) {}
 
-    /**
-     * Every product URL in the shop, keyed by SKU.
-     *
-     * @return array<string, string>
-     */
     public function index(bool $fresh = false): array
     {
         if ($fresh) {
@@ -32,7 +19,7 @@ class AlneoClient
         }
 
         return Cache::remember(self::INDEX_KEY, now()->addHours(12), function () {
-            // the whole catalogue on one page: the server needs a while to build it
+
             $html = $this->get(config('services.alneo.shop_url'), timeout: 180, connect: 60);
 
             if ($html === null) {
@@ -49,20 +36,10 @@ class AlneoClient
         });
     }
 
-    /**
-     * Pairs a card's SKU with its link.
-     *
-     * The two sit in the same list item but in no fixed order, so each card is
-     * taken whole and read from the inside — matching them across the page
-     * would pair the wrong ones the moment the theme reorders anything.
-     *
-     * @return array<string, string>
-     */
     protected function indexFrom(string $html): array
     {
         $index = [];
 
-        // a card is a block that carries a sku attribute; cut the page on them
         $cards = preg_split('/(?=data-product_sku)/', $html);
 
         foreach ($cards as $card) {
@@ -76,13 +53,11 @@ class AlneoClient
                 continue;
             }
 
-            // the link may sit before or after the attribute, so both halves are searched
             if (preg_match('#href="([^"]+/product/[^"]+)"#i', $card, $link)) {
                 $index[$code] = $link[1];
             }
         }
 
-        // whatever the split missed: pair the page's links and codes in order
         if (count($index) < 10) {
             $index = $this->indexByPosition($html);
         }
@@ -90,11 +65,6 @@ class AlneoClient
         return $index;
     }
 
-    /**
-     * The fallback: codes and links in the order the page writes them.
-     *
-     * @return array<string, string>
-     */
     protected function indexByPosition(string $html): array
     {
         preg_match_all('/data-product_sku=["\']([^"\']+)["\']/', $html, $skus);
@@ -117,17 +87,11 @@ class AlneoClient
         return $index;
     }
 
-    /** Every product link in the shop, for when only the links are wanted. */
     public function links(): array
     {
         return array_values($this->index());
     }
 
-    /**
-     * One product page, read from its structured data.
-     *
-     * @return array{sku:?string, name:?string, description:?string, category:?string, images:array, specs:array, price:float, old:float}|null
-     */
     public function page(string $url): ?array
     {
         $html = $this->get($url);
@@ -156,9 +120,6 @@ class AlneoClient
         ];
     }
 
-    /* ------------------------------------------------------------------ parts */
-
-    /** The Product node, whether it stands alone or sits inside a @graph. */
     protected function productJson(string $html): ?array
     {
         if (! preg_match_all('#<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>#is', $html, $m)) {
@@ -186,11 +147,6 @@ class AlneoClient
         return null;
     }
 
-    /**
-     * The selling price and the one it is struck through against.
-     *
-     * @return array{float, float}
-     */
     protected function prices(array $json): array
     {
         $offer = $json['offers'][0] ?? $json['offers'] ?? [];
@@ -241,7 +197,6 @@ class AlneoClient
         return $this->clean($text);
     }
 
-    /** @return array<int, string> */
     protected function images(array $json, string $html): array
     {
         $images = [];
@@ -270,30 +225,10 @@ class AlneoClient
         ));
     }
 
-    /**
-     * What the product is made of.
-     *
-     * Alneo renders no attributes table at all — neither WooCommerce's
-     * shop_attributes nor the theme's grid is anywhere on the page, which is
-     * why nothing ever reached the admin's mapping queue for this supplier.
-     * Their specifications are written into the description itself, one per
-     * line:
-     *
-     *     <div>• სიმძლავრე: 9 000 BTU</div>
-     *     <li>მაქსიმალური დატვირთვა: 50კგ</li>
-     *
-     * The container and the bullet vary from product to product, the shape
-     * does not. The two table patterns are kept above it: they cost nothing
-     * when they are absent, and a theme that grows one later should be read
-     * in preference to text we had to parse.
-     *
-     * @return array<int, array{name:string, value:string}>
-     */
     protected function specs(string $html): array
     {
         $specs = [];
 
-        // the theme's own two-column grid comes first; it is the curated list
         if (preg_match_all(
             '#<div class="mb-3\.5 grid grid-cols-2[^"]*">\s*<span[^>]*>([^<]+)</span>\s*<span[^>]*>([^<]+)</span>\s*</div>#is',
             $html, $rows, PREG_SET_ORDER
@@ -321,16 +256,6 @@ class AlneoClient
         return array_values($specs);
     }
 
-    /**
-     * The description, one block element per entry.
-     *
-     * Split on the closing tags rather than parsed: the markup is malformed
-     * — a <div> that closes with </p> is normal on these pages — and a
-     * reader worth the name either repairs that into a shape the lines no
-     * longer survive, or refuses it outright.
-     *
-     * @return array<int, string>
-     */
     protected function descriptionLines(string $html): array
     {
         if (! preg_match('#<div class="electro-description[^"]*">(.*?)</div>\s*<div class="product_meta">#is', $html, $m)) {
@@ -350,18 +275,9 @@ class AlneoClient
         return $lines;
     }
 
-    /**
-     * One line of the description read as "name: value", or not at all.
-     *
-     * A description holds prose as well, and prose has colons in it. The
-     * guards are what tells the two apart: a specification's name is short,
-     * finishes no sentence of its own, and is followed by something.
-     *
-     * @return array{?string, ?string}
-     */
     protected function asSpec(string $line): array
     {
-        // the bullet is decoration, and it is a different character per product
+
         $line = preg_replace('/^[\s\x{2022}\x{00B7}*\-\x{2013}\x{2014}]+/u', '', $line);
 
         if (! str_contains($line, ':')) {
@@ -370,12 +286,10 @@ class AlneoClient
 
         [$name, $value] = array_map('trim', explode(':', $line, 2));
 
-        // a heading such as "მახასიათებლები:" names nothing
         if ($name === '' || $value === '') {
             return [null, null];
         }
 
-        // a name that runs on, or closes a sentence before the colon, is prose
         if (mb_strlen($name) > 80 || preg_match('/[.!?]\s/u', $name)) {
             return [null, null];
         }
@@ -387,24 +301,6 @@ class AlneoClient
         return [$name, $value];
     }
 
-    /**
-     * The category WooCommerce prints beneath the product.
-     *
-     * The price list has no column for one, so without this nothing Alneo
-     * imports ever appears in the admin's category queue and every product
-     * lands uncategorised with nothing to map it by.
-     *
-     * Read out of the product's own meta block and nowhere else. The shop's
-     * navigation menu lists every category it has, each one a link of exactly
-     * the same shape, so searching the page at large answers with whatever
-     * sits deepest in that menu — "Android სმარტფონები" for an air
-     * conditioner, which is what this did before the block was pinned down.
-     *
-     * Where several are listed, the one sitting deepest in their tree wins:
-     * its link carries the most path segments, and it is the most specific
-     * thing they have said about the product. The brand is printed the same
-     * way a line below, so a link only counts as a category when it is one.
-     */
     protected function category(string $html): ?string
     {
         if (! preg_match('#<div class="product_meta">(.*?)</div>#is', $html, $meta)) {
@@ -444,15 +340,13 @@ class AlneoClient
         }
     }
 
-    /* ------------------------------------------------------------------ http */
-
     protected function get(string $url, ?int $timeout = null, ?int $connect = null): ?string
     {
         $response = Http::timeout($timeout ?? $this->config['timeout'] ?? 60)
             ->connectTimeout($connect ?? 15)
             ->retry(2, 1500, throw: false)
             ->withOptions([
-                // Windows PHP tries IPv6 first and waits out the timeout
+
                 'force_ip_resolve' => 'v4',
             ])
             ->withHeaders([

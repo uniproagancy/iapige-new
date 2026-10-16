@@ -22,8 +22,6 @@ class Product extends Component
 
         $this->productId = $product->getKey();
 
-        // in mount rather than render: switching a colour re-renders the page,
-        // and that is the same visit rather than a second look at the product
         $this->dispatch('pixel', app(Pixel::class)->viewContent([
             'id' => $product->id,
             'brand' => $product->brand?->name ?? '',
@@ -66,7 +64,7 @@ class Product extends Component
                 'pageCss' => 'product',
                 'pageJs' => 'product',
                 'seo' => [
-                    // the admin may write its own meta; otherwise it is composed
+
                     'title' => $model->meta_title ?: $name.' — '.config('app.name'),
                     'description' => $model->meta_description
                         ?: ($data['product']['spec']
@@ -76,7 +74,7 @@ class Product extends Component
                     'image_alt' => $name,
                     'price' => $data['product']['price'],
                     'availability' => Seo::availability($model),
-                    // the slug is canonical; a variant or a stale slug redirects here
+
                     'canonical' => route('product', $model->slug),
                     'schema' => [
                         Seo::product($data['product'], $model),

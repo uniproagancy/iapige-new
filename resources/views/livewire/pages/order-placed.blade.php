@@ -8,7 +8,7 @@
 @endphp
 
 <div class="page page--narrow">
-    {{-- ------------------------------------------------------------ the answer --}}
+
     <section class="placed">
         <span class="placed__tick" aria-hidden="true">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -30,7 +30,6 @@
         @endif
     </section>
 
-    {{-- ------------------------------------------------------------ what happens next --}}
     <section class="card-soft">
         <h2 class="card-soft__title">{{ __('order.what_next') }}</h2>
 
@@ -47,7 +46,6 @@
         </ol>
     </section>
 
-    {{-- ------------------------------------------------------------ what was bought --}}
     <section class="card-soft">
         <h2 class="card-soft__title">{{ __('order.summary') }}</h2>
 
@@ -89,7 +87,6 @@
         </div>
     </section>
 
-    {{-- ------------------------------------------------------------ where it goes --}}
     <section class="card-soft">
         <h2 class="card-soft__title">{{ __('order.delivery_to') }}</h2>
 
@@ -122,7 +119,6 @@
         </div>
     </section>
 
-    {{-- ------------------------------------------------------------ where to go now --}}
     <div class="placed__acts">
         @auth
             <a class="btn-main" href="{{ route('account', ['tab' => 'orders']) }}">{{ __('order.track_it') }}</a>
@@ -131,7 +127,6 @@
         <a class="btn-ghost" href="{{ route('catalog') }}">{{ __('order.keep_shopping') }}</a>
     </div>
 
-    {{-- a phone number, because this is exactly when people want one --}}
     <p class="placed__help">
         {{ __('order.questions') }}
         <a href="tel:{{ preg_replace('/\s/', '', config('shop.phone', '0322121028')) }}">

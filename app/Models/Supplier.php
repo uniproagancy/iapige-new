@@ -31,11 +31,6 @@ class Supplier extends Model
         return $query->where('is_active', true)->orderBy('priority');
     }
 
-    /**
-     * Selling price for a cost price, using this supplier's tiers:
-     *     [{"up_to": 100, "add": 30}, {"up_to": 500, "add": 50}, {"add": 100}]
-     * A tier without "up_to" is the catch-all; "percent" works instead of "add".
-     */
     public function markup(float $cost): float
     {
         foreach ($this->markup ?? [] as $tier) {

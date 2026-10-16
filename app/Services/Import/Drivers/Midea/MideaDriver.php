@@ -7,20 +7,6 @@ use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 
-/**
- * Midea.
- *
- * Written the way the working version of this importer was: ask the site's
- * search for the model, and take the product from what comes back. The price
- * list says which models to ask about and how many of each are left; the site
- * says everything else — the title, the description, the prices and the
- * photographs.
- *
- * A model the site does not sell is not imported. That is the rule the working
- * version had, and it is why its catalogue has a picture on every card: there
- * is no half-imported product, built out of a spreadsheet row, waiting for a
- * photograph that is never coming.
- */
 class MideaDriver implements SupplierDriver
 {
     protected MideaClient $client;
@@ -30,7 +16,6 @@ class MideaDriver implements SupplierDriver
         $this->client = new MideaClient($supplier->config ?? []);
     }
 
-    /** Every barcode in the last uploaded price list. */
     public function ids(): iterable
     {
         return SupplierStock::where('supplier_id', $this->supplier->id)
@@ -51,10 +36,6 @@ class MideaDriver implements SupplierDriver
 
         $data = $row->data ?? [];
 
-        /*
-         * Two columns carry a model and neither is reliably filled: K is what
-         * the website calls it, B is what the warehouse calls it.
-         */
         foreach ([$data['site_model'] ?? '', $data['model'] ?? ''] as $model) {
             $model = trim((string) $model);
 
@@ -70,11 +51,6 @@ class MideaDriver implements SupplierDriver
         return null;
     }
 
-    /* ------------------------------------------------------------------ mapping */
-
-    /**
-     * @param  array<string, mixed>  $found  what the search returned
-     */
     protected function toPayload(string $barcode, SupplierStock $row, array $data, array $found): ?ProductPayload
     {
         $locale = $this->supplier->config['locale'] ?? 'ka';
@@ -91,7 +67,6 @@ class MideaDriver implements SupplierDriver
 
         $specs = [];
 
-        // the warranty is the one spreadsheet field that reads as a specification
         if (! empty($data['warranty'])) {
             $specs[] = [
                 'name' => __('product.warranty'),
@@ -103,16 +78,11 @@ class MideaDriver implements SupplierDriver
             ];
         }
 
-        /*
-         * Both sources must agree before a product counts as available: the
-         * site says whether it is sold at all, the spreadsheet how many are
-         * left.
-         */
         $stock = $found['in_stock'] ? max(0, (int) $row->quantity) : 0;
 
         return new ProductPayload(
             externalId: $barcode,
-            // the barcode is the supplier's own identity and never changes
+
             sku: $this->supplier->code.'-'.$barcode,
             costPrice: $price,
             oldCostPrice: $old,
@@ -130,18 +100,6 @@ class MideaDriver implements SupplierDriver
         );
     }
 
-    /**
-     * What we sell at, and the figure to strike through.
-     *
-     * The site's own price first, because that is the one a customer sees
-     * on midea.ge and the one the working version used: price is the shelf
-     * price, sale_price the promotion when there is one.
-     *
-     * The spreadsheet is the fallback for a product the site prices at
-     * nothing, and price_from still decides which of its columns to read.
-     *
-     * @return array{0: float, 1: ?float}
-     */
     protected function prices(array $found, array $data, SupplierStock $row): array
     {
         if (($found['price'] ?? 0) > 0) {

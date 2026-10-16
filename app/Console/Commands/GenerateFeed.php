@@ -17,7 +17,7 @@ class GenerateFeed extends Command
 
     public function handle(FacebookFeed $facebook, GoogleFeed $google): int
     {
-        // naming neither means both, which is what the scheduler wants
+
         $only = $this->option('facebook') || $this->option('google');
 
         if (! $only || $this->option('facebook')) {

@@ -6,10 +6,6 @@ use App\Support\Catalog;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-/**
- * Header search. Queries the database (translated names and summaries)
- * instead of shipping a JSON index to the browser.
- */
 class HeaderSearch extends Component
 {
     public string $q = '';

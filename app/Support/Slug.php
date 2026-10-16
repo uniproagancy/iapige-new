@@ -4,10 +4,6 @@ namespace App\Support;
 
 use Illuminate\Support\Str;
 
-/**
- * Georgian text loses everything in Str::slug(), so the alphabet is
- * transliterated first and only then slugified.
- */
 class Slug
 {
     protected const KA = [

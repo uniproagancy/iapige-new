@@ -24,7 +24,6 @@ class UserAddress extends Model
         return $this->belongsTo(DeliveryCity::class, 'city_id');
     }
 
-    /** One line, the way it reads on an order. */
     public function oneLine(): string
     {
         return collect([$this->city?->name, $this->address, $this->note])
@@ -32,7 +31,6 @@ class UserAddress extends Model
             ->implode(', ');
     }
 
-    /** Making one default means the others are not. */
     public function makeDefault(): void
     {
         static::where('user_id', $this->user_id)->where('id', '!=', $this->id)

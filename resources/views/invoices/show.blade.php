@@ -129,7 +129,6 @@
             </tbody>
         </table>
 
-        {{-- without the reference a transfer cannot be matched to this order --}}
         <p class="note">{{ __('invoice.reference_note', ['number' => $order->number]) }}</p>
 
         <button type="button" class="print" onclick="window.print()">{{ __('invoice.print') }}</button>

@@ -5,10 +5,6 @@ namespace App\Services\Import\Drivers\Alta;
 use RuntimeException;
 use SoapClient;
 
-/**
- * The B2B price list: a SOAP endpoint that answers with every item the
- * supplier holds, and in what quantity.
- */
 class AltaStockClient
 {
     protected ?SoapClient $client = null;
@@ -23,14 +19,6 @@ class AltaStockClient
             throw new RuntimeException('services.alta.wsdl is not configured — add the alta block to config/services.php.');
         }
 
-        /*
-         * A SOAP call with no timeout of its own falls back to PHP's
-         * default_socket_timeout, which is a server setting we do not control
-         * and which the WSDL fetch ignores entirely. An unresponsive endpoint
-         * could therefore outlast the job that called it — and a job killed
-         * mid-call leaves no exception, only a spent attempt. Every other
-         * driver answers within the same budget; this one now does too.
-         */
         $timeout = (int) ($this->config['timeout'] ?? config('shop.import_request_timeout', 30));
 
         return $this->client ??= new SoapClient($wsdl, [
@@ -45,9 +33,6 @@ class AltaStockClient
         ]);
     }
 
-    /**
-     * @return array<int, array{external_id:string, quantity:int}>
-     */
     public function items(string $item = ''): array
     {
         $response = $this->client()->GetPriceList([
@@ -72,10 +57,6 @@ class AltaStockClient
         }, $items)));
     }
 
-    /**
-     * The feed reports quantity as free text: "12", ">5", ">=10", "in stock".
-     * Anything we cannot read as a number becomes a conservative 5.
-     */
     public function quantity(?string $text): int
     {
         $text = mb_strtolower(trim((string) $text));

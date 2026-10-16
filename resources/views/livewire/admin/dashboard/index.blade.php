@@ -3,7 +3,7 @@
 @endphp
 
 <div>
-    {{-- today, against yesterday: a number alone says nothing --}}
+
     <div class="row">
         <div class="col-lg-3 col-6">
             <div class="card"><div class="card-body">
@@ -41,7 +41,7 @@
 
     <div class="row">
         <div class="col-lg-8">
-            {{-- a week's shape, drawn with divs: a chart library for seven bars is a lot --}}
+
             <div class="card">
                 <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.week_revenue') }}</h5></div>
                 <div class="card-body">
@@ -57,7 +57,6 @@
                 </div>
             </div>
 
-            {{-- recent orders --}}
             <div class="card">
                 <div class="card-header pb-0 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ __('admin.recent_orders') }}</h5>
@@ -94,7 +93,7 @@
         </div>
 
         <div class="col-lg-4">
-            {{-- what is on somebody's desk --}}
+
             <div class="card">
                 <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.waiting') }}</h5></div>
                 <div class="card-body">
@@ -115,7 +114,6 @@
                 </div>
             </div>
 
-            {{-- catalogue faults, each linking to the list that fixes them --}}
             <div class="card">
                 <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.catalogue_health') }}</h5></div>
                 <div class="card-body">

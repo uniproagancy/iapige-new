@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-	public function up(): void
+    public function up(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->unsignedInteger('weight')->nullable()->after('stock');       // grams
-            $table->unsignedSmallInteger('length')->nullable()->after('weight');  // mm
+            $table->unsignedInteger('weight')->nullable()->after('stock');
+            $table->unsignedSmallInteger('length')->nullable()->after('weight');
             $table->unsignedSmallInteger('width')->nullable()->after('length');
             $table->unsignedSmallInteger('height')->nullable()->after('width');
             $table->boolean('is_bulky')->default(false)->after('height');

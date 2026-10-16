@@ -11,32 +11,21 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Which specs become filters.
- *
- * Every spec the suppliers send becomes an attribute on its own, because a
- * spec we cannot show is a loss. A *filter* is the opposite: twenty sidebar
- * groups help nobody, so nothing is filterable until somebody decides it here.
- */
 class Index extends Component
 {
     use WithPagination;
 
-    /** The sidebar builds these itself; enabling them would draw a second group. */
     protected const RESERVED = ['brand'];
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
-    /** '' | on | off | unused */
     #[Url(as: 'state', except: '')]
     public string $stateFilter = '';
 
-    /** products | values | name */
     #[Url(as: 'sort', except: 'products')]
     public string $sort = 'products';
 
-    /* ---- editing one attribute ---- */
     public bool $showForm = false;
 
     public ?int $editingId = null;
@@ -51,10 +40,8 @@ class Index extends Component
 
     public bool $is_variant = false;
 
-    /** ['ka' => ['name' => …], 'en' => …] */
     public array $translations = [];
 
-    /* ---- values of one attribute ---- */
     public ?int $valuesFor = null;
 
     public function updated($property): void
@@ -64,8 +51,6 @@ class Index extends Component
             $this->valuesFor = null;
         }
     }
-
-    /* ------------------------------------------------------------------ list */
 
     public function render()
     {
@@ -88,8 +73,6 @@ class Index extends Component
             ->when($this->sort === 'products', fn ($q) => $q->orderByDesc('is_filterable')->orderBy('sort_order'))
             ->paginate(50);
 
-        // sorting by reach happens here: the count comes from a second query, so
-        // it can only order the page in hand — enough, since the page is 50 rows
         if ($this->sort === 'products') {
             $rows->setCollection(
                 $rows->getCollection()
@@ -114,12 +97,6 @@ class Index extends Component
         ])->layout('layouts.admin', ['title' => __('admin.attributes')]);
     }
 
-    /**
-     * How many products carry each attribute — the number that says whether a
-     * filter is worth showing at all.
-     *
-     * @return array<int, int>
-     */
     protected function usage(): array
     {
         return DB::table('attribute_value_product as avp')
@@ -140,8 +117,6 @@ class Index extends Component
     {
         return $this->search !== '' || $this->stateFilter !== '';
     }
-
-    /* ------------------------------------------------------------------ toggles */
 
     public function toggleFilterable(int $id): void
     {
@@ -165,7 +140,6 @@ class Index extends Component
         $this->bumpCatalog();
     }
 
-    /** Turn on every attribute that actually reaches enough products. */
     public function enableUseful(int $minProducts = 5, int $maxValues = 40): void
     {
         $usage = $this->usage();
@@ -190,8 +164,6 @@ class Index extends Component
 
         $this->dispatch('toast', message: __('admin.filters_disabled'));
     }
-
-    /* ------------------------------------------------------------------ form */
 
     public function edit(int $id): void
     {
@@ -228,7 +200,7 @@ class Index extends Component
             'code' => $this->code,
             'type' => $this->type,
             'sort_order' => $this->sort_order,
-            // a reserved code can never be a filter, whatever the form says
+
             'is_filterable' => in_array($this->code, self::RESERVED, true) ? false : $this->is_filterable,
             'is_variant' => $this->is_variant,
         ]);
@@ -245,14 +217,11 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.saved'));
     }
 
-    /* ------------------------------------------------------------------ values */
-
     public function showValues(int $id): void
     {
         $this->valuesFor = $this->valuesFor === $id ? null : $id;
     }
 
-    /** A value nobody uses is noise in the sidebar. */
     public function deleteValue(int $id): void
     {
         DB::transaction(function () use ($id) {
@@ -264,8 +233,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.deleted'));
     }
 
-    /* ------------------------------------------------------------------ delete */
-
     public function delete(int $id): void
     {
         $attribute = Attribute::findOrFail($id);
@@ -276,10 +243,8 @@ class Index extends Component
             DB::table('attribute_value_product')->whereIn('attribute_value_id', $valueIds)->delete();
             AttributeValue::whereIn('id', $valueIds)->delete();
 
-            // the specs that used it would point at nothing
             DB::table('product_specs')->where('attribute_id', $attribute->id)->delete();
 
-            // and the mapping would recreate it on the next import
             DB::table('supplier_attribute_map')->where('attribute_id', $attribute->id)->delete();
 
             $attribute->delete();
@@ -289,7 +254,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('admin.deleted'));
     }
 
-    /** The storefront caches its filter groups; a change here has to reach it. */
     protected function bumpCatalog(): void
     {
         method_exists(Catalog::class, 'bumpVersion')

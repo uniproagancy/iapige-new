@@ -14,37 +14,16 @@ use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Facebook\Pixel;
 use App\Services\Orders\OrderLines;
 use App\Support\Catalog;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use RuntimeException;
 
-/**
- * An operator places an order on the phone.
- *
- * Most of what this shop sells is agreed in a call rather than in a browser,
- * and until now the only way to record one was the single-product shortcut on
- * a callback request — one item, the default delivery, the default payment,
- * and the operator editing the order afterwards to fix all three.
- *
- * So this is the checkout the customer never sees: the same four decisions in
- * the same order, made by somebody on the phone. It writes nothing until the
- * last step, because a call that ends halfway through should leave no order
- * rather than a broken one.
- *
- * It does not take payment. An order leaves here unpaid with a method
- * recorded against it, which is what a cash-on-delivery order looks like
- * anyway; sending the customer to a bank from the operator's screen is a
- * separate problem, because the customer is not at this keyboard.
- */
 class Create extends Component
 {
     public const STEPS = ['customer', 'items', 'delivery', 'payment'];
 
     public string $step = 'customer';
-
-    /* ------------------------------------------------------------------ customer */
 
     public ?int $userId = null;
 
@@ -54,25 +33,11 @@ class Create extends Component
 
     public string $email = '';
 
-    /** the search box above the customer list */
     public string $customerSearch = '';
 
-    /* ------------------------------------------------------------------ items */
-
-    /**
-     * What the operator has agreed to sell, as [product_id => qty].
-     *
-     * Quantities only. Every price is read from the database when the order is
-     * written, so nothing a long phone call leaves stale on this screen can
-     * reach an order.
-     *
-     * @var array<int, int>
-     */
     public array $qty = [];
 
     public string $productSearch = '';
-
-    /* ------------------------------------------------------------------ delivery */
 
     public string $delivery = 'courier';
 
@@ -82,23 +47,10 @@ class Create extends Component
 
     public string $comment = '';
 
-    /** the operator's own figure, when the courier has quoted one */
     public ?string $shippingOverride = null;
-
-    /* ------------------------------------------------------------------ payment */
 
     public string $payment = '';
 
-    /**
-     * The call this order came out of, when it came out of one.
-     *
-     * Carried so the request can be closed against the order and, more to the
-     * point, so the Purchase can be reported with the identifiers the
-     * customer's own browser had when they left their number. Written from
-     * here it would have none: a different machine, a different request, no
-     * cookies at all — and Meta would credit the sale to nobody while the
-     * campaign kept the Lead.
-     */
     #[Url(as: 'callback', except: null)]
     public ?int $callbackId = null;
 
@@ -107,8 +59,6 @@ class Create extends Component
 
     #[Url(as: 'user', except: null)]
     public ?int $forUser = null;
-
-    /* ------------------------------------------------------------------ opening */
 
     public function mount(): void
     {
@@ -128,13 +78,6 @@ class Create extends Component
         $this->payment = $this->payment ?: (string) (PaymentMethod::active()->value('code') ?? 'cash');
     }
 
-    /**
-     * The call, as far as it got.
-     *
-     * A request that already became an order is not filled in again — the
-     * operator is sent to the order instead, so a second call cannot quietly
-     * create a second order for the same conversation.
-     */
     protected function fillFromCallback(): void
     {
         $request = CallbackRequest::with('product')->find($this->callbackId);
@@ -162,15 +105,6 @@ class Create extends Component
         }
     }
 
-    /* ------------------------------------------------------------------ steps */
-
-    /**
-     * Forward one step, if this one is finished.
-     *
-     * Each step validates only its own fields, so an operator is told what is
-     * missing while the customer is still on the phone to answer it — rather
-     * than at the end, about a question three screens back.
-     */
     public function next(): void
     {
         $this->check($this->step);
@@ -193,7 +127,6 @@ class Create extends Component
         $this->step = self::STEPS[max($at - 1, 0)];
     }
 
-    /** Backwards is always allowed; forwards only through next(), which validates. */
     public function goTo(string $step): void
     {
         $at = array_search($this->step, self::STEPS, true);
@@ -204,14 +137,6 @@ class Create extends Component
         }
     }
 
-    /**
-     * Validates one step, when that step has anything to validate.
-     *
-     * An empty rule set is not "nothing to check" to Livewire — handed one it
-     * goes looking for the component's own $rules property instead, finds
-     * none, and throws. The items step has no fields of its own, only the
-     * basket, so it is exactly the case that would have broken.
-     */
     protected function check(string $step): void
     {
         $rules = $this->rulesFor($step);
@@ -221,7 +146,6 @@ class Create extends Component
         }
     }
 
-    /** @return array<string, mixed> */
     protected function rulesFor(string $step): array
     {
         return match ($step) {
@@ -238,15 +162,12 @@ class Create extends Component
                 'cityId' => ['required', 'exists:delivery_cities,id'],
                 'address' => ['required', 'string', 'min:5', 'max:160'],
             ] : []),
-            // a code posted by a browser; on its own it would let any string into orders.payment
+
             'payment' => ['payment' => ['required', 'string', 'exists:payment_methods,code']],
             default => [],
         };
     }
 
-    /* ------------------------------------------------------------------ customer */
-
-    /** @return Collection<int, User> */
     public function customers()
     {
         $term = trim($this->customerSearch);
@@ -267,13 +188,6 @@ class Create extends Component
             ->get(['id', 'name', 'phone', 'email']);
     }
 
-    /**
-     * Attaches the order to an account we already hold.
-     *
-     * Worth the extra click: the order then shows up in the customer's own
-     * history, and their saved address saves the operator reading one out over
-     * a bad line.
-     */
     public function useCustomer(int $id): void
     {
         $user = User::find($id);
@@ -296,15 +210,11 @@ class Create extends Component
         }
     }
 
-    /** Back to a walk-in: the name and number typed stay, the account does not. */
     public function forgetCustomer(): void
     {
         $this->userId = null;
     }
 
-    /* ------------------------------------------------------------------ items */
-
-    /** @return Collection<int, Product> */
     public function found()
     {
         $term = trim($this->productSearch);
@@ -323,13 +233,7 @@ class Create extends Component
 
     public function add(int $id): void
     {
-        /*
-         * Only what the shop can actually sell.
-         *
-         * The id arrives from the browser, so a withdrawn or pre-order product
-         * would otherwise be addable by hand — and the refusal would come at
-         * the very end, after the operator had taken the whole order.
-         */
+
         $sellable = Product::whereKey($id)
             ->where('status', Product::STATUS_ACTIVE)
             ->where('is_preorder', false)
@@ -367,11 +271,6 @@ class Create extends Component
         unset($this->qty[$id]);
     }
 
-    /**
-     * The order as it stands, priced from the database.
-     *
-     * @return array<int, array<string, mixed>>
-     */
     public function lines(): array
     {
         if (! $this->qty) {
@@ -409,20 +308,11 @@ class Create extends Component
         return $lines;
     }
 
-    /* ------------------------------------------------------------------ money */
-
     public function subtotal(): float
     {
         return (float) array_sum(array_column($this->lines(), 'sum'));
     }
 
-    /**
-     * What delivery costs.
-     *
-     * The calculator's figure is a default, not a verdict: an operator who has
-     * just been quoted something different by the courier can type it, and
-     * that is the number the customer was told on the phone.
-     */
     public function shipping(): float
     {
         if ($this->shippingOverride !== null && $this->shippingOverride !== '') {
@@ -457,11 +347,9 @@ class Create extends Component
         return PaymentMethod::active()->where('code', $this->payment)->first();
     }
 
-    /* ------------------------------------------------------------------ place */
-
     public function place()
     {
-        // every step's rules, not only the last one: nothing here was saved on the way
+
         foreach (self::STEPS as $step) {
             $this->check($step);
         }
@@ -478,10 +366,6 @@ class Create extends Component
             return null;
         }
 
-        /*
-         * `exists` cannot see is_active, and a method switched off while this
-         * screen was open must not be the one the order is placed on.
-         */
         if (! $this->method()) {
             $this->step = 'payment';
             $this->addError('payment', __('checkout.payment_unavailable'));
@@ -527,7 +411,7 @@ class Create extends Component
             'address' => $this->delivery === 'courier' ? $this->address : null,
             'comment' => $this->comment ?: null,
             'payment' => $this->payment,
-            // the operator has taken no money; whoever does marks it
+
             'payment_status' => 'pending',
             'is_paid' => false,
             'subtotal' => $priced['subtotal'],
@@ -537,13 +421,6 @@ class Create extends Component
 
         $lines->attach($order, $priced['items']);
 
-        /*
-         * Who took this order, on the order itself.
-         *
-         * An order placed from the admin looks exactly like one the customer
-         * placed, and when a price or an address turns out to be wrong the
-         * first question is which of the two it was.
-         */
         $order->events()->create([
             'user_id' => auth()->id(),
             'type' => 'status',
@@ -558,12 +435,6 @@ class Create extends Component
         return $order;
     }
 
-    /**
-     * Ties the order to the call and keeps the browser's identifiers.
-     *
-     * The snapshot is copied from the request the customer made, never read
-     * from this one — this request is the operator's browser.
-     */
     protected function closeCallback(Order $order): void
     {
         $request = CallbackRequest::find($this->callbackId);
@@ -590,8 +461,6 @@ class Create extends Component
         ]);
     }
 
-    /* ------------------------------------------------------------------ render */
-
     public function render()
     {
         $total = $this->total();
@@ -603,7 +472,7 @@ class Create extends Component
             'total' => $total,
             'cities' => DeliveryCity::active()->withTranslation()->get(),
             'methods' => PaymentMethod::active()->withTranslation()->get(),
-            // a method the total does not reach is shown, but cannot be chosen
+
             'fits' => PaymentMethod::active()->get()
                 ->mapWithKeys(fn (PaymentMethod $m) => [$m->code => $m->fitsTotal($total)])
                 ->all(),

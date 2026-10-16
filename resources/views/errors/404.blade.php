@@ -7,7 +7,6 @@
             <h1 class="errpage__title">{{ __('errors.404_title') }}</h1>
             <p class="errpage__text">{{ __('errors.404_text') }}</p>
 
-            {{-- a dead end is where a shop offers a way on, not an apology --}}
             <div class="errpage__acts">
                 <a class="btn-main" href="{{ route('catalog') }}">{{ __('errors.to_catalog') }}</a>
                 <a class="btn-ghost" href="{{ route('home') }}">{{ __('errors.to_home') }}</a>

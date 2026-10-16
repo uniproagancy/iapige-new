@@ -49,7 +49,6 @@ class Cart
         return $this->cart = $cart;
     }
 
-    /** ['product_id' => qty] */
     public function raw(): array
     {
         return $this->cart(false)?->items()->pluck('qty', 'product_id')->all() ?? [];
@@ -73,7 +72,7 @@ class Cart
                 'name' => trim($card['brand'].' '.$card['name']),
                 'cat' => $card['cat'],
                 'img' => $card['thumb'],
-                // the live price, campaign included
+
                 'price' => $price = $item->product->sellingPrice(),
                 'qty' => $item->qty,
                 'sum' => $price * $item->qty,
@@ -90,8 +89,6 @@ class Cart
     {
         $product = Product::active()->whereKey((int) $id)->first();
 
-        // stock is unreliable across suppliers, so only the status decides;
-        // a pre-order is listed but cannot be bought yet
         if (! $product?->isSellable()) {
             return false;
         }
@@ -169,7 +166,6 @@ class Cart
         return array_sum(array_column($this->lines(), 'sum'));
     }
 
-    /** Over the shop's own term; see shop.instalment_months. */
     public function monthly(?int $months = null): int
     {
         $months = max(1, $months ?? (int) config('shop.instalment_months', 24));

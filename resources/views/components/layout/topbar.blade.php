@@ -9,7 +9,6 @@
     <div class="topbar__right">
         <a class="topbar__phone" href="tel:+995322121028">0322 12 10 28</a>
 
-        {{-- languages come from the `languages` table; the default one has no URL prefix --}}
         <div class="lang" role="group" aria-label="{{ __('layout.language') }}">
             @foreach (LaravelLocalization::getLocalesOrder() as $code => $locale)
                 <a href="{{ LaravelLocalization::getLocalizedURL($code, null, [], true) }}"

@@ -8,18 +8,10 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * The order list.
- *
- * Opens on what needs doing rather than on everything ever sold: a shop is
- * worked from the top of this screen, and a paid order waiting to be packed is
- * the only thing that is urgent.
- */
 class Index extends Component
 {
     use WithPagination;
 
-    /** The order a status moves through; anything else is an end state. */
     public const FLOW = ['new', 'confirmed', 'packed', 'shipped', 'completed'];
 
     #[Url(as: 'q', except: '')]
@@ -50,8 +42,6 @@ class Index extends Component
         }
     }
 
-    /* ------------------------------------------------------------------ query */
-
     protected function query()
     {
         return Order::query()
@@ -59,7 +49,6 @@ class Index extends Component
             ->when($this->search, function ($q) {
                 $term = trim($this->search);
 
-                // one box for the three things a caller ever quotes
                 $q->where(fn ($w) => $w
                     ->where('number', 'like', "%{$term}%")
                     ->orWhere('phone', 'like', '%'.preg_replace('/\D/', '', $term).'%')
@@ -83,7 +72,6 @@ class Index extends Component
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
     }
 
-    /** @return array<string, string> */
     public function statuses(): array
     {
         return [
@@ -97,7 +85,6 @@ class Index extends Component
         ];
     }
 
-    /** @return array<string, int> */
     protected function statusCounts(): array
     {
         return Order::selectRaw('status, count(*) as n')
@@ -106,7 +93,6 @@ class Index extends Component
             ->all();
     }
 
-    /** What the current filter is worth, so the numbers match what is on screen. */
     protected function totals(): array
     {
         $row = $this->query()->reorder()
@@ -130,9 +116,6 @@ class Index extends Component
         return $this->search !== '' || $this->status || $this->payment || $this->from || $this->to;
     }
 
-    /* ------------------------------------------------------------------ actions */
-
-    /** Moves an order one step along the flow, from the list. */
     public function advance(int $id): void
     {
         $order = Order::findOrFail($id);

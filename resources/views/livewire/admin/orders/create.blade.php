@@ -11,7 +11,7 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ the four steps --}}
+
     <div class="card mb-2">
         <div class="card-body py-1">
             <div class="d-flex flex-wrap align-items-center gap-1">
@@ -42,10 +42,9 @@
     </div>
 
     <div class="row">
-        {{-- ============================================================ the step --}}
+
         <div class="col-lg-8">
 
-            {{-- ------------------------------------------------------ 1. customer --}}
             @if ($step === 'customer')
                 <div class="card">
                     <div class="card-header">
@@ -112,7 +111,6 @@
                 </div>
             @endif
 
-            {{-- ------------------------------------------------------ 2. products --}}
             @if ($step === 'items')
                 <div class="card">
                     <div class="card-header">
@@ -201,7 +199,6 @@
                 </div>
             @endif
 
-            {{-- ------------------------------------------------------ 3. delivery --}}
             @if ($step === 'delivery')
                 <div class="card">
                     <div class="card-header">
@@ -265,7 +262,6 @@
                 </div>
             @endif
 
-            {{-- ------------------------------------------------------ 4. payment --}}
             @if ($step === 'payment')
                 <div class="card">
                     <div class="card-header">
@@ -308,7 +304,6 @@
                 </div>
             @endif
 
-            {{-- ------------------------------------------------------ forward / back --}}
             <div class="d-flex justify-content-between mb-2">
                 <button type="button" class="btn btn-outline-secondary"
                         @disabled($at === 0) wire:click="back">
@@ -328,7 +323,6 @@
             </div>
         </div>
 
-        {{-- ============================================================ the running total --}}
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-header">

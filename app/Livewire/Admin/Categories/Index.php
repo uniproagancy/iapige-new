@@ -11,37 +11,25 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-/**
- * The category tree.
- *
- * Shown as a tree rather than a paginated list: a category only means anything
- * next to its siblings, and ordering is done by dragging rows, which needs
- * them all on one screen.
- */
 class Index extends Component
 {
     use WithFileUploads;
 
-    /* ---- filters ---- */
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
     #[Url(as: 'root', except: null)]
     public ?int $rootFilter = null;
 
-    /** '' | 'active' | 'hidden' */
     #[Url(as: 'state', except: '')]
     public string $stateFilter = '';
 
-    /** '' | 'empty' | 'filled' */
     #[Url(as: 'stock', except: '')]
     public string $productFilter = '';
 
-    /** '' | 'menu' | 'home' */
     #[Url(as: 'place', except: '')]
     public string $placeFilter = '';
 
-    /* ---- form ---- */
     public bool $showForm = false;
 
     public ?int $editingId = null;
@@ -60,10 +48,8 @@ class Index extends Component
 
     public ?string $currentImage = null;
 
-    /** ['ka' => ['name' => …, 'slug' => …, 'description' => …], 'en' => …] */
     public array $translations = [];
 
-    /* ---- delete ---- */
     public bool $showDelete = false;
 
     public ?int $deletingId = null;
@@ -81,8 +67,6 @@ class Index extends Component
         $this->resetForm();
     }
 
-    /* ------------------------------------------------------------------ listing */
-
     public function render()
     {
         $counts = Product::selectRaw('category_id, count(*) as n')->groupBy('category_id')->pluck('n', 'category_id');
@@ -96,13 +80,6 @@ class Index extends Component
         ])->layout('layouts.admin', ['title' => __('admin.categories')]);
     }
 
-    /**
-     * The whole tree as flat rows, each carrying its depth and its own totals.
-     * A branch survives the filters when it, or anything under it, matches —
-     * otherwise filtering would hide the parents and orphan the results.
-     *
-     * @return array<int, array>
-     */
     protected function tree($counts): array
     {
         $all = Category::withTranslation()->orderBy('sort_order')->orderBy('id')->get();
@@ -115,7 +92,6 @@ class Index extends Component
             foreach ($byParent[$parentId] ?? [] as $category) {
                 $position = count($rows);
 
-                // reserve the row, then let the children decide whether it stays
                 $rows[] = null;
 
                 $childMatched = $walk($category->id, $depth + 1);
@@ -139,7 +115,7 @@ class Index extends Component
                     'menu' => (bool) ($category->show_in_menu ?? false),
                     'children' => ($byParent[$category->id] ?? collect())->count(),
                     'products' => (int) ($counts[$category->id] ?? 0),
-                    'dimmed' => ! $own,   // only here because a child matched
+                    'dimmed' => ! $own,
                 ];
 
                 $branchMatched = true;
@@ -196,7 +172,6 @@ class Index extends Component
         return true;
     }
 
-    /** @return array<int, array{id:int, name:string, depth:int}> */
     protected function options(): array
     {
         $byParent = Category::withTranslation()->orderBy('sort_order')->orderBy('id')->get()->groupBy('parent_id');
@@ -224,15 +199,6 @@ class Index extends Component
         return $this->search !== '' || $this->rootFilter || $this->stateFilter || $this->productFilter || $this->placeFilter;
     }
 
-    /* ------------------------------------------------------------------ ordering */
-
-    /**
-     * Dragging sends the ids of one parent's children in their new order.
-     * Positions are rewritten from scratch, so gaps and duplicates left by
-     * earlier hand-typed numbers disappear on the first drag.
-     *
-     * @param  array<int, int|string>  $ids
-     */
     public function reorder(array $ids): void
     {
         DB::transaction(function () use ($ids) {
@@ -243,8 +209,6 @@ class Index extends Component
 
         $this->dispatch('toast', message: __('admin.order_saved'));
     }
-
-    /* ------------------------------------------------------------------ form */
 
     public function create(?int $parentId = null): void
     {
@@ -308,7 +272,6 @@ class Index extends Component
                 'show_in_menu' => $this->show_in_menu,
             ]);
 
-            // a new category goes to the end of its level; dragging changes it afterwards
             if (! $category->exists) {
                 $category->sort_order = (int) Category::where('parent_id', $this->parent_id)->max('sort_order') + 1;
             }
@@ -358,8 +321,6 @@ class Index extends Component
         $category->update(['show_on_home' => ! $category->show_on_home]);
     }
 
-    /* ------------------------------------------------------------------ delete */
-
     public function confirmDelete(int $id): void
     {
         $category = Category::withTranslation()->withCount('children')->findOrFail($id);
@@ -374,16 +335,7 @@ class Index extends Component
         $this->deletingName = $category->name;
         $this->deletingChildren = $category->children_count;
         $this->deletingProducts = Product::whereIn('category_id', $category->descendantAndSelfIds())->count();
-        /*
-         * The parent, or nothing.
-         *
-         * This asked Category::fallback() for somewhere to put the orphans and
-         * no such method has ever existed, so opening the delete dialog on a
-         * root category was a fatal error. The form itself already offers
-         * "uncategorised" as the first choice — products are allowed to have
-         * no category, and the product list filters on exactly that — so a
-         * root simply defaults to it.
-         */
+
         $this->moveTo = $category->parent_id;
         $this->resetValidation();
 
@@ -402,7 +354,6 @@ class Index extends Component
 
         $target = $this->moveTo ? Category::findOrFail($this->moveTo) : null;
 
-        // a category cannot be moved inside itself, nor inside one of its own children
         if ($target && in_array($target->id, $category->descendantAndSelfIds(), true)) {
             $this->addError('moveTo', __('admin.move_into_self'));
 
@@ -412,11 +363,10 @@ class Index extends Component
         $targetId = $target?->id;
 
         DB::transaction(function () use ($category, $targetId) {
-            // null makes them roots, which is what "uncategorised" means for a branch
+
             Category::where('parent_id', $category->id)->update(['parent_id' => $targetId]);
             Product::where('category_id', $category->id)->update(['category_id' => $targetId]);
 
-            // a supplier mapping pointing here would silently refill a deleted category
             DB::table('supplier_category_map')->where('category_id', $category->id)
                 ->update(['category_id' => $targetId, 'updated_at' => now()]);
 
@@ -426,7 +376,6 @@ class Index extends Component
         $this->showDelete = false;
         $this->reset(['deletingId', 'deletingName', 'deletingChildren', 'deletingProducts', 'moveTo']);
 
-        // "uncategorised" is a real destination, and it has no name to read
         $this->dispatch('toast', message: $target
             ? __('admin.category_deleted', ['target' => $target->name])
             : __('admin.category_deleted_uncategorised'));

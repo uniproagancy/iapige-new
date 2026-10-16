@@ -6,13 +6,6 @@ use App\Models\UiTranslation;
 use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Support\Arr;
 
-/**
- * Wraps Laravel's file loader: lang/{locale}/{group}.php still loads, and rows
- * from ui_translations override it. Package namespaces stay file-only.
- *
- *     __('cart.add')      → group "cart", key "add"
- *     __('Some text')     → group "*",   key "Some text"  (JSON-style)
- */
 class DatabaseTranslationLoader implements Loader
 {
     public function __construct(protected Loader $files) {}

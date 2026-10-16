@@ -25,7 +25,7 @@
             </div>
 
             <div class="d-flex align-items-center gap-1">
-                {{-- a brand nobody sells is noise in the sidebar --}}
+
                 <button type="button" @class(['btn btn-sm', 'btn-warning' => $onlyEmpty, 'btn-outline-warning' => ! $onlyEmpty])
                         wire:click="$toggle('onlyEmpty')">
                     {{ __('admin.brands_empty') }}
@@ -135,7 +135,6 @@
                                     {!! $icon('edit') !!}
                                 </button>
 
-                                {{-- a brand with products behind it would orphan them --}}
                                 <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
                                         wire:click="delete({{ $brand->id }})"
                                         wire:confirm="{{ __('admin.confirm_delete') }}"

@@ -7,10 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * One interface string in one language. Read through __('group.key');
- * see App\Support\Translation\DatabaseTranslationLoader.
- */
 class UiTranslation extends Model
 {
     protected $fillable = ['group', 'key', 'locale', 'value'];
@@ -31,7 +27,6 @@ class UiTranslation extends Model
         return "ui_translations.{$locale}.{$group}";
     }
 
-    /** key => value for one locale and group (cached). */
     public static function lines(string $locale, string $group): array
     {
         try {
@@ -42,7 +37,7 @@ class UiTranslation extends Model
                 ->pluck('value', 'key')
                 ->all());
         } catch (QueryException) {
-            return []; // table not migrated yet
+            return [];
         }
     }
 
@@ -50,7 +45,6 @@ class UiTranslation extends Model
     {
         Cache::forget(static::cacheKey($this->locale, $this->group));
 
-        // a row moved to another locale/group leaves a stale entry behind
         if ($this->wasChanged(['locale', 'group'])) {
             Cache::forget(static::cacheKey($this->getOriginal('locale'), $this->getOriginal('group')));
         }

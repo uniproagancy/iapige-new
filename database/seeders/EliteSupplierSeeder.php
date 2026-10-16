@@ -11,14 +11,14 @@ class EliteSupplierSeeder extends Seeder
     public function run(): void
     {
         Supplier::updateOrCreate(['code' => 'elite'], [
-            'name'     => 'Elite',
-            'driver'   => EliteDriver::class,
+            'name' => 'Elite',
+            'driver' => EliteDriver::class,
             'priority' => 30,
-            'config'   => [
+            'config' => [
                 'timeout' => 30,
-                'locale'  => 'ka',
-                'from'    => 1,
-                'to'      => 35000,
+                'locale' => 'ka',
+                'from' => 1,
+                'to' => 35000,
             ],
             'markup' => [
                 ['up_to' => 100, 'add' => 30],

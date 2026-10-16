@@ -10,13 +10,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-/**
- * The endpoint the bank's calculator widget posts to.
- *
- * The widget runs in the customer's browser and decides the term, so the
- * application can only be created once they have chosen — which is why this is
- * a separate request rather than part of placing the order.
- */
 class BogInstallmentController extends Controller
 {
     public function __construct(protected PaymentManager $payments) {}
@@ -31,7 +24,6 @@ class BogInstallmentController extends Controller
 
         $order = Order::where('number', $number)->firstOrFail();
 
-        // only whoever placed it may pay for it
         abort_unless($this->mayPay($order), 403);
 
         if ($order->is_paid) {
@@ -52,14 +44,12 @@ class BogInstallmentController extends Controller
             return response()->json(['error' => __('checkout.payment_failed')], 422);
         }
 
-        // the widget wants the bank's own id and nothing else
         return response()->json([
             'orderId' => $transaction->external_id,
             'redirectUrl' => $transaction->redirect_url,
         ]);
     }
 
-    /** STANDARD or ZERO, as the chosen payment method says. */
     protected function typeFor(Order $order): string
     {
         return PaymentMethod::where('code', $order->payment)->value('installment_type')

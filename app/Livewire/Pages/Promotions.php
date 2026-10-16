@@ -6,13 +6,6 @@ use App\Support\Catalog;
 use App\Support\Seo;
 use Livewire\Component;
 
-/**
- * /promotions — every campaign running right now.
- *
- * Without this the front page's single rail is the only way in, so the
- * second campaign and everything after it can be reached only by somebody
- * who already knows its address.
- */
 class Promotions extends Component
 {
     public function render()

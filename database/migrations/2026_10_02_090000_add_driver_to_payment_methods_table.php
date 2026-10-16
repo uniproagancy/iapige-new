@@ -5,13 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Which payment driver each method uses.
- *
- * Until now the checkout guessed from the method's code, so a method named
- * anything else fell through to a driver that does not exist. A method should
- * say what processes it rather than be recognised by its name.
- */
 return new class extends Migration
 {
     public function up(): void
@@ -21,7 +14,6 @@ return new class extends Migration
                 $table->boolean('is_online')->default(false)->after('code');
             }
 
-            // these may already exist from an earlier attempt
             if (! Schema::hasColumn('payment_methods', 'driver')) {
                 $table->string('driver', 32)->nullable();
             }
@@ -31,7 +23,6 @@ return new class extends Migration
             }
         });
 
-        // whatever the codes happen to be, instalments are recognisable by name
         DB::table('payment_methods')
             ->where(function ($q) {
                 $q->where('code', 'like', '%installment%')
@@ -39,8 +30,8 @@ return new class extends Migration
                     ->orWhere('code', 'like', '%განვადება%');
             })
             ->update([
-                'is_online'        => true,
-                'driver'           => 'bog-installment',
+                'is_online' => true,
+                'driver' => 'bog-installment',
                 'installment_type' => 'STANDARD',
             ]);
 
@@ -48,7 +39,6 @@ return new class extends Migration
             ->where('code', 'like', '%zero%')
             ->update(['installment_type' => 'ZERO']);
 
-        // a method marked online with no driver fails at the worst moment
         DB::table('payment_methods')
             ->whereNull('driver')
             ->update(['is_online' => false]);

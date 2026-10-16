@@ -8,15 +8,6 @@ use App\Services\Facebook\Pixel;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-/**
- * Contents of the cart drawer. The drawer shell (<aside id="cart" hidden>)
- * stays outside the component so a re-render never closes the open drawer.
- *
- * Cards add products from the browser with:
- *     Livewire.dispatch('cart-add', { productId: 12, qty: 1 })
- * and every change broadcasts `cart-updated` { count, total } so the header
- * badge and the tab bar update without being components themselves.
- */
 class CartDrawer extends Component
 {
     #[On('cart-add')]
@@ -31,11 +22,6 @@ class CartDrawer extends Component
         $this->broadcast();
     }
 
-    /**
-     * Every add-to-cart in the shop funnels through here, so this is the only
-     * place the event has to be raised — the product page, the cards and the
-     * bundle all dispatch `cart-add` rather than touching the cart themselves.
-     */
     protected function trackAdd(int $productId, int $qty): void
     {
         $product = Product::withTranslation()->with('brand')->find($productId);
@@ -45,7 +31,7 @@ class CartDrawer extends Component
         }
 
         $this->dispatch('pixel', app(Pixel::class)->addToCart([
-            // the numeric id, because that is what the feed publishes as g:id
+
             'id' => $product->id,
             'brand' => $product->brand?->name ?? '',
             'name' => $product->name,
@@ -64,10 +50,6 @@ class CartDrawer extends Component
         $this->setQty($productId, -1);
     }
 
-    /**
-     * The quantity is read back from the cart rather than from the view, so two
-     * quick clicks cannot both act on the same stale number.
-     */
     protected function setQty(int $productId, int $by): void
     {
         $cart = $this->cart();

@@ -9,13 +9,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * The invoice for an order that will be paid by bank transfer.
- *
- * It is the only way such a customer can pay us at all, so it carries the
- * account details, the reference to quote, and the date after which the goods
- * go back on sale.
- */
 class OrderInvoice extends Mailable
 {
     use Queueable, SerializesModels;

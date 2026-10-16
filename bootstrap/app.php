@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // mcamara/laravel-localization
+
         $middleware->alias([
             'localize' => LaravelLocalizationRoutes::class,
             'localizationRedirect' => LaravelLocalizationRedirectFilter::class,
@@ -28,33 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->redirectGuestsTo(fn () => route('home'));
 
-        /*
-         * The consent cookie is written by the browser, so it must not be
-         * encrypted.
-         *
-         * The cookie banner sets it from JavaScript, which produces a plain
-         * value. EncryptCookies then failed to decrypt it and dropped it from
-         * the request altogether, so Pixel::consented() read null for every
-         * visitor and the server half of the pixel sent nothing at all — while
-         * the browser half, reading document.cookie directly, worked fine. The
-         * two halves disagreed about whether consent had been given.
-         *
-         * Nothing secret lives in it: it holds "all" or "necessary".
-         */
-
         $middleware->encryptCookies(except: [
             'cookie_consent',
-            /*
-             * Meta's own two, written by its script and read by the server
-             * half of the pixel. Encrypted, they came back null — so every
-             * server event went out with no browser identifier on it and Meta
-             * had nothing to match the visit to the advert that caused it.
-             */
+
             '_fbp',
             '_fbc',
         ]);
 
-        // the server half of the Meta pixel; it mints the id the browser reuses
         $middleware->web(append: [TrackPageView::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

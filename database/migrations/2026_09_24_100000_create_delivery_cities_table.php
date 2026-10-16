@@ -4,11 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Courier zones. Each city carries its own fee, its own free-delivery
- * threshold and how long it takes, so the admin can change prices without
- * touching code.
- */
 return new class extends Migration
 {
     public function up(): void
@@ -16,8 +11,8 @@ return new class extends Migration
         Schema::create('delivery_cities', function (Blueprint $table) {
             $table->id();
             $table->decimal('fee', 8, 2)->default(0);
-            $table->decimal('free_from', 10, 2)->nullable();   // null = never free
-            $table->unsignedSmallInteger('days')->default(1);  // delivery time, in days
+            $table->decimal('free_from', 10, 2)->nullable();
+            $table->unsignedSmallInteger('days')->default(1);
             $table->boolean('is_active')->default(true);
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
@@ -35,8 +30,8 @@ return new class extends Migration
             $table->foreign('locale')->references('code')->on('languages')
                 ->cascadeOnUpdate()->cascadeOnDelete();
         });
-		
-		Schema::table('orders', function (Blueprint $table) {
+
+        Schema::table('orders', function (Blueprint $table) {
             $table->foreignId('delivery_city_id')->nullable()->after('city')->constrained()->nullOnDelete();
         });
     }

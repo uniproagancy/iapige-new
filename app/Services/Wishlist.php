@@ -6,7 +6,6 @@ use App\Models\ProductInteraction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-/** Wishlist for signed-in customers only; guests are asked to sign in. */
 class Wishlist
 {
     public function available(): bool
@@ -27,7 +26,6 @@ class Wishlist
             && DB::table('wishlists')->where('user_id', Auth::id())->where('product_id', (int) $id)->exists();
     }
 
-    /** @return bool the new state */
     public function toggle(int|string $id): bool
     {
         if (! $this->available()) {

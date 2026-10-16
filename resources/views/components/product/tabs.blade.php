@@ -35,8 +35,7 @@
         @endif
 
         @if ($hasDescription)
-            {{-- with no specifications the description is the page's only detail,
-                 so it opens rather than hiding behind a tab nobody will press --}}
+
             <div class="tabpanel" data-tab-panel="desc" @if ($hasSpecs) hidden @endif>
                 <div class="desc">
                     <div class="desc__body">

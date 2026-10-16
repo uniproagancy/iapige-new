@@ -7,13 +7,6 @@ use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 
-/**
- * Alneo.
- *
- * The spreadsheet decides what exists, what it costs and how many are left;
- * the website supplies the name, photographs and attributes. A code the site
- * does not carry is skipped — there would be nothing to show for it.
- */
 class AlneoDriver implements SupplierDriver
 {
     protected AlneoClient $client;
@@ -23,10 +16,9 @@ class AlneoDriver implements SupplierDriver
         $this->client = new AlneoClient($supplier->config ?? []);
     }
 
-    /** Every code in the last uploaded price list. */
     public function ids(): iterable
     {
-        // one request builds the whole code-to-URL map for the run
+
         $this->client->index(fresh: true);
 
         return SupplierStock::where('supplier_id', $this->supplier->id)
@@ -48,7 +40,7 @@ class AlneoDriver implements SupplierDriver
         $url = $this->urlFor($externalId);
 
         if (! $url) {
-            return null;   // the shop does not list it; nothing to describe
+            return null;
         }
 
         $page = $this->client->page($url);
@@ -56,12 +48,6 @@ class AlneoDriver implements SupplierDriver
         return $page ? $this->toPayload($externalId, $row, $page) : null;
     }
 
-    /**
-     * The shop's URL for a code.
-     *
-     * Spreadsheets lose leading zeros and the shop does not, so "1703" and
-     * "01703" are looked for as the same product rather than two misses.
-     */
     protected function urlFor(string $code): ?string
     {
         $index = $this->client->index();
@@ -81,8 +67,6 @@ class AlneoDriver implements SupplierDriver
         return null;
     }
 
-    /* ------------------------------------------------------------------ mapping */
-
     protected function toPayload(string $code, SupplierStock $row, array $page): ?ProductPayload
     {
         $locale = $this->supplier->config['locale'] ?? 'ka';
@@ -97,7 +81,7 @@ class AlneoDriver implements SupplierDriver
         [$price, $old] = $this->prices($row, $data, $page);
 
         if ($price <= 0) {
-            return null;   // nothing to sell it at
+            return null;
         }
 
         $specs = array_map(fn ($spec) => [
@@ -105,7 +89,7 @@ class AlneoDriver implements SupplierDriver
             'value' => $spec['value'],
             'locale' => $locale,
             'key' => false,
-            // nothing is filterable on arrival; that is decided in the admin
+
             'filterable' => false,
             'color' => null,
         ], $page['specs'] ?? []);
@@ -117,15 +101,7 @@ class AlneoDriver implements SupplierDriver
             oldCostPrice: $old > $price ? $old : null,
             stock: (int) $row->quantity,
             brandName: $this->supplier->config['brand'] ?? null,
-            /*
-             * The spreadsheet first, the page second.
-             *
-             * Their price list has four columns and none of them says what
-             * the thing is, so this was always null: every Alneo product
-             * arrived uncategorised and its name never reached the admin's
-             * queue to be mapped. The page prints the category itself, which
-             * is the same answer the other scraped suppliers settled on.
-             */
+
             categoryName: $data['category'] ?? $page['category'] ?? null,
             translations: [$locale => [
                 'name' => $name,
@@ -136,16 +112,6 @@ class AlneoDriver implements SupplierDriver
         );
     }
 
-    /**
-     * The price list wins over the website.
-     *
-     * The shop's own prices are retail and include the supplier's margin, so
-     * they are only used when the spreadsheet leaves the figure blank — and
-     * then a flat uplift is added, because selling at the supplier's own shelf
-     * price would leave us nothing.
-     *
-     * @return array{float, float}
-     */
     protected function prices(SupplierStock $row, array $data, array $page): array
     {
         $cost = (float) $row->cost_price;

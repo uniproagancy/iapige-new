@@ -11,21 +11,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Response;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
-/**
- * The sitemap, built from what is actually for sale.
- *
- * Generated rather than stored: a shop whose catalogue changes nightly would
- * otherwise serve a file describing yesterday's.
- *
- * Every page appears once per language, and each entry carries the full set of
- * xhtml:link alternates — that is the form Google asks for, and it is the only
- * way the Georgian and English pages are understood as one page rather than as
- * two that duplicate each other. Slugs are per-language, so each URL is built
- * from that language's own translation rather than by prefixing one slug.
- */
 class SitemapController extends Controller
 {
-    /** Long enough that a crawl never rebuilds it twice, short enough to stay true. */
     protected const CACHE_HOURS = 6;
 
     public function index()
@@ -54,8 +41,6 @@ class SitemapController extends Controller
 
         return $writer->outputMemory();
     }
-
-    /* ------------------------------------------------------------------ sections */
 
     protected function writeStaticPages(\XMLWriter $writer): void
     {
@@ -91,10 +76,6 @@ class SitemapController extends Controller
             });
     }
 
-    /**
-     * Products are streamed in chunks: the whole catalogue in memory is how a
-     * sitemap route starts timing out at twenty thousand products.
-     */
     protected function writeProducts(\XMLWriter $writer): void
     {
         Product::active()
@@ -121,13 +102,6 @@ class SitemapController extends Controller
             });
     }
 
-    /* ------------------------------------------------------------------ urls */
-
-    /**
-     * The same page in every active language.
-     *
-     * @return array<string, string>
-     */
     protected function localeUrls(string $url): array
     {
         $out = [];
@@ -139,15 +113,6 @@ class SitemapController extends Controller
         return $out;
     }
 
-    /**
-     * A translated model's URL in every language it actually has a slug for.
-     *
-     * A product translated into Georgian only must not appear under /en with a
-     * Georgian slug: that URL redirects, and a sitemap full of redirects is a
-     * sitemap Search Console reports as errors.
-     *
-     * @return array<string, string>
-     */
     protected function translatedUrls(Model $model, string $route): array
     {
         $out = [];
@@ -165,13 +130,6 @@ class SitemapController extends Controller
         return $out;
     }
 
-    /* ------------------------------------------------------------------ writing */
-
-    /**
-     * One <url> per language, each listing every language as an alternate.
-     *
-     * @param  array<string, string>  $urls  locale => URL
-     */
     protected function writeEntry(
         \XMLWriter $writer,
         array $urls,
@@ -197,7 +155,6 @@ class SitemapController extends Controller
                 $this->writeAlternate($writer, $altLocale, $altUrl);
             }
 
-            // an unmatched language gets the shop's own
             if (isset($urls[$default])) {
                 $this->writeAlternate($writer, 'x-default', $urls[$default]);
             }

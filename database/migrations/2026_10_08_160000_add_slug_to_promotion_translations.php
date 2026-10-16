@@ -6,18 +6,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * A campaign gets a readable address of its own.
- *
- * Its page was reached by `code` — unique and URL-safe, but an internal
- * handle: "week-deal" is what somebody typed into an admin field, not what a
- * shopper should see. Every other public thing in this shop carries a slug
- * per language, in its translations table, and a campaign now does the same.
- *
- * Added nullable, filled from whatever each row already has, and only then
- * made unique — a column added unique to a table with rows in it cannot be
- * filled afterwards.
- */
 return new class extends Migration
 {
     public function up(): void
@@ -33,14 +21,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * The title makes the slug; the code is the fallback.
-     *
-     * A campaign with no title in some language still needs an address in it,
-     * and two campaigns may well be called the same thing in a language
-     * nobody has filled in yet — so a clash falls back to the row's own id,
-     * which cannot repeat.
-     */
     protected function backfill(): void
     {
         $taken = [];

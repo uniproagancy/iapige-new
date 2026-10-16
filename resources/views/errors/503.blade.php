@@ -14,7 +14,7 @@
         a{color:#FF6900;font-weight:600;text-decoration:none}
     </style>
 </head>
-{{-- shown while deploying, so it carries no Blade helpers that need the app --}}
+
 <body>
     <div>
         <div class="logo">IAPI.GE</div>

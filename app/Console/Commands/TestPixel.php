@@ -8,15 +8,6 @@ use Illuminate\Console\Command;
 use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Support\Facades\Event;
 
-/**
- * Fires one real event at Meta and prints what came back.
- *
- * The unit tests fake the HTTP layer, so they prove the payload is built
- * correctly but never that Meta accepts it — a wrong pixel id, a dead token
- * or a rejected field all pass those tests and still send nothing. This
- * command closes that gap: it drives the same Pixel service the shop uses and
- * shows the Graph API's own answer.
- */
 class TestPixel extends Command
 {
     protected $signature = 'pixel:test
@@ -27,11 +18,7 @@ class TestPixel extends Command
 
     public function handle(Pixel $pixel): int
     {
-        /*
-         | Consent lives in a cookie the browser sets, and there is no browser
-         | here. Setting it on the console request is what lets the real
-         | send() path run instead of a special one written just for testing.
-         */
+
         request()->cookies->set('cookie_consent', 'all');
 
         if ($this->option('live')) {
@@ -81,7 +68,7 @@ class TestPixel extends Command
         $this->table(['setting', 'value'], [
             ['pixel id', $pixel->pixelId() ?: '— missing —'],
             ['api version', config('services.facebook.api_version')],
-            // never the token itself: this output gets pasted into tickets
+
             ['access token', $token ? 'set, '.strlen($token).' characters' : '— missing —'],
             ['test_event_code', $code ?: 'none — events count as real conversions'],
         ]);
@@ -126,7 +113,6 @@ class TestPixel extends Command
         return self::FAILURE;
     }
 
-    /** Meta's codes say little on their own. */
     protected function hint(int $code, int $subcode): string
     {
         return match (true) {

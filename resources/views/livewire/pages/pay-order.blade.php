@@ -1,12 +1,6 @@
 <div class="page page--narrow">
     @if ($refused)
-        {{--
-            Why there is nothing to pay.
 
-            A plain sentence and the shop's telephone number: whoever is
-            reading this either clicked an old link or has already paid, and
-            in both cases an error page would only worry them.
-        --}}
         <section class="card-soft">
             <h1 class="card-soft__title">{{ __('pay.refused.'.$refused.'_title') }}</h1>
             <p>{{ __('pay.refused.'.$refused) }}</p>
@@ -58,6 +52,5 @@
         </section>
     @endif
 
-    {{-- the instalment calculator is a modal the bank's own script opens --}}
     @include('livewire.pages.checkout-bog-script')
 </div>

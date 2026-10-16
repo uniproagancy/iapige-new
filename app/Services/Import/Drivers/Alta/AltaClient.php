@@ -4,16 +4,10 @@ namespace App\Services\Import\Drivers\Alta;
 
 use Illuminate\Support\Facades\Http;
 
-/**
- * The website side, reached through a proxy worker: a suggestions endpoint
- * that turns an id into a product route, and the product page itself, whose
- * __NEXT_DATA__ script carries the same JSON the site renders from.
- */
 class AltaClient
 {
     public function __construct(protected array $config = []) {}
 
-    /** The product page route for an external id, or null when it is unknown. */
     public function route(string $externalId): ?string
     {
         $data = $this->get(['type' => 'suggestions', 'query' => $externalId])?->json();
@@ -21,7 +15,6 @@ class AltaClient
         return $data['products'][0]['route'] ?? null;
     }
 
-    /** The product payload embedded in the page, or null. */
     public function page(string $route): ?array
     {
         $html = $this->get(['type' => 'page', 'route' => $route], 'text/html')?->body();
@@ -44,19 +37,13 @@ class AltaClient
         ];
     }
 
-    /** Fetch an image through the same worker, so the source only ever sees it. */
     public function image(string $url): ?string
     {
         return $this->get(['type' => 'image', 'url' => $url], '*/*')?->body();
     }
 
-    /** Statuses that mean "not you", never "not listed". */
     protected const BLOCKED_STATUSES = [401, 403, 429, 503];
 
-    /**
-     * @throws BlockedByAlta when the source is refusing us rather than
-     *                       answering about a product
-     */
     protected function get(array $query, string $accept = 'application/json')
     {
         $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
@@ -67,17 +54,12 @@ class AltaClient
             ])
             ->get(config('services.alta.worker_url'), $query + array_filter([
                 'token' => config('services.alta.token'),
-                // passed on so a clearance obtained in a browser can be used
+
                 'cfClearance' => config('services.alta.cf_clearance'),
             ]));
 
         $body = $response->body();
 
-        /*
-         * A product nobody lists and a door nobody can open used to look
-         * identical here — both returned null, quietly — so a run that imported
-         * nothing left nothing behind to say why. Only one of these is normal.
-         */
         if (in_array($response->status(), self::BLOCKED_STATUSES, true) || $this->isChallenge($body)) {
             throw new BlockedByAlta($this->refusal($response->status(), $body));
         }
@@ -85,13 +67,6 @@ class AltaClient
         return $response->successful() ? $response : null;
     }
 
-    /**
-     * Cloudflare's interstitial, which arrives as HTML whatever the status says.
-     *
-     * The worker labels everything application/json, so the content type cannot
-     * be trusted — measured against the live site, a challenge comes back as a
-     * 403 carrying "Just a moment..." under that header.
-     */
     protected function isChallenge(string $body): bool
     {
         return $body !== ''
@@ -99,7 +74,6 @@ class AltaClient
             && (bool) preg_match('/Just a moment|cf-browser-verification|cf_chl|Attention Required/i', $body);
     }
 
-    /** What to actually go and fix, per status. */
     protected function refusal(int $status, string $body): string
     {
         $reason = match (true) {

@@ -34,7 +34,7 @@
 @endphp
 
 <div>
-    {{-- ------------------------------------------------------------ the heading --}}
+
     <div class="card">
         <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-1">
             <div>
@@ -50,10 +50,6 @@
         </div>
     </div>
 
-    {{--
-        With nothing here the shop draws the five it was built with, so the
-        screen says so rather than looking as though the carousel is empty.
-    --}}
     @if ($slides->isEmpty() && ! $showForm)
         <div class="card">
             <div class="card-body text-center py-3">
@@ -66,7 +62,6 @@
         </div>
     @endif
 
-    {{-- ------------------------------------------------------------ the form --}}
     @if ($showForm)
         <div class="card border-primary">
             <div class="card-header pb-0">
@@ -75,7 +70,7 @@
 
             <div class="card-body">
                 <div class="row g-2">
-                    {{-- the picture, judged at the shape it will be shown at --}}
+
                     <div class="col-lg-5">
                         <label class="form-label fw-bolder" for="slideImage">{{ __('admin.slide_image') }}</label>
 
@@ -98,7 +93,6 @@
                         <div wire:loading wire:target="image" class="small text-primary">{{ __('admin.upload') }}…</div>
                     </div>
 
-                    {{-- where it leads, when it shows, and in what order --}}
                     <div class="col-lg-7">
                         <div class="row g-1">
                             <div class="col-md-8">
@@ -115,7 +109,6 @@
                                 <input type="number" id="slideOrder" min="0" class="form-control" wire:model="sort_order">
                             </div>
 
-                            {{-- a dated slide takes itself down rather than waiting to be noticed --}}
                             <div class="col-md-6">
                                 <label class="form-label" for="slideFrom">{{ __('admin.slide_from') }}</label>
                                 <input type="datetime-local" id="slideFrom" class="form-control" wire:model="starts_at">
@@ -138,7 +131,6 @@
                     </div>
                 </div>
 
-                {{-- ------------------------------------------------- the words --}}
                 <hr class="my-2">
 
                 @foreach ($languages as $language)
@@ -161,7 +153,7 @@
 
                             <div class="col-md-5">
                                 <label class="form-label">{{ __('admin.slide_title') }}</label>
-                                {{-- two lines: the carousel breaks the title where you do --}}
+
                                 <textarea rows="2"
                                           class="form-control @error("translations.{$language->code}.title") is-invalid @enderror"
                                           placeholder="{{ __('admin.slide_title_hint') }}"
@@ -196,7 +188,6 @@
         </div>
     @endif
 
-    {{-- ------------------------------------------------------------ the list --}}
     @if ($slides->isNotEmpty())
         <div class="card">
             <div class="table-responsive">
@@ -226,7 +217,6 @@
                                         <small class="text-muted d-block">{{ $slide->dates }}</small>
                                     @endif
 
-                                    {{-- the title holds its own line break, as the carousel draws it --}}
                                     <b class="d-block" style="white-space:pre-line">{{ $slide->title ?: '—' }}</b>
 
                                     @if ($slide->sub)
@@ -247,12 +237,7 @@
                                 </td>
 
                                 <td>
-                                    {{--
-                                        Switched on is not the same as showing: a
-                                        slide whose dates have passed is still
-                                        active and still invisible, and that is
-                                        exactly the state somebody rings about.
-                                    --}}
+
                                     @if (! $slide->is_active)
                                         <span class="badge badge-light-secondary">{{ __('admin.inactive') }}</span>
                                     @elseif ($slide->starts_at && $slide->starts_at->isFuture())

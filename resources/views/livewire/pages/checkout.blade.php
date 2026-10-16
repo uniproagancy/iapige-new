@@ -20,10 +20,8 @@
 
         <form class="checkout" wire:submit="place">
 
-            {{-- ------------------------------------------------ left: the form --}}
             <div class="checkout__main">
 
-                {{-- 1. contacts --}}
                 <section class="cosec">
                     <div class="cosec__head">
                         <span class="cosec__step">1</span>
@@ -70,7 +68,6 @@
                     </div>
                 </section>
 
-                {{-- 2. delivery --}}
                 <section class="cosec">
                     <div class="cosec__head">
                         <span class="cosec__step">2</span>
@@ -78,7 +75,7 @@
                     </div>
 
                     <div class="cosec__body">
-                        {{-- a returning customer picks an address instead of typing one --}}
+
                         @if ($addresses->isNotEmpty())
                             <div class="saved">
                                 @foreach ($addresses as $saved)
@@ -146,7 +143,6 @@
                     </div>
                 </section>
 
-                {{-- 3. payment --}}
                 <section class="cosec">
                     <div class="cosec__head">
                         <span class="cosec__step">3</span>
@@ -175,7 +171,6 @@
                         </div>
                         @error('payment') <span class="ferror">{{ $message }}</span> @enderror
 
-                        {{-- the term only means anything once instalments are chosen --}}
                         @if ($this->isInstallment())
                             <p class="cosec__note">
                                 <x-icon name="info" size="14" />
@@ -193,7 +188,6 @@
                 </section>
             </div>
 
-            {{-- ------------------------------------------------ right: the summary --}}
             <aside class="cosum">
                 <h2 class="cosum__title">{{ __('checkout.your_order') }}</h2>
 

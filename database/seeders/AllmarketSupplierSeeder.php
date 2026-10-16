@@ -11,12 +11,12 @@ class AllmarketSupplierSeeder extends Seeder
     public function run(): void
     {
         Supplier::updateOrCreate(['code' => 'allmarket'], [
-            'name'     => 'Allmarket',
-            'driver'   => AllmarketDriver::class,
+            'name' => 'Allmarket',
+            'driver' => AllmarketDriver::class,
             'priority' => 50,
-            'config'   => [
+            'config' => [
                 'timeout' => 60,
-                'locale'  => 'ka',
+                'locale' => 'ka',
             ],
             'markup' => [
                 ['up_to' => 100, 'percent' => 20],

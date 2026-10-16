@@ -6,13 +6,8 @@ use App\Models\Product;
 use App\Support\Catalog;
 use Livewire\Component;
 
-/**
- * "Cheaper together" — the product plus suggested extras. The first row is the
- * product itself and cannot be unticked.
- */
 class Bundle extends Component
 {
-    /** @var array<int, int> product ids, the first one being the page's product */
     public array $ids = [];
 
     public array $selected = [];
@@ -26,7 +21,7 @@ class Bundle extends Component
     public function toggle(int $id): void
     {
         if ($id === ($this->ids[0] ?? null)) {
-            return; // the product itself always stays in
+            return;
         }
 
         $this->selected = in_array($id, $this->selected, true)

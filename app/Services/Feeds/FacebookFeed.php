@@ -5,14 +5,6 @@ namespace App\Services\Feeds;
 use App\Models\Product;
 use XMLWriter;
 
-/**
- * The Facebook / Instagram catalogue feed.
- *
- * Everything it shares with Google — the file, the query, the skipping rules
- * and most of the fields — is in ProductFeed. What is here is what Facebook
- * reads differently: its own words for availability, the quantity field only
- * it understands, and a title that always carries the brand.
- */
 class FacebookFeed extends ProductFeed
 {
     protected function key(): string
@@ -49,7 +41,6 @@ class FacebookFeed extends ProductFeed
         $xml->writeElement('g:condition', 'new');
         $xml->writeElement('g:brand', $this->clean($brand, 70));
 
-        // with a sale price Facebook expects the original in "price"
         $xml->writeElement('g:price', $this->money($was ?: $price));
 
         if ($was) {
@@ -70,7 +61,6 @@ class FacebookFeed extends ProductFeed
 
         $xml->writeElement('g:quantity_to_sell_on_facebook', (string) max(1, (int) $product->stock));
 
-        /* custom labels: what the ad manager can actually segment on */
         if ($product->is_preorder) {
             $xml->writeElement('g:custom_label_0', 'preorder');
         } elseif ($price > $this->config['instalment_from']) {
@@ -94,7 +84,6 @@ class FacebookFeed extends ProductFeed
         $this->written++;
     }
 
-    /** Facebook's words: spaces rather than underscores, and its own for a pre-order. */
     protected function availability(Product $product): string
     {
         return match (true) {

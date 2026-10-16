@@ -15,7 +15,7 @@
 @endphp
 
 <div>
-    {{-- ---------------------------------------------------------- campaigns --}}
+
     <div class="card">
         <div class="card-body d-flex flex-wrap align-items-center gap-1">
             @forelse ($promotions as $p)
@@ -58,7 +58,6 @@
         </div>
     </div>
 
-    {{-- ---------------------------------------------------------- the form --}}
     @if ($showForm)
         <div class="card">
             <div class="card-body">
@@ -112,7 +111,7 @@
     @endif
 
     @if ($promotion)
-        {{-- ------------------------------------------------------ add a product --}}
+
         <div class="card">
             <div class="card-body">
                 <div class="input-group input-group-merge" style="max-width:420px">
@@ -139,7 +138,6 @@
             </div>
         </div>
 
-        {{-- ------------------------------------------------------ the products --}}
         <div class="card">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
@@ -162,7 +160,7 @@
                                 </td>
                                 <td>
                                     {{ money($p->price) }}
-                                    {{-- already marked down: the campaign need add nothing --}}
+
                                     @if ($d = $p->discountPercent())
                                         <span class="badge badge-light-danger ms-50">−{{ $d }}%</span>
                                         <small class="d-block text-muted">{{ money($p->old_price) }}</small>
@@ -202,7 +200,6 @@
             </div>
         </div>
 
-        {{-- the address to put on a banner, in an advert or in a newsletter --}}
         <p class="text-muted">
             {{ __('admin.promo_public_url') }}
             <a href="{{ route('promotion', $promotion->urlKey()) }}" target="_blank" rel="noopener">

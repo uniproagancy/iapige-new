@@ -55,7 +55,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
-
 	@vite(['resources/css/app.css', 'resources/js/app.js'])
     @isset($pageCss)
         @vite("resources/css/pages/{$pageCss}.css")
@@ -78,7 +77,6 @@
 
 <x-layout.tabbar :active="$__env->yieldContent('tab', $tab ?? 'home')" />
 
-{{-- overlays --}}
 <div class="scrim" id="scrim" hidden></div>
 <x-drawers.catalog />
 <x-drawers.cart />

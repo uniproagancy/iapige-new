@@ -22,9 +22,9 @@ class DeliveryCitySeeder extends Seeder
 
         foreach ($cities as $i => $city) {
             $model = DeliveryCity::create([
-                'fee'        => $city['fee'],
-                'free_from'  => $city['free_from'],
-                'days'       => $city['days'],
+                'fee' => $city['fee'],
+                'free_from' => $city['free_from'],
+                'days' => $city['days'],
                 'sort_order' => $i + 1,
             ]);
 

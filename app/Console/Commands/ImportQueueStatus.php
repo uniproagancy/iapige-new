@@ -7,18 +7,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What is actually in the import queue right now.
- *
- * "Attempted too many times" says nothing about why, and the two causes look
- * identical in the log: a job that keeps throwing, and a job whose limits were
- * written into it before the limits were fixed. Laravel freezes maxTries and
- * retryUntil into the payload when the job is queued, so a job dispatched
- * yesterday still carries yesterday's rules however the class reads today —
- * and queue:retry re-pushes that same payload unchanged.
- *
- * This prints both, so the difference is visible instead of guessed at.
- */
 class ImportQueueStatus extends Command
 {
     protected $signature = 'import:queue {supplier? : the supplier code}';
@@ -33,8 +21,6 @@ class ImportQueueStatus extends Command
 
         return self::SUCCESS;
     }
-
-    /* ------------------------------------------------------------------ waiting */
 
     protected function waiting(): void
     {
@@ -61,16 +47,6 @@ class ImportQueueStatus extends Command
         );
     }
 
-    /* ------------------------------------------------------------------ rules */
-
-    /**
-     * The limits the waiting jobs were given, not the ones the class declares.
-     *
-     * A retryUntil of "none" on a waiting job means it predates the fix: it
-     * will die on maxTries however long the deadline is set to now, and no
-     * amount of retrying will change that. Those have to be cleared and the
-     * import run again.
-     */
     protected function rules(): void
     {
         $sample = DB::table('jobs')
@@ -95,8 +71,6 @@ class ImportQueueStatus extends Command
         }
     }
 
-    /* ------------------------------------------------------------------ failures */
-
     protected function failures(): void
     {
         $rows = DB::table('failed_jobs')
@@ -113,7 +87,6 @@ class ImportQueueStatus extends Command
             return;
         }
 
-        // the first line of the exception is the only part that differs
         $grouped = $rows
             ->groupBy(fn ($r) => str($r->exception)->before("\n")->limit(90)->toString())
             ->map->count()

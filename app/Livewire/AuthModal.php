@@ -12,13 +12,9 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
-/**
- * Sign in, register and "forgot password" — all inside the header modal.
- * Sign in accepts an email address or a phone number.
- */
 class AuthModal extends Component
 {
-    public string $mode = 'login';        // login | register | forgot
+    public string $mode = 'login';
 
     public string $login = '';
 
@@ -42,8 +38,6 @@ class AuthModal extends Component
         $this->status = '';
         $this->resetValidation();
     }
-
-    /* ------------------------------------------------------------------ sign in */
 
     public function submit(): void
     {
@@ -79,7 +73,6 @@ class AuthModal extends Component
         $this->finish(__('auth.welcome_back', ['name' => Auth::user()->firstName()]));
     }
 
-    /** Email or phone, whichever the visitor typed. */
     protected function loginField(): string
     {
         return filter_var($this->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
@@ -97,7 +90,6 @@ class AuthModal extends Component
         return Str::transliterate(Str::lower($this->login).'|'.request()->ip());
     }
 
-    /** Five attempts a minute per login + IP. */
     protected function ensureIsNotRateLimited(): void
     {
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
@@ -111,8 +103,6 @@ class AuthModal extends Component
         ]);
     }
 
-    /* ------------------------------------------------------------------ register */
-
     protected function register(): void
     {
         $data = $this->validate([
@@ -123,7 +113,6 @@ class AuthModal extends Component
             'terms' => ['accepted'],
         ]);
 
-        // the phone is stored digits-only, so check it in the same shape
         $phone = User::normalisePhone($data['phone']);
 
         if (User::where('phone', $phone)->exists()) {
@@ -134,7 +123,7 @@ class AuthModal extends Component
             'name' => $data['name'],
             'email' => Str::lower($data['email']),
             'phone' => $phone,
-            'password' => $data['password'],   // hashed by the model cast
+            'password' => $data['password'],
         ]);
 
         event(new Registered($user));
@@ -147,26 +136,20 @@ class AuthModal extends Component
         $this->finish(__('auth.welcome', ['name' => $user->firstName()]));
     }
 
-    /* ------------------------------------------------------------------ forgot password */
-
     protected function sendResetLink(): void
     {
         $this->validate(['email' => ['required', 'email']]);
 
         $status = Password::sendResetLink(['email' => Str::lower($this->email)]);
 
-        // never reveal whether the address exists
         $this->status = __($status === Password::RESET_LINK_SENT ? $status : 'auth.reset_sent');
         $this->reset('email');
     }
-
-    /* ------------------------------------------------------------------ done */
 
     protected function finish(string $message): void
     {
         $this->reset(['login', 'password', 'name', 'email', 'phone', 'terms']);
 
-        // a full reload so the header, wishlist and cart pick up the session
         $this->redirect(url()->previous() ?: route('home'), navigate: false);
 
         session()->flash('toast', $message);

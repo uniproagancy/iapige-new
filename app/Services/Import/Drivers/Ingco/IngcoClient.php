@@ -6,20 +6,12 @@ use DOMDocument;
 use DOMXPath;
 use Illuminate\Support\Facades\Http;
 
-/**
- * ingco.ge, read through its own search.
- *
- * The supplier's spreadsheet lists model codes and nothing else, so each model
- * is looked up in the site's autocomplete to find its page, and the page is
- * read for everything the price list does not carry.
- */
 class IngcoClient
 {
     protected const BASE = 'https://ingco.ge';
 
     public function __construct(protected array $config = []) {}
 
-    /** The product page for a model code, or null when the site has none. */
     public function findUrl(string $model): ?string
     {
         $response = $this->get(self::BASE.'/ka/catalog/searchtermautocomplete', [
@@ -31,7 +23,6 @@ class IngcoClient
             return null;
         }
 
-        // the endpoint sometimes answers with a JSON-encoded string of HTML
         $html = json_decode($response) ?: $response;
 
         return preg_match('#href="(/ka/[^"]+)"#', (string) $html, $m)
@@ -39,11 +30,6 @@ class IngcoClient
             : null;
     }
 
-    /**
-     * Everything the product page carries.
-     *
-     * @return array{name:?string, description:?string, category:?string, images:array, specs:array, in_stock:bool}|null
-     */
     public function page(string $url): ?array
     {
         $html = $this->get($url);
@@ -52,7 +38,6 @@ class IngcoClient
             return null;
         }
 
-        // the page publishes itself as structured data, which beats scraping
         $json = $this->structuredData($html);
         $xpath = $this->xpath($html);
 
@@ -74,23 +59,11 @@ class IngcoClient
         ];
     }
 
-    /* ------------------------------------------------------------------ parts */
-
     protected function structuredData(string $html): array
     {
         return $this->ldJson($html, 'Product') ?? [];
     }
 
-    /**
-     * The first structured-data node of a given type.
-     *
-     * Only the first script on the page used to be read, whatever it described.
-     * A page that publishes its breadcrumb before its product — which is the
-     * usual order — handed back the breadcrumb, and the product's own name,
-     * description and availability were read off a node that has none of them.
-     * The type is written either as a bare word or as its full schema.org URL,
-     * and the node sits either on its own or inside an @graph.
-     */
     protected function ldJson(string $html, string $type): ?array
     {
         if (! preg_match_all('#<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>#si', $html, $m)) {
@@ -120,19 +93,6 @@ class IngcoClient
         return null;
     }
 
-    /**
-     * What the tool is, for the mapping queue.
-     *
-     * The price list is four columns — model, two prices and a quantity — and
-     * not one of them says what the thing is. So every INGCO product arrived
-     * with categoryName null, and the resolver only parks a name it is given:
-     * the admin's mapping queue stayed empty, the products stayed
-     * uncategorised, and there was nothing to map them by. The same hole
-     * Kontakt fell into, and the answer is the same — the page's own trail.
-     *
-     * The structured breadcrumb first, because it says what it means; the
-     * rendered one after, for pages that publish none.
-     */
     protected function category(string $html, ?DOMXPath $xpath): ?string
     {
         $names = [];
@@ -155,13 +115,6 @@ class IngcoClient
             }
         }
 
-        /*
-         * The trail reads Home › Category › … › Product, so the step before
-         * the last is the narrowest category — and the deeper the trail, the
-         * more specific the name worth mapping. A rendered breadcrumb often
-         * leaves the product itself unlinked, so a trail that does not end in
-         * the product keeps its last step.
-         */
         if ($names && $this->isProductName($names[count($names) - 1], $html)) {
             array_pop($names);
         }
@@ -173,7 +126,6 @@ class IngcoClient
             : ($category ?: null);
     }
 
-    /** Whether the last step of a trail is the product rather than a category. */
     protected function isProductName(string $name, string $html): bool
     {
         $title = $this->clean((string) ($this->structuredData($html)['name'] ?? ''));
@@ -197,13 +149,11 @@ class IngcoClient
             }
         }
 
-        // the social preview is the last honest summary a page has
         return preg_match('#<meta property="og:description" content="([^"]+)"#i', $html, $m)
             ? $this->clean($m[1])
             : null;
     }
 
-    /** @return array<int, string> */
     protected function images(array $json, string $html): array
     {
         $images = [];
@@ -229,11 +179,6 @@ class IngcoClient
         return array_values(array_unique(array_filter($images)));
     }
 
-    /**
-     * The spec table, read as label/value rows.
-     *
-     * @return array<int, array{name:string, value:string}>
-     */
     protected function specs(?DOMXPath $xpath): array
     {
         if (! $xpath) {
@@ -271,14 +216,12 @@ class IngcoClient
             }
 
             if ($specs) {
-                break;   // the first shape that yields anything is the right one
+                break;
             }
         }
 
         return array_values($specs);
     }
-
-    /* ------------------------------------------------------------------ http */
 
     protected function get(string $url, array $query = [], array $headers = []): ?string
     {

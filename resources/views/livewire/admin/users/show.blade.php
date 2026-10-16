@@ -37,7 +37,6 @@
         </small>
     </div>
 
-    {{-- the three numbers that place a caller at a glance --}}
     <div class="row mb-2">
         <div class="col-md-3 col-6">
             <div class="card mb-1"><div class="card-body py-1">
@@ -67,7 +66,7 @@
 
     <div class="row">
         <div class="col-lg-8">
-            {{-- orders --}}
+
             <div class="card">
                 <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.orders') }}</h5></div>
                 <div class="table-responsive">
@@ -97,7 +96,6 @@
                 </div>
             </div>
 
-            {{-- callbacks: matched by phone too, since a guest leaves no user id --}}
             @if ($callbacks->isNotEmpty())
                 <div class="card">
                     <div class="card-header pb-0"><h5 class="mb-0">{{ __('admin.callbacks') }}</h5></div>
@@ -121,7 +119,7 @@
         </div>
 
         <div class="col-lg-4">
-            {{-- editable details, last: the history above is what gets read --}}
+
             <div class="card">
                 <div class="card-body">
                     <div class="mb-1">
@@ -150,7 +148,6 @@
                 </div>
             </div>
 
-            {{-- addresses --}}
             @if ($addresses->isNotEmpty())
                 <div class="card">
                     <div class="card-header pb-0"><h5 class="mb-0">{{ __('account.addresses') }}</h5></div>
@@ -168,7 +165,6 @@
                 </div>
             @endif
 
-            {{-- closing an account keeps its orders; they are accounting records --}}
             @unless ($user->is_admin)
                 <div class="card border-danger">
                     <div class="card-body">

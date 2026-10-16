@@ -8,13 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Picks the request language from, in order:
- *   1. a {locale} route parameter  (ready for /en/... prefixed routes)
- *   2. the session                 (set by the locale.switch route)
- *   3. the default language in the database
- * Anything that isn't an active language falls back to the default.
- */
 class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
@@ -34,7 +27,6 @@ class SetLocale
         app()->setFallbackLocale($default);
         URL::defaults(['locale' => $locale]);
 
-        // controllers shouldn't receive {locale} as their first argument
         if ($route?->hasParameter('locale')) {
             $route->forgetParameter('locale');
         }

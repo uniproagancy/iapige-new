@@ -13,29 +13,18 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * Everything a customer has with us, as one component with tabs.
- *
- * It opens on an overview rather than a list, because the question people
- * actually arrive with is "where is my order" — not "show me everything I have
- * ever bought".
- */
 class Index extends Component
 {
-    /** The steps an order walks through, as the customer sees them. */
     public const TRACK = ['new', 'confirmed', 'packed', 'shipped', 'completed'];
 
-    /** overview | orders | addresses | wishlist | profile | security */
     #[Url(as: 'tab', except: 'overview')]
     public string $tab = 'overview';
 
-    /** '' | active | completed | cancelled */
     #[Url(as: 'f', except: '')]
     public string $orderFilter = '';
 
     public int $perPage = 10;
 
-    /* ---- profile ---- */
     public string $name = '';
 
     public string $phone = '';
@@ -44,21 +33,18 @@ class Index extends Component
 
     public bool $accepts_marketing = false;
 
-    /* ---- password ---- */
     public string $current_password = '';
 
     public string $password = '';
 
     public string $password_confirmation = '';
 
-    /* ---- sessions / deletion ---- */
     public string $session_password = '';
 
     public string $delete_password = '';
 
     public bool $confirmDelete = false;
 
-    /* ---- address form ---- */
     public bool $showAddress = false;
 
     public ?int $addressId = null;
@@ -77,7 +63,6 @@ class Index extends Component
 
     public bool $a_default = false;
 
-    /** the order opened in place, so the list keeps its scroll */
     public ?int $openOrder = null;
 
     public function mount(): void
@@ -97,8 +82,6 @@ class Index extends Component
             $this->openOrder = null;
         }
     }
-
-    /* ------------------------------------------------------------------ render */
 
     public function render()
     {
@@ -120,7 +103,6 @@ class Index extends Component
         ]);
     }
 
-    /** The one order a customer is actually waiting on. */
     protected function activeOrder(): ?Order
     {
         return Order::where('user_id', auth()->id())
@@ -152,7 +134,6 @@ class Index extends Component
         $this->perPage += 10;
     }
 
-    /** @return array<int, array> */
     protected function wishlist(): array
     {
         $ids = method_exists(auth()->user(), 'wishlist')
@@ -168,7 +149,6 @@ class Index extends Component
         );
     }
 
-    /** The three numbers a customer recognises about themselves. */
     protected function stats(int $userId): array
     {
         $row = DB::table('orders')
@@ -187,7 +167,6 @@ class Index extends Component
         ];
     }
 
-    /** Where an order stands, as a position in TRACK; -1 when it ended badly. */
     public function trackStep(Order $order): int
     {
         $position = array_search($order->status, self::TRACK, true);
@@ -195,14 +174,11 @@ class Index extends Component
         return $position === false ? -1 : $position;
     }
 
-    /* ------------------------------------------------------------------ orders */
-
     public function toggleOrder(int $id): void
     {
         $this->openOrder = $this->openOrder === $id ? null : $id;
     }
 
-    /** Puts a past order back in the cart, skipping what is no longer sold. */
     public function reorder(int $id): void
     {
         $order = Order::where('user_id', auth()->id())->with('items')->findOrFail($id);
@@ -227,18 +203,6 @@ class Index extends Component
             ? __('account.reordered_partly', ['added' => $added, 'skipped' => $skipped])
             : __('account.reordered', ['count' => $added]));
     }
-
-    /*
-     | cancelOrder lived here.
-     |
-     | Removed rather than hidden: a Livewire method is callable from the
-     | browser whether or not a button points at it, so taking the button away
-     | would have left the action itself open to anyone who looked. Cancelling
-     | is the shop's decision now, made on the order in the admin, where the
-     | status change is recorded against whoever made it.
-     */
-
-    /* ------------------------------------------------------------------ addresses */
 
     public function newAddress(): void
     {
@@ -287,7 +251,6 @@ class Index extends Component
             ],
         );
 
-        // the first address a customer saves is the one checkout should use
         if ($this->a_default || UserAddress::where('user_id', auth()->id())->count() === 1) {
             $address->makeDefault();
         }
@@ -319,8 +282,6 @@ class Index extends Component
         $this->a_default = false;
         $this->resetValidation();
     }
-
-    /* ------------------------------------------------------------------ profile */
 
     public function saveProfile(): void
     {
@@ -361,7 +322,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('account.password_changed'));
     }
 
-    /** Signs out everywhere else; this session stays. */
     public function logoutOtherDevices(): void
     {
         $this->validate(['session_password' => ['required']]);
@@ -378,10 +338,6 @@ class Index extends Component
         $this->dispatch('toast', message: __('account.other_sessions_closed'));
     }
 
-    /**
-     * Closing an account keeps the orders: they are our accounting record as
-     * much as the customer's history, so the person is anonymised instead.
-     */
     public function deleteAccount()
     {
         $this->validate(['delete_password' => ['required']]);

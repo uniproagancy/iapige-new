@@ -4,12 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * The supplier's own category and brand names, kept on the offer.
- *
- * Without them a mapping made after the import could never be applied to the
- * products already in the shop — the only way back would be a full re-import.
- */
 return new class extends Migration
 {
     public function up(): void

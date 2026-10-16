@@ -10,14 +10,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-/**
- * Bank of Georgia card payments.
- *
- * Unlike instalments this is a plain redirect: the order is created, the
- * customer pays on the bank's page, and the bank posts back. The callback is
- * still only a nudge — the verdict is read from the bank's own receipt, so a
- * forged post cannot mark an order paid.
- */
 class BogCard implements PaymentDriver
 {
     public function start(Order $order, array $options = []): PaymentTransaction
@@ -53,12 +45,6 @@ class BogCard implements PaymentDriver
         ]);
     }
 
-    /**
-     * Reads the bank's receipt for an order.
-     *
-     * Only "completed" is money; "refunded" and "rejected" close the
-     * transaction, and anything else leaves it pending for the next run.
-     */
     public function confirm(PaymentTransaction $transaction): bool
     {
         if (! $transaction->external_id) {
@@ -87,7 +73,6 @@ class BogCard implements PaymentDriver
             'checked_at' => now(),
         ]);
 
-        // the bank echoes our own order number; a mismatch means a wrong receipt
         $echoed = (string) ($data['external_order_id'] ?? '');
 
         if ($echoed !== '' && $transaction->order && $echoed !== (string) $transaction->order->number) {
@@ -109,7 +94,6 @@ class BogCard implements PaymentDriver
         return $status === 'completed';
     }
 
-    /** The bank posts the whole order under a "body" key. */
     public function handleCallback(array $payload): ?PaymentTransaction
     {
         $externalId = data_get($payload, 'body.order_id') ?? data_get($payload, 'body.id') ?? $payload['order_id'] ?? null;
@@ -129,9 +113,6 @@ class BogCard implements PaymentDriver
         return $transaction;
     }
 
-    /* ------------------------------------------------------------------ plumbing */
-
-    /** The bank's token lives five minutes, so a minute is kept back for the trip. */
     protected function token(): string
     {
         if ($cached = Cache::get('bog:payment:token')) {
@@ -160,7 +141,6 @@ class BogCard implements PaymentDriver
         return $token;
     }
 
-    /** @return array<string, mixed> */
     protected function payload(Order $order): array
     {
         $basket = $order->items->map(fn ($item) => [
@@ -172,7 +152,7 @@ class BogCard implements PaymentDriver
         return [
             'callback_url' => config('bog.payment.callback_url')
                 ?: route('payment.callback', ['driver' => 'bog-card']),
-            // the order number, not the id: it is what the receipt echoes back
+
             'external_order_id' => (string) $order->number,
             'purchase_units' => [
                 'currency' => 'GEL',

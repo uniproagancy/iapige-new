@@ -5,13 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Services\Payments\Drivers\CredoInstallment;
 
-/**
- * The page that hands the customer to Credo's widget.
- *
- * Credo takes a form post rather than a redirect, so this page exists only to
- * submit one — and it rebuilds the payload rather than trusting what arrives
- * in the URL, which is just an order number.
- */
 class CredoController extends Controller
 {
     public function form(string $number, CredoInstallment $credo)

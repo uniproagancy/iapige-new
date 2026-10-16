@@ -12,39 +12,18 @@ use App\Support\Redact;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
-/**
- * Adding products by pasting their addresses.
- *
- * Some suppliers have no price list at all: you find the product on their
- * site and you want that one. Doing it one at a time means opening the
- * product, copying the address, filling a form, submitting, waiting — forty
- * times for a page of forty products.
- *
- * The box takes the lot, and the fetching happens here rather than on a queue.
- * A handful of addresses is not a nightly import: asking somebody to keep a
- * worker running for twenty products — and to open a terminal to start it —
- * costs more than the work itself.
- *
- * One product per request, so a long list cannot run into whatever limit the
- * host puts on a request, and the page says where it has got to while it goes.
- */
 class Links extends Component
 {
     public string $supplierCode = '';
 
     public string $links = '';
 
-    /** An optional name for the mapping queue, when the site's own is wrong. */
     public string $category = '';
 
-    /** @var array{added:int, updated:int, skipped:array<int, string>}|null */
     public ?array $result = null;
-
-    /* ------------------------------------------------------------------ fetching */
 
     public bool $running = false;
 
-    /** Everything again, rather than only what has never been fetched. */
     public bool $refreshing = false;
 
     public int $done = 0;
@@ -60,12 +39,6 @@ class Links extends Component
         $this->supplierCode = (string) ($this->suppliers()->first()?->code ?? '');
     }
 
-    /**
-     * Suppliers that are added to this way.
-     *
-     * A supplier with a column map is fed by a spreadsheet and belongs on the
-     * upload screen; one without is fed by hand, which is this.
-     */
     public function suppliers()
     {
         return Supplier::orderBy('name')->get()
@@ -77,8 +50,6 @@ class Links extends Component
     {
         $this->reset(['result', 'running', 'done', 'failed', 'total', 'current']);
     }
-
-    /* ------------------------------------------------------------------ the box */
 
     public function save(CitrusLinks $links): void
     {
@@ -97,15 +68,6 @@ class Links extends Component
         $this->dispatch('toast', message: __('admin.links_added', ['count' => $this->result['added']]));
     }
 
-    /* ------------------------------------------------------------------ fetching */
-
-    /**
-     * Starts fetching, without doing any of it yet.
-     *
-     * The first product is fetched by the next request, so the button answers
-     * at once and the page can show what it is doing instead of appearing to
-     * hang for a minute.
-     */
     public function start(bool $refresh = false): void
     {
         $this->refreshing = $refresh;
@@ -126,14 +88,6 @@ class Links extends Component
         $this->current = '';
     }
 
-    /**
-     * One product, then back to the browser.
-     *
-     * Deliberately one: a page of forty addresses is forty seconds of
-     * fetching, which is longer than many hosts allow a single request to
-     * live. Doing them one per request means no list is too long, and the
-     * count on the screen is honest rather than a guess.
-     */
     public function fetchNext(ImportManager $manager, ProductImporter $importer): void
     {
         if (! $this->running) {
@@ -186,15 +140,6 @@ class Links extends Component
         $this->dispatch('toast', message: __('admin.deleted'));
     }
 
-    /* ------------------------------------------------------------------ what is left */
-
-    /**
-     * The addresses still to fetch.
-     *
-     * An address we already hold a product for is finished, unless the whole
-     * lot is being refreshed — which is how a price or a photograph that has
-     * changed on their side is picked up.
-     */
     protected function pending()
     {
         $supplier = $this->supplier();

@@ -4,19 +4,10 @@ namespace App\Services\Delivery;
 
 use App\Models\DeliveryCity;
 
-/**
- * Courier fee for a basket. Volumetric weight matters as much as real weight:
- * a big light box costs the same to move as a small heavy one, so we charge
- * for whichever is greater — the way couriers bill us.
- */
 class DeliveryCalculator
 {
-    /** Couriers divide L×W×H (cm) by this to get a billable weight in kg. */
     public const VOLUMETRIC_DIVISOR = 5000;
 
-    /**
-     * @param  array<int, array{weight:?int,length:?int,width:?int,height:?int,is_bulky:bool,qty:int}>  $items
-     */
     public function fee(DeliveryCity $city, array $items): float
     {
         foreach ($items as $item) {
@@ -36,11 +27,10 @@ class DeliveryCalculator
             return (float) $tier->fee;
         }
 
-        // heavier than every tier: the last tier plus a per-kilo surcharge
         $last = $city->rates()->orderByDesc('up_to_weight')->first();
 
         if (! $last) {
-            return (float) $city->fee;   // no tiers configured → the flat city fee
+            return (float) $city->fee;
         }
 
         $extraKg = ceil(max(0, $grams - $last->up_to_weight) / 1000);
@@ -48,7 +38,6 @@ class DeliveryCalculator
         return (float) $last->fee + $extraKg * (float) ($city->per_kg_over ?? 0);
     }
 
-    /** The greater of real and volumetric weight, in grams. */
     public function billableWeight(array $items): int
     {
         $real = 0;

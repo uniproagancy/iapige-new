@@ -1,4 +1,4 @@
-{{-- quantity + add to cart + wishlist; lives inside the Product page component --}}
+
 @props(['product', 'qty'])
 
 <div {{ $attributes->class(['buyrow']) }}>

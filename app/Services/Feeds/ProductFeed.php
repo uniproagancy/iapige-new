@@ -8,18 +8,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use XMLWriter;
 
-/**
- * What every shopping feed does the same way.
- *
- * Google Shopping and Facebook Catalogue both read RSS 2.0 with Google's
- * namespace, so the file, the query, the skipping rules and most of the
- * fields are one piece of work. What differs is a handful of elements and
- * what each platform calls availability — and that is all a subclass says.
- *
- * Written straight to disk with XMLWriter instead of collected in memory: at
- * tens of thousands of products an array of items is the thing that runs the
- * process out of memory, not the database.
- */
 abstract class ProductFeed
 {
     protected array $config;
@@ -33,13 +21,10 @@ abstract class ProductFeed
         $this->config = config('feeds.'.$this->key());
     }
 
-    /** The block in config/feeds.php this feed reads. */
     abstract protected function key(): string;
 
-    /** One product, in whatever shape this platform wants it. */
     abstract protected function writeItem(XMLWriter $xml, Product $product): void;
 
-    /** Generates the feed and returns the path it was written to. */
     public function generate(): string
     {
         $locale = $this->config['locale'];
@@ -49,7 +34,6 @@ abstract class ProductFeed
         $path = Storage::disk('local')->path($this->config['path']);
         @mkdir(dirname($path), 0755, true);
 
-        // write to a temporary file, then move: a half-written feed is never served
         $temporary = $path.'.tmp';
 
         $xml = new XMLWriter;
@@ -71,8 +55,8 @@ abstract class ProductFeed
             gc_collect_cycles();
         });
 
-        $xml->endElement();   // channel
-        $xml->endElement();   // rss
+        $xml->endElement();
+        $xml->endElement();
         $xml->endDocument();
         $xml->flush();
 
@@ -83,8 +67,6 @@ abstract class ProductFeed
 
         return $path;
     }
-
-    /* ------------------------------------------------------------------ query */
 
     protected function query()
     {
@@ -105,7 +87,6 @@ abstract class ProductFeed
             ]);
     }
 
-    /** Excluded categories take their whole branch with them. */
     protected function excludedCategoryIds(): array
     {
         $ids = $this->config['exclude_categories'];
@@ -122,23 +103,11 @@ abstract class ProductFeed
             ->unique()->values()->all();
     }
 
-    /* ------------------------------------------------------------------ shared fields */
-
-    /**
-     * What a product costs today, and what it cost before.
-     *
-     * sellingPrice() rather than the column, because a campaign price is what
-     * the shopper is actually charged — and both platforms disapprove an item
-     * whose feed price does not match the page it leads to.
-     *
-     * @return array{0: float, 1: ?float} the price to charge, and the one to strike through
-     */
     protected function prices(Product $product): array
     {
         $selling = $product->sellingPrice();
         $shelf = (float) $product->price;
 
-        // a campaign beats the product's own discount, as it does on the page
         $was = $selling < $shelf
             ? $shelf
             : ($product->old_price && (float) $product->old_price > $selling ? (float) $product->old_price : null);
@@ -146,12 +115,6 @@ abstract class ProductFeed
         return [$selling, $was];
     }
 
-    /**
-     * Whether a product belongs in the feed at all.
-     *
-     * The counters are what the log line reports, so a feed that comes out
-     * short says why rather than leaving somebody to guess.
-     */
     protected function skip(Product $product, string $name, float $price, ?string $image): bool
     {
         if ($name === '') {
@@ -160,7 +123,6 @@ abstract class ProductFeed
             return true;
         }
 
-        // cheap accessories drain the budget without paying for themselves
         if ($price < $this->config['min_price']) {
             $this->skipped['price']++;
 
@@ -192,27 +154,19 @@ abstract class ProductFeed
     {
         $first = $product->images->sortBy('sort_order')->first();
 
-        /*
-         | url() with nothing to resolve hands back the generator itself, not a
-         | string, so a product with no photograph brought the whole run down
-         | on a return type error instead of being skipped.
-         */
         if (! $url = $first?->url()) {
             return null;
         }
 
-        // the platform fetches the picture itself: a path is no use to it
         return str_starts_with($url, 'http') ? $url : url($url);
     }
 
-    /** @return array<int, string> */
     protected function gallery(Product $product): array
     {
         return $product->images->sortBy('sort_order')->skip(1)->take(10)
             ->map->url()->filter()->values()->all();
     }
 
-    /** "ტექნიკა > ტელეფონები > სმარტფონები" — both platforms read this as a hierarchy. */
     protected function productType(Category $category): string
     {
         return collect($category->ancestorsAndSelf())
@@ -221,7 +175,6 @@ abstract class ProductFeed
             ->implode(' > ');
     }
 
-    /** A band is easier to target than a raw price. */
     protected function priceBand(float $price): string
     {
         return match (true) {

@@ -4,10 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Google's taxonomy id for a category. Facebook reads the same list, and a
- * child inherits its parent's id when it has none of its own.
- */
 return new class extends Migration
 {
     public function up(): void

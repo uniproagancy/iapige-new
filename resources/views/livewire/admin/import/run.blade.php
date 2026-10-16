@@ -1,5 +1,5 @@
 <div>
-    {{-- ------------------------------------------------------------ pick one and go --}}
+
     <div class="card">
         <div class="card-header">
             <h4 class="card-title">{{ __('admin.run_title') }}</h4>
@@ -38,8 +38,6 @@
         </div>
     </div>
 
-    {{-- ------------------------------------------------------------ every supplier --}}
-    {{-- --------------------------------------------------------- working here --}}
     @if ($working)
         @php
             $left = $busy[$working] ?? 0;

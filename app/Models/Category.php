@@ -9,22 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * @property string|null $name
- * @property string|null $slug
- */
 class Category extends Model
 {
     use HasTranslations;
 
     protected array $translatable = ['name', 'slug', 'description', 'meta_title', 'meta_description'];
 
-    /*
-     | in_feed and google_category_id were added by a migration and read by the
-     | Facebook feed, but never listed here — so fill() dropped them in silence
-     | and no category could ever be kept out of the feed or given a Google
-     | taxonomy id. The exclusion was unreachable code until these were added.
-     */
     protected $fillable = [
         'parent_id', 'image', 'icon', 'is_active', 'show_on_home', 'sort_order',
         'in_feed', 'google_category_id',
@@ -65,7 +55,6 @@ class Category extends Model
         return $query->whereNull('parent_id')->orderBy('sort_order');
     }
 
-    /** This category and everything below it — a listing shows products from all of them. */
     public function descendantAndSelfIds(): array
     {
         $ids = [$this->getKey()];
@@ -79,7 +68,6 @@ class Category extends Model
         return $ids;
     }
 
-    /** Root → … → this, for breadcrumbs. */
     public function ancestorsAndSelf(): array
     {
         $trail = [$this];
@@ -92,11 +80,6 @@ class Category extends Model
         return $trail;
     }
 
-    /**
-     * Stored paths may be absolute ("/img/cat/laptops.png" from the seeder) or
-     * disk-relative ("categories/laptops.png" from an upload) — only the second
-     * kind goes through the storage disk.
-     */
     public function imageUrl(): ?string
     {
         if (! $this->image) {

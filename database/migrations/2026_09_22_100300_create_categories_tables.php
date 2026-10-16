@@ -4,10 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Category tree (ლეპტოპები და კომპიუტერები → ლეპტოპები → გეიმინგ).
- * Adjacency list — three levels are cheap to walk, no nested-set package needed.
- */
 return new class extends Migration
 {
     public function up(): void
@@ -18,7 +14,7 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->string('icon', 64)->nullable();
             $table->boolean('is_active')->default(true);
-            $table->boolean('show_on_home')->default(false); // home page section
+            $table->boolean('show_on_home')->default(false);
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
 
@@ -36,7 +32,7 @@ return new class extends Migration
             $table->string('meta_description', 500)->nullable();
 
             $table->unique(['category_id', 'locale']);
-            $table->unique(['locale', 'slug']);            // /en/laptops and /ka/ლეპტოპები can coexist
+            $table->unique(['locale', 'slug']);
             $table->foreign('locale')->references('code')->on('languages')
                 ->cascadeOnUpdate()->cascadeOnDelete();
         });

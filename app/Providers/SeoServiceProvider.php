@@ -5,12 +5,6 @@ namespace App\Providers;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Defaults for the social preview tags.
- *
- * Every page gets them, and the few that have something better to say — a
- * product, a category — override them in their own view.
- */
 class SeoServiceProvider extends ServiceProvider
 {
     public function boot(): void

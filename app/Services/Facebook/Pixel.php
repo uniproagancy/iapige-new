@@ -9,29 +9,10 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-/**
- * Meta Conversions API — the server half of the pixel.
- *
- * Every event is sent twice: the browser fires it with an eventID, this sends
- * the same event with the same event_id, and Meta keeps one of them. The pair
- * is what makes the numbers survive ad blockers and iOS without double-counting.
- *
- * Nothing here may throw. A tracking call sits in the middle of checkout, and
- * an advertising platform having a bad afternoon must not cost an order — so
- * every failure is logged and swallowed.
- */
 class Pixel
 {
-    /** Short: this runs inside a request the customer is waiting on. */
     protected const TIMEOUT = 5;
 
-    /**
-     * One event per payload per request; Livewire re-renders would resend.
-     *
-     * Not static: a static array would survive the request and mute the event
-     * for the whole life of a worker process. The container holds this as a
-     * singleton, which is exactly one request long.
-     */
     protected array $sent = [];
 
     protected string $endpoint;
@@ -50,7 +31,6 @@ class Pixel
         return config('services.facebook.pixel_id') ?: null;
     }
 
-    /** Configured, and allowed by whoever is reading the page. */
     public function enabled(): bool
     {
         return $this->pixelId()
@@ -58,13 +38,6 @@ class Pixel
             && $this->consented();
     }
 
-    /**
-     * The cookie banner's answer.
-     *
-     * The shop asks before it tracks, so "necessary only" has to mean exactly
-     * that — otherwise the banner is decoration. The browser mirrors its choice
-     * into a cookie so this side can read it too.
-     */
     public function consented(): bool
     {
         return request()->cookie('cookie_consent') === 'all';
@@ -75,22 +48,6 @@ class Pixel
         return (bool) config('services.facebook.test_event_code');
     }
 
-    /* ================================================================== events */
-
-    /*
-     | Each of these sends the server half and hands back what the browser half
-     | should fire — one payload, built once, so the two halves can never
-     | describe different things. A component passes the result straight on, as
-     | one argument:
-     |
-     |     $this->dispatch('pixel', app(Pixel::class)->addToCart($line));
-     |
-     | Not spread. Livewire's signature is dispatch($event, ...$params), and the
-     | "event" key here would arrive as a named argument for that first
-     | parameter — "Named parameter $event overwrites previous argument".
-     */
-
-    /** @param  array<string, mixed>  $card  a Catalog::card() array */
     public function viewContent(array $card): array
     {
         return $this->pair('ViewContent', 'vc', [
@@ -103,7 +60,6 @@ class Pixel
         ]);
     }
 
-    /** @param  array<string, mixed>  $line  id, name, price, qty */
     public function addToCart(array $line): array
     {
         $qty = max(1, (int) ($line['qty'] ?? 1));
@@ -118,7 +74,6 @@ class Pixel
         ]);
     }
 
-    /** @param  array<int, array<string, mixed>>  $lines */
     public function initiateCheckout(array $lines, float $value): array
     {
         return $this->pair('InitiateCheckout', 'ic', [
@@ -131,7 +86,6 @@ class Pixel
         ]);
     }
 
-    /** @param  array<string, mixed>  $card */
     public function addToWishlist(array $card): array
     {
         return $this->pair('AddToWishlist', 'wl', [
@@ -148,7 +102,6 @@ class Pixel
         return $this->pair('Search', 'sr', ['search_string' => $term]);
     }
 
-    /** @param  array<string, mixed>  $identity  plain values, hashed before sending */
     public function lead(array $identity = []): array
     {
         return $this->pair('Lead', 'ld', [], $identity);
@@ -164,13 +117,6 @@ class Pixel
         ]);
     }
 
-    /**
-     * Sends the server half, returns the browser half.
-     *
-     * @param  array<string, mixed>  $customData
-     * @param  array<string, mixed>  $identity
-     * @return array{event: string, id: string, data: array<string, mixed>}
-     */
     public function pair(string $event, string $prefix, array $customData, array $identity = []): array
     {
         $eventId = self::eventId($prefix);
@@ -180,13 +126,6 @@ class Pixel
         return ['event' => $event, 'id' => $eventId, 'data' => $customData];
     }
 
-    /**
-     * The one event the shop is actually paid for.
-     *
-     * A card payment is confirmed by a bank callback or by the scheduler, with
-     * no browser anywhere near it — so the cookies and the address are read
-     * from the snapshot taken while the customer was still on the page.
-     */
     public function purchase(Order $order, ?string $eventId = null, ?OrderPixelData $snapshot = null): bool
     {
         return $this->send('Purchase', $this->purchaseData($order), $eventId ?? $snapshot?->event_id, [
@@ -198,25 +137,6 @@ class Pixel
         ], $snapshot);
     }
 
-    /**
-     * Reports a sale, once, from wherever the shop learned of it.
-     *
-     * The once is the snapshot's sent_at: banks resend their callbacks, the
-     * scheduler polls, and an operator may walk an order back and forth
-     * through "completed" all afternoon. Each of those is the same sale.
-     *
-     * $offline is for a sale that never had a browser — one the operator took
-     * on the phone or across the counter. There is no snapshot for it, because
-     * a snapshot is what a browser left behind, so one is written now from the
-     * order itself. Meta still matches it on the email and the telephone
-     * number, which is the whole point of sending it: without this the shop's
-     * own telephone sales are invisible beside its advertising.
-     *
-     * Note what that snapshot records. `consented` is the gate on reporting,
-     * not a claim about a cookie banner nobody was shown — there was no
-     * browser to ask. An operator marking an order completed is the shop
-     * saying it made this sale.
-     */
     public function reportPurchase(Order $order, bool $offline = false): bool
     {
         $snapshot = OrderPixelData::where('order_id', $order->id)->first();
@@ -226,7 +146,7 @@ class Pixel
         }
 
         if (! $snapshot) {
-            // an order placed on the website always has one; only ours do not
+
             if (! $offline) {
                 return false;
             }
@@ -247,14 +167,6 @@ class Pixel
         return true;
     }
 
-    /**
-     * What the Purchase event says, for either half.
-     *
-     * The browser one has to describe exactly the same sale as the server one,
-     * or the pair Meta joins by event_id disagrees with itself.
-     *
-     * @return array<string, mixed>
-     */
     public function purchaseData(Order $order): array
     {
         $lines = $order->items->map(fn ($item) => [
@@ -274,12 +186,6 @@ class Pixel
         ];
     }
 
-    /* ================================================================== sending */
-
-    /**
-     * @param  array<string, mixed>  $customData
-     * @param  array<string, mixed>  $identity  plain values; hashed before they leave
-     */
     public function send(
         string $event,
         array $customData = [],
@@ -291,7 +197,6 @@ class Pixel
             return false;
         }
 
-        // a snapshot carries its own consent, taken when the customer gave it
         if ($snapshot && ! $snapshot->consented) {
             return false;
         }
@@ -353,24 +258,13 @@ class Pixel
                 'body' => $response->body(),
             ]);
         } catch (\Throwable $e) {
-            // an advertising platform must never cost us an order
+
             Log::channel('pixel')->error('failed', ['event' => $event, 'error' => $e->getMessage()]);
         }
 
         return false;
     }
 
-    /* ================================================================== user data */
-
-    /**
-     * Who this was, as far as Meta is allowed to know.
-     *
-     * Every personal field is SHA-256 of its normalised value: Meta matches on
-     * the hash, so the plain address never leaves this server.
-     *
-     * @param  array<string, mixed>  $identity
-     * @return array<string, mixed>
-     */
     protected function userData(array $identity = [], ?OrderPixelData $snapshot = null): array
     {
         $data = $snapshot
@@ -389,7 +283,6 @@ class Pixel
         return array_merge($data, $this->hashedIdentity($identity));
     }
 
-    /** @return array<string, string> */
     public function browserData(): array
     {
         $data = array_filter([
@@ -402,12 +295,6 @@ class Pixel
         return $data;
     }
 
-    /**
-     * A click id in the URL is as good as the cookie Meta would have set.
-     *
-     * Someone arriving from an advert before the pixel has loaded still has
-     * ?fbclid= in the address, and that is what ties the visit to the ad.
-     */
     protected function fbcFromClick(): ?string
     {
         $fbclid = request()->query('fbclid');
@@ -415,10 +302,6 @@ class Pixel
         return $fbclid ? 'fb.1.'.(int) (microtime(true) * 1000).'.'.$fbclid : null;
     }
 
-    /**
-     * @param  array<string, mixed>  $identity
-     * @return array<string, string>
-     */
     public function hashedIdentity(array $identity): array
     {
         $out = [];
@@ -427,7 +310,6 @@ class Pixel
             $out['em'] = hash('sha256', Str::lower($email));
         }
 
-        // Meta wants digits only, country code included
         $phone = preg_replace('/\D/', '', (string) ($identity['phone'] ?? ''));
 
         if (strlen((string) $phone) >= 9) {
@@ -456,9 +338,6 @@ class Pixel
         return $out;
     }
 
-    /* ================================================================== helpers */
-
-    /** @param  array<int, array<string, mixed>>  $lines */
     protected function contents(array $lines): array
     {
         return array_map(fn ($l) => [
@@ -473,7 +352,6 @@ class Pixel
         return trim(($card['brand'] ?? '').' '.($card['name'] ?? ''));
     }
 
-    /** A fresh id for a browser/server pair. */
     public static function eventId(string $prefix): string
     {
         return $prefix.'_'.time().'_'.Str::random(8);

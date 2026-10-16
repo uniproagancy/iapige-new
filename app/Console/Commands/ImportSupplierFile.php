@@ -7,16 +7,6 @@ use App\Services\Import\PriceListLoader;
 use Illuminate\Console\Command;
 use RuntimeException;
 
-/**
- * Loads a supplier's price list from a file already on this machine.
- *
- * The reading itself lives in PriceListLoader, because the admin uploads the
- * same spreadsheets through the browser and the two must not drift apart.
- *
- * Replaces the supplier's catalogue by default, which is what a weekly price
- * list is. Pass --merge for a file that covers only part of it, so the rows
- * it does not mention keep the stock they have.
- */
 class ImportSupplierFile extends Command
 {
     protected $signature = 'import:file

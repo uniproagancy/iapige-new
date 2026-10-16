@@ -1,6 +1,6 @@
 <div>
     <div class="row">
-        {{-- ------------------------------------------------------------ the box --}}
+
         <div class="col-lg-7">
             <div class="card">
                 <div class="card-header">
@@ -45,7 +45,6 @@
                         <span wire:loading wire:target="save">{{ __('admin.links_save') }}…</span>
                     </button>
 
-                    {{-- ------------------------------------------------ what the paste did --}}
                     @if ($result)
                         <hr>
 
@@ -66,7 +65,6 @@
                 </div>
             </div>
 
-            {{-- ------------------------------------------------------- fetching --}}
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title">{{ __('admin.links_fetch_title') }}</h4>
@@ -77,11 +75,6 @@
                     @if ($running)
                         @php $percent = $total > 0 ? (int) round(($done + $failed) / $total * 100) : 0; @endphp
 
-                        {{--
-                            One product per request. The poll asks for the next
-                            as soon as the last came back, so a long list cannot
-                            run into whatever limit the host puts on a request.
-                        --}}
                         <div wire:poll.600ms="fetchNext">
                             <div class="d-flex justify-content-between mb-50">
                                 <span>{{ __('admin.links_fetching', ['done' => $done + $failed, 'total' => $total]) }}</span>
@@ -136,7 +129,6 @@
             </div>
         </div>
 
-        {{-- ------------------------------------------------------------ the list --}}
         <div class="col-lg-5">
             <div class="card">
                 <div class="card-header">

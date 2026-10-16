@@ -7,39 +7,14 @@ use App\Models\SupplierStock;
 use App\Support\XlsxReader;
 use RuntimeException;
 
-/**
- * Loads a supplier's price list into supplier_stocks.
- *
- * The column map lives on the supplier, because every supplier writes a
- * different spreadsheet and none of them will change it for us.
- *
- * What the file MEANS is the caller's to say, and it is not always the same
- * thing. A weekly price list is the whole truth — a code missing from it has
- * run out, and zeroing it is the only way the shop stops offering it. But a
- * supplier may just as well send a second file covering a different part of
- * their catalogue, and treating that one as the whole truth empties
- * everything the first file brought. Hence the two modes.
- *
- * This used to live inside the artisan command, which meant the only way to
- * load a price list was to put the file on the server first. The admin now
- * uploads one instead, and both ways run exactly this.
- */
 class PriceListLoader
 {
-    /** The file is the supplier's whole catalogue: anything absent has run out. */
     public const MODE_REPLACE = 'replace';
 
-    /** The file is a part of it: rows it does not mention are left alone. */
     public const MODE_MERGE = 'merge';
 
     public const MODES = [self::MODE_REPLACE, self::MODE_MERGE];
 
-    /**
-     * @param  string  $mode  self::MODE_REPLACE or self::MODE_MERGE
-     * @return array{read:int, zeroed:int, missing_url:int, no_stock_column:bool, mode:string}
-     *
-     * @throws RuntimeException when the file, the supplier or the mode is not usable
-     */
     public function load(
         Supplier $supplier,
         string $path,
@@ -81,7 +56,7 @@ class PriceListLoader
                 'external_id' => $key,
                 'quantity' => $this->quantity($cells, $map),
                 'cost_price' => $this->money($cells[$map['cost'] ?? ''] ?? null),
-                // the rest of the row travels with it; the driver decides what it means
+
                 'data' => json_encode($this->pick($cells, $map), JSON_UNESCAPED_UNICODE),
                 'synced_at' => $now,
                 'created_at' => $now,
@@ -109,19 +84,6 @@ class PriceListLoader
             );
         }
 
-        /*
-         * Whatever the new file does not mention is out of stock.
-         *
-         * Decided on the codes in the file rather than on the timestamp.
-         * synced_at holds whole seconds, so two loads within the same second
-         * are indistinguishable by time — which is exactly what happens when
-         * a corrected file goes up straight after a mistaken one, and the
-         * mistake stayed in stock.
-         *
-         * Only in replace mode. A merged file says nothing about the rows it
-         * leaves out, and reading silence as "sold out" would take the first
-         * file's whole catalogue off sale the moment a second one arrived.
-         */
         $zeroed = $mode === self::MODE_REPLACE
             ? SupplierStock::where('supplier_id', $supplier->id)
                 ->whereNotIn('external_id', array_column($rows, 'external_id'))
@@ -133,28 +95,12 @@ class PriceListLoader
             'read' => $read,
             'zeroed' => $zeroed,
             'missing_url' => $this->withoutLink($supplier, $map, $now),
-            /*
-             * Said out loud, because the alternative is silence.
-             *
-             * A map with no stock column means "this supplier does not report
-             * stock", and every row is counted as one available — which is
-             * right for the suppliers that genuinely do not, and catastrophic
-             * for the ones whose column was simply never mapped. INGCO spent
-             * months reporting one of everything that way: the prices came
-             * from the columns that were mapped and were perfectly correct, so
-             * nothing anywhere looked wrong.
-             */
+
             'no_stock_column' => empty($map['stock']),
             'mode' => $mode,
         ];
     }
 
-    /**
-     * Rows a driver will skip for want of an address.
-     *
-     * Worth counting rather than discovering later: a price list that loads
-     * perfectly and imports nothing usually turns out to be this.
-     */
     protected function withoutLink(Supplier $supplier, array $map, $now): int
     {
         if (empty($map['url'])) {
@@ -167,7 +113,6 @@ class PriceListLoader
             ->count();
     }
 
-    /** @return iterable<int, array<string, string>> */
     protected function read(string $path, int $sheet): iterable
     {
         if (str_ends_with(strtolower($path), '.csv')) {
@@ -177,7 +122,6 @@ class PriceListLoader
         return (new XlsxReader($path))->rows($sheet);
     }
 
-    /** CSV columns are named A, B, C… too, so the map stays the same either way. */
     protected function csv(string $path): iterable
     {
         $handle = fopen($path, 'r');
@@ -214,13 +158,6 @@ class PriceListLoader
         return substr_count($first, ';') > substr_count($first, ',') ? ';' : ',';
     }
 
-    /**
-     * Everything the map names, keyed by its role rather than its column.
-     *
-     * A "url" role reads the cell's hyperlink rather than its text, because
-     * some suppliers put the product's address behind the model's own name
-     * instead of giving it a column.
-     */
     protected function pick(array $cells, array $map): array
     {
         $picked = [];
@@ -243,13 +180,6 @@ class PriceListLoader
         return $picked;
     }
 
-    /**
-     * Stock reads as "30+", "100+", "0" or a plain number.
-     *
-     * A price list with no quantity column at all means the supplier does not
-     * report stock, not that everything is out of it — so a row from such a
-     * file counts as one available rather than none.
-     */
     protected function quantity(array $cells, array $map): int
     {
         if (empty($map['stock'])) {
@@ -262,37 +192,15 @@ class PriceListLoader
             return 1;
         }
 
-        /*
-         * Read as a number first, because a spreadsheet writes small fractions
-         * in scientific notation: Excel stores 0.04 as "4.0000000000000001E-2".
-         * Stripping the non-digits out of that left "40000000000000001-2",
-         * which became forty quadrillion — out of range for the column, so the
-         * insert failed and took its whole batch of five hundred rows with it.
-         * One such cell stopped a nine thousand row price list at one thousand.
-         */
         if (is_numeric($text)) {
             return max(0, (int) floor((float) $text));
         }
 
-        // free text: "30+", ">=10", "12 ცალი"
         $digits = preg_replace('/\D+/', '', $text);
 
         return $digits === '' ? 0 : min(PHP_INT_MAX, (int) $digits);
     }
 
-    /**
-     * A price, however the spreadsheet chose to spell it.
-     *
-     * Read as a number first, for the same reason quantity() does: Excel
-     * writes a small fraction in scientific notation, and stripping the
-     * non-digits out of "2.4E-2" leaves "2.42" — a hundred times the real
-     * 0.024, and not an error anything downstream can notice. It went into
-     * cost_price, became the figure struck through on the product, and set
-     * the margin against a price nobody was ever charged. "1.2E+1" went the
-     * other way, from 12 to 1.21.
-     *
-     * Only then the free-text path, for the files that write "1 250,00 ₾".
-     */
     protected function money(?string $text): ?float
     {
         $text = trim((string) $text);

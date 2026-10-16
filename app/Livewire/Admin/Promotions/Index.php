@@ -10,33 +10,13 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * The deals rail on the front page, filled by hand.
- *
- * Everything behind it already existed — the promotions table, the pivot
- * carrying a price per product, Catalog::deals() reading them — but there was
- * no way to put a product into a campaign, so the rail had nothing to show.
- *
- * One screen: pick or create a campaign, then add products to it. The pivot
- * takes either a fixed price or a percentage off, never both, which is what
- * the migration says and what the storefront reads.
- */
 class Index extends Component
 {
     #[Url(as: 'promo', except: 0)]
     public int $promotionId = 0;
 
-    /* ---- campaign form ---- */
     public bool $showForm = false;
 
-    /**
-     * The campaign the form is editing, or null while it is making one.
-     *
-     * Not the same as promotionId, which stays on whichever campaign is being
-     * looked at — so asking that one whether we are editing said yes even
-     * while a new campaign was being typed, and the uniqueness rules then
-     * excused the very row they should have caught.
-     */
     public ?int $editingId = null;
 
     public string $code = '';
@@ -53,10 +33,8 @@ class Index extends Component
 
     public int $sort_order = 0;
 
-    /* ---- adding products ---- */
     public string $search = '';
 
-    /* ---- the rows, keyed by product id ---- */
     public array $price = [];
 
     public array $percent = [];
@@ -84,8 +62,6 @@ class Index extends Component
             'found' => $this->found($promotion),
         ])->layout('layouts.admin', ['title' => __('admin.promotions')]);
     }
-
-    /* ------------------------------------------------------------------ campaign */
 
     public function select(int $id): void
     {
@@ -119,12 +95,6 @@ class Index extends Component
         $this->showForm = true;
     }
 
-    /**
-     * The address follows the title until somebody writes one by hand.
-     *
-     * Only while the campaign is new: changing the slug of one already running
-     * would break every link already printed on a banner or sent out.
-     */
     public function updatedTitle(): void
     {
         if ($this->editingId === null && $this->slug === '') {
@@ -140,11 +110,7 @@ class Index extends Component
             'code' => ['required', 'string', 'max:40', 'regex:/^[a-z0-9-]+$/',
                 'unique:promotions,code'.($editing ? ','.$this->editingId : '')],
             'title' => ['nullable', 'string', 'max:120'],
-            /*
-             * The address a shopper sees, unique within its language — the
-             * column says so, and without this a repeat reached the database
-             * as a duplicate-key error instead of a message on the field.
-             */
+
             'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/',
                 Rule::unique('promotion_translations', 'slug')
                     ->where('locale', app()->getLocale())
@@ -164,10 +130,6 @@ class Index extends Component
             'ends_at' => $this->ends_at ? Carbon::parse($this->ends_at) : null,
         ])->save();
 
-        /*
-         * A campaign with no slug has no address, so one is made from the
-         * title or, failing that, from the code — which is unique already.
-         */
         $slug = $this->slug ?: Slug::make($this->title) ?: $promotion->code;
 
         if ($this->title !== '' || $slug !== '') {
@@ -186,15 +148,6 @@ class Index extends Component
         $this->done();
     }
 
-    /**
-     * Remove a campaign for good.
-     *
-     * There was no way to: a campaign made by mistake stayed in the strip of
-     * buttons for ever, and switching it off only hid it from the shop.
-     *
-     * The products are not touched. They belong to the catalogue; the campaign
-     * was only a shelf they stood on, and the pivot rows go with it.
-     */
     public function deletePromotion(): void
     {
         if (! $promotion = $this->promotion()) {
@@ -207,7 +160,6 @@ class Index extends Component
         $this->reset(['promotionId', 'search', 'price', 'percent', 'order', 'editingId']);
         $this->showForm = false;
 
-        // land on whatever is left rather than on an empty screen
         $this->promotionId = (int) (Promotion::orderBy('sort_order')->value('id') ?? 0);
         $this->loadRows();
 
@@ -222,8 +174,6 @@ class Index extends Component
         }
     }
 
-    /* ------------------------------------------------------------------ products */
-
     public function add(int $productId): void
     {
         if (! $promotion = $this->promotion()) {
@@ -232,14 +182,6 @@ class Index extends Component
 
         $product = Product::findOrFail($productId);
 
-        /*
-         * Adding starts from nothing.
-         *
-         * syncWithoutDetaching leaves the columns it is not given alone, so a
-         * product that had carried a campaign price at some earlier point kept
-         * it the moment it was put back — a figure nobody typed, quietly
-         * charged. Whatever is wanted this time is typed in afterwards.
-         */
         $promotion->products()->syncWithoutDetaching([$product->id => [
             'promo_price' => null,
             'discount_percent' => null,
@@ -260,14 +202,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Save one row.
-     *
-     * The storefront drops a promotional price that is not below the shelf
-     * price — it has nothing to strike through — and used to do so in silence,
-     * so a typo looked like the campaign simply not working. It is refused here
-     * instead, where somebody is watching.
-     */
     public function saveRow(int $productId): void
     {
         if (! $promotion = $this->promotion()) {
@@ -307,8 +241,6 @@ class Index extends Component
         $this->done();
     }
 
-    /* ------------------------------------------------------------------ helpers */
-
     protected function promotion(): ?Promotion
     {
         return $this->promotionId
@@ -316,7 +248,6 @@ class Index extends Component
             : null;
     }
 
-    /** The search results, minus whatever is already in the campaign. */
     protected function found(?Promotion $promotion)
     {
         if (! $promotion || mb_strlen(trim($this->search)) < 2) {

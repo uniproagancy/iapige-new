@@ -6,14 +6,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
 
-/**
- * Cloudflare validates the whole request, not just cf_clearance: the
- * User-Agent must match the one the clearance was issued for, and the
- * sec-ch-ua / Referer headers must look like the site's own fetch.
- */
 class ZoommerClient
 {
-    /** Statuses that mean "not you", never "not found". */
     protected const BLOCKED_STATUSES = [401, 403, 429, 503];
 
     protected Client $client;
@@ -53,15 +47,6 @@ class ZoommerClient
             'sec-fetch-site' => 'same-origin',
             'Cookie' => $this->cookie(),
 
-            /*
-             * The same cookie under a name no host strips.
-             *
-             * Shared hosting and some proxies drop or rewrite an inbound Cookie
-             * header, and this one carries the only credential the API checks —
-             * losing it turns a working proxy into a 401. Sent only when there
-             * is a proxy to send it to, because an unknown header on a direct
-             * request is one more thing for bot scoring to notice.
-             */
             'X-Proxy-Cookie' => config('services.zoommer.worker_url') ? $this->cookie() : null,
         ]);
     }
@@ -81,19 +66,6 @@ class ZoommerClient
         return implode('; ', $parts);
     }
 
-    /**
-     * The address to ask, direct or through the shop's own worker.
-     *
-     * Cloudflare answers this server with 403 whatever cookie it carries —
-     * confirmed with plain curl from that machine, so it is the address being
-     * refused and no header fixes it. A worker asks from an address that is not
-     * refused, which is how the Elite and Alta drivers already reach their
-     * sources.
-     *
-     * The worker's own shape: ?type=product&productId=N, with the access token
-     * passed along so it lives in this project's .env and not in two places.
-     * Unset, the request goes direct, so a laptop needs no worker at all.
-     */
     protected function endpoint(string $id): string
     {
         if (! $worker = config('services.zoommer.worker_url')) {
@@ -107,14 +79,6 @@ class ZoommerClient
         ]));
     }
 
-    /**
-     * One product in every language we keep.
-     *
-     * @return array<string, array> locale => raw payload
-     *
-     * @throws BlockedByZoommer when the source is refusing us rather than
-     *                          telling us a product does not exist
-     */
     public function fetch(string $id, array $locales = ['ka', 'en']): array
     {
         $out = [];
@@ -128,14 +92,6 @@ class ZoommerClient
             $status = $response->getStatusCode();
             $body = (string) $response->getBody();
 
-            /*
-             * A missing product and a closed door used to look identical here —
-             * both were skipped, quietly. So an expired cf_clearance turned a
-             * run of a thousand ids into a thousand silent nothings: no product
-             * saved, no error, no log line, nothing to tell anybody the cookie
-             * needed refreshing. The two cases are told apart now, and only one
-             * of them is normal.
-             */
             if (in_array($status, self::BLOCKED_STATUSES, true) || $this->isChallenge($body)) {
                 throw new BlockedByZoommer($this->refusal($status, $body));
             }
@@ -154,15 +110,6 @@ class ZoommerClient
         return $out;
     }
 
-    /**
-     * What to actually go and fix, per status.
-     *
-     * These two mean different things and have different answers, and one
-     * message covering both sent somebody to rotate a cookie that was not the
-     * problem: 401 is the API saying the token is wrong, while 403 is
-     * Cloudflare refusing the caller before the API sees it at all — which no
-     * cookie fixes when the caller is a datacentre address.
-     */
     protected function refusal(int $status, string $body): string
     {
         $reason = match (true) {
@@ -170,12 +117,6 @@ class ZoommerClient
                 .'the only one this API checks. Take a fresh zoommer-access_token from a browser '
                 .'session on zoommer.ge.',
 
-            /*
-             * Which of these you are looking at decides what to go and do, so
-             * the message has to know whether a worker was even used. Told
-             * flatly to "use a proxy", somebody already using one has nothing
-             * to act on.
-             */
             $status === 403 || $this->isChallenge($body) => config('services.zoommer.worker_url')
                 ? 'Cloudflare refused the worker as well, so the shop is not the problem: the '
                     .'worker fetched zoommer.ge and was refused in its turn. Check it on its own '
@@ -196,7 +137,6 @@ class ZoommerClient
         return "Zoommer refused the request (HTTP {$status}, asked {$route}). {$reason}";
     }
 
-    /** Cloudflare answers a challenge with HTML, sometimes under a 200. */
     protected function isChallenge(string $body): bool
     {
         return $body !== ''
@@ -204,13 +144,6 @@ class ZoommerClient
             && (bool) preg_match('/cf-browser-verification|Just a moment|cf_chl|Attention Required/i', $body);
     }
 
-    /**
-     * Many products at once — the pool keeps the source at a pace it tolerates.
-     * Used by the driver to find which ids exist before queueing them.
-     *
-     * @param  array<int, int|string>  $ids
-     * @return array<int|string, array> id => raw payload (ka only)
-     */
     public function fetchMany(array $ids, int $concurrency = 10): array
     {
         $found = [];

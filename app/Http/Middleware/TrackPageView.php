@@ -9,16 +9,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * The server half of PageView, and the id the browser half shares with it.
- *
- * Both halves of a pair must carry the same event_id or Meta counts the visit
- * twice, so the id is minted here, handed to the view, and reused for half an
- * hour — a customer refreshing a page is not a second visit.
- */
 class TrackPageView
 {
-    /** Pages where a PageView means nothing, or means somebody else's session. */
     protected const SKIP = [
         'admin', 'admin/*',
         'livewire/*',
@@ -27,10 +19,6 @@ class TrackPageView
         'sitemap.xml', 'robots.txt', 'up',
     ];
 
-    /**
-     * Crawlers do not run JavaScript, so their visits would arrive from the
-     * server only — a stream of one-sided events that looks like real traffic.
-     */
     protected const BOTS = [
         'bot', 'crawl', 'spider', 'slurp', 'facebookexternalhit', 'facebookcatalog',
         'meta-externalagent', 'headless', 'preview', 'monitor', 'curl', 'wget',
@@ -54,7 +42,6 @@ class TrackPageView
             $eventId = Pixel::eventId('pv');
             Cache::put($key, $eventId, now()->addMinutes(30));
 
-            // enabled() checks the cookie banner's answer before anything is sent
             $this->pixel->send('PageView', [], $eventId);
         }
 
@@ -78,7 +65,7 @@ class TrackPageView
 
     protected function isBot(?string $agent): bool
     {
-        // a request with no user agent at all is not a browser
+
         return blank($agent) || Str::contains(Str::lower($agent), self::BOTS);
     }
 }

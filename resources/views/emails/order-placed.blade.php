@@ -8,7 +8,6 @@
         </td>
     </tr>
 
-    {{-- the number is what a customer quotes when they ring --}}
     <tr>
         <td style="padding:18px 28px 0">
             <table role="presentation" cellpadding="0" cellspacing="0"
