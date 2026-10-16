@@ -19,6 +19,9 @@ class EliteSupplierSeeder extends Seeder
                 'locale' => 'ka',
                 'from' => 1,
                 'to' => 35000,
+                'columns' => [
+                    'key' => 'A',
+                ],
             ],
             'markup' => [
                 ['up_to' => 100, 'add' => 30],
