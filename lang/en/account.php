@@ -11,16 +11,12 @@ return [
     'save_password' => 'Change password',
     'password_saved' => 'Your password has been updated.',
 
-    /* ------------------------------------------------------------ sections */
-
     'overview' => 'Overview',
     'orders' => 'Orders',
     'addresses' => 'Addresses',
     'wishlist' => 'Wishlist',
     'profile' => 'Profile',
     'security' => 'Security',
-
-    /* ------------------------------------------------------------ overview */
 
     'orders_total' => 'Orders',
     'orders_active' => 'In progress',
@@ -31,8 +27,6 @@ return [
     'n_items' => '{1} 1 item|[2,*] :count items',
     'n_addresses' => '{0} none saved|{1} 1 address|[2,*] :count addresses',
     'n_saved' => '{0} empty|{1} 1 product|[2,*] :count products',
-
-    /* ------------------------------------------------------------ orders */
 
     'all' => 'All',
     'in_progress' => 'In progress',
@@ -49,8 +43,6 @@ return [
     'paid' => 'Paid',
     'unpaid' => 'Pay on delivery',
 
-    /* ------------------------------------------------------------ addresses */
-
     'add_address' => 'Add an address',
     'no_addresses' => 'No saved addresses',
     'default' => 'Default',
@@ -62,13 +54,9 @@ return [
     'set_default' => 'Use as the default address',
     'delete_address_confirm' => 'Delete this address?',
 
-    /* ------------------------------------------------------------ wishlist & profile */
-
     'no_wishlist' => 'Your wishlist is empty',
     'personal_data' => 'Personal details',
     'accepts_marketing' => 'Email me about offers',
-
-    /* ------------------------------------------------------------ security */
 
     'change_password' => 'Change password',
     'new_password' => 'New password',

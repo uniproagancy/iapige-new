@@ -168,7 +168,6 @@ return [
     'brand_has_products' => 'Products are still attached to this brand',
     'confirm_delete' => 'Delete this?',
 
-    /* ------------------------------------------------------------ list & filters */
     'actions' => 'Actions',
     'add_child' => 'Add a sub-category',
     'root' => 'Top level',
@@ -198,18 +197,15 @@ return [
 
     'seen_in' => 'Seen in',
 
-    /* ------------------------------------------------------------ ready */
     'on_the_site' => 'On the site',
     'off_the_site' => 'Not on the site',
     'ready_to_publish' => 'Ready to publish',
     'not_ready' => 'Not ready to publish',
 
-    /* ------------------------------------------------------------ problems */
     'no_photo' => 'No photo',
     'no_weight' => 'No weight',
     'no_brand' => 'No brand',
 
-    /* ------------------------------------------------------------ bulk actions */
     'n_selected' => ':count selected',
     'select_all_filtered' => 'Select all (:count)',
     'apply' => 'Move',
@@ -225,7 +221,6 @@ return [
     'bulk_delete_confirm' => 'The selected products will be deleted. Continue?',
     'bulk_lock_hint' => 'Without the lock, the next import puts the supplier own category and brand back.',
 
-    /* ------------------------------------------------------------ categories */
     'drag_to_order' => 'Drag to reorder',
     'order_by_drag' => 'Order is set by dragging rows',
     'order_saved' => 'Order saved',
@@ -241,7 +236,6 @@ return [
     'title_prefix' => 'Title prefix',
     'title_prefix_ph' => 'e.g. mobile phone',
 
-    /* ------------------------------------------------------------ mapping */
     'external_name' => 'Supplier name',
     'hits' => 'Seen',
     'not_mapped' => 'Not mapped',
@@ -259,7 +253,6 @@ return [
     'mapping_lead' => 'Ordered by how often each name arrived — the ones at the top cover the most products.',
     'mapping_hint' => 'After mapping, press Re-link so the products already imported land in their categories.',
 
-    /* ------------------------------------------------------------ attributes */
     'attributes' => 'Attributes',
     'attribute' => 'Attribute',
     'code' => 'Code',
@@ -285,7 +278,6 @@ return [
     'variant_hint' => 'Variant means it appears as a switcher on the product page (colour, storage).',
     'attribute_reserved' => 'The brand filter is built in — this attribute stays off so it is not drawn twice.',
 
-    /* ------------------------------------------------------------ product form */
     'images' => 'Images',
     'specs' => 'Specifications',
     'summary' => 'Summary',
@@ -296,8 +288,6 @@ return [
     'preorder_hint' => 'A pre-order only informs — it cannot be added to the cart.',
     'offers_hint' => 'Supplier prices. Without the price lock, the next import overwrites ours.',
     'coming_soon' => 'Coming soon',
-
-    /* ------------------------------------------------------------ orders */
 
     'order' => 'Order',
     'order_number' => 'Number',
@@ -336,8 +326,6 @@ return [
     'marked_paid' => 'Marked as paid',
     'registered_customer' => 'Registered customer',
 
-    /* ------------------------------------------------------------ dashboard */
-
     'orders_today' => 'Orders today',
     'yesterday' => 'Yesterday',
     'revenue_today' => 'Revenue today',
@@ -349,8 +337,6 @@ return [
     'callbacks' => 'Callback requests',
     'catalogue_health' => 'Catalogue health',
     'all_clear' => 'All clear',
-
-    /* ------------------------------------------------------------ users */
 
     'users_search' => 'Search by name, email or phone…',
     'admin' => 'Admin',
@@ -371,8 +357,6 @@ return [
     'close_account_hint' => 'The orders stay — they are accounting records. Only the personal data is erased.',
     'close_account_confirm' => 'The account will be closed and its personal data erased. Continue?',
 
-    /* ------------------------------------------------------------ callback requests */
-
     'cb_search' => 'Search by name or phone…',
     'cb_when' => 'When',
     'cb_product' => 'Product',
@@ -387,11 +371,8 @@ return [
     'cb_handled_by' => 'Handled by :name — :when',
     'cb_note' => 'Internal note…',
 
-    /* ------------------------------------------------------------ brands */
-
     'brands_empty' => 'Without products',
     'logo' => 'Logo',
-    /* ------------------------------------------------------------ promotions */
     'inactive' => 'Disabled',
     'sort' => 'Order',
     'product' => 'Product',
@@ -447,7 +428,6 @@ return [
     'map_nothing_found' => 'No category matches that',
     'category_deleted_uncategorised' => 'Category deleted; what was in it has no category now',
 
-    /* ------------------------------------------------------------------ an order taken by phone */
     'order_create' => 'New order',
     'order_create_hint' => 'An order placed by an operator',
     'import_no_stock_column' => 'No stock column is mapped — every row counts as one available',
@@ -496,7 +476,6 @@ return [
     'order_shipping' => 'Delivery',
     'order_total' => 'Total',
 
-    /* ------------------------------------------------------------------ adding by link */
     'links_title' => 'Add by link',
     'links_hint' => 'Paste the products’ addresses — as many as you like, at once',
     'links_label' => 'Addresses',
@@ -523,7 +502,6 @@ return [
     'links_finished' => 'Finished — :done fetched, :failed failed',
     'links_nothing_to_fetch' => 'Everything has been fetched already',
 
-    /* ------------------------------------------------------------------ running an import */
     'run_title' => 'Run an import',
     'run_hint' => 'Pick a supplier — the jobs go on the queue',
     'run_choose' => '— pick one —',

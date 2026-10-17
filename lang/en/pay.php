@@ -1,9 +1,5 @@
 <?php
 
-/*
- | Paying an order after it was placed — the link an operator sends, and the
- | page they open themselves while the customer is on the telephone.
- */
 return [
     'title' => 'Pay for order #:number',
     'lead' => 'Check the order and go on to the bank.',

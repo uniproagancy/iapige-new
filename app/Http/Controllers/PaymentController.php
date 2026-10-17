@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\Payments\PaymentManager;
+use App\Support\Redact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -15,7 +16,7 @@ class PaymentController extends Controller
     {
         Log::channel('payments')->info('callback received', [
             'driver' => $driver,
-            'payload' => $request->all(),
+            'payload' => Redact::secrets(json_encode($request->all(), JSON_UNESCAPED_UNICODE)),
         ]);
 
         if (! $this->payments->has($driver)) {
@@ -45,7 +46,9 @@ class PaymentController extends Controller
         $order = Order::where('number', $number)->firstOrFail();
         $status = $request->query('status', 'success');
 
-        session()->push('placed_orders', $order->id);
+        if ($request->hasValidSignature()) {
+            session()->push('placed_orders', $order->id);
+        }
 
         if ($status !== 'success') {
             session()->flash('payment_failed', $status);

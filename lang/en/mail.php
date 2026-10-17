@@ -2,12 +2,8 @@
 
 return [
 
-    /* ------------------------------------------------------------ layout */
-
     'questions' => 'Questions?',
     'automatic' => 'This email was sent automatically — you can reply to it.',
-
-    /* ------------------------------------------------------------ order placed */
 
     'placed_subject' => 'Order :number received',
     'placed_title' => 'Thank you for your order!',
@@ -20,13 +16,6 @@ return [
     'order_items' => 'Order contents',
     'track' => 'View your order',
     'view_order' => 'View the order',
-
-    /*
-     * Status changes.
-     *
-     * One subject, title and text per order status, because a customer reading
-     * "your order has changed" learns nothing — the status itself is the news.
-     */
 
     'status_subject_new' => 'Order :number received',
     'status_title_new' => 'Order received',

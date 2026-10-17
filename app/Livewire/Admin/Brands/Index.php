@@ -104,7 +104,7 @@ class Index extends Component
             'name' => ['required', 'string', 'max:80'],
             'slug' => ['required', 'string', 'max:80', 'unique:brands,slug'.($this->editingId ? ",{$this->editingId}" : '')],
             'sort_order' => ['integer', 'min:0'],
-            'logo' => ['nullable', 'image', 'max:1024'],
+            'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:1024'],
         ]);
 
         $brand = $this->editingId ? Brand::findOrFail($this->editingId) : new Brand;

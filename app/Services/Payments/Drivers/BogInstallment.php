@@ -8,6 +8,7 @@ use App\Services\Payments\PaymentDriver;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use RuntimeException;
 
 class BogInstallment implements PaymentDriver
@@ -193,9 +194,9 @@ class BogInstallment implements PaymentDriver
             'installment_type' => $type,
 
             'shop_order_id' => (string) $order->number,
-            'success_redirect_url' => route('payment.return', ['number' => $order->number, 'status' => 'success']),
-            'fail_redirect_url' => route('payment.return', ['number' => $order->number, 'status' => 'fail']),
-            'reject_redirect_url' => route('payment.return', ['number' => $order->number, 'status' => 'reject']),
+            'success_redirect_url' => URL::temporarySignedRoute('payment.return', now()->addHours(6), ['number' => $order->number, 'status' => 'success']),
+            'fail_redirect_url' => URL::temporarySignedRoute('payment.return', now()->addHours(6), ['number' => $order->number, 'status' => 'fail']),
+            'reject_redirect_url' => URL::temporarySignedRoute('payment.return', now()->addHours(6), ['number' => $order->number, 'status' => 'reject']),
             'validate_items' => true,
             'locale' => 'ka',
             'purchase_units' => [

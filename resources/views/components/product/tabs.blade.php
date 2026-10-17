@@ -40,7 +40,7 @@
                 <div class="desc">
                     <div class="desc__body">
                         <h3 class="desc__title">{{ __('product.desc_title') }}</h3>
-                        <div class="desc__p">{!! $description !!}</div>
+                        <div class="desc__p">{!! \App\Support\Html::safe($description) !!}</div>
                     </div>
                 </div>
             </div>

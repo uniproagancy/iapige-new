@@ -3,14 +3,6 @@
 @php
     $p = $p ?? $product;
 
-    $payload = \App\Support\Catalog::cartPayload($p);
-    $json = json_encode($payload, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE);
-
-    /*
-     * The gallery the card can page through. app.js reads it off the article,
-     * swaps the picture and moves the dots — all of which was already written
-     * and had nothing to drive it, because the markup never carried the images.
-     */
     $images = array_values(array_filter($p['images'] ?? []));
     $many = count($images) > 1;
 @endphp

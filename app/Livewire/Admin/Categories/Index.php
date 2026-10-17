@@ -249,7 +249,7 @@ class Index extends Component
         $this->validate([
             "translations.{$default}.name" => ['required', 'string', 'max:120'],
             'parent_id' => ['nullable', 'exists:categories,id'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         if ($this->editingId && $this->parent_id) {

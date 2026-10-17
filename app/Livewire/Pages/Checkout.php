@@ -19,6 +19,7 @@ use App\Services\Payments\PaymentManager;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -204,6 +205,14 @@ class Checkout extends Component
     {
         $this->validate();
 
+        $throttle = 'checkout:'.request()->ip();
+
+        if (RateLimiter::tooManyAttempts($throttle, 10)) {
+            $this->dispatch('toast', message: __('checkout.too_many'), type: 'error');
+
+            return null;
+        }
+
         if (! $this->method()) {
             $this->addError('payment', __('checkout.payment_unavailable'));
 
@@ -227,6 +236,8 @@ class Checkout extends Component
         if (! $this->buyNow) {
             app(Cart::class)->clear();
         }
+
+        RateLimiter::hit($throttle, 3600);
 
         session()->push('placed_orders', $order->id);
         $this->placedNumber = $order->number;

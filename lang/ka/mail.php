@@ -2,12 +2,8 @@
 
 return [
 
-    /* ------------------------------------------------------------ layout */
-
     'questions' => 'კითხვები?',
     'automatic' => 'ეს წერილი ავტომატურად გაიგზავნა — პასუხის გაცემა შეგიძლია.',
-
-    /* ------------------------------------------------------------ order placed */
 
     'placed_subject' => 'შეკვეთა :number მიღებულია',
     'placed_title' => 'მადლობა შეკვეთისთვის!',
@@ -20,13 +16,6 @@ return [
     'order_items' => 'შეკვეთის შემადგენლობა',
     'track' => 'შეკვეთის ნახვა',
     'view_order' => 'შეკვეთის ნახვა',
-
-    /*
-     * Status changes.
-     *
-     * One subject, title and text per order status, because a customer reading
-     * "your order has changed" learns nothing — the status itself is the news.
-     */
 
     'status_subject_new' => 'შეკვეთა :number მიღებულია',
     'status_title_new' => 'შეკვეთა მიღებულია',

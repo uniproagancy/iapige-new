@@ -8,6 +8,7 @@ use App\Services\Payments\PaymentDriver;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use RuntimeException;
 
 class BogCard implements PaymentDriver
@@ -160,8 +161,8 @@ class BogCard implements PaymentDriver
                 'basket' => $basket,
             ],
             'redirect_urls' => [
-                'success' => route('payment.return', ['number' => $order->number, 'status' => 'success']),
-                'fail' => route('payment.return', ['number' => $order->number, 'status' => 'fail']),
+                'success' => URL::temporarySignedRoute('payment.return', now()->addHours(6), ['number' => $order->number, 'status' => 'success']),
+                'fail' => URL::temporarySignedRoute('payment.return', now()->addHours(6), ['number' => $order->number, 'status' => 'fail']),
             ],
         ];
     }

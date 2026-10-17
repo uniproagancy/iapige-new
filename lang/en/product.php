@@ -57,7 +57,6 @@ return [
     'request_sent' => 'Request received',
     'consult_cta' => 'Request a call',
 
-    /* ------------------------------------------------------------ pre-order */
     'preorder' => 'Pre-order',
     'preorder_label' => 'Expected',
     'preorder_note' => 'Pre-order — shipped as soon as it arrives',
@@ -75,8 +74,6 @@ return [
     'not_available' => 'Not available right now',
 
     'adding' => 'Adding…',
-
-    /* ------------------------------------------------------------ callback */
 
     'callback_title' => 'Shall we call you?',
     'callback_text' => 'Leave your number and a consultant will call you back to help you choose.',
