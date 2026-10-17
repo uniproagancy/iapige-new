@@ -27,71 +27,74 @@
 
 <div>
 
-    <div class="card">
-        <div class="card-body pb-1">
-            <div class="row g-1">
-                <div class="col-lg-4 col-md-6">
-                    <div class="input-group input-group-merge">
-                        <span class="input-group-text">{!! $icon('search') !!}</span>
-                        <input type="text" class="form-control"
-                               placeholder="{{ __('admin.search') }}"
-                               wire:model.live.debounce.400ms="search">
-                    </div>
-                </div>
+    <x-admin.list-card :title="__('admin.categories')" :count="$total">
+        <x-slot:actions>
+            <button type="button" class="btn btn-primary" wire:click="create">
+                {!! $icon('plus', 'me-25') !!}{{ __('admin.create') }}
+            </button>
+        </x-slot:actions>
 
-                <div class="col-lg-3 col-md-6">
-                    <select class="form-select" wire:model.live="rootFilter">
-                        <option value="">{{ __('admin.all_sections') }}</option>
-                        @foreach ($roots as $root)
-                            <option value="{{ $root->id }}">{{ $root->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-lg-2 col-md-4">
-                    <select class="form-select" wire:model.live="stateFilter">
-                        <option value="">{{ __('admin.any_state') }}</option>
-                        <option value="active">{{ __('admin.active') }}</option>
-                        <option value="hidden">{{ __('admin.hidden') }}</option>
-                    </select>
-                </div>
-
-                <div class="col-lg-2 col-md-4">
-                    <select class="form-select" wire:model.live="productFilter">
-                        <option value="">{{ __('admin.any_products') }}</option>
-                        <option value="filled">{{ __('admin.with_products') }}</option>
-                        <option value="empty">{{ __('admin.without_products') }}</option>
-                    </select>
-                </div>
-
-                <div class="col-lg-1 col-md-4">
-                    <select class="form-select" wire:model.live="placeFilter">
-                        <option value="">{{ __('admin.anywhere') }}</option>
-                        <option value="menu">{{ __('admin.in_menu') }}</option>
-                        <option value="home">{{ __('admin.on_home') }}</option>
-                    </select>
+        <x-slot:filters>
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label">{{ __('admin.search') }}</label>
+                <div class="input-group input-group-merge">
+                    <span class="input-group-text">{!! $icon('search') !!}</span>
+                    <input type="text" class="form-control"
+                           placeholder="{{ __('admin.search') }}"
+                           wire:model.live.debounce.400ms="search">
                 </div>
             </div>
 
-            <div class="d-flex align-items-center justify-content-between mt-1 pb-1">
-                <small class="text-muted d-flex align-items-center gap-1">
-                    {{ __('admin.showing', ['shown' => count($tree), 'total' => $total]) }}
-
-                    @if ($this->hasFilters())
-                        <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="resetFilters">
-                            {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
-                        </button>
-                    @endif
-                </small>
-
-                <button type="button" class="btn btn-primary btn-sm" wire:click="create">
-                    {!! $icon('plus', 'me-25') !!}{{ __('admin.create') }}
-                </button>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.section') }}</label>
+                <select class="form-select" wire:model.live="rootFilter">
+                    <option value="">{{ __('admin.all_sections') }}</option>
+                    @foreach ($roots as $root)
+                        <option value="{{ $root->id }}">{{ $root->name }}</option>
+                    @endforeach
+                </select>
             </div>
-        </div>
-    </div>
 
-    <div class="card">
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">{{ __('admin.status') }}</label>
+                <select class="form-select" wire:model.live="stateFilter">
+                    <option value="">{{ __('admin.any_state') }}</option>
+                    <option value="active">{{ __('admin.active') }}</option>
+                    <option value="hidden">{{ __('admin.hidden') }}</option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-4">
+                <label class="form-label">{{ __('admin.products') }}</label>
+                <select class="form-select" wire:model.live="productFilter">
+                    <option value="">{{ __('admin.any_products') }}</option>
+                    <option value="filled">{{ __('admin.with_products') }}</option>
+                    <option value="empty">{{ __('admin.without_products') }}</option>
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">{{ __('admin.placement') }}</label>
+                <select class="form-select" wire:model.live="placeFilter">
+                    <option value="">{{ __('admin.anywhere') }}</option>
+                    <option value="menu">{{ __('admin.in_menu') }}</option>
+                    <option value="home">{{ __('admin.on_home') }}</option>
+                </select>
+            </div>
+
+            @if ($this->hasFilters())
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary w-100" wire:click="resetFilters">
+                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
+                    </button>
+                </div>
+            @endif
+
+            <div class="col-12 text-muted small">
+                {{ __('admin.showing', ['shown' => count($tree), 'total' => $total]) }}
+            </div>
+        </x-slot:filters>
+
         <div class="table-responsive">
             <table class="table table-hover cat-table mb-0">
                 <thead>
@@ -215,7 +218,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </x-admin.list-card>
 
     @if ($showForm)
         <div class="modal fade show d-block" tabindex="-1" style="background:rgba(34,41,47,.5)">

@@ -19,68 +19,64 @@
 
 <div>
 
-    <div class="card">
-        <div class="card-body pb-1">
-            <div class="row g-1">
-                <div class="col-lg-5 col-md-6">
-                    <div class="input-group input-group-merge">
-                        <span class="input-group-text">{!! $icon('search') !!}</span>
-                        <input type="text" class="form-control"
-                               placeholder="{{ __('admin.search') }}"
-                               wire:model.live.debounce.400ms="search">
-                    </div>
-                </div>
+    <x-admin.list-card :title="__('admin.attributes')" :count="$counts['total']">
+        <x-slot:actions>
+            <button type="button" class="btn btn-outline-primary"
+                    wire:click="enableUseful"
+                    wire:confirm="{{ __('admin.enable_useful_confirm') }}">
+                {!! $icon('zap', 'me-25') !!}{{ __('admin.enable_useful') }}
+            </button>
 
-                <div class="col-lg-3 col-md-6">
-                    <select class="form-select" wire:model.live="stateFilter">
-                        <option value="">{{ __('admin.all') }}</option>
-                        <option value="on">{{ __('admin.filter_on') }}</option>
-                        <option value="off">{{ __('admin.filter_off') }}</option>
-                        <option value="unused">{{ __('admin.no_values') }}</option>
-                    </select>
-                </div>
+            <button type="button" class="btn btn-outline-secondary"
+                    wire:click="disableAll"
+                    wire:confirm="{{ __('admin.disable_all_confirm') }}">
+                {{ __('admin.disable_all') }}
+            </button>
+        </x-slot:actions>
 
-                <div class="col-lg-2 col-md-6">
-                    <select class="form-select" wire:model.live="sort">
-                        <option value="products">{{ __('admin.sort_reach') }}</option>
-                        <option value="values">{{ __('admin.sort_values') }}</option>
-                        <option value="name">{{ __('admin.sort_code') }}</option>
-                    </select>
-                </div>
-
-                <div class="col-lg-2 col-md-6 text-lg-end">
-                    @if ($search !== '' || $stateFilter)
-                        <button type="button" class="btn btn-outline-secondary w-100" wire:click="resetFilters">
-                            {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
-                        </button>
-                    @endif
+        <x-slot:filters>
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label">{{ __('admin.search') }}</label>
+                <div class="input-group input-group-merge">
+                    <span class="input-group-text">{!! $icon('search') !!}</span>
+                    <input type="text" class="form-control"
+                           placeholder="{{ __('admin.search') }}"
+                           wire:model.live.debounce.400ms="search">
                 </div>
             </div>
 
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mt-1 pb-1">
-                <small class="text-muted d-flex align-items-center gap-1">
-                    {{ __('admin.filters_on_n', ['on' => $counts['on'], 'total' => $counts['total']]) }}
-                </small>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.status') }}</label>
+                <select class="form-select" wire:model.live="stateFilter">
+                    <option value="">{{ __('admin.all') }}</option>
+                    <option value="on">{{ __('admin.filter_on') }}</option>
+                    <option value="off">{{ __('admin.filter_off') }}</option>
+                    <option value="unused">{{ __('admin.no_values') }}</option>
+                </select>
+            </div>
 
-                <div class="d-flex gap-1">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.sort_by') }}</label>
+                <select class="form-select" wire:model.live="sort">
+                    <option value="products">{{ __('admin.sort_reach') }}</option>
+                    <option value="values">{{ __('admin.sort_values') }}</option>
+                    <option value="name">{{ __('admin.sort_code') }}</option>
+                </select>
+            </div>
 
-                    <button type="button" class="btn btn-sm btn-outline-primary"
-                            wire:click="enableUseful"
-                            wire:confirm="{{ __('admin.enable_useful_confirm') }}">
-                        {!! $icon('zap', 'me-25') !!}{{ __('admin.enable_useful') }}
-                    </button>
-
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                            wire:click="disableAll"
-                            wire:confirm="{{ __('admin.disable_all_confirm') }}">
-                        {{ __('admin.disable_all') }}
+            @if ($this->hasFilters())
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary w-100" wire:click="resetFilters">
+                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
+            @endif
 
-    <div class="card">
+            <div class="col-12 text-muted small">
+                {{ __('admin.filters_on_n', ['on' => $counts['on'], 'total' => $counts['total']]) }}
+            </div>
+        </x-slot:filters>
+
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead>
@@ -196,7 +192,7 @@
             {!! $icon('sliders') !!}
             <span>{{ __('admin.attributes_hint') }}</span>
         </div>
-    </div>
+    </x-admin.list-card>
 
     @if ($showForm)
         <div class="modal fade show d-block" tabindex="-1" style="background:rgba(34,41,47,.5)">

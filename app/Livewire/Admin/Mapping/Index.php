@@ -70,6 +70,17 @@ class Index extends Component
         return $this->tab === 'attributes' ? 'attribute_id' : 'category_id';
     }
 
+    public function hasFilters(): bool
+    {
+        return $this->search !== '' || $this->supplierId || $this->stateFilter !== '';
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'supplierId', 'stateFilter']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $rows = DB::table($this->table().' as m')

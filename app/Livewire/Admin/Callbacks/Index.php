@@ -33,6 +33,18 @@ class Index extends Component
         }
     }
 
+    public function hasFilters(): bool
+    {
+        return $this->search !== '' || $this->status !== 'new';
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->status = 'new';
+        $this->resetPage();
+    }
+
     public function render()
     {
         return view('livewire.admin.callbacks.index', [

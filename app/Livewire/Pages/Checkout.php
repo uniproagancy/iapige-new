@@ -117,9 +117,15 @@ class Checkout extends Component
             return;
         }
 
+        $pixel = app(Pixel::class);
+
+        if ($this->buyNow) {
+            $this->dispatch('pixel', $pixel->addToCart($lines[0]));
+        }
+
         $subtotal = array_sum(array_column($lines, 'sum'));
 
-        $this->dispatch('pixel', app(Pixel::class)->initiateCheckout($lines, $subtotal + $this->shipping()));
+        $this->dispatch('pixel', $pixel->initiateCheckout($lines, $subtotal + $this->shipping()));
     }
 
     protected function fillFromDefaultAddress(): void

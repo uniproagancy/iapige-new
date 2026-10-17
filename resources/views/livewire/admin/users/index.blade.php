@@ -46,6 +46,7 @@
     <x-admin.list-card :title="__('admin.customers')" :count="$totals['people']">
         <x-slot:filters>
             <div class="col-lg-4 col-md-6">
+                <label class="form-label">{{ __('admin.search') }}</label>
                 <div class="input-group input-group-merge">
                     <span class="input-group-text">{!! $icon('search') !!}</span>
                     <input type="text" class="form-control"
@@ -55,6 +56,7 @@
             </div>
 
             <div class="col-lg-2 col-md-6">
+                <label class="form-label">{{ __('admin.orders') }}</label>
                 <select class="form-select" wire:model.live="hasOrders">
                     <option value="">{{ __('admin.users_any_orders') }}</option>
                     <option value="yes">{{ __('admin.users_with_orders') }}</option>
@@ -62,36 +64,41 @@
                 </select>
             </div>
 
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label">{{ __('admin.registered') }}</label>
                 <div class="d-flex align-items-center gap-1">
-                    <input type="date" class="form-control" wire:model.live="from"
-                           title="{{ __('admin.registered') }}">
+                    <input type="date" class="form-control" wire:model.live="from">
                     <span class="text-muted">—</span>
-                    <input type="date" class="form-control" wire:model.live="to"
-                           title="{{ __('admin.registered') }}">
+                    <input type="date" class="form-control" wire:model.live="to">
                 </div>
             </div>
 
-            <div class="col-lg-3 col-md-6 d-flex align-items-center gap-1 justify-content-lg-end">
-                @if ($this->hasFilters())
-                    <button type="button" class="btn btn-outline-secondary" wire:click="resetFilters">
-                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
-                    </button>
-                @endif
-
-                <select class="form-select" style="width:auto" wire:model.live="sort">
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label">{{ __('admin.sort_by') }}</label>
+                <select class="form-select" wire:model.live="sort">
                     <option value="new">{{ __('admin.sort_new') }}</option>
                     <option value="spent">{{ __('admin.sort_spent') }}</option>
                     <option value="orders">{{ __('admin.sort_orders') }}</option>
                     <option value="name">{{ __('admin.sort_name') }}</option>
                 </select>
+            </div>
 
-                <select class="form-select" style="width:auto" wire:model.live="perPage">
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">{{ __('admin.per_page') }}</label>
+                <select class="form-select" wire:model.live="perPage">
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
             </div>
+
+            @if ($this->hasFilters())
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary w-100" wire:click="resetFilters">
+                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
+                    </button>
+                </div>
+            @endif
 
             <div class="col-12 d-flex flex-wrap align-items-center gap-2 text-muted small">
                 <span class="d-flex align-items-center gap-25">

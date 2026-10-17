@@ -69,6 +69,17 @@ class Index extends Component
         ])->layout('layouts.admin', ['title' => __('admin.brands')]);
     }
 
+    public function hasFilters(): bool
+    {
+        return $this->search !== '' || $this->onlyEmpty;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'onlyEmpty']);
+        $this->resetPage();
+    }
+
     public function create(): void
     {
         $this->resetForm();

@@ -40,54 +40,63 @@
         </li>
     </ul>
 
-    <div class="card">
-        <div class="card-body pb-1">
-            <div class="row g-1">
-                <div class="col-lg-5 col-md-6">
-                    <div class="input-group input-group-merge">
-                        <span class="input-group-text">{!! $icon('search') !!}</span>
-                        <input type="text" class="form-control"
-                               placeholder="{{ __('admin.search') }}"
-                               wire:model.live.debounce.400ms="search">
-                    </div>
-                </div>
+    <x-admin.list-card :title="__('admin.mapping')" :count="$rows->total()">
+        <x-slot:actions>
+            @if ($tab === 'categories' && $canRelink)
+                <button type="button" class="btn btn-outline-primary"
+                        wire:click="relink" wire:loading.attr="disabled" wire:target="relink">
+                    {!! $icon('refresh', 'me-25') !!}
+                    <span wire:loading.remove wire:target="relink">{{ __('admin.relink') }}</span>
+                    <span wire:loading wire:target="relink">…</span>
+                </button>
+            @endif
+        </x-slot:actions>
 
-                <div class="col-lg-3 col-md-6">
-                    <select class="form-select" wire:model.live="supplierId">
-                        <option value="">{{ __('admin.all_suppliers') }}</option>
-                        @foreach ($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-lg-2 col-md-6">
-                    <select class="form-select" wire:model.live="stateFilter">
-                        <option value="">{{ __('admin.all') }}</option>
-                        <option value="unmapped">{{ __('admin.not_mapped') }}</option>
-                        <option value="mapped">{{ __('admin.already_mapped') }}</option>
-                    </select>
-                </div>
-
-                <div class="col-lg-2 col-md-6 text-lg-end">
-                    @if ($tab === 'categories' && $canRelink)
-                        <button type="button" class="btn btn-outline-primary w-100"
-                                wire:click="relink" wire:loading.attr="disabled" wire:target="relink">
-                            {!! $icon('refresh', 'me-25') !!}
-                            <span wire:loading.remove wire:target="relink">{{ __('admin.relink') }}</span>
-                            <span wire:loading wire:target="relink">…</span>
-                        </button>
-                    @endif
+        <x-slot:filters>
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label">{{ __('admin.search') }}</label>
+                <div class="input-group input-group-merge">
+                    <span class="input-group-text">{!! $icon('search') !!}</span>
+                    <input type="text" class="form-control"
+                           placeholder="{{ __('admin.search') }}"
+                           wire:model.live.debounce.400ms="search">
                 </div>
             </div>
 
-            <small class="text-muted d-flex flex-wrap align-items-center gap-1 mt-1 pb-1">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.supplier') }}</label>
+                <select class="form-select" wire:model.live="supplierId">
+                    <option value="">{{ __('admin.all_suppliers') }}</option>
+                    @foreach ($suppliers as $supplier)
+                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.status') }}</label>
+                <select class="form-select" wire:model.live="stateFilter">
+                    <option value="">{{ __('admin.all') }}</option>
+                    <option value="unmapped">{{ __('admin.not_mapped') }}</option>
+                    <option value="mapped">{{ __('admin.already_mapped') }}</option>
+                </select>
+            </div>
+
+            @if ($this->hasFilters())
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary w-100" wire:click="resetFilters">
+                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
+                    </button>
+                </div>
+            @endif
+
+            <div class="col-12 d-flex flex-wrap align-items-center gap-1 text-muted small">
                 {{ __('admin.mapping_lead') }}
                 <span class="badge rounded-pill badge-light-warning">{{ __('admin.pending_n', ['count' => $pending[$tab]]) }}</span>
                 <span class="badge rounded-pill badge-light-success">{{ __('admin.mapped_n', ['count' => max(0, $rows->total() - $pending[$tab])]) }}</span>
-            </small>
-        </div>
-    </div>
+            </div>
+        </x-slot:filters>
+    </x-admin.list-card>
 
     @unless ($canRelink)
         <div class="alert alert-warning">

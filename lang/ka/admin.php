@@ -177,6 +177,8 @@ return [
     'auto' => 'ავტომატურად',
     'hidden' => 'დამალული',
     'all_sections' => 'ყველა განყოფილება',
+    'section' => 'სექცია',
+    'placement' => 'სად ჩანს',
     'all_categories' => 'ყველა კატეგორია',
     'all_brands' => 'ყველა ბრენდი',
     'all_suppliers' => 'ყველა მომწოდებელი',

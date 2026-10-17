@@ -177,6 +177,8 @@ return [
     'auto' => 'automatic',
     'hidden' => 'Hidden',
     'all_sections' => 'All sections',
+    'section' => 'Section',
+    'placement' => 'Shown in',
     'all_categories' => 'All categories',
     'all_brands' => 'All brands',
     'all_suppliers' => 'All suppliers',

@@ -2,6 +2,7 @@
 
 namespace App\Services\Facebook;
 
+use App\Jobs\SendPixelEventJob;
 use App\Models\Order;
 use App\Models\OrderPixelData;
 use App\Models\User;
@@ -132,7 +133,9 @@ class Pixel
     {
         $eventId = self::eventId($prefix);
 
-        $this->send($event, $customData, $eventId, $identity);
+        if ($payload = $this->capture($event, $customData, $eventId, $identity)) {
+            SendPixelEventJob::dispatch($event, $payload);
+        }
 
         return ['event' => $event, 'id' => $eventId, 'data' => $customData];
     }

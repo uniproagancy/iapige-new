@@ -16,28 +16,6 @@
 @endphp
 
 <div>
-    <div class="card">
-        <div class="card-body pb-1 d-flex flex-wrap align-items-center justify-content-between gap-1">
-            <div class="input-group input-group-merge" style="max-width:320px">
-                <span class="input-group-text">{!! $icon('search') !!}</span>
-                <input type="text" class="form-control" placeholder="{{ __('admin.brand') }}"
-                       wire:model.live.debounce.400ms="search">
-            </div>
-
-            <div class="d-flex align-items-center gap-1">
-
-                <button type="button" @class(['btn btn-sm', 'btn-warning' => $onlyEmpty, 'btn-outline-warning' => ! $onlyEmpty])
-                        wire:click="$toggle('onlyEmpty')">
-                    {{ __('admin.brands_empty') }}
-                </button>
-
-                <button type="button" class="btn btn-sm btn-primary" wire:click="create">
-                    {!! $icon('plus', 'me-25') !!}{{ __('admin.create') }}
-                </button>
-            </div>
-        </div>
-    </div>
-
     @if ($showForm)
         <div class="card border-primary">
             <div class="card-body">
@@ -82,7 +60,39 @@
         </div>
     @endif
 
-    <div class="card">
+    <x-admin.list-card :title="__('admin.brands')" :count="$brands->total()">
+        <x-slot:actions>
+            <button type="button" class="btn btn-primary" wire:click="create">
+                {!! $icon('plus', 'me-25') !!}{{ __('admin.create') }}
+            </button>
+        </x-slot:actions>
+
+        <x-slot:filters>
+            <div class="col-lg-5 col-md-6">
+                <label class="form-label">{{ __('admin.search') }}</label>
+                <div class="input-group input-group-merge">
+                    <span class="input-group-text">{!! $icon('search') !!}</span>
+                    <input type="text" class="form-control" placeholder="{{ __('admin.brand') }}"
+                           wire:model.live.debounce.400ms="search">
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.status') }}</label>
+                <select class="form-select" wire:model.live="onlyEmpty">
+                    <option value="0">{{ __('admin.all') }}</option>
+                    <option value="1">{{ __('admin.brands_empty') }}</option>
+                </select>
+            </div>
+
+            @if ($this->hasFilters())
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary w-100" wire:click="resetFilters">
+                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
+                    </button>
+                </div>
+            @endif
+        </x-slot:filters>
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead>
@@ -158,5 +168,5 @@
         @if ($brands->hasPages())
             <div class="card-body pt-1">{{ $brands->links() }}</div>
         @endif
-    </div>
+    </x-admin.list-card>
 </div>

@@ -35,18 +35,37 @@
         @endforeach
     </div>
 
-    <div class="card">
-        <div class="card-body pb-1">
-            <div class="input-group input-group-merge" style="max-width:360px">
-                <span class="input-group-text">{!! $icon('search') !!}</span>
-                <input type="text" class="form-control"
-                       placeholder="{{ __('admin.cb_search') }}"
-                       wire:model.live.debounce.400ms="search">
+    <x-admin.list-card :title="__('admin.callbacks')" :count="$requests->total()">
+        <x-slot:filters>
+            <div class="col-lg-5 col-md-6">
+                <label class="form-label">{{ __('admin.search') }}</label>
+                <div class="input-group input-group-merge">
+                    <span class="input-group-text">{!! $icon('search') !!}</span>
+                    <input type="text" class="form-control"
+                           placeholder="{{ __('admin.cb_search') }}"
+                           wire:model.live.debounce.400ms="search">
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="card">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.status') }}</label>
+                <select class="form-select" wire:model.live="status">
+                    <option value="">{{ __('admin.all') }}</option>
+                    @foreach ($statuses as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            @if ($this->hasFilters())
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary w-100" wire:click="resetFilters">
+                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
+                    </button>
+                </div>
+            @endif
+        </x-slot:filters>
+
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead>
@@ -210,5 +229,5 @@
         @if ($requests->hasPages())
             <div class="card-body pt-1">{{ $requests->links() }}</div>
         @endif
-    </div>
+    </x-admin.list-card>
 </div>

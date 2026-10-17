@@ -143,8 +143,8 @@
             </div>
 
             @if ($this->hasFilters())
-                <div class="col-lg-3 col-md-8 d-flex align-items-end">
-                    <button type="button" class="btn btn-outline-secondary" wire:click="resetFilters">
+                <div class="col-lg-2 col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary w-100" wire:click="resetFilters">
                         {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
                     </button>
                 </div>
