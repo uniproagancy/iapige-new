@@ -33,6 +33,8 @@ return [
     'set_shop_company_bank' => 'Bank',
     'set_shop_company_swift' => 'SWIFT',
     'set_shop_company_iban' => 'Account (IBAN)',
+    'set_shop_company_accounts' => 'Bank accounts',
+    'set_accounts_hint' => 'One per line: bank | IBAN | SWIFT. SWIFT is optional. Left empty, the single account above is used.',
     'set_shop_dial_scheme' => 'Dialling scheme',
     'set_shop_phone_country' => 'Country code',
     'set_smsoffice_sender' => 'Sender name',

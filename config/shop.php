@@ -26,6 +26,7 @@ return [
         'bank' => env('SHOP_BANK', 'საქართველოს ბანკი'),
         'swift' => env('SHOP_SWIFT', 'BAGAGE22'),
         'iban' => env('SHOP_IBAN'),
+        'accounts' => env('SHOP_ACCOUNTS', ''),
     ],
 
     'invoice_valid_days' => (int) env('SHOP_INVOICE_DAYS', 3),

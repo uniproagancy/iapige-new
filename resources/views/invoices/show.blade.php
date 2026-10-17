@@ -18,13 +18,13 @@
         .muted{color:#6E747B;font-size:13px}
         h1{font-size:19px;margin:22px 0 4px}
         .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:22px 0}
-        .block__t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8A9098;margin-bottom:8px}
+        .block__t{font-size:12px;font-weight:700;color:#8A9098;margin-bottom:8px}
         .kv{display:grid;grid-template-columns:130px 1fr;gap:4px 12px;font-size:13px}
         .kv dt{color:#6E747B;margin:0}
         .kv dd{margin:0}
         .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
         table{width:100%;border-collapse:collapse;margin-top:8px}
-        th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8A9098;padding:8px 0;border-bottom:1px solid #E9EBED}
+        th{text-align:left;font-size:12px;font-weight:700;color:#8A9098;padding:8px 0;border-bottom:1px solid #E9EBED}
         td{padding:10px 0;border-bottom:1px solid #E9EBED}
         .r{text-align:right;white-space:nowrap}
         .total td{border:0;border-top:2px solid #1A1D21;font-size:18px;font-weight:700;padding-top:14px}
@@ -83,11 +83,16 @@
             <section>
                 <div class="block__t">{{ __('invoice.pay_to') }}</div>
                 <dl class="kv">
-                    <dt>{{ __('invoice.bank') }}</dt><dd>{{ $company['bank'] }}</dd>
-                    <dt>{{ __('invoice.iban') }}</dt><dd class="mono"><b>{{ $company['iban'] }}</b></dd>
-                    @if ($company['swift'])
-                        <dt>SWIFT</dt><dd class="mono">{{ $company['swift'] }}</dd>
-                    @endif
+                    @foreach ($accounts as $account)
+                        <dt>{{ $account['bank'] ?: __('invoice.iban') }}</dt>
+                        <dd class="mono">
+                            <b>{{ $account['iban'] }}</b>
+                            @if ($account['swift'])
+                                <span class="muted">· SWIFT {{ $account['swift'] }}</span>
+                            @endif
+                        </dd>
+                    @endforeach
+
                     <dt>{{ __('invoice.reference') }}</dt><dd class="mono"><b>{{ $order->number }}</b></dd>
                 </dl>
             </section>

@@ -31,6 +31,7 @@ class Index extends Component
             'values.shop_company_bank' => ['nullable', 'string', 'max:120'],
             'values.shop_company_swift' => ['nullable', 'string', 'max:20'],
             'values.shop_company_iban' => ['nullable', 'string', 'max:40'],
+            'values.shop_company_accounts' => ['nullable', 'string', 'max:2000'],
             'values.smsoffice_sender' => ['nullable', 'string', 'max:20'],
             'values.smsoffice_redirect_to' => ['nullable', 'string', 'max:40'],
             'values.shop_dial_scheme' => ['required', 'in:tel,callto,sip,zoiper'],

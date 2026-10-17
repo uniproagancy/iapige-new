@@ -30,6 +30,11 @@
             $text('shop_company_bank', __('admin.set_shop_company_bank'), 'text', ['col' => 4]),
             $text('shop_company_swift', __('admin.set_shop_company_swift'), 'text', ['col' => 4]),
             $text('shop_company_iban', __('admin.set_shop_company_iban'), 'text', ['col' => 4]),
+            $text('shop_company_accounts', __('admin.set_shop_company_accounts'), 'textarea', [
+                'col' => 12,
+                'rows' => 4,
+                'hint' => __('admin.set_accounts_hint'),
+            ]),
         ],
         __('admin.set_group_contact') => [
             $text('shop_dial_scheme', __('admin.set_shop_dial_scheme'), 'select', [
@@ -55,7 +60,11 @@
                     <div class="col-md-{{ $field['col'] }}">
                         <label class="form-label" for="s-{{ $field['field'] }}">{{ $field['label'] }}</label>
 
-                        @if ($field['type'] === 'select')
+                        @if ($field['type'] === 'textarea')
+                            <textarea id="s-{{ $field['field'] }}" rows="{{ $field['rows'] ?? 3 }}"
+                                      class="form-control @error('values.'.$field['field']) is-invalid @enderror"
+                                      wire:model="values.{{ $field['field'] }}"></textarea>
+                        @elseif ($field['type'] === 'select')
                             <select id="s-{{ $field['field'] }}" class="form-select @error('values.'.$field['field']) is-invalid @enderror"
                                     wire:model="values.{{ $field['field'] }}">
                                 @foreach ($field['options'] as $value => $label)

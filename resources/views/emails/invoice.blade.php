@@ -49,20 +49,19 @@
                                                 <td style="padding:3px 0">{{ $company['tax_id'] }}</td>
                                             </tr>
                                         @endif
-                                        <tr>
-                                            <td style="padding:3px 0;color:#6E747B">{{ __('invoice.bank') }}</td>
-                                            <td style="padding:3px 0">{{ $company['bank'] }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:3px 0;color:#6E747B">{{ __('invoice.iban') }}</td>
-                                            <td style="padding:3px 0"><b style="font-family:monospace">{{ $company['iban'] }}</b></td>
-                                        </tr>
-                                        @if ($company['swift'])
+                                        @foreach ($accounts as $account)
                                             <tr>
-                                                <td style="padding:3px 0;color:#6E747B">SWIFT</td>
-                                                <td style="padding:3px 0;font-family:monospace">{{ $company['swift'] }}</td>
+                                                <td style="padding:3px 0;color:#6E747B">
+                                                    {{ $account['bank'] ?: __('invoice.iban') }}
+                                                </td>
+                                                <td style="padding:3px 0">
+                                                    <b style="font-family:monospace">{{ $account['iban'] }}</b>
+                                                    @if ($account['swift'])
+                                                        <span style="color:#6E747B;font-family:monospace"> · SWIFT {{ $account['swift'] }}</span>
+                                                    @endif
+                                                </td>
                                             </tr>
-                                        @endif
+                                        @endforeach
                                         <tr>
                                             <td style="padding:3px 0;color:#6E747B">{{ __('invoice.reference') }}</td>
                                             <td style="padding:3px 0"><b style="font-family:monospace">{{ $order->number }}</b></td>

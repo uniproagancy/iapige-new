@@ -25,6 +25,7 @@ class Setting extends Model
         'shop.company.bank' => 'string',
         'shop.company.swift' => 'string',
         'shop.company.iban' => 'string',
+        'shop.company.accounts' => 'string',
 
         'smsoffice.enabled' => 'bool',
         'smsoffice.sender' => 'string',

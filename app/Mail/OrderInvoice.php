@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Order;
+use App\Support\BankAccounts;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -30,6 +31,7 @@ class OrderInvoice extends Mailable
             with: [
                 'order' => $this->order->loadMissing('items'),
                 'company' => config('shop.company'),
+                'accounts' => BankAccounts::all(),
                 'dueAt' => $this->order->created_at->copy()->addDays((int) config('shop.invoice_valid_days', 3)),
                 'url' => route('invoice', $this->order->number),
             ],

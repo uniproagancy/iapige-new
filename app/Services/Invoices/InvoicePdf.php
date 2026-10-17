@@ -3,6 +3,7 @@
 namespace App\Services\Invoices;
 
 use App\Models\Order;
+use App\Support\BankAccounts;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfWriter;
 use Illuminate\Support\Str;
@@ -23,6 +24,7 @@ class InvoicePdf
             ->loadView('invoices.pdf', [
                 'order' => $order,
                 'company' => config('shop.company'),
+                'accounts' => BankAccounts::all(),
                 'dueAt' => $order->created_at->copy()->addDays((int) config('shop.invoice_valid_days', 3)),
                 'regular' => $this->font('Linotype-HelveticaNeueLTGEO55Roman.ttf'),
                 'bold' => $this->font('Linotype-HelveticaNeueLTGEO75Bold.ttf'),

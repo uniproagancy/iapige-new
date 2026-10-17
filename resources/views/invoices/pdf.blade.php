@@ -43,7 +43,7 @@
         .cols td { vertical-align: top; width: 50%; padding-right: 14px; }
 
         .block__t {
-            font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+            font-size: 10px; font-weight: 700;
             color: #8A9098; margin-bottom: 4px;
         }
 
@@ -53,8 +53,8 @@
 
         table.items { width: 100%; border-collapse: collapse; margin-top: 6px; }
         table.items th {
-            text-align: left; font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
-            color: #8A9098; padding: 6px 4px; border-bottom: 1px solid #E9EBED; font-weight: 400;
+            text-align: left; font-size: 10px;
+            color: #8A9098; padding: 6px 4px; border-bottom: 1px solid #E9EBED; font-weight: 700;
         }
         table.items td { padding: 7px 4px; border-bottom: 1px solid #E9EBED; }
 
@@ -150,16 +150,23 @@
                         <td>{{ $company['tax_id'] }}</td>
                     </tr>
                 @endif
-                <tr>
-                    <td class="k">{{ __('invoice.bank') }}</td>
-                    <td>{{ $company['bank'] }}</td>
-                </tr>
-                @if ($company['iban'])
+                @foreach ($accounts as $account)
                     <tr>
-                        <td class="k">{{ __('invoice.iban') }}</td>
-                        <td class="nowrap">{{ $company['iban'] }}</td>
+                        <td class="k">
+                            @if ($loop->first) {{ __('invoice.iban') }} @endif
+                        </td>
+                        <td>
+                            @if ($account['bank'])
+                                <span class="muted small">{{ $account['bank'] }}</span><br>
+                            @endif
+                            <span class="nowrap">{{ $account['iban'] }}</span>
+                            @if ($account['swift'])
+                                <br><span class="muted small">SWIFT: {{ $account['swift'] }}</span>
+                            @endif
+                        </td>
                     </tr>
-                @endif
+                @endforeach
+
                 <tr>
                     <td class="k">{{ __('invoice.reference') }}</td>
                     <td>{{ $order->number }}</td>

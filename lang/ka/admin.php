@@ -33,6 +33,8 @@ return [
     'set_shop_company_bank' => 'ბანკი',
     'set_shop_company_swift' => 'SWIFT',
     'set_shop_company_iban' => 'ანგარიში (IBAN)',
+    'set_shop_company_accounts' => 'ანგარიშის ნომრები',
+    'set_accounts_hint' => 'თითო ხაზზე ერთი: ბანკი | IBAN | SWIFT. SWIFT არასავალდებულოა. ცარიელზე ზემოთა ერთი ანგარიში გამოიყენება.',
     'set_shop_dial_scheme' => 'დარეკვის სქემა',
     'set_shop_phone_country' => 'ქვეყნის კოდი',
     'set_smsoffice_sender' => 'გამგზავნის სახელი',
