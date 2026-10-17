@@ -10,9 +10,11 @@
             'user'   => '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
             'check'  => '<polyline points="20 6 9 17 4 12"/>',
             'edit'   => '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>',
+            'box'    => '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>',
+            'link'   => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
         ];
 
-        return '<svg class="ic '.$class.'" width="16" height="16" viewBox="0 0 24 24" fill="none"'
+        return '<svg class="adm-ico '.$class.'" width="16" height="16" viewBox="0 0 24 24" fill="none"'
             .' stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
             .' aria-hidden="true">'.($paths[$name] ?? '').'</svg>';
     };
@@ -22,13 +24,21 @@
         'shipped' => 'primary', 'completed' => 'success',
         'cancelled' => 'secondary', 'returned' => 'warning',
     ];
+
+    $initials = collect(preg_split('/\s+/', trim((string) $order->name)))
+        ->filter()
+        ->take(2)
+        ->map(fn ($word) => mb_strtoupper(mb_substr($word, 0, 1)))
+        ->implode('') ?: '?';
 @endphp
 
 <div>
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-2">
         <div class="d-flex align-items-center gap-1">
-            <a class="btn btn-outline-secondary btn-sm" href="{{ route('admin.orders') }}">
-                {!! $icon('back', 'me-25') !!}{{ __('admin.orders') }}
+            <a class="btn btn-sm btn-icon btn-outline-secondary"
+               href="{{ route('admin.orders') }}" wire:navigate
+               title="{{ __('admin.orders') }}">
+                {!! $icon('back') !!}
             </a>
 
             <h4 class="mb-0">#{{ $order->number }}</h4>
@@ -39,28 +49,30 @@
 
             @if ($order->is_paid)
                 <span class="badge rounded-pill badge-light-success">{{ __('admin.paid') }}</span>
+            @else
+                <span class="badge rounded-pill badge-light-warning">{{ __('admin.unpaid') }}</span>
             @endif
         </div>
 
         <div class="d-flex align-items-center gap-1">
+            <small class="text-muted d-flex align-items-center gap-25">
+                {!! $icon('clock') !!}{{ $order->created_at->format('d.m.Y H:i') }}
+            </small>
+
             @unless (in_array($order->status, ['cancelled', 'returned'], true))
                 <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.orders.edit', $order) }}" wire:navigate>
                     {!! $icon('edit', 'me-25') !!}{{ __('admin.order_edit') }}
                 </a>
             @endunless
-
-            <small class="text-muted d-flex align-items-center gap-25">
-                {!! $icon('clock') !!}{{ $order->created_at->format('d.m.Y H:i') }}
-            </small>
         </div>
     </div>
 
     <div class="row">
 
         <div class="col-lg-8">
-            <div class="card">
+            <x-admin.list-card :title="__('admin.items')" :count="$order->items->sum('qty')">
                 <div class="table-responsive">
-                    <table class="table mb-0 align-middle">
+                    <table class="table mb-0">
                         <thead>
                             <tr>
                                 <th>{{ __('admin.name') }}</th>
@@ -78,15 +90,27 @@
 
                                             <span class="order-thumb flex-shrink-0">
                                                 @if ($photo)
-                                                    <a href="{{ route('admin.products.edit', $item->product_id) }}">
+                                                    <a href="{{ route('admin.products.edit', $item->product_id) }}" wire:navigate>
                                                         <img src="{{ $photo->url() }}" alt="{{ $item->name }}"
                                                              loading="lazy" width="48" height="48">
                                                     </a>
+                                                @else
+                                                    <span class="avatar avatar-md bg-light-secondary">
+                                                        <span class="avatar-content">{!! $icon('box') !!}</span>
+                                                    </span>
                                                 @endif
                                             </span>
 
                                             <span>
-                                                <span class="fw-bolder d-block">{{ $item->name }}</span>
+                                                @if ($item->product_id)
+                                                    <a class="fw-bolder d-block text-body"
+                                                       href="{{ route('admin.products.edit', $item->product_id) }}" wire:navigate>
+                                                        {{ $item->name }}
+                                                    </a>
+                                                @else
+                                                    <span class="fw-bolder d-block">{{ $item->name }}</span>
+                                                @endif
+
                                                 <small class="text-muted">
                                                     {{ $item->sku }}
                                                     @if ($item->is_preorder)
@@ -127,40 +151,52 @@
                         </tfoot>
                     </table>
                 </div>
-            </div>
+            </x-admin.list-card>
 
             <div class="card">
-                <div class="card-header pb-0">
+                <div class="card-header">
                     <h4 class="card-title mb-0">{{ __('admin.history') }}</h4>
                 </div>
+
                 <div class="card-body">
-                    <ul class="list-unstyled mb-1">
-                        @forelse ($events as $event)
-                            <li class="d-flex gap-1 pb-1 mb-1 border-bottom" wire:key="e-{{ $event->id }}">
-                                <span class="text-muted">{!! $icon($event->type === 'status' ? 'check' : 'user') !!}</span>
-                                <span class="flex-grow-1">
-                                    @if ($event->type === 'status')
-                                        <span class="d-block">
-                                            {{ $statuses[$event->from] ?? $event->from }}
-                                            →
-                                            <b>{{ $statuses[$event->to] ?? $event->to }}</b>
-                                        </span>
-                                    @endif
+                    @if ($events->isNotEmpty())
+                        <ul class="timeline mb-2">
+                            @foreach ($events as $event)
+                                <li class="timeline-item" wire:key="e-{{ $event->id }}">
+                                    <span class="timeline-point timeline-point-indicator
+                                                 timeline-point-{{ $event->type === 'status' ? ($tone[$event->to] ?? 'primary') : 'secondary' }}"></span>
 
-                                    @if ($event->note)
-                                        <span class="d-block">{{ $event->note }}</span>
-                                    @endif
+                                    <div class="timeline-event">
+                                        <div class="d-flex justify-content-between flex-sm-row flex-column mb-sm-0 mb-1">
+                                            <h6 class="mb-0">
+                                                @if ($event->type === 'status')
+                                                    {{ $statuses[$event->from] ?? $event->from }}
+                                                    →
+                                                    <b>{{ $statuses[$event->to] ?? $event->to }}</b>
+                                                @else
+                                                    {{ __('admin.comment') }}
+                                                @endif
+                                            </h6>
 
-                                    <small class="text-muted">
-                                        {{ $event->created_at->format('d.m.Y H:i') }}
-                                        @if ($event->user) · {{ $event->user->name }} @endif
-                                    </small>
-                                </span>
-                            </li>
-                        @empty
-                            <li class="text-muted">{{ __('admin.nothing_here') }}</li>
-                        @endforelse
-                    </ul>
+                                            <span class="timeline-event-time">{{ $event->created_at->format('d.m.Y H:i') }}</span>
+                                        </div>
+
+                                        @if ($event->note)
+                                            <p class="mb-0">{{ $event->note }}</p>
+                                        @endif
+
+                                        @if ($event->user)
+                                            <small class="text-muted d-flex align-items-center gap-25">
+                                                {!! $icon('user') !!}{{ $event->user->name }}
+                                            </small>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-muted">{{ __('admin.nothing_here') }}</p>
+                    @endif
 
                     <div class="d-flex align-items-start gap-1">
                         <textarea class="form-control" rows="2" placeholder="{{ __('admin.add_note') }}"
@@ -176,8 +212,11 @@
         <div class="col-lg-4">
 
             <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">{{ __('admin.status') }}</h4>
+                </div>
+
                 <div class="card-body">
-                    <label class="form-label">{{ __('admin.status') }}</label>
                     <select class="form-select mb-1" wire:model.live="status">
                         @foreach ($statuses as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
@@ -200,13 +239,17 @@
             </div>
 
             @if ($payLink)
-
-                <div class="card">
-                    <div class="card-header pb-0">
-                        <h4 class="card-title mb-0">{{ __('admin.pay_online') }}</h4>
+                <div class="card border-primary">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0 d-flex align-items-center gap-50">
+                            {!! $icon('link') !!}{{ __('admin.pay_online') }}
+                        </h4>
                     </div>
+
                     <div class="card-body">
-                        <p class="text-muted">{{ __('admin.pay_link_note', ['days' => \App\Livewire\Admin\Orders\Show::LINK_DAYS]) }}</p>
+                        <p class="text-muted small">
+                            {{ __('admin.pay_link_note', ['days' => \App\Livewire\Admin\Orders\Show::LINK_DAYS]) }}
+                        </p>
 
                         <div class="input-group mb-1">
                             <input type="text" class="form-control" readonly
@@ -242,47 +285,60 @@
             @endif
 
             <div class="card">
-                <div class="card-header pb-0">
+                <div class="card-header">
                     <h4 class="card-title mb-0">{{ __('admin.customer') }}</h4>
                 </div>
+
                 <div class="card-body">
-                    <p class="fw-bolder mb-25">{{ $order->name }}</p>
+                    <div class="d-flex align-items-center gap-1 mb-1">
+                        <div class="avatar avatar-md bg-light-primary">
+                            <span class="avatar-content">{{ $initials }}</span>
+                        </div>
 
-                    <p class="mb-25 d-flex align-items-center gap-50">
-                        {!! $icon('phone') !!}
+                        <div>
+                            @if ($order->user)
+                                <a class="fw-bolder text-body d-block"
+                                   href="{{ route('admin.users.show', $order->user) }}" wire:navigate>
+                                    {{ $order->name }}
+                                </a>
+                                <small class="text-muted">{{ __('admin.registered_customer') }}</small>
+                            @else
+                                <span class="fw-bolder d-block">{{ $order->name }}</span>
+                                <small class="text-muted">{{ __('admin.guest_customer') }}</small>
+                            @endif
+                        </div>
+                    </div>
 
-                        <a href="{{ \App\Support\Phone::link($order->phone) }}">{{ $order->phone }}</a>
-                    </p>
+                    <a class="btn btn-outline-primary w-100 mb-1 d-flex align-items-center justify-content-center gap-50"
+                       href="{{ \App\Support\Phone::link($order->phone) }}">
+                        {!! $icon('phone') !!}{{ $order->phone }}
+                    </a>
 
                     @if ($order->email)
-                        <p class="mb-25 d-flex align-items-center gap-50">
-                            {!! $icon('mail') !!}
-                            <a href="mailto:{{ $order->email }}">{{ $order->email }}</a>
-                        </p>
-                    @endif
-
-                    @if ($order->user)
-                        <small class="text-muted d-block mt-50">
-                            {{ __('admin.registered_customer') }}
-                        </small>
+                        <a class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-50"
+                           href="mailto:{{ $order->email }}">
+                            {!! $icon('mail') !!}<span class="text-truncate">{{ $order->email }}</span>
+                        </a>
                     @endif
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header pb-0">
+                <div class="card-header">
                     <h4 class="card-title mb-0">{{ __('admin.delivery') }}</h4>
                 </div>
+
                 <div class="card-body">
-                    <p class="mb-25 d-flex align-items-start gap-50">
-                        {!! $icon('pin') !!}
+                    <div class="d-flex align-items-start gap-50">
+                        <span class="text-muted mt-25">{!! $icon('pin') !!}</span>
+
                         <span>
                             <b>{{ $order->city ?: '—' }}</b>
                             @if ($order->address)
-                                <span class="d-block">{{ $order->address }}</span>
+                                <span class="d-block text-muted">{{ $order->address }}</span>
                             @endif
                         </span>
-                    </p>
+                    </div>
 
                     @if ($order->comment)
                         <div class="alert alert-warning mt-1 mb-0">

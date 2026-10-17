@@ -325,6 +325,7 @@ return [
     'copied' => 'დაკოპირდა',
     'marked_paid' => 'მონიშნულია გადახდილად',
     'registered_customer' => 'რეგისტრირებული მომხმარებელი',
+    'guest_customer' => 'სტუმარი — რეგისტრაციის გარეშე',
 
     'orders_today' => 'შეკვეთა დღეს',
     'yesterday' => 'გუშინ',
@@ -339,6 +340,14 @@ return [
     'all_clear' => 'ყველაფერი რიგზეა',
 
     'users_search' => 'ძებნა სახელით, იმეილით ან ნომრით…',
+    'users_any_orders' => 'შეკვეთები — ყველა',
+    'users_with_orders' => 'შეკვეთებით',
+    'users_without_orders' => 'შეკვეთების გარეშე',
+    'customers_n' => ':count მომხმარებელი',
+    'user_profile' => 'პროფილი',
+    'date' => 'თარიღი',
+    'comment' => 'კომენტარი',
+    'saving' => 'ინახება…',
     'admin' => 'ადმინი',
     'admins' => 'ადმინები',
     'subscribed' => 'გამოწერილი',

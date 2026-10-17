@@ -44,12 +44,16 @@ class Product extends Component
             'code' => $c['code'] ?? Str::slug($c['label'] ?? $c['name'] ?? ''),
             'label' => $c['label'] ?? $c['name'] ?? '',
             'hex' => $c['hex'] ?? null,
+            'url' => $c['url'] ?? null,
+            'current' => (bool) ($c['current'] ?? false),
         ], $data['colors'] ?? []);
 
         $data['configs'] = array_map(fn ($i) => [
             'code' => $i['code'] ?? Str::slug($i['label'] ?? $i['name'] ?? ''),
             'label' => $i['label'] ?? $i['name'] ?? '',
             'note' => $i['note'] ?? null,
+            'url' => $i['url'] ?? null,
+            'current' => (bool) ($i['current'] ?? false),
         ], $data['configs'] ?? ($data['config']['items'] ?? []));
 
         $data['bundleIds'] = $data['bundleIds'] ?? array_column($data['bundle'] ?? [], 'id');

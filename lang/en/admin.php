@@ -325,6 +325,7 @@ return [
     'copied' => 'Copied',
     'marked_paid' => 'Marked as paid',
     'registered_customer' => 'Registered customer',
+    'guest_customer' => 'Guest — not registered',
 
     'orders_today' => 'Orders today',
     'yesterday' => 'Yesterday',
@@ -339,6 +340,14 @@ return [
     'all_clear' => 'All clear',
 
     'users_search' => 'Search by name, email or phone…',
+    'users_any_orders' => 'Orders — any',
+    'users_with_orders' => 'With orders',
+    'users_without_orders' => 'Without orders',
+    'customers_n' => ':count customers',
+    'user_profile' => 'Profile',
+    'date' => 'Date',
+    'comment' => 'Comment',
+    'saving' => 'Saving…',
     'admin' => 'Admin',
     'admins' => 'Admins',
     'subscribed' => 'Subscribed',

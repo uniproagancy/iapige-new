@@ -8,9 +8,10 @@
             'phone'   => '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
             'cart'    => '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
             'money'   => '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+            'pin'     => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
         ];
 
-        return '<svg class="ic '.$class.'" width="16" height="16" viewBox="0 0 24 24" fill="none"'
+        return '<svg class="adm-ico '.$class.'" width="14" height="14" viewBox="0 0 24 24" fill="none"'
             .' stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
             .' aria-hidden="true">'.($paths[$name] ?? '').'</svg>';
     };
@@ -24,16 +25,15 @@
         'cancelled' => 'secondary',
         'returned'  => 'warning',
     ];
+
+    $initials = fn (?string $name) => collect(preg_split('/\s+/', trim((string) $name)))
+        ->filter()
+        ->take(2)
+        ->map(fn ($word) => mb_strtoupper(mb_substr($word, 0, 1)))
+        ->implode('') ?: '?';
 @endphp
 
 <div>
-
-    <div class="d-flex justify-content-end mb-1">
-        <a class="btn btn-sm btn-primary" href="{{ route('admin.orders.create') }}" wire:navigate>
-            {!! $icon('cart', 'me-25') !!}{{ __('admin.order_create') }}
-        </a>
-    </div>
-
     <div class="d-flex flex-wrap gap-1 mb-2">
         @foreach ($statuses as $key => $label)
             @continue (! ($counts[$key] ?? 0))
@@ -48,61 +48,6 @@
         @endforeach
     </div>
 
-    <div class="card">
-        <div class="card-body pb-1">
-            <div class="row g-1">
-                <div class="col-lg-4 col-md-6">
-                    <div class="input-group input-group-merge">
-                        <span class="input-group-text">{!! $icon('search') !!}</span>
-                        <input type="text" class="form-control"
-                               placeholder="{{ __('admin.search_orders') }}"
-                               wire:model.live.debounce.400ms="search">
-                    </div>
-                </div>
-
-                <div class="col-lg-2 col-md-6">
-                    <select class="form-select" wire:model.live="payment">
-                        <option value="">{{ __('admin.any_payment') }}</option>
-                        <option value="cash">{{ __('checkout.pay_cash') }}</option>
-                        <option value="card">{{ __('checkout.pay_card') }}</option>
-                        <option value="installment">{{ __('checkout.pay_installment') }}</option>
-                    </select>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="d-flex align-items-center gap-1">
-                        <input type="date" class="form-control" wire:model.live="from">
-                        <span class="text-muted">—</span>
-                        <input type="date" class="form-control" wire:model.live="to">
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6 d-flex align-items-center gap-1 justify-content-lg-end">
-                    @if ($this->hasFilters())
-                        <button type="button" class="btn btn-outline-secondary" wire:click="resetFilters">
-                            {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
-                        </button>
-                    @endif
-
-                    <select class="form-select" style="width:auto" wire:model.live="perPage">
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="d-flex flex-wrap align-items-center gap-2 mt-1 pb-1 text-muted small">
-                <span class="d-flex align-items-center gap-25">
-                    {!! $icon('cart') !!} {{ __('admin.orders_n', ['count' => $totals['orders']]) }}
-                </span>
-                <span class="d-flex align-items-center gap-25">
-                    {!! $icon('money') !!} {{ money($totals['revenue']) }}
-                </span>
-            </div>
-        </div>
-    </div>
-
     @if ($selected)
         <div class="card border-primary">
             <div class="card-body py-1 d-flex flex-wrap align-items-center gap-1">
@@ -112,23 +57,81 @@
                     {!! $icon('arrow', 'me-25') !!}{{ __('admin.advance') }}
                 </button>
 
-                <button type="button" class="btn btn-sm btn-outline-secondary ms-auto"
-                        wire:click="$set('selected', [])">
+                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary ms-auto"
+                        wire:click="$set('selected', [])"
+                        title="{{ __('admin.reset') }}">
                     {!! $icon('x') !!}
                 </button>
             </div>
         </div>
     @endif
 
-    <div class="card">
+    <x-admin.list-card :title="__('admin.orders')" :count="$totals['orders']">
+        <x-slot:actions>
+            <a class="btn btn-primary" href="{{ route('admin.orders.create') }}" wire:navigate>
+                {!! $icon('cart', 'me-25') !!}{{ __('admin.order_create') }}
+            </a>
+        </x-slot:actions>
+
+        <x-slot:filters>
+            <div class="col-lg-4 col-md-6">
+                <div class="input-group input-group-merge">
+                    <span class="input-group-text">{!! $icon('search') !!}</span>
+                    <input type="text" class="form-control"
+                           placeholder="{{ __('admin.search_orders') }}"
+                           wire:model.live.debounce.400ms="search">
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <select class="form-select" wire:model.live="payment">
+                    <option value="">{{ __('admin.any_payment') }}</option>
+                    <option value="cash">{{ __('checkout.pay_cash') }}</option>
+                    <option value="card">{{ __('checkout.pay_card') }}</option>
+                    <option value="installment">{{ __('checkout.pay_installment') }}</option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="d-flex align-items-center gap-1">
+                    <input type="date" class="form-control" wire:model.live="from">
+                    <span class="text-muted">—</span>
+                    <input type="date" class="form-control" wire:model.live="to">
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 d-flex align-items-center gap-1 justify-content-lg-end">
+                @if ($this->hasFilters())
+                    <button type="button" class="btn btn-outline-secondary" wire:click="resetFilters">
+                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
+                    </button>
+                @endif
+
+                <select class="form-select" style="width:auto" wire:model.live="perPage">
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+
+            <div class="col-12 d-flex flex-wrap align-items-center gap-2 text-muted small">
+                <span class="d-flex align-items-center gap-25">
+                    {!! $icon('cart') !!} {{ __('admin.orders_n', ['count' => $totals['orders']]) }}
+                </span>
+                <span class="d-flex align-items-center gap-25">
+                    {!! $icon('money') !!} {{ money($totals['revenue']) }}
+                </span>
+            </div>
+        </x-slot:filters>
+
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
+            <table class="table table-hover mb-0">
                 <thead>
                     <tr>
                         <th style="width:40px"></th>
-                        <th style="width:120px">{{ __('admin.order_number') }}</th>
+                        <th style="width:140px">{{ __('admin.order_number') }}</th>
                         <th>{{ __('admin.customer') }}</th>
-                        <th style="width:150px">{{ __('admin.delivery') }}</th>
+                        <th style="width:180px">{{ __('admin.delivery') }}</th>
                         <th class="text-center" style="width:80px">{{ __('admin.items') }}</th>
                         <th class="text-end" style="width:120px">{{ __('admin.total') }}</th>
                         <th class="text-center" style="width:110px">{{ __('admin.payment') }}</th>
@@ -145,28 +148,40 @@
                             </td>
 
                             <td>
-                                <a class="fw-bolder text-body" href="{{ route('admin.orders.show', $order) }}">
+                                <a class="fw-bolder text-body" href="{{ route('admin.orders.show', $order) }}" wire:navigate>
                                     #{{ $order->number }}
                                 </a>
                                 <small class="d-block text-muted">{{ $order->created_at->format('d.m.Y H:i') }}</small>
                             </td>
 
                             <td>
-                                <span class="d-block">{{ $order->name }}</span>
-                                <small class="text-muted d-flex align-items-center gap-25">
-                                    {!! $icon('phone') !!}{{ $order->phone }}
-                                </small>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm bg-light-primary me-1">
+                                        <span class="avatar-content">{{ $initials($order->name) }}</span>
+                                    </div>
+
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bolder text-truncate">{{ $order->name }}</span>
+                                        <a class="small text-muted d-flex align-items-center gap-25"
+                                           href="tel:{{ $order->phone }}">
+                                            {!! $icon('phone') !!}{{ $order->phone }}
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
 
                             <td class="text-muted">
-                                {{ $order->city ?: '—' }}
+                                <span class="d-flex align-items-center gap-25">
+                                    {!! $icon('pin') !!}{{ $order->city ?: '—' }}
+                                </span>
+
                                 @if ($order->address)
-                                    <small class="d-block text-truncate" style="max-width:150px">{{ $order->address }}</small>
+                                    <small class="d-block text-truncate" style="max-width:170px">{{ $order->address }}</small>
                                 @endif
                             </td>
 
                             <td class="text-center">
-                                <span class="badge bg-light-secondary">{{ $order->items->sum('qty') }}</span>
+                                <span class="badge rounded-pill badge-light-secondary">{{ $order->items->sum('qty') }}</span>
                             </td>
 
                             <td class="text-end fw-bolder">{{ money($order->total) }}</td>
@@ -197,6 +212,7 @@
 
                                 <a class="btn btn-sm btn-icon btn-outline-secondary"
                                    href="{{ route('admin.orders.show', $order) }}"
+                                   wire:navigate
                                    title="{{ __('admin.open') }}">
                                     {!! $icon('eye') !!}
                                 </a>
@@ -217,5 +233,5 @@
         @if ($orders->hasPages())
             <div class="card-body pt-1">{{ $orders->links() }}</div>
         @endif
-    </div>
+    </x-admin.list-card>
 </div>
