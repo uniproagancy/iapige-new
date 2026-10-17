@@ -18,7 +18,11 @@
     <div class="card__media">
         <a class="card__media-link" href="{{ $p['url'] }}" aria-label="{{ $p['name'] }}">
             <img class="card__img" data-img src="{{ $p['thumb'] }}" alt="{{ $p['name'] }}"
-                 loading="lazy" onerror="this.classList.add('is-broken')">
+                 @if ($p['thumb_srcset'] ?? '')
+                     srcset="{{ $p['thumb_srcset'] }}" sizes="(max-width: 640px) 45vw, 260px"
+                 @endif
+                 width="260" height="260"
+                 loading="lazy" decoding="async" onerror="this.classList.add('is-broken')">
         </a>
 
         <span class="card__fallback" aria-hidden="true">IAPI.GE</span>

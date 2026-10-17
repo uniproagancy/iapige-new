@@ -9,6 +9,7 @@ use App\Models\Language;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductSpec;
+use App\Services\Images\Thumbnailer;
 use App\Support\Slug;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -326,11 +327,13 @@ class Form extends Component
         $order = (int) ProductImage::where('product_id', $this->product->id)->max('sort_order');
 
         foreach ($this->upload as $file) {
-            ProductImage::create([
+            $image = ProductImage::create([
                 'product_id' => $this->product->id,
                 'path' => $file->store("products/{$this->product->id}", 'public'),
                 'sort_order' => ++$order,
             ]);
+
+            app(Thumbnailer::class)->make($image);
         }
 
         $this->reset('upload');

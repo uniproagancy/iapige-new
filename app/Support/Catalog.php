@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Language;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\Promotion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -36,6 +37,8 @@ class Catalog
 
     public static function card(Product $p): array
     {
+        $first = $p->images->first();
+
         $images = $p->images->map->url()->values()->all() ?: [Store::img("p{$p->id}")];
 
         $filters = ['brand' => $p->brand?->slug];
@@ -79,7 +82,8 @@ class Catalog
             'filters' => $filters,
             'order' => $p->sales_count,
             'images' => $images,
-            'thumb' => $images[0],
+            'thumb' => $first?->variant(640) ?? $images[0],
+            'thumb_srcset' => $first?->srcset([320, 640]) ?? '',
             'discount' => $discount ? "−{$discount}%" : null,
             'monthly' => $p->monthlyPrice(),
             'url' => route('product', $p->slug),
@@ -501,7 +505,8 @@ class Catalog
         ]));
 
         $card = self::card($product);
-        $gallery = $product->images->map->url()->values()->all() ?: $card['images'];
+        $gallery = $product->images->map(fn (ProductImage $i) => $i->variant(1280))->values()->all() ?: $card['images'];
+        $thumbs = $product->images->map(fn (ProductImage $i) => $i->variant(320))->values()->all() ?: $card['images'];
 
         $variants = self::variantSwitchers($product);
 
@@ -537,7 +542,7 @@ class Catalog
             'product' => $card + [
                 'code' => $product->sku,
                 'gallery' => $gallery,
-                'thumbs' => $gallery,
+                'thumbs' => $thumbs,
                 'description' => $product->description,
                 'breadcrumbs' => $product->category ? array_map(
                     fn (Category $c) => ['name' => $c->name, 'url' => route('catalog', $c->slug)],

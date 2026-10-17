@@ -4,6 +4,7 @@ namespace App\Services\Import;
 
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Services\Images\Thumbnailer;
 use App\Support\Redact;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -61,10 +62,12 @@ class ImageDownloader
             }
 
             if ($path) {
-                ProductImage::updateOrCreate(
+                $image = ProductImage::updateOrCreate(
                     ['product_id' => $product->id, 'sort_order' => $i],
-                    ['path' => $path],
+                    ['path' => $path, 'has_thumbs' => false],
                 );
+
+                app(Thumbnailer::class)->make($image, force: true);
             }
         }
     }

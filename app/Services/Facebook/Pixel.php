@@ -220,6 +220,34 @@ class Pixel
 
         $this->sent[$key] = true;
 
+        return $this->post($event, $this->payload($event, $customData, $eventId, $identity, $snapshot));
+    }
+
+    public function capture(
+        string $event,
+        array $customData = [],
+        ?string $eventId = null,
+        array $identity = [],
+    ): ?array {
+        if (! $this->enabled()) {
+            return null;
+        }
+
+        return $this->payload($event, $customData, $eventId, $identity);
+    }
+
+    public function deliver(string $event, array $payload): bool
+    {
+        return $this->post($event, $payload);
+    }
+
+    protected function payload(
+        string $event,
+        array $customData,
+        ?string $eventId,
+        array $identity,
+        ?OrderPixelData $snapshot = null,
+    ): array {
         $payload = [
             'event_name' => $event,
             'event_time' => time(),
@@ -236,7 +264,7 @@ class Pixel
             $payload['custom_data'] = $customData;
         }
 
-        return $this->post($event, $payload);
+        return $payload;
     }
 
     protected function post(string $event, array $payload): bool

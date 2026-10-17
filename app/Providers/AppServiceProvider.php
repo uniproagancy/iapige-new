@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Setting;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Services\Cart;
 use App\Services\Facebook\Pixel;
 use App\Services\Import\ImportManager;
 use App\Services\Import\TaxonomyResolver;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->extend('translation.loader', fn (Loader $files) => new DatabaseTranslationLoader($files));
 
+        $this->app->scoped(Cart::class);
         $this->app->singleton(Pixel::class);
 
         $this->app->singleton(TaxonomyResolver::class);

@@ -7,6 +7,13 @@ use Illuminate\Database\Seeder;
 
 class PaymentMethodSeeder extends Seeder
 {
+    protected const DRIVERS = [
+        'bog_card' => 'bog-card',
+        'bog_installment' => 'bog-installment',
+        'tbc_installment' => 'tbc-installment',
+        'credo_installment' => 'credo-installment',
+    ];
+
     public function run(): void
     {
         $methods = [
@@ -33,12 +40,14 @@ class PaymentMethodSeeder extends Seeder
         ];
 
         foreach ($methods as $i => [$code, $logo, $online, $min, $names]) {
+            $existing = PaymentMethod::where('code', $code)->first();
+
             $method = PaymentMethod::updateOrCreate(['code' => $code], [
                 'logo' => $logo,
                 'is_online' => $online,
                 'min_total' => $min,
                 'sort_order' => $i + 1,
-                'driver' => null,
+                'driver' => $existing?->driver ?? self::DRIVERS[$code] ?? null,
             ]);
 
             $method->saveTranslations([

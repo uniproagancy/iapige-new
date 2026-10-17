@@ -12,6 +12,8 @@ class Cart
 {
     protected ?CartModel $cart = null;
 
+    protected bool $looked = false;
+
     public function __construct(protected InteractionLog $log) {}
 
     public function summary(): array
@@ -28,9 +30,11 @@ class Cart
 
     protected function cart(bool $create = true): ?CartModel
     {
-        if ($this->cart) {
+        if ($this->looked && ($this->cart || ! $create)) {
             return $this->cart;
         }
+
+        $this->looked = true;
 
         $query = CartModel::where('status', 'open')->latest('id');
 
