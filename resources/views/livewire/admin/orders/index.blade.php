@@ -9,6 +9,7 @@
             'cart'    => '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
             'money'   => '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
             'pin'     => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+            'file'    => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
         ];
 
         return '<svg class="adm-ico '.$class.'" width="14" height="14" viewBox="0 0 24 24" fill="none"'
@@ -75,6 +76,7 @@
 
         <x-slot:filters>
             <div class="col-lg-4 col-md-6">
+                <label class="form-label">{{ __('admin.search') }}</label>
                 <div class="input-group input-group-merge">
                     <span class="input-group-text">{!! $icon('search') !!}</span>
                     <input type="text" class="form-control"
@@ -84,15 +86,36 @@
             </div>
 
             <div class="col-lg-2 col-md-6">
-                <select class="form-select" wire:model.live="payment">
-                    <option value="">{{ __('admin.any_payment') }}</option>
-                    <option value="cash">{{ __('checkout.pay_cash') }}</option>
-                    <option value="card">{{ __('checkout.pay_card') }}</option>
-                    <option value="installment">{{ __('checkout.pay_installment') }}</option>
+                <label class="form-label">{{ __('admin.status') }}</label>
+                <select class="form-select" wire:model.live="status">
+                    <option value="">{{ __('admin.any_state') }}</option>
+                    @foreach ($statuses as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
                 </select>
             </div>
 
             <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.payment') }}</label>
+                <select class="form-select" wire:model.live="payment">
+                    <option value="">{{ __('admin.any_payment') }}</option>
+                    @foreach ($methods as $method)
+                        <option value="{{ $method->code }}">{{ $method->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.payment_state') }}</label>
+                <select class="form-select" wire:model.live="paid">
+                    <option value="">{{ __('admin.any_payment_state') }}</option>
+                    <option value="yes">{{ __('admin.paid') }}</option>
+                    <option value="no">{{ __('admin.unpaid') }}</option>
+                </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label">{{ __('admin.period') }}</label>
                 <div class="d-flex align-items-center gap-1">
                     <input type="date" class="form-control" wire:model.live="from">
                     <span class="text-muted">—</span>
@@ -100,19 +123,32 @@
                 </div>
             </div>
 
-            <div class="col-lg-3 col-md-6 d-flex align-items-center gap-1 justify-content-lg-end">
-                @if ($this->hasFilters())
-                    <button type="button" class="btn btn-outline-secondary" wire:click="resetFilters">
-                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
-                    </button>
-                @endif
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">{{ __('admin.sort_by') }}</label>
+                <select class="form-select" wire:model.live="sort">
+                    <option value="new">{{ __('admin.sort_new') }}</option>
+                    <option value="old">{{ __('admin.sort_old') }}</option>
+                    <option value="total-desc">{{ __('admin.sort_total_desc') }}</option>
+                    <option value="total-asc">{{ __('admin.sort_total_asc') }}</option>
+                </select>
+            </div>
 
-                <select class="form-select" style="width:auto" wire:model.live="perPage">
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">{{ __('admin.per_page') }}</label>
+                <select class="form-select" wire:model.live="perPage">
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
             </div>
+
+            @if ($this->hasFilters())
+                <div class="col-lg-3 col-md-8 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary" wire:click="resetFilters">
+                        {!! $icon('x', 'me-25') !!}{{ __('admin.reset') }}
+                    </button>
+                </div>
+            @endif
 
             <div class="col-12 d-flex flex-wrap align-items-center gap-2 text-muted small">
                 <span class="d-flex align-items-center gap-25">
@@ -209,6 +245,12 @@
                                         {!! $icon('arrow') !!}
                                     </button>
                                 @endif
+
+                                <a class="btn btn-sm btn-icon btn-outline-secondary"
+                                   href="{{ route('admin.orders.invoice', $order) }}"
+                                   title="{{ __('admin.invoice_download') }}">
+                                    {!! $icon('file') !!}
+                                </a>
 
                                 <a class="btn btn-sm btn-icon btn-outline-secondary"
                                    href="{{ route('admin.orders.show', $order) }}"

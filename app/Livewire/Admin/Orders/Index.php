@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Orders;
 
 use App\Models\Order;
+use App\Models\PaymentMethod;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -29,6 +30,12 @@ class Index extends Component
     #[Url(as: 'to', except: '')]
     public string $to = '';
 
+    #[Url(as: 'paid', except: '')]
+    public string $paid = '';
+
+    #[Url(as: 'sort', except: 'new')]
+    public string $sort = 'new';
+
     #[Url(as: 'per', except: 25)]
     public int $perPage = 25;
 
@@ -36,7 +43,7 @@ class Index extends Component
 
     public function updated($property): void
     {
-        if (in_array($property, ['search', 'status', 'payment', 'from', 'to', 'perPage'], true)) {
+        if (in_array($property, ['search', 'status', 'payment', 'paid', 'from', 'to', 'sort', 'perPage'], true)) {
             $this->resetPage();
             $this->selected = [];
         }
@@ -56,10 +63,15 @@ class Index extends Component
                     ->orWhere('email', 'like', "%{$term}%"));
             })
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
-            ->when($this->payment, fn ($q) => $q->where('payment_method', $this->payment))
+            ->when($this->payment, fn ($q) => $q->where('payment', $this->payment))
+            ->when($this->paid === 'yes', fn ($q) => $q->where('is_paid', true))
+            ->when($this->paid === 'no', fn ($q) => $q->where('is_paid', false))
             ->when($this->from, fn ($q) => $q->whereDate('created_at', '>=', $this->from))
             ->when($this->to, fn ($q) => $q->whereDate('created_at', '<=', $this->to))
-            ->latest('id');
+            ->when($this->sort === 'old', fn ($q) => $q->oldest('id'))
+            ->when($this->sort === 'total-desc', fn ($q) => $q->orderByDesc('total'))
+            ->when($this->sort === 'total-asc', fn ($q) => $q->orderBy('total'))
+            ->when($this->sort === 'new', fn ($q) => $q->latest('id'));
     }
 
     public function render()
@@ -69,6 +81,7 @@ class Index extends Component
             'counts' => $this->statusCounts(),
             'statuses' => $this->statuses(),
             'totals' => $this->totals(),
+            'methods' => PaymentMethod::orderBy('sort_order')->orderBy('id')->get(),
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
     }
 
@@ -107,13 +120,13 @@ class Index extends Component
 
     public function resetFilters(): void
     {
-        $this->reset(['search', 'status', 'payment', 'from', 'to']);
+        $this->reset(['search', 'status', 'payment', 'paid', 'from', 'to']);
         $this->resetPage();
     }
 
     public function hasFilters(): bool
     {
-        return $this->search !== '' || $this->status || $this->payment || $this->from || $this->to;
+        return $this->search !== '' || $this->status || $this->payment || $this->paid || $this->from || $this->to;
     }
 
     public function advance(int $id): void

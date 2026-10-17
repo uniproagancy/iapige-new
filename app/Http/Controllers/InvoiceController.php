@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\Invoices\InvoicePdf;
 use Illuminate\Support\Facades\Gate;
+use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
@@ -18,5 +20,15 @@ class InvoiceController extends Controller
             'company' => config('shop.company'),
             'dueAt' => $order->created_at->copy()->addDays((int) config('shop.invoice_valid_days', 3)),
         ]);
+    }
+
+    public function download(Order $order, InvoicePdf $invoices): Response
+    {
+        return $invoices->for($order)->download($invoices->filename($order));
+    }
+
+    public function preview(Order $order, InvoicePdf $invoices): Response
+    {
+        return $invoices->for($order)->stream($invoices->filename($order));
     }
 }
