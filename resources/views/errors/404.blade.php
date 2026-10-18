@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page' => 'error', 'title' => __('errors.404_title').' — IAPI.GE'])
+@extends('layouts.app', ['page' => 'error', 'title' => __('errors.404_title').' — IAPI.GE', 'seo' => ['robots' => 'noindex, follow']])
 
 @section('content')
     <main class="page">

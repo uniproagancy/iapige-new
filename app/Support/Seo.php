@@ -17,12 +17,12 @@ class Seo
 
     public static function meta(array $given = []): array
     {
-        $title = trim((string) ($given['title'] ?? '')) ?: __('layout.title');
-        $description = trim((string) ($given['description'] ?? '')) ?: __('layout.description');
+        $title = self::plain($given['title'] ?? '') ?: __('layout.title');
+        $description = self::plain($given['description'] ?? '') ?: __('layout.description');
 
         return [
             'title' => $title,
-            'description' => Str::limit(strip_tags($description), 300, ''),
+            'description' => Str::limit($description, 300, ''),
             'image' => $given['image'] ?? asset('img/og-default.png'),
             'image_alt' => $given['image_alt'] ?? $title,
             'type' => $given['type'] ?? 'website',
@@ -32,6 +32,13 @@ class Seo
             'availability' => $given['availability'] ?? null,
             'schema' => array_values(array_filter((array) ($given['schema'] ?? []))),
         ];
+    }
+
+    protected static function plain(?string $value): string
+    {
+        $value = html_entity_decode(strip_tags((string) $value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim(preg_replace('/\s+/u', ' ', strip_tags($value)));
     }
 
     public static function alternates(): array
@@ -151,7 +158,7 @@ class Seo
         $node = [
             '@type' => 'Product',
             '@id' => $url.'#product',
-            'name' => trim(($card['brand'] ?? '').' '.($card['name'] ?? '')),
+            'name' => product_title($card['brand'] ?? null, $card['name'] ?? null),
             'url' => $url,
             'image' => array_values(array_filter((array) ($card['gallery'] ?? $card['images'] ?? []))),
             'description' => Str::limit(strip_tags((string) ($card['description'] ?? $card['spec'] ?? '')), 500, ''),
@@ -195,7 +202,52 @@ class Seo
             'itemCondition' => 'https://schema.org/NewCondition',
             'priceValidUntil' => now()->addDays(self::PRICE_VALID_DAYS)->toDateString(),
             'seller' => ['@id' => url('/').'#organization'],
+            'shippingDetails' => self::shipping(),
+            'hasMerchantReturnPolicy' => self::returnPolicy(),
         ]);
+    }
+
+    protected static function shipping(): array
+    {
+        return [
+            '@type' => 'OfferShippingDetails',
+            'shippingRate' => [
+                '@type' => 'MonetaryAmount',
+                'value' => '0',
+                'currency' => 'GEL',
+            ],
+            'shippingDestination' => [
+                '@type' => 'DefinedRegion',
+                'addressCountry' => 'GE',
+            ],
+            'deliveryTime' => [
+                '@type' => 'ShippingDeliveryTime',
+                'handlingTime' => [
+                    '@type' => 'QuantitativeValue',
+                    'minValue' => 0,
+                    'maxValue' => 1,
+                    'unitCode' => 'DAY',
+                ],
+                'transitTime' => [
+                    '@type' => 'QuantitativeValue',
+                    'minValue' => 1,
+                    'maxValue' => max(1, (int) config('shop.delivery_days', 2)),
+                    'unitCode' => 'DAY',
+                ],
+            ],
+        ];
+    }
+
+    protected static function returnPolicy(): array
+    {
+        return [
+            '@type' => 'MerchantReturnPolicy',
+            'applicableCountry' => 'GE',
+            'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            'merchantReturnDays' => max(1, (int) config('shop.return_days', 14)),
+            'returnMethod' => 'https://schema.org/ReturnByMail',
+            'returnFees' => 'https://schema.org/FreeReturn',
+        ];
     }
 
     public static function availability(Product $model): string

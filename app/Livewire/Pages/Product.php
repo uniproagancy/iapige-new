@@ -58,7 +58,7 @@ class Product extends Component
 
         $data['bundleIds'] = $data['bundleIds'] ?? array_column($data['bundle'] ?? [], 'id');
 
-        $name = trim($data['product']['brand'].' '.$data['product']['name']);
+        $name = product_title($data['product']['brand'], $data['product']['name']);
 
         return view('livewire.pages.product', $data)
             ->extends('layouts.app', [

@@ -130,7 +130,7 @@ class Index extends Component
                 $order->items()->create([
                     'product_id' => $product->id,
                     'sku' => $product->sku,
-                    'name' => trim(($product->brand?->name ?? '').' '.$product->name),
+                    'name' => product_title($product->brand?->name, $product->name),
                     'price' => $price,
                     'qty' => 1,
                     'sum' => $price,

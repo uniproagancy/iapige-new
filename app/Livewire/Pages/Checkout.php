@@ -366,7 +366,7 @@ class Checkout extends Component
 
         return [[
             'id' => $product->id,
-            'name' => trim($card['brand'].' '.$card['name']),
+            'name' => product_title($card['brand'], $card['name']),
             'cat' => $card['cat'],
             'img' => $card['thumb'],
             'price' => $price = $product->sellingPrice(),

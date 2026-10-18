@@ -400,7 +400,7 @@ class Pixel
 
     protected function nameOf(array $card): string
     {
-        return trim(($card['brand'] ?? '').' '.($card['name'] ?? ''));
+        return product_title($card['brand'] ?? null, $card['name'] ?? null);
     }
 
     public static function eventId(string $prefix): string

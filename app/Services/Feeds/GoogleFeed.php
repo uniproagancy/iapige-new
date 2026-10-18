@@ -28,7 +28,7 @@ class GoogleFeed extends ProductFeed
         $xml->startElement('item');
 
         $xml->writeElement('g:id', (string) $product->id);
-        $xml->writeElement('g:title', $this->clean(trim(($brand ?: '').' '.$name), 150));
+        $xml->writeElement('g:title', $this->clean(product_title($brand, $name), 150));
         $xml->writeElement('g:description', $this->description($product, $name));
         $xml->writeElement('g:link', route('product', $product->slug));
         $xml->writeElement('g:image_link', $image);

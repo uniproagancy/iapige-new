@@ -6,6 +6,8 @@ return [
     'email' => env('SHOP_EMAIL', 'info@iapi.ge'),
     'delivery_days' => (int) env('SHOP_DELIVERY_DAYS', 2),
 
+    'return_days' => (int) env('SHOP_RETURN_DAYS', 14),
+
     'instalment_months' => (int) env('INSTALMENT_MONTHS', 24),
 
     'dial_scheme' => env('DIAL_SCHEME', 'tel'),

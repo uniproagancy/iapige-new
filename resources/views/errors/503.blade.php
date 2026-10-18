@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ka">
 <head>
+    <meta name="robots" content="noindex, follow">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>IAPI.GE</title>

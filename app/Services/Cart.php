@@ -73,7 +73,7 @@ class Cart
 
             return [
                 'id' => $item->product_id,
-                'name' => trim($card['brand'].' '.$card['name']),
+                'name' => product_title($card['brand'], $card['name']),
                 'cat' => $card['cat'],
                 'img' => $card['thumb'],
 

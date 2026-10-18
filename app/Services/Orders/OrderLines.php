@@ -38,8 +38,8 @@ class OrderLines
 
             $items[] = [
                 'product_id' => $product->id,
-                'sku' => $product->sku,
-                'name' => $line['name'] ?? trim(($product->brand?->name ?? '').' '.$product->name),
+                'sku' => mb_substr((string) $product->sku, 0, 191),
+                'name' => mb_substr(product_title($product->brand?->name, $product->name), 0, 255),
                 'price' => $price,
                 'qty' => $qty,
                 'sum' => $price * $qty,

@@ -78,13 +78,7 @@ class FacebookFeed extends ProductFeed
 
     protected function title(string $brand, string $name): string
     {
-        $brand = trim($brand);
-
-        $title = $brand !== '' && $brand !== '—' && mb_stripos($name, $brand) === false
-            ? $brand.' '.$name
-            : $name;
-
-        return $this->clean($title, 150);
+        return $this->clean(product_title($brand === '—' ? null : $brand, $name), 150);
     }
 
     protected function groupId(Product $product): string

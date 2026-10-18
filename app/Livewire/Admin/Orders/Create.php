@@ -297,7 +297,7 @@ class Create extends Component
             $lines[] = [
                 'id' => $product->id,
                 'sku' => $product->sku,
-                'name' => trim(($product->brand?->name ?? '').' '.$product->name),
+                'name' => product_title($product->brand?->name, $product->name),
                 'price' => $price,
                 'qty' => $qty,
                 'sum' => $price * $qty,

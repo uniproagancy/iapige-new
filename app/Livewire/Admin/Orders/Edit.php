@@ -151,7 +151,7 @@ class Edit extends Component
             $lines[] = [
                 'id' => $product->id,
                 'sku' => $product->sku,
-                'name' => trim(($product->brand?->name ?? '').' '.$product->name),
+                'name' => product_title($product->brand?->name, $product->name),
                 'price' => $price,
                 'qty' => (int) $qty,
                 'sum' => $price * (int) $qty,
