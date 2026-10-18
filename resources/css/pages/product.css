@@ -355,12 +355,14 @@
    MOBILE — M03 Product
    ============================================================ */
 @media(max-width:768px){
-  .topbar,.header,.nav,.tabbar,.crumbbar{display:none}
+  .topbar,.nav,.tabbar,.crumbbar{display:none}
   .shell{padding-bottom:calc(126px + env(safe-area-inset-bottom,0px))}
 
+  /* The header stays sticky here as it is everywhere else, so the pagebar
+     below it scrolls away rather than fighting it for the same slot. */
   .pagebar{
-    display:block;position:sticky;top:0;z-index:20;background:rgba(255,255,255,.97);
-    backdrop-filter:blur(10px);padding-top:env(safe-area-inset-top,0px)
+    display:block;position:static;background:rgba(255,255,255,.97);
+    backdrop-filter:blur(10px)
   }
   .pagebar__row{display:flex;align-items:center;gap:12px;padding:14px 16px}
   .pagebar__btn{
