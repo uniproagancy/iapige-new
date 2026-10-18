@@ -84,6 +84,7 @@ abstract class ProductFeed
                 'brand',
                 'livePromotions',
                 'category' => fn ($q) => $q->withTranslation()->with(['parent' => fn ($p) => $p->withTranslation()]),
+                'offers.supplier',
             ]);
     }
 

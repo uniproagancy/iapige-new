@@ -28,9 +28,10 @@ class FacebookFeed extends ProductFeed
         $xml->startElement('item');
 
         $xml->writeElement('g:id', (string) $product->id);
-        $xml->writeElement('g:title', $this->clean(trim($brand.' '.$name), 150));
+        $xml->writeElement('g:item_group_id', $this->groupId($product));
+        $xml->writeElement('g:title', $this->title($brand, $name));
         $xml->writeElement('g:description', $this->description($product, $name));
-        $xml->writeElement('g:link', route('product', $product->slug));
+        $xml->writeElement('g:link', $this->link($product));
         $xml->writeElement('g:image_link', $image);
 
         foreach ($this->gallery($product) as $extra) {
@@ -47,41 +48,86 @@ class FacebookFeed extends ProductFeed
             $xml->writeElement('g:sale_price', $this->money($price));
         }
 
-        if ($sku = $product->sku) {
-            $xml->writeElement('g:mpn', $sku);
-        }
-
         if ($google = $category?->google_category_id ?? $category?->parent?->google_category_id) {
             $xml->writeElement('g:google_product_category', (string) $google);
         }
 
         if ($category) {
-            $xml->writeElement('g:product_type', $this->clean($this->productType($category), 750));
+            $xml->writeElement('g:product_type', $this->clean($category->name, 750));
         }
 
         $xml->writeElement('g:quantity_to_sell_on_facebook', (string) max(1, (int) $product->stock));
+        $xml->writeElement('g:shipping_weight', $this->weight($product));
 
-        if ($product->is_preorder) {
-            $xml->writeElement('g:custom_label_0', 'preorder');
-        } elseif ($price > $this->config['instalment_from']) {
-            $monthly = (int) ceil($price / $this->config['instalment_months']);
-            $xml->writeElement('g:custom_label_0', "თვეში {$monthly}₾-დან");
-        }
-
-        if ($was && $was > $price) {
-            $xml->writeElement('g:custom_label_1', '-'.(int) round((1 - $price / $was) * 100).'%');
-        }
+        $xml->writeElement('g:custom_label_0', $this->instalmentLabel($product, $price));
+        $xml->writeElement('g:custom_label_1', (string) (int) round($price));
 
         if ($parent = $category?->parent?->name ?? $category?->name) {
             $xml->writeElement('g:custom_label_2', $this->clean($parent, 100));
         }
 
-        $xml->writeElement('g:custom_label_3', $this->priceBand($price));
+        if ($supplier = $this->supplier($product)) {
+            $xml->writeElement('g:custom_label_3', $this->clean($supplier, 100));
+        }
 
         $xml->endElement();
         $xml->flush();
 
         $this->written++;
+    }
+
+    protected function title(string $brand, string $name): string
+    {
+        $brand = trim($brand);
+
+        $title = $brand !== '' && $brand !== '—' && mb_stripos($name, $brand) === false
+            ? $brand.' '.$name
+            : $name;
+
+        return $this->clean($title, 150);
+    }
+
+    protected function groupId(Product $product): string
+    {
+        return $product->variant_group
+            ? 'group_'.$product->variant_group
+            : 'product_default_group'.$product->id;
+    }
+
+    protected function link(Product $product): string
+    {
+        $url = route('product', $product->slug);
+
+        return $this->config['utm']
+            ? $url.'?'.$this->config['utm']
+            : $url;
+    }
+
+    protected function instalmentLabel(Product $product, float $price): string
+    {
+        if ($product->is_preorder) {
+            return 'preorder';
+        }
+
+        if ($price <= $this->config['instalment_from']) {
+            return '';
+        }
+
+        $monthly = (int) ceil($price / $this->config['instalment_months']);
+
+        return "თვეში {$monthly}₾ დან";
+    }
+
+    protected function supplier(Product $product): ?string
+    {
+        return $product->offers
+            ->sortBy(fn ($offer) => $offer->supplier?->priority ?? PHP_INT_MAX)
+            ->first()?->supplier?->name;
+    }
+
+    protected function weight(Product $product): string
+    {
+        return number_format((float) $product->weight, 2, '.', '').' kg';
     }
 
     protected function availability(Product $product): string

@@ -19,6 +19,8 @@ return [
 
         'instalment_from' => 150,
         'instalment_months' => (int) env('INSTALMENT_MONTHS', 24),
+
+        'utm' => env('FEED_FB_UTM', 'utm_source=facebook&utm_medium=cpc&utm_campaign=catalog'),
     ],
 
     'google' => [
@@ -37,6 +39,8 @@ return [
 
         'instalment_from' => 150,
         'instalment_months' => (int) env('INSTALMENT_MONTHS', 24),
+
+        'utm' => env('FEED_GOOGLE_UTM', ''),
     ],
 
 ];
