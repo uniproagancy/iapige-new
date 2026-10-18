@@ -38,6 +38,8 @@ abstract class ProductFeed
 
         $xml = new XMLWriter;
         $xml->openUri($temporary);
+        $xml->setIndent(true);
+        $xml->setIndentString('  ');
         $xml->startDocument('1.0', 'UTF-8');
         $xml->startElement('rss');
         $xml->writeAttribute('version', '2.0');
@@ -189,6 +191,7 @@ abstract class ProductFeed
 
     protected function clean(string $value, int $limit): string
     {
+        $value = html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $value = preg_replace('/\s+/u', ' ', strip_tags($value));
 
         return mb_substr(trim($value), 0, $limit);
