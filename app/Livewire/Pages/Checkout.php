@@ -72,7 +72,7 @@ class Checkout extends Component
         }
 
         if (! $this->buyNow && app(Cart::class)->count() === 0) {
-            $this->redirect(route('catalog'), navigate: false);
+            $this->redirect($this->lastPlacedUrl() ?? route('catalog'), navigate: false);
 
             return;
         }
@@ -88,6 +88,19 @@ class Checkout extends Component
         $this->payment = $this->payment ?: (string) (PaymentMethod::active()->value('code') ?? 'cash');
 
         $this->trackCheckoutStarted();
+    }
+
+    protected function lastPlacedUrl(): ?string
+    {
+        $placed = array_filter((array) session('placed_orders', []));
+
+        if (! $placed) {
+            return null;
+        }
+
+        $number = Order::whereKey(end($placed))->value('number');
+
+        return $number ? route('order', $number) : null;
     }
 
     protected function snapshotForPixel(Order $order): OrderPixelData

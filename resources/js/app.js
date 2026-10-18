@@ -341,3 +341,9 @@ bindFilterSheet();
 
 /* a message flashed by the server (signed in, signed out, password changed) */
 if (window.IAPI?.flash) toast(window.IAPI.flash);
+
+/* Back out of a bank or an external page and the browser hands the DOM back
+   exactly as it was — including a panel we had locked the body for. */
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) closePanels(true);
+});

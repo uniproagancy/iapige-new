@@ -40,4 +40,11 @@
 		Livewire.on('bog:installment', (data) => openCalculator(data[0] ?? data, false));
 		Livewire.on('bog:installment-part', (data) => openCalculator(data[0] ?? data, true));
 	});
+
+	/* The BOG widget paints an overlay of its own. Coming back from the bank the
+	   browser restores that overlay but not the SDK state behind it, leaving a
+	   page nothing can be clicked through. Start this one over instead. */
+	window.addEventListener('pageshow', (event) => {
+		if (event.persisted) window.location.reload();
+	});
 </script>
