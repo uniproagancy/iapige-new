@@ -2,17 +2,20 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SendPixelEventJob;
 use App\Services\Facebook\Pixel;
 use App\Support\Redact;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\Events\ResponseReceived;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 class TestPixel extends Command
 {
     protected $signature = 'pixel:test
                             {--event=ViewContent : the event name to send}
-                            {--live : send without a test_event_code, as a real conversion}';
+                            {--live : send without a test_event_code, as a real conversion}
+                            {--queued : go through the queue, the way the site itself does}';
 
     protected $description = 'Send one server-side event to Meta and report the result';
 
@@ -41,8 +44,12 @@ class TestPixel extends Command
         $event = (string) $this->option('event');
         $eventId = Pixel::eventId('test');
 
+        if ($this->option('queued')) {
+            return $this->throughQueue($pixel, $event, $eventId);
+        }
+
         $this->line('');
-        $this->line("sending <options=bold>{$event}</> with event_id <options=bold>{$eventId}</>…");
+        $this->line("sending <options=bold>{$event}</> with event_id <options=bold>{$eventId}</> directly, bypassing the queue…");
 
         $pixel->send($event, [
             'content_type' => 'product',
@@ -69,9 +76,90 @@ class TestPixel extends Command
             ['pixel id', $pixel->pixelId() ?: '— missing —'],
             ['api version', config('services.facebook.api_version')],
 
-            ['access token', $token ? 'set, '.strlen($token).' characters' : '— missing —'],
+            ['access token', $token ? 'set, '.strlen($token).' characters, ends '.substr($token, -6) : '— missing —'],
             ['test_event_code', $code ?: 'none — events count as real conversions'],
+            ['app url', config('app.url')],
+            ['config cache', app()->configurationIsCached() ? 'ON — run config:clear after editing .env' : 'off'],
+            ['queue connection', config('queue.default')],
+            ['pixel jobs waiting', $this->waiting()],
+            ['failed jobs', $this->failed()],
         ]);
+    }
+
+    protected function waiting(): string
+    {
+        if (config('queue.default') !== 'database') {
+            return 'n/a for this queue driver';
+        }
+
+        try {
+            $all = DB::table('jobs')->count();
+            $mine = DB::table('jobs')->where('payload', 'like', '%SendPixelEventJob%')->count();
+        } catch (\Throwable $e) {
+            return 'could not read the jobs table';
+        }
+
+        if ($mine === 0) {
+            return $all === 0 ? '0 — the queue is empty' : "0 (but {$all} other jobs are waiting)";
+        }
+
+        return "{$mine} waiting — is queue:work running?";
+    }
+
+    protected function failed(): string
+    {
+        try {
+            return (string) DB::table('failed_jobs')->count();
+        } catch (\Throwable $e) {
+            return 'no failed_jobs table';
+        }
+    }
+
+    protected function throughQueue(Pixel $pixel, string $event, string $eventId): int
+    {
+        $payload = $pixel->capture($event, [
+            'content_type' => 'product',
+            'content_ids' => ['pixel-test'],
+            'value' => 1.0,
+            'currency' => 'GEL',
+        ], $eventId);
+
+        if (! $payload) {
+            $this->error('capture() refused: the pixel is disabled, or consent was withheld.');
+
+            return self::FAILURE;
+        }
+
+        $before = $this->pending();
+        SendPixelEventJob::dispatch($event, $payload);
+        $after = $this->pending();
+
+        $this->line('');
+
+        if ($after > $before) {
+            $this->warn("queued, and still waiting ({$after} pixel jobs in the table).");
+            $this->line('  A worker has to pick it up. Start one with: php artisan queue:work --queue=default');
+
+            return self::FAILURE;
+        }
+
+        $this->info('queued and already drained — a worker is running and took it.');
+        $this->line("  event_id {$eventId}");
+
+        return self::SUCCESS;
+    }
+
+    protected function pending(): int
+    {
+        if (config('queue.default') !== 'database') {
+            return 0;
+        }
+
+        try {
+            return DB::table('jobs')->where('payload', 'like', '%SendPixelEventJob%')->count();
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
     protected function report($response, string $eventId): int
