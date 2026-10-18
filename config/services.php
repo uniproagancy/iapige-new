@@ -102,6 +102,7 @@ return [
         'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
         'api_version' => env('FACEBOOK_API_VERSION', 'v24.0'),
         'test_event_code' => env('FACEBOOK_TEST_EVENT_CODE') ?: null,
+        'queue_events' => (bool) env('FACEBOOK_QUEUE_EVENTS', true),
     ],
 
 ];

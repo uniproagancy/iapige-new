@@ -134,7 +134,7 @@ class Pixel
         $eventId = self::eventId($prefix);
 
         if ($payload = $this->capture($event, $customData, $eventId, $identity)) {
-            SendPixelEventJob::dispatch($event, $payload);
+            $this->dispatchEvent($event, $payload);
         }
 
         return ['event' => $event, 'id' => $eventId, 'data' => $customData];
@@ -242,6 +242,17 @@ class Pixel
     public function deliver(string $event, array $payload): bool
     {
         return $this->post($event, $payload);
+    }
+
+    public function dispatchEvent(string $event, array $payload): void
+    {
+        if (config('services.facebook.queue_events', true)) {
+            SendPixelEventJob::dispatch($event, $payload);
+
+            return;
+        }
+
+        $this->post($event, $payload);
     }
 
     protected function payload(

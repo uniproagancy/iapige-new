@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Jobs\SendPixelEventJob;
 use App\Services\Facebook\Pixel;
 use Closure;
 use Illuminate\Http\Request;
@@ -44,7 +43,7 @@ class TrackPageView
             Cache::put($key, $eventId, now()->addMinutes(30));
 
             if ($payload = $this->pixel->capture('PageView', [], $eventId)) {
-                SendPixelEventJob::dispatch('PageView', $payload);
+                $this->pixel->dispatchEvent('PageView', $payload);
             }
         }
 
