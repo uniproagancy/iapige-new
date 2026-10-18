@@ -12,7 +12,6 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\UserAddress;
 use App\Services\Cart;
-use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Facebook\Pixel;
 use App\Services\Orders\OrderLines;
 use App\Services\Payments\PaymentManager;
@@ -38,7 +37,6 @@ class Checkout extends Component
     #[Validate('nullable|email|max:120')]
     public string $email = '';
 
-    #[Validate('required|exists:delivery_cities,id')]
     public ?int $cityId = null;
 
     #[Validate('required|string|min:5|max:160')]
@@ -87,7 +85,6 @@ class Checkout extends Component
             $this->fillFromDefaultAddress();
         }
 
-        $this->cityId ??= DeliveryCity::active()->value('id');
         $this->payment = $this->payment ?: (string) (PaymentMethod::active()->value('code') ?? 'cash');
 
         $this->trackCheckoutStarted();
@@ -175,11 +172,7 @@ class Checkout extends Component
 
     public function shipping(): float
     {
-        $city = $this->deliveryCity();
-
-        return $city
-            ? app(DeliveryCalculator::class)->fee($city, $this->lines())
-            : 0.0;
+        return 0.0;
     }
 
     protected function method(): ?PaymentMethod
@@ -400,7 +393,6 @@ class Checkout extends Component
             'subtotal' => $subtotal,
             'shipping' => $shipping,
             'total' => $total,
-            'cities' => DeliveryCity::active()->withTranslation()->get(),
             'methods' => PaymentMethod::active()->withTranslation()->get()
                 ->filter(fn (PaymentMethod $m) => $m->fitsTotal($total))
                 ->values(),

@@ -10,6 +10,7 @@ class PaymentMethodSeeder extends Seeder
     protected const DRIVERS = [
         'bog_card' => 'bog-card',
         'bog_installment' => 'bog-installment',
+        'bog_split' => 'bog-installment',
         'tbc_installment' => 'tbc-installment',
         'credo_installment' => 'credo-installment',
     ];

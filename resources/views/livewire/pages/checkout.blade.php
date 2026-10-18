@@ -92,24 +92,6 @@
 
                         <div class="cofields">
                             <div class="field">
-                                <label class="field__label" for="coCity">{{ __('checkout.city') }}</label>
-                                <div class="selectwrap">
-                                    <select class="coselect" id="coCity" wire:model.live="cityId">
-                                        @foreach ($cities as $city)
-                                            @php $fee = $city->feeFor(); @endphp
-                                            <option value="{{ $city->id }}">
-                                                {{ $city->name }} — {{ $fee > 0 ? money($fee) : __('checkout.free') }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <span class="selectwrap__chev" aria-hidden="true">
-                                        <x-icon name="caret-down" size="12" />
-                                    </span>
-                                </div>
-                                @error('cityId') <span class="ferror">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="field">
                                 <label class="field__label" for="coAddress">{{ __('checkout.address') }}</label>
                                 <div class="field__box">
                                     <input id="coAddress" type="text" wire:model="address" autocomplete="street-address">
@@ -117,13 +99,6 @@
                                 @error('address') <span class="ferror">{{ $message }}</span> @enderror
                             </div>
                         </div>
-
-                        @if ($chosenCity = $cities->firstWhere('id', $cityId))
-                            <p class="cosec__note">
-                                <x-icon name="truck" size="14" />
-                                {{ __('checkout.days', ['count' => $chosenCity->days]) }}
-                            </p>
-                        @endif
 
                         <div class="field">
                             <label class="field__label" for="coComment">
@@ -224,10 +199,6 @@
                     <div class="cosum__line">
                         <span>{{ __('checkout.subtotal') }}</span>
                         <b>{{ money($subtotal) }}</b>
-                    </div>
-                    <div class="cosum__line">
-                        <span>{{ __('checkout.shipping') }}</span>
-                        <b>{{ $shipping > 0 ? money($shipping) : __('checkout.free') }}</b>
                     </div>
                 </div>
 

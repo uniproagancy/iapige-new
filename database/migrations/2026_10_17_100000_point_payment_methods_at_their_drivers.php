@@ -31,15 +31,11 @@ return new class extends Migration
     {
         $code = strtolower($code);
 
-        if (str_contains($code, 'split')) {
-            return null;
-        }
-
         if (str_contains($code, 'card') && config('bog.payment.secret_key')) {
             return ['driver' => 'bog-card', 'type' => null];
         }
 
-        if (! str_contains($code, 'installment') && ! str_contains($code, 'ganvadeba')) {
+        if (! str_contains($code, 'installment') && ! str_contains($code, 'ganvadeba') && ! str_contains($code, 'split')) {
             return null;
         }
 
@@ -52,7 +48,9 @@ return new class extends Migration
         }
 
         if (str_contains($code, 'bog')) {
-            return ['driver' => 'bog-installment', 'type' => str_contains($code, 'zero') ? 'ZERO' : 'STANDARD'];
+            $zero = str_contains($code, 'zero') || str_contains($code, 'split');
+
+            return ['driver' => 'bog-installment', 'type' => $zero ? 'ZERO' : 'STANDARD'];
         }
 
         return null;
