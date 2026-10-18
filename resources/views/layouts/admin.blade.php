@@ -10,7 +10,8 @@
 
     <title>{{ ($title ?? __('admin.dashboard')).' — IAPI.GE' }}</title>
 
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('dashboard-assets/images/ico/favicon.ico') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/icons/favicon-32.png') }}">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600&display=swap">
