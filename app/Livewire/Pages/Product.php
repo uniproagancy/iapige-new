@@ -12,6 +12,8 @@ class Product extends Component
 {
     public int $productId;
 
+    protected ?\App\Models\Product $resolved = null;
+
     public function mount(string $slug)
     {
         $product = Catalog::product($slug);
@@ -21,6 +23,7 @@ class Product extends Component
         }
 
         $this->productId = $product->getKey();
+        $this->resolved = $product;
 
         $this->dispatch('pixel', app(Pixel::class)->viewContent([
             'id' => $product->id,
@@ -32,7 +35,7 @@ class Product extends Component
 
     public function render()
     {
-        $model = \App\Models\Product::active()->withTranslation()
+        $model = $this->resolved ??= \App\Models\Product::active()->withTranslation()
             ->with(['specs' => fn ($q) => $q->withTranslation()->with(['attribute' => fn ($a) => $a->withTranslation()])])
             ->findOrFail($this->productId);
 
