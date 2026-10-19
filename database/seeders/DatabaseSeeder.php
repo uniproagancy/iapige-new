@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             AlneoSupplierSeeder::class,
             AltaSupplierSeeder::class,
             CitrusSupplierSeeder::class,
+            ElitlightSupplierSeeder::class,
             ComfoSupplierSeeder::class,
             EliteSupplierSeeder::class,
             IngcoSupplierSeeder::class,
