@@ -106,9 +106,11 @@ class Catalog extends Component
             + ($this->max !== null ? 1 : 0);
     }
 
+    protected ?Category $resolved = null;
+
     protected function category(): Category
     {
-        return Category::withTranslation()->findOrFail($this->categoryId);
+        return $this->resolved ??= Category::withTranslation()->findOrFail($this->categoryId);
     }
 
     protected function query(?string $skip = null): Builder

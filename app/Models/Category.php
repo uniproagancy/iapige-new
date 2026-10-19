@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTranslations;
+use App\Support\Catalog;
+use App\Support\CategoryTree;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +14,24 @@ use Illuminate\Support\Facades\Storage;
 class Category extends Model
 {
     use HasTranslations;
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $category) {
+            if ($category->wasChanged('parent_id') || $category->wasRecentlyCreated) {
+                CategoryTree::forget();
+            }
+
+            if ($category->wasChanged(['is_active', 'parent_id', 'show_in_menu', 'show_on_home'])) {
+                Catalog::forgetStocked();
+            }
+        });
+
+        static::deleted(function () {
+            CategoryTree::forget();
+            Catalog::forgetStocked();
+        });
+    }
 
     protected array $translatable = ['name', 'slug', 'description', 'meta_title', 'meta_description'];
 
@@ -57,27 +77,12 @@ class Category extends Model
 
     public function descendantAndSelfIds(): array
     {
-        $ids = [$this->getKey()];
-        $level = [$this->getKey()];
-
-        while ($level) {
-            $level = static::whereIn('parent_id', $level)->pluck('id')->all();
-            $ids = array_merge($ids, $level);
-        }
-
-        return $ids;
+        return CategoryTree::descendantAndSelfIds((int) $this->getKey());
     }
 
     public function ancestorsAndSelf(): array
     {
-        $trail = [$this];
-        $node = $this;
-
-        while ($node->parent_id && ($node = $node->parent)) {
-            array_unshift($trail, $node);
-        }
-
-        return $trail;
+        return [...CategoryTree::ancestorModels((int) $this->getKey()), $this];
     }
 
     public function imageUrl(): ?string

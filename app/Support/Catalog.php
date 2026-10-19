@@ -13,6 +13,7 @@ use App\Models\Promotion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Facades\Cache;
 
 class Catalog
 {
@@ -203,6 +204,8 @@ class Catalog
     {
         static::$treeMemo = [];
         static::$dealMemo = [];
+
+        self::forgetStocked();
     }
 
     protected static function buildTree(): array
@@ -281,7 +284,29 @@ class Catalog
             ->pluck('n', 'category_id');
     }
 
+    public const STOCKED_KEY = 'catalog.stocked';
+
+    protected static ?array $stockedMemo = null;
+
+    /* Every page asks which categories have anything in them: the menu, the
+       index grid and the "hide empty" checks. It only moves when stock does. */
     public static function stocked(): array
+    {
+        return self::$stockedMemo ??= Cache::remember(
+            self::STOCKED_KEY,
+            now()->addMinutes((int) config('shop.stocked_ttl', 10)),
+            fn () => self::countStocked(),
+        );
+    }
+
+    public static function forgetStocked(): void
+    {
+        self::$stockedMemo = null;
+
+        Cache::forget(self::STOCKED_KEY);
+    }
+
+    protected static function countStocked(): array
     {
         $counts = self::categoryCounts();
         $parent = [];

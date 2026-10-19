@@ -8,6 +8,8 @@ return [
 
     'return_days' => (int) env('SHOP_RETURN_DAYS', 14),
 
+    'stocked_ttl' => (int) env('SHOP_STOCKED_TTL', 10),
+
     'instalment_months' => (int) env('INSTALMENT_MONTHS', 24),
 
     'dial_scheme' => env('DIAL_SCHEME', 'tel'),

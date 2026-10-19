@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTranslations;
+use App\Support\Catalog;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,31 @@ class Product extends Model
         'is_new', 'is_featured', 'rating', 'reviews_count', 'sales_count', 'published_at',
         'weight', 'length', 'width', 'height', 'is_bulky', 'variant_group', 'is_preorder', 'release_date', 'prepay_percent',
     ];
+
+    protected static bool $stockedBusted = false;
+
+    protected static function booted(): void
+    {
+        /* A product appearing or selling out changes which categories are
+           worth showing. Forget once per process, not once per row: an
+           import touches thousands and the page only reads it again later. */
+        static::saved(function (self $product) {
+            if (self::$stockedBusted) {
+                return;
+            }
+
+            if ($product->wasRecentlyCreated
+                || $product->wasChanged(['stock', 'status', 'published_at', 'is_preorder', 'category_id'])) {
+                Catalog::forgetStocked();
+                self::$stockedBusted = true;
+            }
+        });
+
+        static::deleted(function () {
+            Catalog::forgetStocked();
+            self::$stockedBusted = true;
+        });
+    }
 
     protected function casts(): array
     {
