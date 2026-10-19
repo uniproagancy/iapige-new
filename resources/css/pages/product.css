@@ -226,9 +226,10 @@
 .btn-side.is-on{background:var(--rose);border-color:var(--red-bright);color:var(--red-bright)}
 .btn-buy{
   display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;border-radius:var(--r-pill);
-  background:var(--ink);color:#fff;transition:background .2s
+  background:#1DAB5A;color:#fff;transition:background .2s;
+  box-shadow:0 6px 16px rgba(29,171,90,.26)
 }
-.btn-buy:hover{background:var(--ink-2)}
+.btn-buy:hover{background:#178F4A}
 .btn-buy__label{font-size:15px;font-weight:600}
 .btn-buy__sep{width:1px;height:16px;background:rgba(255,255,255,.24)}
 .btn-buy__note{font-size:12px;color:rgba(255,255,255,.72)}

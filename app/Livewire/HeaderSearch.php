@@ -23,6 +23,17 @@ class HeaderSearch extends Component
         $this->q = '';
     }
 
+    public function showAll()
+    {
+        $term = trim($this->q);
+
+        if (mb_strlen($term) < 2) {
+            return null;
+        }
+
+        return $this->redirect(route('catalog', ['q' => $term]), navigate: true);
+    }
+
     public function render()
     {
         return view('livewire.header-search');

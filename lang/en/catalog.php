@@ -32,6 +32,7 @@ return [
     'no_results' => 'Nothing found — try another word.',
     'load_more' => ':count more products',
     'index_title' => 'Catalog',
+    'search_title' => 'Search: :term',
     'index_lead' => 'Pick a category and see every product',
 
 ];

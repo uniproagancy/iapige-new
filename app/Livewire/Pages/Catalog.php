@@ -27,6 +27,9 @@ class Catalog extends Component
     #[Url(as: 'f', except: [])]
     public array $picked = [];
 
+    #[Url(as: 'q', except: '')]
+    public string $q = '';
+
     public int $perPage = 40;
 
     protected int $step = 40;
@@ -35,7 +38,7 @@ class Catalog extends Component
     {
         if ($slug === null) {
 
-            if (! $this->picked && $this->max === null) {
+            if (! $this->picked && $this->max === null && trim($this->q) === '') {
                 return;
             }
         } else {
@@ -122,6 +125,10 @@ class Catalog extends Component
             $query->where('price', '<=', $this->max);
         }
 
+        if ($term = trim($this->q)) {
+            CatalogData::matching($query, $term);
+        }
+
         foreach ($this->picked as $key => $codes) {
             if ($key === $skip || ! $codes) {
                 continue;
@@ -172,7 +179,7 @@ class Catalog extends Component
 
     public function render()
     {
-        $filtering = $this->categoryId !== null || $this->picked || $this->max !== null;
+        $filtering = $this->categoryId !== null || $this->picked || $this->max !== null || trim($this->q) !== '';
 
         $data = $filtering ? $this->listingData() : ['categories' => CatalogData::index()];
 
@@ -188,10 +195,15 @@ class Catalog extends Component
 
     protected function seo(array $data): array
     {
-        $narrowed = $this->picked || $this->max !== null || $this->sub !== null || $this->sort !== 'popular';
+        $narrowed = $this->picked || $this->max !== null || $this->sub !== null
+            || $this->sort !== 'popular' || trim($this->q) !== '';
         $category = $this->categoryId ? $this->category() : null;
 
-        $title = $category?->name ?? __('catalog.index_title');
+        $term = trim($this->q);
+
+        $title = $term !== ''
+            ? __('catalog.search_title', ['term' => $term])
+            : ($category?->name ?? __('catalog.index_title'));
         $crumbs = $category
             ? array_map(
                 fn (Category $c) => ['name' => $c->name, 'url' => route('catalog', $c->slug)],
@@ -201,7 +213,7 @@ class Catalog extends Component
 
         return [
 
-            'title' => $category?->meta_title ?: $title.' — '.config('app.name'),
+            'title' => ($term === '' && $category?->meta_title) ? $category->meta_title : $title.' — '.config('app.name'),
             'description' => $category?->meta_description
                 ?: ($category?->description ?: __('catalog.index_lead')),
             'canonical' => $category ? route('catalog', $category->slug) : route('catalog'),
@@ -216,6 +228,10 @@ class Catalog extends Component
     protected function listingData(): array
     {
         $listing = CatalogData::listing($this->categoryId ? $this->category() : null);
+
+        if ($term = trim($this->q)) {
+            $listing['title'] = __('catalog.search_title', ['term' => $term]);
+        }
 
         $query = $this->sorted($this->query());
         $total = (clone $query)->reorder()->count();

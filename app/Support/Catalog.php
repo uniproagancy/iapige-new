@@ -669,17 +669,21 @@ class Catalog
         return array_map('array_values', $switchers);
     }
 
+    public static function matching(Builder $query, string $term): Builder
+    {
+        return $query->where(function ($q) use ($term) {
+            $q->whereHas('translations', fn ($t) => $t
+                ->where('locale', app()->getLocale())
+                ->where(fn ($w) => $w->where('name', 'like', "%{$term}%")
+                    ->orWhere('summary', 'like', "%{$term}%")))
+                ->orWhere('sku', 'like', "%{$term}%")
+                ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', "%{$term}%"));
+        });
+    }
+
     public static function search(string $term, int $limit = 5): array
     {
-        $products = self::productQuery()
-            ->where(function ($q) use ($term) {
-                $q->whereHas('translations', fn ($t) => $t
-                    ->where('locale', app()->getLocale())
-                    ->where(fn ($w) => $w->where('name', 'like', "%{$term}%")
-                        ->orWhere('summary', 'like', "%{$term}%")))
-                    ->orWhere('sku', 'like', "%{$term}%")
-                    ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', "%{$term}%"));
-            })
+        $products = self::matching(self::productQuery(), $term)
             ->orderByDesc('sales_count')
             ->limit($limit)
             ->get();
