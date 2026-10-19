@@ -332,6 +332,12 @@ class ProductImporter
                 continue;
             }
 
+            /* Two supplier keys can be mapped onto the same attribute. Keep the
+               first one rather than letting the later one silently win. */
+            if (isset($byAttribute[$attribute->id])) {
+                continue;
+            }
+
             $specRows[] = [
                 'product_id' => $product->id,
                 'attribute_id' => $attribute->id,
