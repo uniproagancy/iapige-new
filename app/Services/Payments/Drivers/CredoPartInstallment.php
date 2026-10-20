@@ -6,6 +6,8 @@ use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
 
+use Log;
+
 class CredoPartInstallment implements PaymentDriver
 {
     protected const FEE = 0.10;
@@ -75,7 +77,7 @@ class CredoPartInstallment implements PaymentDriver
         foreach ($products as $product) {
             $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'];
         }
-
+		Log::warning(md5($string));
         return md5($string);
     }
 
