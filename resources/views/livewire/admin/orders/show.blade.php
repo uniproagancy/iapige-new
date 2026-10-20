@@ -98,7 +98,7 @@
 									$slug = \Models\ProductTranslation::where([
 										'product_id' => $item->product_id,
 										'locale' => 'ka',
-									])->first();
+									])->first()->slug;
 								@endphp
                                 <tr wire:key="i-{{ $item->id }}">
                                     <td>
