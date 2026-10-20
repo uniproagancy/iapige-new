@@ -40,7 +40,7 @@ class CredoInstallment implements PaymentDriver
             return null;
         }
 
-        $transaction = PaymentTransaction::where('driver', 'credo-installment')
+        $transaction = PaymentTransaction::where('driver', 'credo-part-installment')
             ->where('external_id', $code)
             ->first();
 
