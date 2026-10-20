@@ -106,7 +106,7 @@
                                                 @if ($photo)
                                                     <a href="{{ route('product', $slug) }}" wire:navigate>
                                                         <img src="{{ $photo->url() }}" alt="{{ $item->name }}"
-                                                             loading="lazy" width="48" height="48">
+                                                             loading="lazy" width="48" height="48" target="_blank">
                                                     </a>
                                                 @else
                                                     <span class="avatar avatar-md bg-light-secondary">
@@ -118,7 +118,7 @@
                                             <span>
                                                 @if ($item->product_id)
                                                     <a class="fw-bolder d-block text-body"
-                                                       href="{{ route('admin.products.edit', $item->product_id) }}" wire:navigate>
+                                                       href="{{ route('product', $slug) }}" target="_blank" wire:navigate>
                                                         {{ $item->name }}
                                                     </a>
                                                 @else
