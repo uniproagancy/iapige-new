@@ -104,9 +104,9 @@
 
                                             <span class="order-thumb flex-shrink-0">
                                                 @if ($photo)
-                                                    <a href="{{ route('product', $slug) }}" wire:navigate>
+                                                    <a href="#">
                                                         <img src="{{ $photo->url() }}" alt="{{ $item->name }}"
-                                                             loading="lazy" width="48" height="48" target="_blank">
+                                                             loading="lazy" width="48" height="48">
                                                     </a>
                                                 @else
                                                     <span class="avatar avatar-md bg-light-secondary">
