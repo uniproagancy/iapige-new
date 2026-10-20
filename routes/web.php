@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BogInstallmentController;
 use App\Http\Controllers\CredoController;
+use App\Http\Controllers\CredoPartController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PageController;
@@ -78,6 +79,8 @@ Route::post('/payment/bog/installment/{number}', [BogInstallmentController::clas
     ->name('payment.bog.installment');
 Route::get('/payment/credo/{number}', [CredoController::class, 'form'])
     ->name('payment.credo.form');
+Route::get('/payment/credo_part/{number}', [CredoPartController::class, 'form'])
+    ->name('payment.credo_part.form');
 
 Route::get('/pay/{number}', PayOrder::class)->name('order.pay');
 
