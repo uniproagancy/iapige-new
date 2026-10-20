@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Services\Payments\Drivers\CredoInstallment;
 
-class CredoController extends Controller
+class CredoPartController extends Controller
 {
     public function form(string $number, CredoInstallment $credo)
     {
