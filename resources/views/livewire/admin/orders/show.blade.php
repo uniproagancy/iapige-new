@@ -47,6 +47,11 @@
             <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
                 {{ $statuses[$order->status] ?? $order->status }}
             </span>
+			@php($payment_id = \App\Models\PaymentMethod::where('code', $order->payment)->first()->id)
+			@php($payment_name = \App\Models\PaymentMethodTranslation::where('id', $payment_id)->where('locale', 'ka')->name)
+            <span class="badge rounded-pill badge-light-primary">
+                {{ $payment_name }}
+            </span>
 
             @if ($order->is_paid)
                 <span class="badge rounded-pill badge-light-success">{{ __('admin.paid') }}</span>
