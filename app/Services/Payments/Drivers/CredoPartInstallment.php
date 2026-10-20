@@ -61,8 +61,6 @@ class CredoPartInstallment implements PaymentDriver
             'type' => '0',
         ])->values()->all();
 		
-		dd($products);
-
         return [
             'merchantId' => (string) config('credo_part.merchant_id'),
             'orderCode' => (string) $order->number,
