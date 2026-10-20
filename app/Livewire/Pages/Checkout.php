@@ -63,7 +63,6 @@ class Checkout extends Component
 
     public function mount(): void
     {
-		dd($this);
         $this->qty = max(1, min(99, $this->qty));
         $this->buyNow = $this->productId !== null;
 
@@ -278,6 +277,7 @@ class Checkout extends Component
 
     protected function createOrder(array $lines): Order
     {
+		dd($this);
 
         $priced = app(OrderLines::class)->price($lines);
 
