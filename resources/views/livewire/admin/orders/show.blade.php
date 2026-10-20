@@ -94,7 +94,7 @@
                         <tbody>
                             @foreach ($order->items as $item)
                                 @php($photo = $item->product?->images->first())
-								@php($slug = \Models\ProductTranslation::where([
+								@php($slug = \App\Models\ProductTranslation::where([
 										'product_id' => $item->product_id,
 										'locale' => 'ka',
 									])->first()->slug)
