@@ -143,7 +143,7 @@ abstract class ProductFeed
 
     protected function money(float $amount): string
     {
-        return number_format($amount, 2, '.', '').' '.$this->config['currency'];
+        return number_format(round($amount), 2, '.', '').' '.$this->config['currency'];
     }
 
     protected function description(Product $product, string $name): string

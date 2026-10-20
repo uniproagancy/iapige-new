@@ -66,7 +66,7 @@ class Pixel
             'content_type' => 'product',
             'content_ids' => [(string) $card['id']],
             'content_name' => $this->nameOf($card),
-            'value' => round((float) ($card['price'] ?? 0), 2),
+            'value' => round((float) ($card['price'] ?? 0)),
             'currency' => 'GEL',
             'contents' => $this->contents([$card + ['qty' => 1]]),
         ]);
@@ -80,7 +80,7 @@ class Pixel
             'content_type' => 'product',
             'content_ids' => [(string) $line['id']],
             'content_name' => $this->nameOf($line),
-            'value' => round((float) ($line['price'] ?? 0) * $qty, 2),
+            'value' => round((float) ($line['price'] ?? 0) * $qty),
             'currency' => 'GEL',
             'contents' => $this->contents([$line + ['qty' => $qty]]),
         ]);
@@ -93,7 +93,7 @@ class Pixel
             'content_ids' => array_map(fn ($l) => (string) $l['id'], $lines),
             'contents' => $this->contents($lines),
             'num_items' => array_sum(array_map(fn ($l) => (int) ($l['qty'] ?? 1), $lines)),
-            'value' => round($value, 2),
+            'value' => round($value),
             'currency' => 'GEL',
         ]);
     }
@@ -104,7 +104,7 @@ class Pixel
             'content_type' => 'product',
             'content_ids' => [(string) $card['id']],
             'content_name' => $this->nameOf($card),
-            'value' => round((float) ($card['price'] ?? 0), 2),
+            'value' => round((float) ($card['price'] ?? 0)),
             'currency' => 'GEL',
         ]);
     }
@@ -194,7 +194,7 @@ class Pixel
             'content_ids' => array_map(fn ($l) => (string) $l['id'], $lines),
             'contents' => $this->contents($lines),
             'num_items' => array_sum(array_column($lines, 'qty')),
-            'value' => round((float) $order->total, 2),
+            'value' => round((float) $order->total),
             'currency' => 'GEL',
             'order_id' => $order->number,
         ];
@@ -394,7 +394,7 @@ class Pixel
         return array_map(fn ($l) => [
             'id' => (string) $l['id'],
             'quantity' => (int) ($l['qty'] ?? 1),
-            'item_price' => round((float) ($l['price'] ?? 0), 2),
+            'item_price' => round((float) ($l['price'] ?? 0)),
         ], $lines);
     }
 

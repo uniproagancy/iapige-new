@@ -134,8 +134,8 @@ class Product extends Model
         }
 
         $promo = match (true) {
-            (float) ($pivot->promo_price ?? 0) > 0 => (float) $pivot->promo_price,
-            (int) ($pivot->discount_percent ?? 0) > 0 => round($price * (1 - $pivot->discount_percent / 100), 2),
+            (float) ($pivot->promo_price ?? 0) > 0 => Supplier::toLari((float) $pivot->promo_price),
+            (int) ($pivot->discount_percent ?? 0) > 0 => Supplier::toLari($price * (1 - $pivot->discount_percent / 100)),
             default => null,
         };
 

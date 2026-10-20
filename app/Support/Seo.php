@@ -196,7 +196,7 @@ class Seo
         return array_filter([
             '@type' => 'Offer',
             'url' => $url,
-            'price' => number_format((float) ($card['price'] ?? 0), 2, '.', ''),
+            'price' => number_format(round((float) ($card['price'] ?? 0)), 2, '.', ''),
             'priceCurrency' => 'GEL',
             'availability' => self::availability($model),
             'itemCondition' => 'https://schema.org/NewCondition',

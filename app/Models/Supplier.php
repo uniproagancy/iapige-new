@@ -36,11 +36,18 @@ class Supplier extends Model
         foreach ($this->markup ?? [] as $tier) {
             if (! isset($tier['up_to']) || $cost <= (float) $tier['up_to']) {
                 return isset($tier['percent'])
-                    ? round($cost * (1 + (float) $tier['percent'] / 100), 2)
-                    : round($cost + (float) ($tier['add'] ?? 0), 2);
+                    ? self::toLari($cost * (1 + (float) $tier['percent'] / 100))
+                    : self::toLari($cost + (float) ($tier['add'] ?? 0));
             }
         }
 
-        return $cost;
+        return self::toLari($cost);
+    }
+
+    /* Shelf prices are whole lari. The page, the feed, the pixel and the bank
+       then all say the same number instead of rounding one for display. */
+    public static function toLari(float $amount): float
+    {
+        return round($amount, 0);
     }
 }
