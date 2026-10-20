@@ -54,13 +54,14 @@ class CredoPartInstallment implements PaymentDriver
     public function payload(Order $order): array
     {
         $products = $order->items->map(fn ($item) => [
-			dd($item);
             'id' => (string) $item->product_id,
             'title' => mb_substr($item->name, 0, 100),
             'amount' => (int) $item->qty,
             'price' => (int) round(((float) $item->price * (1 + self::FEE)) * 100),
             'type' => '0',
         ])->values()->all();
+		
+		dd($products);
 
         return [
             'merchantId' => (string) config('credo_part.merchant_id'),
