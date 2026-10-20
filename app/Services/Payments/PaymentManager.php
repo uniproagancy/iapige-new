@@ -8,6 +8,7 @@ use App\Services\Facebook\Pixel;
 use App\Services\Payments\Drivers\BogCard;
 use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\Drivers\CredoInstallment;
+use App\Services\Payments\Drivers\CredoPartInstallment;
 use App\Services\Payments\Drivers\TbcInstallment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +20,7 @@ class PaymentManager
         'bog-installment' => BogInstallment::class,
         'bog-card' => BogCard::class,
         'credo-installment' => CredoInstallment::class,
+        'credo-part-installment' => CredoPartInstallment::class,
         'tbc-installment' => TbcInstallment::class,
     ];
 

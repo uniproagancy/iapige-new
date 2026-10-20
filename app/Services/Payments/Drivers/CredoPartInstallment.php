@@ -17,7 +17,6 @@ class CredoInstallment implements PaymentDriver
         return PaymentTransaction::create([
             'order_id' => $order->id,
             'driver' => 'credo-part-installment',
-
             'external_id' => (string) $order->number,
             'amount' => $this->total($order),
             'status' => PaymentTransaction::PENDING,
