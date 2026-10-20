@@ -34,9 +34,6 @@ class Product extends Model
 
     protected static function booted(): void
     {
-        /* A product appearing or selling out changes which categories are
-           worth showing. Forget once per process, not once per row: an
-           import touches thousands and the page only reads it again later. */
         static::saved(function (self $product) {
             if (self::$stockedBusted) {
                 return;
