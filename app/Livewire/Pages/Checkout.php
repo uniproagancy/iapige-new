@@ -277,8 +277,6 @@ class Checkout extends Component
 
     protected function createOrder(array $lines): Order
     {
-		dd($this);
-
         $priced = app(OrderLines::class)->price($lines);
 
         $items = $priced['items'];
