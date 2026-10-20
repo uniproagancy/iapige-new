@@ -54,6 +54,7 @@ class CredoPartInstallment implements PaymentDriver
     public function payload(Order $order): array
     {
         $products = $order->items->map(fn ($item) => [
+			dd($item);
             'id' => (string) $item->product_id,
             'title' => mb_substr($item->name, 0, 100),
             'amount' => (int) $item->qty,
@@ -77,7 +78,6 @@ class CredoPartInstallment implements PaymentDriver
         foreach ($products as $product) {
             $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'];
         }
-		Log::warning(md5($string));
         return md5($string);
     }
 
