@@ -48,7 +48,7 @@
                 {{ $statuses[$order->status] ?? $order->status }}
             </span>
 			@php($payment_id = \App\Models\PaymentMethod::where('code', $order->payment)->first()->id)
-			@php($payment_name = \App\Models\PaymentMethodTranslation::where('id', $payment_id)->where('locale', 'ka')->first()->name)
+			@php($payment_name = \App\Models\PaymentMethodTranslation::where('payment_method_id', $payment_id)->where('locale', 'ka')->first()->name)
             <span class="badge rounded-pill badge-light-primary">
                 {{ $payment_name }}
             </span>
