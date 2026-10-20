@@ -6,7 +6,7 @@ use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
 
-class CredoInstallment implements PaymentDriver
+class CredoPartInstallment implements PaymentDriver
 {
     protected const FEE = 0.10;
 

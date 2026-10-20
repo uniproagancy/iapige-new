@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Services\Payments\Drivers\CredoInstallment;
+use App\Services\Payments\Drivers\CredoPartInstallment;
 
 class CredoPartController extends Controller
 {
-    public function form(string $number, CredoInstallment $credo)
+    public function form(string $number, CredoPartInstallment $credo)
     {
         $order = Order::with('items')->where('number', $number)->firstOrFail();
 
