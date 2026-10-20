@@ -976,7 +976,6 @@ button,
   .card__discount{padding:4px 9px;font-size:10px;background:var(--red-bright)}
   .card__body{padding:10px 4px 0;gap:4px}
   .card__brand{font-size:9px}
-  .rail--section .card__brand,.card__spec,.card__monthly,.card__stock{display:none}
   .card__monthly{padding:2px 8px;font-size:10px}
   .card__name{font-size:13px;min-height:34px}
   .rail--section .card__name{font-size:12px;min-height:32px}
