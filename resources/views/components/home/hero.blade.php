@@ -7,13 +7,6 @@
                  role="group" aria-roledescription="slide" aria-label="{{ $i + 1 }} / {{ count($slides) }}"
                  @if($i) aria-hidden="true" @endif>
                 @php
-                    /*
-                     | The admin's own picture, or the placeholder this
-                     | carousel stood on before there was anywhere to upload
-                     | one. A slide saved with words and no picture has
-                     | neither, and draws none rather than an empty src — the
-                     | veil and the copy still read over the background.
-                     */
                     $src = $s['image'] ?? (isset($s['img']) ? 'https://picsum.photos/id/'.$s['img'].'/1440/530' : null);
                 @endphp
 
@@ -26,9 +19,7 @@
                     <h2 class="hero__title">{{ $s['title'] }}</h2>
                     <span class="hero__sub">{{ $s['sub'] }}</span>
                     <div class="hero__cta">
-
                         <a class="hero__btn" href="{{ ($s['url'] ?? null) ?: route('catalog') }}">{{ $s['cta'] }}</a>
-                        <button type="button" class="hero__btn hero__btn--ghost" data-open="catalog">{{ __('home.see_catalog') }}</button>
                     </div>
                 </div>
             </div>

@@ -21,7 +21,6 @@ class CredoPartInstallment implements PaymentDriver
             'amount' => $this->total($order),
             'status' => PaymentTransaction::PENDING,
             'request' => $payload,
-
             'redirect_url' => route('payment.credo_part.form', $order->number),
         ]);
     }

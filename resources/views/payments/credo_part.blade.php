@@ -27,7 +27,7 @@
 <body>
     <div class="wrap">
         <div class="spin" aria-hidden="true"></div>
-        <p>{{ __('checkout.redirecting_to', ['name' => 'Credo']) }}</p>
+        <p>{{ __('checkout.redirecting_to', ['name' => 'Credo Part']) }}</p>
 
         <form action="{{ $action }}" method="post" id="credoForm">
             <input type="hidden" name="credoinstallment" value='{{ $data }}'>
