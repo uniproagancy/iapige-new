@@ -93,15 +93,20 @@
                         </thead>
                         <tbody>
                             @foreach ($order->items as $item)
-							@dd($item)
                                 @php($photo = $item->product?->images->first())
+								@php
+									$slug = \Models\ProductTranslation::where([
+										'product_id' => $item->product_id,
+										'locale' => 'ka',
+									])->first();
+								@endphp
                                 <tr wire:key="i-{{ $item->id }}">
                                     <td>
                                         <div class="d-flex align-items-center gap-1">
 
                                             <span class="order-thumb flex-shrink-0">
                                                 @if ($photo)
-                                                    <a href="{{ route('product', $item->product) }}" wire:navigate>
+                                                    <a href="{{ route('product', $slug) }}" wire:navigate>
                                                         <img src="{{ $photo->url() }}" alt="{{ $item->name }}"
                                                              loading="lazy" width="48" height="48">
                                                     </a>
