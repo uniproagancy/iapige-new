@@ -9,7 +9,6 @@ class CredoPartController extends Controller
 {
     public function form(string $number, CredoInstallment $credo)
     {
-		dd(123);
         $order = Order::with('items')->where('number', $number)->firstOrFail();
 
         abort_unless($this->mayPay($order), 404);
