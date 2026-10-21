@@ -76,7 +76,7 @@ return [
     'adding' => 'Adding…',
 
     'callback_title' => 'Shall we call you?',
-    'callback_text' => 'Leave your number and a consultant will call you back to help you choose.',
+    'callback_text' => 'Leave your number and a consultant will call you back to help you buy.',
     'callback_comment' => 'Comment (optional)',
     'callback_send' => 'Send',
     'callback_sent' => 'Request received',
