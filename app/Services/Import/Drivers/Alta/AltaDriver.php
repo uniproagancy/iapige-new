@@ -51,7 +51,8 @@ class AltaDriver implements HasStockFeed, SupplierDriver
 
         return SupplierStock::where('supplier_id', $this->supplier->id)
             ->where('quantity', '>=', $min)
-            ->orderBy('external_id')
+            /* No ordering here: lazyById pages on the primary key, and a
+               second sort makes it page over the wrong rows and skip some. */
             ->lazyById(500)
             ->map(fn (SupplierStock $s) => $s->external_id);
     }

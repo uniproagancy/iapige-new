@@ -22,7 +22,8 @@ class AlneoDriver implements SupplierDriver
         $this->client->index(fresh: true);
 
         return SupplierStock::where('supplier_id', $this->supplier->id)
-            ->orderBy('external_id')
+            /* No ordering here: lazyById pages on the primary key, and a
+               second sort makes it page over the wrong rows and skip some. */
             ->lazyById(500)
             ->map(fn (SupplierStock $s) => $s->external_id);
     }

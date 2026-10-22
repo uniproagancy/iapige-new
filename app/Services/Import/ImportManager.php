@@ -8,6 +8,7 @@ use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use InvalidArgumentException;
 
 class ImportManager
@@ -30,6 +31,7 @@ class ImportManager
         $empty = $this->settleEmptyRows($supplier);
         $wanted = $only === null ? null : array_flip(array_map('strval', $only));
         $queued = 0;
+        $pending = [];
 
         foreach ($this->driver($supplier)->ids() as $externalId) {
             if (isset($empty[(string) $externalId])) {
@@ -40,15 +42,35 @@ class ImportManager
                 continue;
             }
 
-            ImportProductJob::dispatch($supplier->id, (string) $externalId)
-                ->onQueue('import:'.$supplier->code);
-
+            $pending[] = new ImportProductJob($supplier->id, (string) $externalId);
             $queued++;
+
+            if (count($pending) >= self::PUSH_AT) {
+                $this->push($supplier, $pending);
+                $pending = [];
+            }
         }
+
+        $this->push($supplier, $pending);
 
         $supplier->update(['last_run_at' => now()]);
 
         return $queued;
+    }
+
+    /* A price list of several thousand rows was written to the queue one
+       insert at a time, from inside a web request; it ran out of time long
+       before the end and left the rest unqueued, with nothing to show for it.
+       A batch goes in as a single insert. */
+    protected const PUSH_AT = 250;
+
+    protected function push(Supplier $supplier, array $jobs): void
+    {
+        if (! $jobs) {
+            return;
+        }
+
+        Queue::bulk($jobs, '', 'import:'.$supplier->code);
     }
 
     protected function settleEmptyRows(Supplier $supplier): array
