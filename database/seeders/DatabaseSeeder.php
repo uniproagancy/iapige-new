@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             EliteSupplierSeeder::class,
             IngcoSupplierSeeder::class,
             KontaktSupplierSeeder::class,
+            MagiToysSupplierSeeder::class,
             MetromartSupplierSeeder::class,
             MideaSupplierSeeder::class,
             ThermocenterSupplierSeeder::class,

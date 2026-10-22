@@ -420,10 +420,43 @@ html .content .content-wrapper .content-header .breadcrumb-item.active { opacity
  | The tint rides on --bs-table-accent-bg — the same variable Bootstrap paints
  | its own row states with — so :hover, which sets it on the cell, still wins.
  */
-.adm-row-callback { --bs-table-accent-bg: rgba(115, 103, 240, .1); }
-.adm-row-new { --bs-table-accent-bg: rgba(234, 84, 85, .1); }
-.adm-row-viewed { --bs-table-accent-bg: rgba(255, 159, 67, .1); }
-.adm-row-confirmed { --bs-table-accent-bg: rgba(0, 207, 232, .1); }
+/*
+ | Solid, not translucent: at a tenth of an alpha the hue barely reached the
+ | eye. These are each colour carried down to where white text still sits on
+ | it comfortably, so nothing in the row has to be restyled around them.
+ */
+.adm-row-callback { --bs-table-accent-bg: #3b3485; }
+.adm-row-new { --bs-table-accent-bg: #7d2b2c; }
+.adm-row-viewed { --bs-table-accent-bg: #7d4c1f; }
+.adm-row-confirmed { --bs-table-accent-bg: #0e5a66; }
+
+/* the row carries its own text now, rather than the table's muted greys */
+.adm-row-callback > *,
+.adm-row-new > *,
+.adm-row-viewed > *,
+.adm-row-confirmed > * {
+    color: rgba(255, 255, 255, .95);
+}
+
+.adm-row-callback .text-muted,
+.adm-row-new .text-muted,
+.adm-row-viewed .text-muted,
+.adm-row-confirmed .text-muted,
+.adm-row-callback a,
+.adm-row-new a,
+.adm-row-viewed a,
+.adm-row-confirmed a {
+    color: rgba(255, 255, 255, .8) !important;
+}
+
+/* a light badge is a wash of its own colour; on a filled row it disappeared */
+.adm-row-callback .badge[class*="badge-light-"],
+.adm-row-new .badge[class*="badge-light-"],
+.adm-row-viewed .badge[class*="badge-light-"],
+.adm-row-confirmed .badge[class*="badge-light-"] {
+    background-color: rgba(255, 255, 255, .2);
+    color: #fff !important;
+}
 
 /* the bar has to carry the tint along, or it would paint over it */
 .adm-row-callback > *:first-child,

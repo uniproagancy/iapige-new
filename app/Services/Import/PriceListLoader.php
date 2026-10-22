@@ -45,7 +45,7 @@ class PriceListLoader
                 continue;
             }
 
-            $key = trim((string) ($cells[$map['key']] ?? ''));
+            $key = $this->keyFor($cells, $map);
 
             if ($key === '') {
                 continue;
@@ -158,6 +158,38 @@ class PriceListLoader
         $first = (string) fgets(fopen($path, 'r'));
 
         return substr_count($first, ';') > substr_count($first, ',') ? ';' : ',';
+    }
+
+    /* Some price lists have no code of their own and are keyed by the product
+       link. A link does not fit the 64-character column — and the same product
+       can appear under two spellings of its address — so an OpenCart-style id
+       is taken where the address carries one, and a digest where it does not. */
+    protected function keyFor(array $cells, array $map): string
+    {
+        $column = $map['key'] ?? '';
+        $raw = trim((string) ($cells['_links'][$column] ?? $cells[$column] ?? ''));
+
+        if (($map['key_as'] ?? null) !== 'url') {
+            return $raw;
+        }
+
+        if (! preg_match('~^https?://~i', $raw)) {
+            return '';
+        }
+
+        parse_str((string) parse_url($raw, PHP_URL_QUERY), $query);
+
+        if ($id = trim((string) ($query['product_id'] ?? ''))) {
+            return $id;
+        }
+
+        $path = trim((string) parse_url($raw, PHP_URL_PATH), '/');
+
+        if ($path !== '' && ctype_digit($path)) {
+            return $path;
+        }
+
+        return substr(sha1(rtrim(strtolower($raw), '/')), 0, 32);
     }
 
     protected function pick(array $cells, array $map): array
