@@ -33,6 +33,12 @@ class Index extends Component
     #[Url(as: 'issue', except: '')]
     public string $issue = '';
 
+    #[Url(as: 'pmin', except: '')]
+    public string $priceFrom = '';
+
+    #[Url(as: 'pmax', except: '')]
+    public string $priceTo = '';
+
     #[Url(as: 'sort', except: 'new')]
     public string $sort = 'new';
 
@@ -49,7 +55,7 @@ class Index extends Component
 
     public function updated($property): void
     {
-        if (in_array($property, ['search', 'status', 'categoryId', 'brandId', 'supplierId', 'issue', 'sort', 'perPage'], true)) {
+        if (in_array($property, ['search', 'status', 'categoryId', 'brandId', 'supplierId', 'issue', 'priceFrom', 'priceTo', 'sort', 'perPage'], true)) {
             $this->resetPage();
             $this->clearSelection();
         }
@@ -78,6 +84,9 @@ class Index extends Component
             ))
             ->when($this->brandId, fn ($q) => $q->where('brand_id', $this->brandId))
             ->when($this->supplierId, fn ($q) => $q->whereHas('offers', fn ($o) => $o->where('supplier_id', $this->supplierId)))
+
+            ->when(is_numeric($this->priceFrom), fn ($q) => $q->where('price', '>=', (float) $this->priceFrom))
+            ->when(is_numeric($this->priceTo), fn ($q) => $q->where('price', '<=', (float) $this->priceTo))
 
             ->when($this->issue === 'live', fn ($q) => $q->listable())
             ->when($this->issue === 'hidden', fn ($q) => $q->where(fn ($w) => $w
@@ -166,7 +175,7 @@ class Index extends Component
 
     public function resetFilters(): void
     {
-        $this->reset(['search', 'status', 'categoryId', 'brandId', 'supplierId', 'issue', 'sort']);
+        $this->reset(['search', 'status', 'categoryId', 'brandId', 'supplierId', 'issue', 'priceFrom', 'priceTo', 'sort']);
         $this->resetPage();
         $this->clearSelection();
     }
@@ -174,7 +183,8 @@ class Index extends Component
     public function hasFilters(): bool
     {
         return $this->search !== '' || $this->status || $this->categoryId
-            || $this->brandId || $this->supplierId || $this->issue;
+            || $this->brandId || $this->supplierId || $this->issue
+            || $this->priceFrom !== '' || $this->priceTo !== '';
     }
 
     public function updatedSelectPage(bool $value): void

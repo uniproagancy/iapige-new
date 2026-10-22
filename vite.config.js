@@ -25,6 +25,7 @@ export default defineConfig({
                 'resources/css/pages/info.css',
                 'resources/js/pages/home.js',
                 'resources/js/pages/product.js',
+                'resources/js/pages/checkout.js',
             ],
             refresh: true,
         }),

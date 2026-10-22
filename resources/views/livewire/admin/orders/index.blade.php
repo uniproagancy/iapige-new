@@ -9,6 +9,7 @@
             'cart'    => '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
             'money'   => '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
             'pin'     => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+            'link'    => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
             'check'   => '<polyline points="20 6 9 17 4 12"/>',
             'trash'   => '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
             'file'    => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
@@ -230,7 +231,16 @@
                             </td>
 
                             <td class="text-end text-nowrap">
-                                <a class="btn btn-sm btn-icon btn-primary"
+                                <button type="button"
+                                        @class(['btn btn-sm btn-icon',
+                                            'btn-secondary' => $openCallback === $request->id,
+                                            'btn-outline-secondary' => $openCallback !== $request->id])
+                                        wire:click="toggleCallback({{ $request->id }})"
+                                        title="{{ __('admin.open') }}">
+                                    {!! $icon('eye') !!}
+                                </button>
+
+                                <a class="btn btn-sm btn-icon btn-primary ms-25"
                                    href="{{ route('admin.orders.create', ['callback' => $request->id]) }}"
                                    wire:navigate
                                    title="{{ __('admin.cb_make_order') }}">
@@ -250,6 +260,56 @@
                                 </button>
                             </td>
                         </tr>
+
+                        @if ($openCallback === $request->id)
+                            <tr wire:key="cbd-{{ $request->id }}" class="adm-row-callback">
+                                <td></td>
+                                <td colspan="7" class="pt-0">
+                                    <div class="d-flex flex-wrap gap-2 align-items-start">
+                                        @if ($request->product)
+                                            <img class="adm-cb-photo"
+                                                 src="{{ $request->product->images->first()?->variant(320) ?? \App\Support\Store::img('p'.$request->product->id) }}"
+                                                 alt="{{ $request->product->name }}" loading="lazy">
+
+                                            <div>
+                                                <small class="d-block text-muted">{{ __('admin.cb_product') }}</small>
+
+                                                <a class="fw-bolder text-body"
+                                                   href="{{ route('admin.products.edit', $request->product) }}" wire:navigate>
+                                                    {{ $request->product->name }}
+                                                </a>
+
+                                                <span class="d-block">{{ money($request->product->sellingPrice()) }}</span>
+                                                <small class="d-block text-muted">SKU: {{ $request->product->sku }}</small>
+                                            </div>
+                                        @else
+                                            <div>
+                                                <small class="d-block text-muted">{{ __('admin.cb_product') }}</small>
+                                                <span class="text-muted">{{ __('admin.cb_no_product') }}</span>
+                                            </div>
+                                        @endif
+
+                                        <div class="ms-lg-4">
+                                            <small class="d-block text-muted">{{ __('admin.cb_page') }}</small>
+
+                                            @if ($request->page)
+                                                <a class="d-inline-flex align-items-center gap-25"
+                                                   href="{{ $request->page }}" target="_blank" rel="noopener">
+                                                    {!! $icon('link') !!}{{ \Illuminate\Support\Str::limit($request->page, 70) }}
+                                                </a>
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
+
+                                            @if ($request->comment)
+                                                <small class="d-block text-muted mt-1">{{ __('admin.cb_comment') }}</small>
+                                                <span>{{ $request->comment }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     @endforeach
 
                     @forelse ($orders as $order)

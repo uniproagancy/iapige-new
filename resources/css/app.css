@@ -1509,3 +1509,6 @@ body.has-cookies .toast{bottom:130px}
   .errpage{padding:48px 16px}
   .errpage__code{font-size:52px}
 }
+
+/* a field the form refused; the page script takes the shopper here */
+.field--bad .field__box{border-color:var(--red-bright);background:#FFF7F7}

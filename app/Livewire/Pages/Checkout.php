@@ -19,6 +19,7 @@ use App\Support\Catalog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -224,9 +225,22 @@ class Checkout extends Component
         return $this->driverFor() === 'bog-installment';
     }
 
+    /* The form is taller than the screen, so a complaint about the name was
+       raised while the shopper was still looking at the submit button. */
+    protected function pointAt(string $field): void
+    {
+        $this->dispatch('form-error', field: $field);
+    }
+
     public function place()
     {
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (ValidationException $e) {
+            $this->pointAt((string) array_key_first($e->errors()));
+
+            throw $e;
+        }
 
         $throttle = 'checkout:'.request()->ip();
 
@@ -238,6 +252,7 @@ class Checkout extends Component
 
         if (! $this->method()) {
             $this->addError('payment', __('checkout.payment_unavailable'));
+            $this->pointAt('payment');
 
             return null;
         }
@@ -427,6 +442,7 @@ class Checkout extends Component
             'nav' => 'catalog',
             'tab' => '',
             'pageCss' => 'checkout',
+            'pageJs' => 'checkout',
             'title' => __('checkout.title').' — IAPI.GE',
 
             'seo' => ['robots' => 'noindex, nofollow'],

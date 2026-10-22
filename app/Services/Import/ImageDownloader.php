@@ -4,6 +4,7 @@ namespace App\Services\Import;
 
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Services\Images\ImageDeduper;
 use App\Services\Images\Thumbnailer;
 use App\Support\Redact;
 use Illuminate\Support\Facades\Http;
@@ -36,7 +37,11 @@ class ImageDownloader
     {
         $deadline = microtime(true) + $this->budget();
 
-        foreach (array_slice(array_values(array_filter($urls)), 0, $limit) as $i => $url) {
+        /* The same address listed twice would be fetched twice and stored
+           under two names, because the index is part of the filename. */
+        $urls = array_values(array_unique(array_filter(array_map('trim', $urls))));
+
+        foreach (array_slice($urls, 0, $limit) as $i => $url) {
 
             if (microtime(true) >= $deadline) {
                 Log::channel('import')->info('image budget spent', [
@@ -70,6 +75,9 @@ class ImageDownloader
                 app(Thumbnailer::class)->make($image, force: true);
             }
         }
+
+        /* Two addresses can still hand back the same picture. */
+        app(ImageDeduper::class)->prune($product->fresh());
     }
 
     protected function store(Product $product, string $url, int $index): ?string

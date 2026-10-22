@@ -50,11 +50,14 @@ class Index extends Component
 
     public array $selected = [];
 
+    public ?int $openCallback = null;
+
     public function updated($property): void
     {
         if (in_array($property, ['search', 'status', 'payment', 'paid', 'from', 'to', 'sort', 'perPage'], true)) {
             $this->resetPage();
             $this->selected = [];
+            $this->openCallback = null;
         }
     }
 
@@ -121,10 +124,19 @@ class Index extends Component
         }
 
         return $this->openCallbacks()
-            ->with(['product' => fn ($q) => $q->withTranslation()])
+            ->with([
+                'product' => fn ($q) => $q->withTranslation()->with([
+                    'images' => fn ($i) => $i->orderBy('sort_order')->limit(1),
+                ]),
+            ])
             ->latest('id')
             ->when($this->status !== self::CALLBACKS, fn ($q) => $q->limit(self::PINNED))
             ->get();
+    }
+
+    public function toggleCallback(int $id): void
+    {
+        $this->openCallback = $this->openCallback === $id ? null : $id;
     }
 
     public function callCalled(int $id): void
@@ -140,6 +152,10 @@ class Index extends Component
             'handled_by' => auth()->id(),
             'handled_at' => now(),
         ]);
+
+        if ($this->openCallback === $id) {
+            $this->openCallback = null;
+        }
 
         $this->dispatch('toast', message: __('admin.cb_marked_called', ['name' => $request->name]));
     }
@@ -157,6 +173,10 @@ class Index extends Component
             'handled_by' => auth()->id(),
             'handled_at' => now(),
         ]);
+
+        if ($this->openCallback === $id) {
+            $this->openCallback = null;
+        }
 
         $this->dispatch('toast', message: __('admin.cb_marked_closed', ['name' => $request->name]));
     }

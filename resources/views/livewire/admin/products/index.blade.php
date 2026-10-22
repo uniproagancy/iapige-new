@@ -197,6 +197,19 @@
                 </div>
 
                 <div class="col-lg-3 col-md-6">
+                    <label class="form-label">{{ __('admin.price') }}</label>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="number" class="form-control" min="0" step="1"
+                               placeholder="{{ __('admin.price_from') }}"
+                               wire:model.live.debounce.500ms="priceFrom">
+                        <span class="text-muted">—</span>
+                        <input type="number" class="form-control" min="0" step="1"
+                               placeholder="{{ __('admin.price_to') }}"
+                               wire:model.live.debounce.500ms="priceTo">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label">{{ __('admin.sort_by') }}</label>
                     <select class="form-select" wire:model.live="sort">
                         <option value="new">{{ __('admin.sort_new') }}</option>

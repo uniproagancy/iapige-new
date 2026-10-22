@@ -30,7 +30,7 @@
 
                     <div class="cosec__body">
                         <div class="cofields">
-                            <div class="field">
+                            <div @class(['field', 'field--bad' => $errors->has('name')]) data-field="name">
                                 <label class="field__label" for="coName">{{ __('common.name') }}</label>
                                 <div class="field__box">
                                     <input id="coName" type="text" wire:model="name" autocomplete="name">
@@ -38,7 +38,7 @@
                                 @error('name') <span class="ferror">{{ $message }}</span> @enderror
                             </div>
 
-                            <div class="field">
+                            <div @class(['field', 'field--bad' => $errors->has('phone')]) data-field="phone">
                                 <label class="field__label" for="coPhone">{{ __('common.phone') }}</label>
                                 <div class="field__box">
                                     <input id="coPhone" type="tel" wire:model="phone"
@@ -47,7 +47,7 @@
                                 @error('phone') <span class="ferror">{{ $message }}</span> @enderror
                             </div>
 
-                            <div class="field field--wide">
+                            <div @class(['field field--wide', 'field--bad' => $errors->has('email')]) data-field="email">
                                 <label class="field__label" for="coEmail">
                                     {{ __('common.email') }}
                                     <span class="field__hint">{{ __('checkout.optional') }}</span>
@@ -91,7 +91,7 @@
                         @endif
 
                         <div class="cofields">
-                            <div class="field">
+                            <div @class(['field', 'field--bad' => $errors->has('address')]) data-field="address">
                                 <label class="field__label" for="coAddress">{{ __('checkout.address') }}</label>
                                 <div class="field__box">
                                     <input id="coAddress" type="text" wire:model="address" autocomplete="street-address">
@@ -125,7 +125,7 @@
                     </div>
 
                     <div class="cosec__body">
-                        <div class="paygrid">
+                        <div class="paygrid" data-field="payment">
                             @foreach ($methods as $method)
                                 <label @class(['paycard', 'is-on' => $payment === $method->code])
                                        wire:key="pay-{{ $method->id }}">
