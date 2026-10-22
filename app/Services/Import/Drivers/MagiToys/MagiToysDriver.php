@@ -147,6 +147,7 @@ class MagiToysDriver implements SupplierDriver
             $locale => array_filter([
                 'name' => $page['name'],
                 'summary' => $page['summary'],
+                'description' => $page['description'],
             ]),
         ];
     }

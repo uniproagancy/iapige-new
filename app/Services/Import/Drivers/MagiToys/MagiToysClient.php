@@ -44,6 +44,7 @@ class MagiToysClient
             'brand' => $this->brand($data),
             'category' => $this->clean((string) ($data['category'] ?? '')) ?: null,
             'summary' => $description['summary'],
+            'description' => $description['description'],
             'specs' => $description['specs'],
             'price' => $this->price($data),
             'in_stock' => $this->inStock($data),
@@ -133,7 +134,7 @@ class MagiToysClient
         $raw = $this->descriptionHtml($body);
 
         if ($raw === '') {
-            return ['summary' => null, 'specs' => []];
+            return ['summary' => null, 'description' => null, 'specs' => []];
         }
 
         $lines = preg_split('~<br\s*/?>|<p[^>]*>|</p>|</div>~i', $raw) ?: [];
@@ -164,8 +165,13 @@ class MagiToysClient
             }
         }
 
+        $prose = implode("\n", $summary);
+
         return [
-            'summary' => $summary ? Str::limit(implode(' ', $summary), 900) : null,
+            /* The summary is a one-line teaser in a varchar; the prose itself
+               belongs in the description, which is a long text. */
+            'summary' => $prose !== '' ? Str::limit($prose, 240) : null,
+            'description' => $prose !== '' ? $prose : null,
             'specs' => $specs,
         ];
     }

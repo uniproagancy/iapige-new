@@ -282,10 +282,10 @@ class ProductImporter
             $existing = $product->translate($locale, false);
 
             $rows[$locale] = [
-                'name' => $fields['name'],
+                'name' => $this->fit($fields['name'], 255),
 
                 'slug' => $existing?->slug ?: $this->slugFor($product, $fields['name'], $locale),
-                'summary' => $fields['summary'] ?? $existing?->summary,
+                'summary' => $this->fit($fields['summary'] ?? $existing?->summary, 255),
                 'description' => $fields['description'] ?? $existing?->description,
             ];
         }
@@ -297,6 +297,17 @@ class ProductImporter
         }
 
         $product->saveTranslations($rows);
+    }
+
+    /* A supplier that hands over a whole description where a one-line summary
+       belongs would otherwise take the whole import down on a column width. */
+    protected function fit(?string $value, int $max): ?string
+    {
+        if ($value === null || mb_strlen($value) <= $max) {
+            return $value;
+        }
+
+        return rtrim(mb_substr($value, 0, $max - 1)).'…';
     }
 
     protected function slugFor(Product $product, string $name, string $locale): string
