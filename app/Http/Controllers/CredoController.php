@@ -4,10 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\Payments\Drivers\CredoInstallment;
+use App\Services\Payments\Drivers\CredoSplit;
 
 class CredoController extends Controller
 {
     public function form(string $number, CredoInstallment $credo)
+    {
+        return $this->handOver($number, $credo);
+    }
+
+    public function split(string $number, CredoSplit $credo)
+    {
+        return $this->handOver($number, $credo);
+    }
+
+    protected function handOver(string $number, CredoInstallment $credo)
     {
         $order = Order::with('items')->where('number', $number)->firstOrFail();
 
@@ -19,7 +30,9 @@ class CredoController extends Controller
 
         return view('payments.credo', [
             'order' => $order,
-            'action' => config('credo.widget_url'),
+            'action' => $credo->widgetUrl(),
+            'field' => $credo->fieldName(),
+            'label' => $credo->label(),
             'data' => json_encode($credo->payload($order), JSON_UNESCAPED_UNICODE),
         ]);
     }

@@ -13,6 +13,7 @@ class PaymentMethodSeeder extends Seeder
         'bog_split' => 'bog-installment',
         'tbc_installment' => 'tbc-installment',
         'credo_installment' => 'credo-installment',
+        'credo_split' => 'credo-split',
     ];
 
     public function run(): void
@@ -32,6 +33,9 @@ class PaymentMethodSeeder extends Seeder
 
             ['credo_installment', '/img/payments/credo-1.png', true, 300,
                 ['ka' => 'Credo ონლაინ განვადება', 'en' => 'Credo — instalments']],
+
+            ['credo_split', '/img/payments/credo-1.png', true, 100,
+                ['ka' => 'Credo ნაწილ-ნაწილ', 'en' => 'Credo Split']],
 
             ['cash', null, false, null,
                 ['ka' => 'ადგილზე გადახდა', 'en' => 'Cash on delivery']],

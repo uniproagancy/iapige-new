@@ -78,6 +78,8 @@ Route::post('/payment/bog/installment/{number}', [BogInstallmentController::clas
     ->name('payment.bog.installment');
 Route::get('/payment/credo/{number}', [CredoController::class, 'form'])
     ->name('payment.credo.form');
+Route::get('/payment/credo-split/{number}', [CredoController::class, 'split'])
+    ->name('payment.credo_split.form');
 
 Route::get('/pay/{number}', PayOrder::class)->name('order.pay');
 

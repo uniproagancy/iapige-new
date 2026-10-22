@@ -27,10 +27,10 @@
 <body>
     <div class="wrap">
         <div class="spin" aria-hidden="true"></div>
-        <p>{{ __('checkout.redirecting_to', ['name' => 'Credo']) }}</p>
+        <p>{{ __('checkout.redirecting_to', ['name' => $label ?? 'Credo']) }}</p>
 
         <form action="{{ $action }}" method="post" id="credoForm">
-            <input type="hidden" name="credoinstallment" value='{{ $data }}'>
+            <input type="hidden" name="{{ $field ?? 'credoinstallment' }}" value='{{ $data }}'>
             <button type="submit">{{ __('checkout.continue') }}</button>
         </form>
     </div>
