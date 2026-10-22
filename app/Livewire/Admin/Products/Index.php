@@ -49,6 +49,11 @@ class Index extends Component
 
     public bool $selectPage = false;
 
+    /* The cell under the pointer, as "<id>:<field>". */
+    public ?string $editing = null;
+
+    public string $editValue = '';
+
     public ?int $bulkCategory = null;
 
     public ?int $bulkBrand = null;
@@ -58,6 +63,7 @@ class Index extends Component
         if (in_array($property, ['search', 'status', 'categoryId', 'brandId', 'supplierId', 'issue', 'priceFrom', 'priceTo', 'sort', 'perPage'], true)) {
             $this->resetPage();
             $this->clearSelection();
+            $this->cancelEdit();
         }
     }
 
@@ -171,6 +177,83 @@ class Index extends Component
             'live' => $live = Product::listable()->count(),
             'hidden' => max(0, Product::count() - $live),
         ];
+    }
+
+    public const EDITABLE = ['price', 'stock'];
+
+    public function edit(int $id, string $field): void
+    {
+        if (! in_array($field, self::EDITABLE, true)) {
+            return;
+        }
+
+        $product = Product::find($id);
+
+        if (! $product) {
+            return;
+        }
+
+        $this->editing = $id.':'.$field;
+
+        $this->editValue = $field === 'price'
+            ? rtrim(rtrim(number_format((float) $product->price, 2, '.', ''), '0'), '.')
+            : (string) (int) $product->stock;
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->reset(['editing', 'editValue']);
+    }
+
+    public function saveEdit(): void
+    {
+        if (! $this->editing) {
+            return;
+        }
+
+        [$id, $field] = explode(':', $this->editing, 2);
+
+        if (! in_array($field, self::EDITABLE, true) || ! $product = Product::find((int) $id)) {
+            $this->cancelEdit();
+
+            return;
+        }
+
+        $value = str_replace(',', '.', trim($this->editValue));
+
+        if ($value === '' || ! is_numeric($value) || (float) $value < 0) {
+            $this->dispatch('toast', message: __('admin.quick_edit_bad'), type: 'error');
+
+            return;
+        }
+
+        $field === 'price'
+            ? $this->savePrice($product, round((float) $value, 2))
+            : $this->saveStock($product, (int) $value);
+
+        $this->cancelEdit();
+    }
+
+    /* A price typed by hand is a decision; the next import would undo it
+       unless the product is told to keep it. */
+    protected function savePrice(Product $product, float $price): void
+    {
+        $product->update(['price' => $price, 'price_lock' => true]);
+
+        $this->dispatch('toast', message: __('admin.quick_edit_price', [
+            'sku' => $product->sku,
+            'price' => money($price),
+        ]));
+    }
+
+    protected function saveStock(Product $product, int $stock): void
+    {
+        $product->update(['stock' => $stock]);
+
+        $this->dispatch('toast', message: __('admin.quick_edit_stock', [
+            'sku' => $product->sku,
+            'stock' => $stock,
+        ]));
     }
 
     public function resetFilters(): void

@@ -500,3 +500,29 @@ html .content .content-wrapper .content-header .breadcrumb-item.active { opacity
     border-radius: .4rem;
     background: rgba(255, 255, 255, .06);
 }
+
+/* ------------------------------------------------------------------ cells you can type in */
+
+/*
+ | A value in the table that opens for editing on a click. It has to be a
+ | button to be reachable by keyboard, so the button chrome is taken off.
+ */
+.adm-cell {
+    border: 1px dashed transparent;
+    border-radius: .35rem;
+    background: none;
+    padding: .1rem .35rem;
+    color: inherit;
+    font: inherit;
+    cursor: text;
+}
+
+.adm-cell:hover {
+    border-color: rgba(255, 255, 255, .25);
+    background: rgba(255, 255, 255, .05);
+}
+
+.adm-quick {
+    display: inline-block;
+    width: 7rem;
+}

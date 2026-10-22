@@ -311,19 +311,50 @@
                             <td class="text-muted">{{ $product->category?->name ?? '—' }}</td>
 
                             <td class="text-end">
-                                <span class="fw-bolder">{{ money($product->price) }}</span>
-                                @if ($product->old_price)
-                                    <small class="d-block text-muted text-decoration-line-through">{{ money($product->old_price) }}</small>
+                                @if ($editing === $product->id.':price')
+                                    <input type="text" class="form-control form-control-sm adm-quick text-end"
+                                           wire:model="editValue"
+                                           wire:keydown.enter="saveEdit"
+                                           wire:keydown.escape="cancelEdit"
+                                           wire:blur="saveEdit"
+                                           autofocus>
+                                @else
+                                    <button type="button" class="adm-cell"
+                                            wire:click="edit({{ $product->id }}, 'price')"
+                                            title="{{ __('admin.quick_edit') }}">
+                                        <span class="fw-bolder">{{ money($product->price) }}</span>
+
+                                        @if ($product->price_lock)
+                                            {!! $icon('lock', 'ms-25 text-muted') !!}
+                                        @endif
+                                    </button>
+
+                                    @if ($product->old_price)
+                                        <small class="d-block text-muted text-decoration-line-through">{{ money($product->old_price) }}</small>
+                                    @endif
                                 @endif
                             </td>
 
                             <td class="text-center">
-                                @if ($product->is_preorder && $product->stock < 1)
-                                    <span class="badge rounded-pill badge-light-info">{{ __('admin.preorder') }}</span>
-                                @elseif ($product->stock > 0)
-                                    <span class="badge rounded-pill badge-light-success">{{ $product->stock }}</span>
+                                @if ($editing === $product->id.':stock')
+                                    <input type="text" class="form-control form-control-sm adm-quick text-center"
+                                           wire:model="editValue"
+                                           wire:keydown.enter="saveEdit"
+                                           wire:keydown.escape="cancelEdit"
+                                           wire:blur="saveEdit"
+                                           autofocus>
                                 @else
-                                    <span class="badge rounded-pill badge-light-secondary">0</span>
+                                    <button type="button" class="adm-cell"
+                                            wire:click="edit({{ $product->id }}, 'stock')"
+                                            title="{{ __('admin.quick_edit') }}">
+                                        @if ($product->is_preorder && $product->stock < 1)
+                                            <span class="badge rounded-pill badge-light-info">{{ __('admin.preorder') }}</span>
+                                        @elseif ($product->stock > 0)
+                                            <span class="badge rounded-pill badge-light-success">{{ $product->stock }}</span>
+                                        @else
+                                            <span class="badge rounded-pill badge-light-secondary">0</span>
+                                        @endif
+                                    </button>
                                 @endif
                             </td>
 
