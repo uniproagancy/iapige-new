@@ -76,10 +76,14 @@ class AppServiceProvider extends ServiceProvider
 
     protected function defineGates(): void
     {
-        Gate::define('admin', fn (User $user) => (bool) $user->is_admin);
+        /* 'admin' is the door to the admin area; both roles may open it. */
+        Gate::define('admin', fn (User $user) => $user->isStaff());
+
+        /* 'owner' guards what only the shop owner should touch. */
+        Gate::define('owner', fn (User $user) => $user->isAdmin());
 
         Gate::define('view-order', function (?User $user, Order $order) {
-            if ($user && ((int) $order->user_id === (int) $user->id || $user->is_admin)) {
+            if ($user && ((int) $order->user_id === (int) $user->id || $user->isStaff())) {
                 return true;
             }
 

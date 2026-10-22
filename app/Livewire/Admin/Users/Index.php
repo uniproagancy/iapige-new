@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Users;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -73,10 +74,12 @@ class Index extends Component
             ],
             'counts' => [
                 'total' => User::count(),
-                'admins' => User::where('is_admin', true)->count(),
-                'customers' => User::where('is_admin', false)->count(),
+                'admins' => User::withRole(User::ADMIN)->count(),
+                'operators' => User::withRole(User::OPERATOR)->count(),
+                'customers' => User::withRole(User::CUSTOMER)->count(),
                 'subscribed' => User::where('accepts_marketing', true)->count(),
             ],
+            'canSetRole' => Gate::allows('owner'),
         ])->layout('layouts.admin', ['title' => __('admin.customers')]);
     }
 
@@ -103,8 +106,9 @@ class Index extends Component
                     ->orWhere('users.email', 'like', "%{$term}%")
                     ->when($digits !== '', fn ($p) => $p->orWhere('users.phone', 'like', "%{$digits}%")));
             })
-            ->when($this->filter === 'admins', fn ($q) => $q->where('users.is_admin', true))
-            ->when($this->filter === 'customers', fn ($q) => $q->where('users.is_admin', false))
+            ->when($this->filter === 'admins', fn ($q) => $q->withRole(User::ADMIN))
+            ->when($this->filter === 'operators', fn ($q) => $q->withRole(User::OPERATOR))
+            ->when($this->filter === 'customers', fn ($q) => $q->withRole(User::CUSTOMER))
             ->when($this->filter === 'subscribed', fn ($q) => $q->where('users.accepts_marketing', true))
             ->when($this->hasOrders === 'yes', fn ($q) => $q->whereNotNull('stats.user_id'))
             ->when($this->hasOrders === 'no', fn ($q) => $q->whereNull('stats.user_id'))
@@ -116,17 +120,35 @@ class Index extends Component
             ->when($this->sort === 'new', fn ($q) => $q->orderByDesc('users.id'));
     }
 
-    public function toggleAdmin(int $id): void
+    public function setRole(int $id, string $role): void
     {
+        if (! Gate::allows('owner')) {
+            $this->dispatch('toast', message: __('admin.role_denied'), type: 'error');
+
+            return;
+        }
+
+        if (! in_array($role, User::roles(), true)) {
+            return;
+        }
+
+        /* Letting the last owner step down would lock everyone out. */
         if ($id === auth()->id()) {
-            $this->dispatch('toast', message: __('admin.cannot_demote_self'), type: 'error');
+            $this->dispatch('toast', message: __('admin.cannot_change_own_role'), type: 'error');
 
             return;
         }
 
         $user = User::findOrFail($id);
-        $user->update(['is_admin' => ! $user->is_admin]);
 
-        $this->dispatch('toast', message: __('admin.saved'));
+        $user->forceFill([
+            'role' => $role,
+            'is_admin' => $role === User::ADMIN,
+        ])->save();
+
+        $this->dispatch('toast', message: __('admin.role_changed', [
+            'name' => $user->firstName(),
+            'role' => __('admin.'.($role === User::CUSTOMER ? 'customer_role' : $role)),
+        ]));
     }
 }

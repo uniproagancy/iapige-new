@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Orders;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -82,6 +83,7 @@ class Index extends Component
             'statuses' => $this->statuses(),
             'totals' => $this->totals(),
             'methods' => PaymentMethod::orderBy('sort_order')->orderBy('id')->get(),
+            'canDelete' => Gate::allows('owner'),
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
     }
 
@@ -128,6 +130,36 @@ class Index extends Component
     public function hasFilters(): bool
     {
         return $this->search !== '' || $this->status || $this->payment || $this->paid || $this->from || $this->to;
+    }
+
+    public function deleteOrder(int $id): void
+    {
+        if (! Gate::allows('owner')) {
+            $this->dispatch('toast', message: __('admin.order_delete_denied'), type: 'error');
+
+            return;
+        }
+
+        $order = Order::find($id);
+
+        if (! $order) {
+            return;
+        }
+
+        $number = $order->number;
+
+        $order->events()->create([
+            'user_id' => auth()->id(),
+            'type' => 'status',
+            'from' => $order->status,
+            'to' => 'deleted',
+        ]);
+
+        $order->delete();
+
+        $this->selected = array_values(array_diff($this->selected, [$id]));
+
+        $this->dispatch('toast', message: __('admin.order_deleted', ['number' => $number]));
     }
 
     public function advance(int $id): void

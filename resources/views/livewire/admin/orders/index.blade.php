@@ -9,6 +9,7 @@
             'cart'    => '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
             'money'   => '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
             'pin'     => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+            'trash'   => '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
             'file'    => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
         ];
 
@@ -28,6 +29,12 @@
         'returned'  => 'warning',
     ];
 
+    /* only the states an operator still has to act on are tinted */
+    $rowTint = [
+        'new'       => 'adm-row-new',
+        'viewed'    => 'adm-row-viewed',
+        'confirmed' => 'adm-row-confirmed',
+    ];
 @endphp
 
 <div>
@@ -157,28 +164,32 @@
         </x-slot:filters>
 
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover adm-table align-middle mb-0">
                 <thead>
                     <tr>
-                        <th style="width:40px"></th>
-                        <th style="width:140px">{{ __('admin.order_number') }}</th>
+                        <th style="width:36px"></th>
+                        <th class="text-nowrap" style="width:1%">{{ __('admin.order_number') }}</th>
                         <th>{{ __('admin.customer') }}</th>
-                        <th style="width:190px">{{ __('admin.payment_method') }}</th>
-                        <th class="text-end" style="width:120px">{{ __('admin.total') }}</th>
-                        <th class="text-center" style="width:110px">{{ __('admin.payment') }}</th>
-                        <th class="text-center" style="width:130px">{{ __('admin.status') }}</th>
-                        <th class="text-end" style="width:70px">{{ __('admin.actions') }}</th>
+                        <th class="text-nowrap" style="width:1%">{{ __('admin.payment_method') }}</th>
+                        <th class="text-end text-nowrap" style="width:1%">{{ __('admin.total') }}</th>
+                        <th class="text-center text-nowrap" style="width:1%">{{ __('admin.payment') }}</th>
+                        <th class="text-center text-nowrap" style="width:1%">{{ __('admin.status') }}</th>
+                        <th class="text-end" style="width:1%">{{ __('admin.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($orders as $order)
-                        <tr wire:key="o-{{ $order->id }}" @class(['table-active' => in_array($order->id, $selected)])>
+                        <tr wire:key="o-{{ $order->id }}"
+                            @class([
+                                $rowTint[$order->status] ?? '',
+                                'table-active' => in_array($order->id, $selected),
+                            ])>
                             <td>
                                 <input type="checkbox" class="form-check-input"
                                        value="{{ $order->id }}" wire:model.live="selected">
                             </td>
 
-                            <td>
+                            <td class="text-nowrap">
                                 <a class="fw-bolder text-body" href="{{ route('admin.orders.show', $order) }}" wire:navigate>
                                     #{{ $order->number }}
                                 </a>
@@ -193,7 +204,7 @@
                                 </a>
                             </td>
 
-                            <td class="text-muted">
+                            <td class="text-muted text-nowrap">
                                 {{ $methods->firstWhere('code', $order->payment)?->name ?: ($order->payment ?: '—') }}
                             </td>
 
@@ -220,11 +231,20 @@
                                    title="{{ __('admin.open') }}">
                                     {!! $icon('eye') !!}
                                 </a>
+
+                                @if ($canDelete)
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger ms-25"
+                                            wire:click="deleteOrder({{ $order->id }})"
+                                            wire:confirm="{{ __('admin.order_delete_confirm', ['number' => $order->number]) }}"
+                                            title="{{ __('admin.order_delete') }}">
+                                        {!! $icon('trash') !!}
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="8" class="text-center text-muted py-4">
                                 <span class="d-block mb-25">{!! $icon('cart') !!}</span>
                                 {{ __('admin.nothing_here') }}
                             </td>

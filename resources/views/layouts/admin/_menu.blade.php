@@ -133,11 +133,13 @@
                         {!! $pill($unmapped, 'info') !!}
                     </a>
                     <ul class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.suppliers') }}">
-                                {!! $icon('truck') !!}<span>{{ __('admin.suppliers') }}</span>
-                            </a>
-                        </li>
+                        @can('owner')
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.suppliers') }}">
+                                    {!! $icon('truck') !!}<span>{{ __('admin.suppliers') }}</span>
+                                </a>
+                            </li>
+                        @endcan
                         <li>
                             <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.import.run') }}">
                                 {!! $icon('play') !!}<span>{{ __('admin.run_title') }}</span>
@@ -192,16 +194,18 @@
                                 {!! $icon('percent') !!}<span>{{ __('admin.promotions') }}</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.users') }}">
-                                {!! $icon('users') !!}<span>{{ __('admin.users') }}</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.settings') }}">
-                                {!! $icon('settings') !!}<span>{{ __('admin.settings') }}</span>
-                            </a>
-                        </li>
+                        @can('owner')
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.users') }}">
+                                    {!! $icon('users') !!}<span>{{ __('admin.users') }}</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.settings') }}">
+                                    {!! $icon('settings') !!}<span>{{ __('admin.settings') }}</span>
+                                </a>
+                            </li>
+                        @endcan
                     </ul>
                 </li>
             </ul>

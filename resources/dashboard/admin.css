@@ -393,3 +393,44 @@ html .content .content-wrapper .content-header-title {
 
 html .content .content-wrapper .content-header .breadcrumb-item a { opacity: .65; }
 html .content .content-wrapper .content-header .breadcrumb-item.active { opacity: .85; }
+
+/* ------------------------------------------------------------------ dense tables */
+
+/*
+ | The template pads every cell with 2rem on each side. That was drawn for
+ | four-column tables; ours carry eight, and 64px of air per column is what
+ | pushed order numbers onto three lines.
+ */
+.adm-table > :not(caption) > * > * {
+    padding-left: .85rem;
+    padding-right: .85rem;
+}
+
+.adm-table > :not(caption) > * > *:first-child { padding-left: 1.5rem; }
+.adm-table > :not(caption) > * > *:last-child { padding-right: 1.5rem; }
+
+.adm-table thead th {
+    font-size: .78rem;
+    letter-spacing: .4px;
+}
+
+/* ------------------------------------------------------------------ order rows by state */
+
+/*
+ | The tint rides on --bs-table-accent-bg — the same variable Bootstrap paints
+ | its own row states with — so :hover, which sets it on the cell, still wins.
+ */
+.adm-row-new { --bs-table-accent-bg: rgba(234, 84, 85, .1); }
+.adm-row-viewed { --bs-table-accent-bg: rgba(255, 159, 67, .1); }
+.adm-row-confirmed { --bs-table-accent-bg: rgba(0, 207, 232, .1); }
+
+/* the bar has to carry the tint along, or it would paint over it */
+.adm-row-new > *:first-child,
+.adm-row-viewed > *:first-child,
+.adm-row-confirmed > *:first-child {
+    box-shadow: inset 3px 0 0 var(--adm-row-bar), inset 0 0 0 9999px var(--bs-table-accent-bg);
+}
+
+.adm-row-new { --adm-row-bar: #ea5455; }
+.adm-row-viewed { --adm-row-bar: #ff9f43; }
+.adm-row-confirmed { --adm-row-bar: #00cfe8; }

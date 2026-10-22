@@ -36,6 +36,16 @@
         ['value' => $stats['last'] ? \Carbon\Carbon::parse($stats['last'])->format('d.m.Y') : '—',
          'label' => __('admin.last_order'), 'icon' => 'clock', 'tone' => 'warning'],
     ];
+    $roleTone = [
+        'admin'    => 'info',
+        'operator' => 'warning',
+    ];
+
+    $roleLabel = [
+        'admin'    => __('admin.admin'),
+        'operator' => __('admin.operator'),
+        'customer' => __('admin.customer_role'),
+    ];
 @endphp
 
 <div>
@@ -47,7 +57,7 @@
                 {!! $icon('back') !!}
             </a>
 
-            <div class="avatar avatar-lg {{ $user->is_admin ? 'bg-light-info' : 'bg-light-primary' }}">
+            <div class="avatar avatar-lg bg-light-{{ $roleTone[$user->role()] ?? 'primary' }}">
                 <span class="avatar-content">{{ $initials }}</span>
             </div>
 
@@ -55,8 +65,10 @@
                 <h4 class="mb-25 d-flex align-items-center flex-wrap gap-50">
                     {{ $user->name }}
 
-                    @if ($user->is_admin)
-                        <span class="badge rounded-pill badge-light-info">{{ __('admin.admin') }}</span>
+                    @if (isset($roleTone[$user->role()]))
+                        <span class="badge rounded-pill badge-light-{{ $roleTone[$user->role()] }}">
+                            {{ $roleLabel[$user->role()] }}
+                        </span>
                     @endif
 
                     @if ($user->accepts_marketing)
@@ -238,7 +250,7 @@
                 </div>
             @endif
 
-            @unless ($user->is_admin)
+            @unless ($user->isStaff())
                 <div class="card border-danger">
                     <div class="card-body">
                         <h5 class="mb-50 text-danger">{{ __('admin.close_account') }}</h5>

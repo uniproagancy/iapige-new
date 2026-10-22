@@ -3,7 +3,6 @@
         $paths = [
             'search' => '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
             'user'   => '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-            'shield' => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
             'eye'    => '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
             'mail'   => '<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/>',
             'money'  => '<circle cx="12" cy="12" r="10"/><path d="M15 9.5a3 3 0 0 0-3-1.5c-1.7 0-3 1-3 2.2 0 2.8 6 1.4 6 4.1 0 1.2-1.3 2.2-3 2.2a3 3 0 0 1-3-1.5"/>',
@@ -24,8 +23,19 @@
     $groups = [
         '' => ['label' => __('admin.all'), 'count' => $counts['total'], 'tone' => 'secondary'],
         'customers' => ['label' => __('admin.customers'), 'count' => $counts['customers'], 'tone' => 'primary'],
+        'operators' => ['label' => __('admin.operators'), 'count' => $counts['operators'], 'tone' => 'warning'],
         'admins' => ['label' => __('admin.admins'), 'count' => $counts['admins'], 'tone' => 'info'],
         'subscribed' => ['label' => __('admin.subscribed'), 'count' => $counts['subscribed'], 'tone' => 'success'],
+    ];
+    $roleTone = [
+        'admin'    => 'info',
+        'operator' => 'warning',
+    ];
+
+    $roleLabel = [
+        'admin'    => __('admin.admin'),
+        'operator' => __('admin.operator'),
+        'customer' => __('admin.customer_role'),
     ];
 @endphp
 
@@ -111,7 +121,7 @@
         </x-slot:filters>
 
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover adm-table align-middle mb-0">
                 <thead>
                     <tr>
                         <th>{{ __('admin.customer') }}</th>
@@ -119,7 +129,7 @@
                         <th class="text-center" style="width:100px">{{ __('admin.orders') }}</th>
                         <th class="text-end" style="width:140px">{{ __('admin.spent') }}</th>
                         <th class="text-center" style="width:120px">{{ __('admin.registered') }}</th>
-                        <th class="text-end" style="width:120px">{{ __('admin.actions') }}</th>
+                        <th class="text-end" style="width:200px">{{ __('admin.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -127,7 +137,7 @@
                         <tr wire:key="u-{{ $user->id }}">
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar avatar-sm me-1 {{ $user->is_admin ? 'bg-light-info' : 'bg-light-primary' }}">
+                                    <div class="avatar avatar-sm me-1 bg-light-{{ $roleTone[$user->role()] ?? 'primary' }}">
                                         <span class="avatar-content">{{ $initials($user->name) }}</span>
                                     </div>
 
@@ -138,8 +148,10 @@
                                         </a>
 
                                         <div class="d-flex flex-wrap align-items-center gap-25">
-                                            @if ($user->is_admin)
-                                                <span class="badge rounded-pill badge-light-info">{{ __('admin.admin') }}</span>
+                                            @if (isset($roleTone[$user->role()]))
+                                                <span class="badge rounded-pill badge-light-{{ $roleTone[$user->role()] }}">
+                                                    {{ $roleLabel[$user->role()] }}
+                                                </span>
                                             @endif
 
                                             @if ($user->accepts_marketing)
@@ -178,12 +190,17 @@
                                     {!! $icon('eye') !!}
                                 </a>
 
-                                <button type="button"
-                                        @class(['btn btn-sm btn-icon', 'btn-info' => $user->is_admin, 'btn-outline-secondary' => ! $user->is_admin])
-                                        wire:click="toggleAdmin({{ $user->id }})"
-                                        title="{{ $user->is_admin ? __('admin.revoke_admin') : __('admin.make_admin') }}">
-                                    {!! $icon('shield') !!}
-                                </button>
+                                @if ($canSetRole && $user->id !== auth()->id())
+                                    <select class="form-select form-select-sm d-inline-block w-auto ms-25"
+                                            wire:change="setRole({{ $user->id }}, $event.target.value)"
+                                            title="{{ __('admin.role') }}">
+                                        @foreach ($roleLabel as $value => $label)
+                                            <option value="{{ $value }}" @selected($user->role() === $value)>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @endif
                             </td>
                         </tr>
                     @empty
