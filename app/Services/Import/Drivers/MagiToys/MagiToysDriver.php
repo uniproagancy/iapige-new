@@ -44,6 +44,8 @@ class MagiToysDriver implements SupplierDriver
         $url = trim((string) ($data['url'] ?? ''));
 
         if (! str_starts_with($url, 'http')) {
+            $this->note($row, 'no link');
+
             Log::channel('import')->info('magitoys row has no link to follow', ['code' => $externalId]);
 
             return null;
@@ -52,6 +54,8 @@ class MagiToysDriver implements SupplierDriver
         $page = $this->client->product($url);
 
         if (! $page) {
+            $this->note($row, $this->client->reason ?? 'no page');
+
             return null;
         }
 
@@ -60,10 +64,14 @@ class MagiToysDriver implements SupplierDriver
         $cost = $this->cost($row, $page);
 
         if ($cost <= 0) {
+            $this->note($row, 'no price');
+
             Log::channel('import')->info('magitoys row has no price', ['code' => $externalId]);
 
             return null;
         }
+
+        $this->note($row, null);
 
         return new ProductPayload(
             externalId: $externalId,
@@ -85,6 +93,21 @@ class MagiToysDriver implements SupplierDriver
     protected function fromSheet(array $data, string $role): ?string
     {
         return trim((string) ($data[$role] ?? '')) ?: null;
+    }
+
+    /* Kept on the row so a run can be accounted for afterwards without
+       reading through the log. */
+    protected function note(SupplierStock $row, ?string $reason): void
+    {
+        $data = (array) ($row->data ?? []);
+
+        if (($data['skipped'] ?? null) === $reason) {
+            return;
+        }
+
+        $reason === null ? $data['skipped'] = null : $data['skipped'] = $reason;
+
+        $row->forceFill(['data' => array_filter($data, fn ($v) => $v !== null)])->saveQuietly();
     }
 
     /* The sheet names neither the section nor the brand; the page does. Keeping

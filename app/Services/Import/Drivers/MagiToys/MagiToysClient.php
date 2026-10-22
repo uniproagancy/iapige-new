@@ -17,8 +17,13 @@ class MagiToysClient
 {
     public function __construct(protected array $config = []) {}
 
+    /* Why the last page gave nothing, for the row to carry. */
+    public ?string $reason = null;
+
     public function product(string $url): ?array
     {
+        $this->reason = null;
+
         $body = $this->download($url);
 
         if ($body === null) {
@@ -28,6 +33,8 @@ class MagiToysClient
         $data = $this->schema($body);
 
         if (! $data || trim((string) ($data['name'] ?? '')) === '') {
+            $this->reason = 'no product block';
+
             Log::channel('import')->warning('magitoys page carries no product block', [
                 'url' => Redact::secrets($url),
             ]);
@@ -62,6 +69,8 @@ class MagiToysClient
                 ->withHeaders(['User-Agent' => config('services.import.user_agent', 'Mozilla/5.0')])
                 ->get($url);
         } catch (\Throwable $e) {
+            $this->reason = 'unreachable';
+
             Log::channel('import')->warning('magitoys page unreachable', [
                 'url' => Redact::secrets($url),
                 'error' => Redact::secrets($e->getMessage()),
@@ -71,6 +80,8 @@ class MagiToysClient
         }
 
         if (! $response->successful()) {
+            $this->reason = 'http '.$response->status();
+
             Log::channel('import')->warning('magitoys page refused', [
                 'url' => Redact::secrets($url),
                 'status' => $response->status(),
