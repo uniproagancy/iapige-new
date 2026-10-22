@@ -30,6 +30,7 @@ return [
 
     'status' => [
         'new' => 'ახალი',
+        'viewed' => 'ნანახია',
         'confirmed' => 'დადასტურებული',
         'packed' => 'აწყობილი',
         'shipped' => 'გზაშია',

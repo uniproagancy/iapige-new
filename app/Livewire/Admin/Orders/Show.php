@@ -26,9 +26,28 @@ class Show extends Component
 
     public function mount(Order $order): void
     {
+        $this->markSeen($order);
 
         $this->order = $order->load(['items.product.images', 'events.user', 'user']);
-        $this->status = $order->status;
+        $this->status = $this->order->status;
+    }
+
+    /* Opening a new order is the operator picking it up, so it stops being
+       new the moment it is read rather than waiting to be touched. */
+    protected function markSeen(Order $order): void
+    {
+        if ($order->status !== 'new') {
+            return;
+        }
+
+        $order->update(['status' => 'viewed']);
+
+        $order->events()->create([
+            'user_id' => auth()->id(),
+            'type' => 'status',
+            'from' => 'new',
+            'to' => 'viewed',
+        ]);
     }
 
     public function render()

@@ -5,7 +5,6 @@ namespace App\Services\Payments\Drivers;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
-
 use Log;
 
 class CredoInstallment implements PaymentDriver
@@ -79,8 +78,8 @@ class CredoInstallment implements PaymentDriver
         foreach ($products as $product) {
             $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'];
         }
-		
-		Log::warning(md5($string));
+
+        Log::warning(md5($string));
 
         return md5($string);
     }

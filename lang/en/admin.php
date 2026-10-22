@@ -305,6 +305,7 @@ return [
     'unpaid' => 'Unpaid',
     'search_orders' => 'Number, phone or name',
     'any_payment' => 'Any payment',
+    'payment_method' => 'Payment method',
     'payment_state' => 'Payment state',
     'any_payment_state' => 'Paid and unpaid',
     'period' => 'Period',

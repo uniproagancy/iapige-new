@@ -19,6 +19,7 @@
 
     $tone = [
         'new'       => 'danger',
+        'viewed'    => 'warning',
         'confirmed' => 'info',
         'packed'    => 'info',
         'shipped'   => 'primary',
@@ -27,11 +28,6 @@
         'returned'  => 'warning',
     ];
 
-    $initials = fn (?string $name) => collect(preg_split('/\s+/', trim((string) $name)))
-        ->filter()
-        ->take(2)
-        ->map(fn ($word) => mb_strtoupper(mb_substr($word, 0, 1)))
-        ->implode('') ?: '?';
 @endphp
 
 <div>
@@ -167,12 +163,11 @@
                         <th style="width:40px"></th>
                         <th style="width:140px">{{ __('admin.order_number') }}</th>
                         <th>{{ __('admin.customer') }}</th>
-                        <th style="width:180px">{{ __('admin.delivery') }}</th>
-                        <th class="text-center" style="width:80px">{{ __('admin.items') }}</th>
+                        <th style="width:190px">{{ __('admin.payment_method') }}</th>
                         <th class="text-end" style="width:120px">{{ __('admin.total') }}</th>
                         <th class="text-center" style="width:110px">{{ __('admin.payment') }}</th>
-                        <th class="text-center" style="width:120px">{{ __('admin.status') }}</th>
-                        <th class="text-end" style="width:110px">{{ __('admin.actions') }}</th>
+                        <th class="text-center" style="width:130px">{{ __('admin.status') }}</th>
+                        <th class="text-end" style="width:70px">{{ __('admin.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -191,33 +186,15 @@
                             </td>
 
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar avatar-sm bg-light-primary me-1">
-                                        <span class="avatar-content">{{ $initials($order->name) }}</span>
-                                    </div>
-
-                                    <div class="d-flex flex-column">
-                                        <span class="fw-bolder text-truncate">{{ $order->name }}</span>
-                                        <a class="small text-muted d-flex align-items-center gap-25"
-                                           href="tel:{{ $order->phone }}">
-                                            {!! $icon('phone') !!}{{ $order->phone }}
-                                        </a>
-                                    </div>
-                                </div>
+                                <span class="fw-bolder d-block text-truncate">{{ $order->name }}</span>
+                                <a class="small text-muted d-flex align-items-center gap-25"
+                                   href="tel:{{ $order->phone }}">
+                                    {!! $icon('phone') !!}{{ $order->phone }}
+                                </a>
                             </td>
 
                             <td class="text-muted">
-                                <span class="d-flex align-items-center gap-25">
-                                    {!! $icon('pin') !!}{{ $order->city ?: '—' }}
-                                </span>
-
-                                @if ($order->address)
-                                    <small class="d-block text-truncate" style="max-width:170px">{{ $order->address }}</small>
-                                @endif
-                            </td>
-
-                            <td class="text-center">
-                                <span class="badge rounded-pill badge-light-secondary">{{ $order->items->sum('qty') }}</span>
+                                {{ $methods->firstWhere('code', $order->payment)?->name ?: ($order->payment ?: '—') }}
                             </td>
 
                             <td class="text-end fw-bolder">{{ money($order->total) }}</td>
@@ -237,21 +214,6 @@
                             </td>
 
                             <td class="text-end text-nowrap">
-                                @if (in_array($order->status, \App\Livewire\Admin\Orders\Index::FLOW, true)
-                                    && $order->status !== 'completed')
-                                    <button type="button" class="btn btn-sm btn-icon btn-outline-primary"
-                                            wire:click="advance({{ $order->id }})"
-                                            title="{{ __('admin.advance') }}">
-                                        {!! $icon('arrow') !!}
-                                    </button>
-                                @endif
-
-                                <a class="btn btn-sm btn-icon btn-outline-secondary"
-                                   href="{{ route('admin.orders.invoice', $order) }}"
-                                   title="{{ __('admin.invoice_download') }}">
-                                    {!! $icon('file') !!}
-                                </a>
-
                                 <a class="btn btn-sm btn-icon btn-outline-secondary"
                                    href="{{ route('admin.orders.show', $order) }}"
                                    wire:navigate
@@ -262,7 +224,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 <span class="d-block mb-25">{!! $icon('cart') !!}</span>
                                 {{ __('admin.nothing_here') }}
                             </td>

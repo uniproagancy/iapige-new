@@ -305,6 +305,7 @@ return [
     'unpaid' => 'გადაუხდელი',
     'search_orders' => 'ნომერი, ტელეფონი ან სახელი',
     'any_payment' => 'ნებისმიერი გადახდა',
+    'payment_method' => 'გადახდის მეთოდი',
     'payment_state' => 'გადახდის მდგომარეობა',
     'any_payment_state' => 'გადახდილიც და არა',
     'period' => 'პერიოდი',

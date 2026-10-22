@@ -18,7 +18,7 @@
     };
 
     $tone = [
-        'new' => 'danger', 'confirmed' => 'info', 'packed' => 'info',
+        'new' => 'danger', 'viewed' => 'warning', 'confirmed' => 'info', 'packed' => 'info',
         'shipped' => 'primary', 'completed' => 'success',
         'cancelled' => 'secondary', 'returned' => 'warning',
     ];

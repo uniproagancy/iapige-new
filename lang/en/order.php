@@ -30,6 +30,7 @@ return [
 
     'status' => [
         'new' => 'New',
+        'viewed' => 'Viewed',
         'confirmed' => 'Confirmed',
         'packed' => 'Packed',
         'shipped' => 'On its way',

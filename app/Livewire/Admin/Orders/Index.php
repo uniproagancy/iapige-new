@@ -13,7 +13,7 @@ class Index extends Component
 {
     use WithPagination;
 
-    public const FLOW = ['new', 'confirmed', 'packed', 'shipped', 'completed'];
+    public const FLOW = ['new', 'viewed', 'confirmed', 'packed', 'shipped', 'completed'];
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -89,6 +89,7 @@ class Index extends Component
     {
         return [
             'new' => __('order.status.new'),
+            'viewed' => __('order.status.viewed'),
             'confirmed' => __('order.status.confirmed'),
             'packed' => __('order.status.packed'),
             'shipped' => __('order.status.shipped'),

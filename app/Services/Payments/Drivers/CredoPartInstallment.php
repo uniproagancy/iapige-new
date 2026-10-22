@@ -6,8 +6,6 @@ use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
 
-use Log;
-
 class CredoPartInstallment implements PaymentDriver
 {
     protected const FEE = 0.10;
@@ -60,7 +58,7 @@ class CredoPartInstallment implements PaymentDriver
             'price' => (int) round(((float) $item->price * (1 + self::FEE)) * 100),
             'type' => '0',
         ])->values()->all();
-		
+
         return [
             'merchantId' => (string) config('credo_part.merchant_id'),
             'orderCode' => (string) $order->number,
@@ -77,6 +75,7 @@ class CredoPartInstallment implements PaymentDriver
         foreach ($products as $product) {
             $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'];
         }
+
         return md5($string);
     }
 
