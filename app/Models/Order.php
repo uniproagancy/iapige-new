@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
@@ -48,11 +49,40 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
+    protected static function booted(): void
+    {
+        /* The number is the row's own id, so deleting an order can never hand
+           its number to the next one. The id is only known once the row is
+           written, so it goes in with a placeholder and is stamped after. */
+        static::creating(function (self $order) {
+            if (! $order->number) {
+                $order->number = static::placeholder();
+            }
+        });
+
+        static::created(function (self $order) {
+            if (str_starts_with((string) $order->number, self::TEMPORARY)) {
+                $order->forceFill(['number' => $order->buildNumber()])->saveQuietly();
+            }
+        });
+    }
+
+    public const TEMPORARY = 'TMP-';
+
+    public static function placeholder(): string
+    {
+        return self::TEMPORARY.Str::upper(Str::random(12));
+    }
+
+    public function buildNumber(): string
+    {
+        return sprintf('IAPI-%s-%05d', ($this->created_at ?? now())->format('ymd'), $this->getKey());
+    }
+
+    /* Kept so the places that ask for a number still work; the real one is
+       stamped on by the model once the row exists. */
     public static function nextNumber(): string
     {
-        $today = now()->format('ymd');
-        $count = static::whereDate('created_at', today())->count() + 1;
-
-        return sprintf('IAPI-%s-%04d', $today, $count);
+        return static::placeholder();
     }
 }

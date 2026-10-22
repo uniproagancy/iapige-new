@@ -18,6 +18,7 @@ use App\Services\Payments\PaymentManager;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -197,6 +198,17 @@ class Checkout extends Component
         return $this->method()?->driver;
     }
 
+    /* An online method with no working driver would take the shopper to the
+       order page without a word, so it is not offered in the first place. */
+    protected function canRun(PaymentMethod $method): bool
+    {
+        if (! $method->is_online) {
+            return true;
+        }
+
+        return $method->driver && app(PaymentManager::class)->has($method->driver);
+    }
+
     public function isOnline(): bool
     {
         $method = $this->method();
@@ -217,6 +229,12 @@ class Checkout extends Component
         $this->validate();
 
         $throttle = 'checkout:'.request()->ip();
+
+        if (RateLimiter::tooManyAttempts($throttle, 10)) {
+            $this->dispatch('toast', message: __('checkout.too_many'), type: 'error');
+
+            return null;
+        }
 
         if (! $this->method()) {
             $this->addError('payment', __('checkout.payment_unavailable'));
@@ -241,6 +259,8 @@ class Checkout extends Component
         if (! $this->buyNow) {
             app(Cart::class)->clear();
         }
+
+        RateLimiter::hit($throttle, 3600);
 
         session()->push('placed_orders', $order->id);
         $this->placedNumber = $order->number;
@@ -397,7 +417,7 @@ class Checkout extends Component
             'shipping' => $shipping,
             'total' => $total,
             'methods' => PaymentMethod::active()->withTranslation()->get()
-                ->filter(fn (PaymentMethod $m) => $m->fitsTotal($total))
+                ->filter(fn (PaymentMethod $m) => $m->fitsTotal($total) && $this->canRun($m))
                 ->values(),
             'addresses' => Auth::check()
                 ? UserAddress::where('user_id', Auth::id())->with('city')->orderByDesc('is_default')->get()

@@ -16,13 +16,17 @@ return new class extends Migration
 
         $configured = (bool) config('credo.split.merchant_id');
 
+        /* Re-running this once the shop id is filled in has to repair the row,
+           otherwise a method created before the key was set stays dead. */
+        $driver = $existing?->driver ?: ($configured ? 'credo-split' : null);
+
         $row = [
             'logo' => '/img/payments/credo-1.png',
             'is_online' => true,
             'min_total' => 100,
             'sort_order' => 6,
-            'driver' => $existing?->driver ?? ($configured ? 'credo-split' : null),
-            'is_active' => $existing ? (bool) $existing->is_active : $configured,
+            'driver' => $driver,
+            'is_active' => $existing ? ((bool) $existing->is_active || $configured) : $configured,
             'updated_at' => now(),
         ];
 
