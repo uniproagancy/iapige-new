@@ -18,6 +18,7 @@ class Setting extends Model
         'shop.delivery_days' => 'int',
         'shop.instalment_months' => 'int',
         'shop.invoice_valid_days' => 'int',
+        'shop.min_order' => 'float',
 
         'shop.company.name' => 'string',
         'shop.company.tax_id' => 'string',
@@ -68,6 +69,7 @@ class Setting extends Model
 
             config([$key => match (self::MAP[$key]) {
                 'int' => (int) $value,
+                'float' => (float) $value,
                 'bool' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
                 default => $value,
             }]);

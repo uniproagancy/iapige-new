@@ -106,7 +106,8 @@
 
                             <td class="text-muted">
                                 @if ($request->product)
-                                    <a href="{{ route('admin.products.edit', $request->product) }}">
+                                    <a href="{{ $request->product->storefrontUrl() ?? route('admin.products.edit', $request->product) }}"
+                                       @if ($request->product->storefrontUrl()) target="_blank" rel="noopener" @endif>
                                         {{ $request->product->name }}
                                     </a>
                                     <small class="d-block">{{ money($request->product->sellingPrice()) }}</small>

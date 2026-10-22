@@ -207,7 +207,12 @@
                     <b>{{ money($total) }}</b>
                 </div>
 
-                <button type="submit" class="cosum__submit" wire:loading.attr="disabled" wire:target="place">
+                @if ($short)
+                    <p class="cosum__short">{{ $short }}</p>
+                @endif
+
+                <button type="submit" class="cosum__submit" wire:loading.attr="disabled" wire:target="place"
+                        @disabled((bool) $short)>
                     <span wire:loading.remove wire:target="place">
                         {{ $this->isOnline() ? __('checkout.pay_now') : __('checkout.place_order') }}
                     </span>

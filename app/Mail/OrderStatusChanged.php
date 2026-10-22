@@ -13,7 +13,7 @@ class OrderStatusChanged extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public const NOTIFY = ['shipped', 'completed', 'cancelled'];
+    public const NOTIFY = [Order::COMPLETED, Order::CANCELLED];
 
     public function __construct(public Order $order, public string $status) {}
 

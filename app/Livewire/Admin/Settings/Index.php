@@ -25,6 +25,7 @@ class Index extends Component
             'values.shop_delivery_days' => ['required', 'integer', 'min:0', 'max:60'],
             'values.shop_instalment_months' => ['required', 'integer', 'min:1', 'max:60'],
             'values.shop_invoice_valid_days' => ['required', 'integer', 'min:1', 'max:60'],
+            'values.shop_min_order' => ['required', 'numeric', 'min:0', 'max:100000'],
             'values.shop_company_name' => ['nullable', 'string', 'max:160'],
             'values.shop_company_tax_id' => ['nullable', 'string', 'max:40'],
             'values.shop_company_address' => ['nullable', 'string', 'max:200'],

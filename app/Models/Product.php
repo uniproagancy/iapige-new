@@ -98,6 +98,19 @@ class Product extends Model
         return $this->hasMany(ProductSpec::class)->orderBy('sort_order');
     }
 
+    /* Whether the shop would serve a page for this product at all. */
+    public function isLive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE
+            && ($this->published_at === null || $this->published_at <= now());
+    }
+
+    /* Where the shop shows it, or nothing: a draft has no page to open. */
+    public function storefrontUrl(): ?string
+    {
+        return $this->isLive() && $this->slug ? route('product', $this->slug) : null;
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE)

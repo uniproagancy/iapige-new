@@ -34,7 +34,7 @@ class PayOrder extends Component
             return 'paid';
         }
 
-        if (in_array($order->status, ['cancelled', 'returned'], true)) {
+        if ($order->status === Order::CANCELLED) {
             return 'closed';
         }
 
@@ -77,7 +77,7 @@ class PayOrder extends Component
             return 'paid';
         }
 
-        if (in_array($this->order->status, ['cancelled', 'returned'], true)) {
+        if ($this->order->status === Order::CANCELLED) {
             return 'closed';
         }
 

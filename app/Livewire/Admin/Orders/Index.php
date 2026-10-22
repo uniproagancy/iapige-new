@@ -15,11 +15,17 @@ class Index extends Component
 {
     use WithPagination;
 
-    public const FLOW = ['new', 'viewed', 'confirmed', 'packed', 'shipped', 'completed'];
+    public const FLOW = [Order::NEW, Order::VIEWED, Order::COMPLETED];
 
     /* Not an order status — it narrows the list down to the call requests that
        sit on top of it, so they are one click away instead of one page away. */
     public const CALLBACKS = 'callback';
+
+    /* An order nobody has to touch again. It stays in the shop's records and
+       on its own chip, but it is out of the way of the day's work. */
+    public const ARCHIVE = 'archive';
+
+    public const ARCHIVED = Order::ARCHIVED;
 
     /* Enough to see the queue without burying the orders under it. */
     public const PINNED = 10;
@@ -78,7 +84,17 @@ class Index extends Component
                     ->orWhere('email', 'like', "%{$term}%"));
             })
             ->when($this->status === self::CALLBACKS, fn ($q) => $q->whereRaw('1 = 0'))
-            ->when($this->status && $this->status !== self::CALLBACKS, fn ($q) => $q->where('status', $this->status))
+            ->when($this->status === self::ARCHIVE, fn ($q) => $q->whereIn('status', self::ARCHIVED))
+            /* Somebody searching for a number wants that order, finished or
+               not; the archive is only kept out of the open list. */
+            ->when(
+                $this->status === '' && $this->search === '',
+                fn ($q) => $q->whereNotIn('status', self::ARCHIVED),
+            )
+            ->when(
+                $this->status !== '' && ! in_array($this->status, [self::CALLBACKS, self::ARCHIVE], true),
+                fn ($q) => $q->where('status', $this->status),
+            )
             ->when($this->payment, fn ($q) => $q->where('payment', $this->payment))
             ->when($this->paid === 'yes', fn ($q) => $q->where('is_paid', true))
             ->when($this->paid === 'no', fn ($q) => $q->where('is_paid', false))
@@ -105,6 +121,7 @@ class Index extends Component
             /* The chip stays once a call has ever come in: with the queue empty
                it is the only way back to the handled ones. */
             'callbackTotal' => CallbackRequest::count(),
+            'archived' => Order::whereIn('status', self::ARCHIVED)->count(),
             'callStates' => $this->callStates(),
             'callStateCounts' => $this->status === self::CALLBACKS ? $this->callStateCounts() : [],
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
@@ -251,16 +268,7 @@ class Index extends Component
 
     public function statuses(): array
     {
-        return [
-            'new' => __('order.status.new'),
-            'viewed' => __('order.status.viewed'),
-            'confirmed' => __('order.status.confirmed'),
-            'packed' => __('order.status.packed'),
-            'shipped' => __('order.status.shipped'),
-            'completed' => __('order.status.completed'),
-            'cancelled' => __('order.status.cancelled'),
-            'returned' => __('order.status.returned'),
-        ];
+        return Order::labels();
     }
 
     protected function statusCounts(): array

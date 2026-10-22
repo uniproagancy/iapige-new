@@ -155,7 +155,8 @@
                         @forelse ($products as $p)
                             <tr wire:key="row-{{ $p->id }}">
                                 <td>
-                                    <a href="{{ route('admin.products.edit', $p) }}">{{ $p->name ?: $p->sku }}</a>
+                                    <a href="{{ $p->storefrontUrl() ?? route('admin.products.edit', $p) }}"
+                                       @if ($p->storefrontUrl()) target="_blank" rel="noopener" @endif>{{ $p->name ?: $p->sku }}</a>
                                     <small class="d-block text-muted">{{ $p->sku }}</small>
                                 </td>
                                 <td>

@@ -24,12 +24,8 @@
     $tone = [
         'new'       => 'danger',
         'viewed'    => 'warning',
-        'confirmed' => 'info',
-        'packed'    => 'info',
-        'shipped'   => 'primary',
         'completed' => 'success',
         'cancelled' => 'secondary',
-        'returned'  => 'warning',
     ];
 
     $callTone = [
@@ -40,9 +36,8 @@
 
     /* only the states an operator still has to act on are tinted */
     $rowTint = [
-        'new'       => 'adm-row-new',
-        'viewed'    => 'adm-row-viewed',
-        'confirmed' => 'adm-row-confirmed',
+        'new'    => 'adm-row-new',
+        'viewed' => 'adm-row-viewed',
     ];
 @endphp
 
@@ -50,6 +45,7 @@
     <div class="d-flex flex-wrap gap-1 mb-2">
         @foreach ($statuses as $key => $label)
             @continue (! ($counts[$key] ?? 0))
+            @continue (in_array($key, \App\Livewire\Admin\Orders\Index::ARCHIVED, true) && $status !== $key)
             <button type="button"
                     @class(['btn btn-sm',
                         'btn-'.($tone[$key] ?? 'secondary') => $status === $key,
@@ -59,6 +55,17 @@
                 <span class="badge bg-white text-dark ms-50">{{ $counts[$key] }}</span>
             </button>
         @endforeach
+
+        @if ($archived)
+            <button type="button"
+                    @class(['btn btn-sm',
+                        'btn-secondary' => $status === 'archive',
+                        'btn-outline-secondary' => $status !== 'archive'])
+                    wire:click="$set('status', '{{ $status === 'archive' ? '' : 'archive' }}')">
+                {{ __('admin.order_archive') }}
+                <span class="badge bg-white text-dark ms-50">{{ $archived }}</span>
+            </button>
+        @endif
 
         @if ($callbackTotal)
             <button type="button"
@@ -139,6 +146,10 @@
                     @foreach ($statuses as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
+
+                    @if ($archived)
+                        <option value="archive">{{ __('admin.order_archive') }}</option>
+                    @endif
                     @if ($callbackTotal)
                         <option value="callback">{{ __('admin.order_callback') }}</option>
                     @endif
@@ -253,7 +264,8 @@
                             <td colspan="3" class="text-muted">
                                 @if ($request->product)
                                     <a class="text-body text-truncate d-block"
-                                       href="{{ route('admin.products.edit', $request->product) }}" wire:navigate>
+                                       href="{{ $request->product->storefrontUrl() ?? route('admin.products.edit', $request->product) }}"
+                                       @if ($request->product->storefrontUrl()) target="_blank" rel="noopener" @else wire:navigate @endif>
                                         {{ $request->product->name }}
                                     </a>
                                     <small class="text-muted">{{ money($request->product->sellingPrice()) }}</small>
@@ -335,7 +347,8 @@
                                                 <small class="d-block text-muted">{{ __('admin.cb_product') }}</small>
 
                                                 <a class="fw-bolder text-body"
-                                                   href="{{ route('admin.products.edit', $request->product) }}" wire:navigate>
+                                                   href="{{ $request->product->storefrontUrl() ?? route('admin.products.edit', $request->product) }}"
+                                                   @if ($request->product->storefrontUrl()) target="_blank" rel="noopener" @else wire:navigate @endif>
                                                     {{ $request->product->name }}
                                                 </a>
 

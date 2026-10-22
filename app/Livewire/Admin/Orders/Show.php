@@ -139,7 +139,7 @@ class Show extends Component
             && app(PaymentManager::class)->has($method->driver);
 
         if (! $payable || $this->order->is_paid
-            || in_array($this->order->status, ['cancelled', 'returned'], true)) {
+            || $this->order->status === Order::CANCELLED) {
             return null;
         }
 

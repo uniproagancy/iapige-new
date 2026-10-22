@@ -68,7 +68,7 @@ class Edit extends Component
 
     public function editable(): bool
     {
-        return ! in_array($this->order->status, ['cancelled', 'returned'], true);
+        return $this->order->status !== Order::CANCELLED;
     }
 
     public function found()

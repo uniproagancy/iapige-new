@@ -141,8 +141,11 @@
                              wire:key="row-{{ $row->id }}">
                             <span class="text-truncate me-1">
                                 @if ($held->has($row->external_id))
-                                    <a href="{{ route('admin.products.edit', $held[$row->external_id]) }}"
-                                       class="text-success" wire:navigate>{{ $row->external_id }}</a>
+                                    @php($linked = $held[$row->external_id])
+                                    <a href="{{ $linked->storefrontUrl() ?? route('admin.products.edit', $linked) }}"
+                                       class="text-success"
+                                       @if ($linked->storefrontUrl()) target="_blank" rel="noopener" @else wire:navigate @endif
+                                    >{{ $row->external_id }}</a>
                                 @else
                                     {{ $row->external_id }}
                                 @endif

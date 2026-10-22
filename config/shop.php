@@ -6,6 +6,10 @@ return [
     'email' => env('SHOP_EMAIL', 'info@iapi.ge'),
     'delivery_days' => (int) env('SHOP_DELIVERY_DAYS', 2),
 
+    /* An order smaller than this is not worth the courier. Zero lets anything
+       through, which is where the shop starts. */
+    'min_order' => (float) env('SHOP_MIN_ORDER', 0),
+
     'return_days' => (int) env('SHOP_RETURN_DAYS', 14),
 
     'stocked_ttl' => (int) env('SHOP_STOCKED_TTL', 10),

@@ -45,9 +45,9 @@ class Dashboard extends Component
     {
         return [
             'new_orders' => Order::where('status', 'new')->count(),
-            'packing' => Order::whereIn('status', ['confirmed', 'packed'])->count(),
+            'packing' => Order::where('status', Order::VIEWED)->count(),
             'unpaid' => Order::where('is_paid', false)
-                ->whereIn('status', ['new', 'confirmed', 'packed', 'shipped'])
+                ->whereIn('status', Order::OPEN)
                 ->count(),
             'callbacks' => CallbackRequest::where('status', 'new')->count(),
         ];
@@ -77,7 +77,7 @@ class Dashboard extends Component
         $rows = DB::table('orders')
             ->selectRaw('date(created_at) as day, coalesce(sum(total), 0) as revenue')
             ->whereDate('created_at', '>=', now()->subDays(6)->toDateString())
-            ->whereNotIn('status', ['cancelled', 'returned'])
+            ->where('status', '!=', Order::CANCELLED)
             ->groupBy('day')
             ->pluck('revenue', 'day');
 

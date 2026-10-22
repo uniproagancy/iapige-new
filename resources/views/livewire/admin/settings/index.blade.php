@@ -22,6 +22,7 @@
             $text('shop_delivery_days', __('admin.set_shop_delivery_days'), 'number', ['col' => 4]),
             $text('shop_instalment_months', __('admin.set_shop_instalment_months'), 'number', ['col' => 4]),
             $text('shop_invoice_valid_days', __('admin.set_shop_invoice_valid_days'), 'number', ['col' => 4]),
+            $text('shop_min_order', __('admin.set_shop_min_order'), 'number', ['col' => 4]),
         ],
         __('admin.set_group_company') => [
             $text('shop_company_name', __('admin.set_shop_company_name'), 'text', ['col' => 6]),

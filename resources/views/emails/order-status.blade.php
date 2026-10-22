@@ -12,7 +12,7 @@
         </td>
     </tr>
 
-    @if ($status === 'shipped')
+    @if ($status === \App\Models\Order::COMPLETED)
         <tr>
             <td style="padding:18px 28px 0;font-size:13px;color:#4A5059;line-height:1.6">
                 <b>{{ __('checkout.address') }}:</b>

@@ -21,9 +21,8 @@
     };
 
     $tone = [
-        'new' => 'danger', 'viewed' => 'warning', 'confirmed' => 'info', 'packed' => 'info',
-        'shipped' => 'primary', 'completed' => 'success',
-        'cancelled' => 'secondary', 'returned' => 'warning',
+        'new' => 'danger', 'viewed' => 'warning',
+        'completed' => 'success', 'cancelled' => 'secondary',
     ];
 
     $initials = collect(preg_split('/\s+/', trim((string) $order->name)))
@@ -74,7 +73,7 @@
                 {!! $icon('file', 'me-25') !!}{{ __('admin.invoice_download') }}
             </a>
 
-            @unless (in_array($order->status, ['cancelled', 'returned'], true))
+            @unless ($order->status === \App\Models\Order::CANCELLED)
                 <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.orders.edit', $order) }}" wire:navigate>
                     {!! $icon('edit', 'me-25') !!}{{ __('admin.order_edit') }}
                 </a>

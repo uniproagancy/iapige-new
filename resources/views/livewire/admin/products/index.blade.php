@@ -284,7 +284,9 @@
                             </td>
 
                             <td>
-                                <a class="fw-bolder d-block text-body" href="{{ route('admin.products.edit', $product) }}">
+                                <a class="fw-bolder d-block text-body"
+                                   href="{{ $product->storefrontUrl() ?? route('admin.products.edit', $product) }}"
+                                   @if ($product->storefrontUrl()) target="_blank" rel="noopener" @endif>
                                     {{ $product->name ?: '—' }}
                                     @if ($product->taxonomy_lock)
                                         <span class="text-warning ms-25" title="{{ __('admin.taxonomy_lock') }}">{!! $icon('lock') !!}</span>

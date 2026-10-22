@@ -263,6 +263,12 @@ class Checkout extends Component
             return $this->redirect(route('catalog'), navigate: false);
         }
 
+        if ($short = $this->belowMinimum($lines)) {
+            $this->dispatch('toast', message: $short, type: 'error');
+
+            return null;
+        }
+
         try {
             $order = DB::transaction(fn () => $this->createOrder($lines));
         } catch (RuntimeException $e) {
@@ -299,6 +305,33 @@ class Checkout extends Component
         session()->flash('toast', __('checkout.placed', ['number' => $order->number]));
 
         return $this->redirect(route('order', $order->number), navigate: false);
+    }
+
+    /* The shop can set a floor under what it is worth sending a courier for.
+       Zero, the default, lets everything through. */
+    public static function minimumOrder(): float
+    {
+        return (float) config('shop.min_order', 0);
+    }
+
+    protected function belowMinimum(array $lines): ?string
+    {
+        $minimum = self::minimumOrder();
+
+        if ($minimum <= 0) {
+            return null;
+        }
+
+        $subtotal = array_sum(array_column($lines, 'sum'));
+
+        if ($subtotal >= $minimum) {
+            return null;
+        }
+
+        return __('checkout.min_order', [
+            'minimum' => money($minimum),
+            'short' => money($minimum - $subtotal),
+        ]);
     }
 
     protected function createOrder(array $lines): Order
@@ -431,6 +464,8 @@ class Checkout extends Component
             'subtotal' => $subtotal,
             'shipping' => $shipping,
             'total' => $total,
+            'minimum' => self::minimumOrder(),
+            'short' => $this->belowMinimum($lines),
             'methods' => PaymentMethod::active()->withTranslation()->get()
                 ->filter(fn (PaymentMethod $m) => $m->fitsTotal($total) && $this->canRun($m))
                 ->values(),

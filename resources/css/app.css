@@ -1529,3 +1529,7 @@ body.has-cookies .toast{bottom:130px}
   .rail--section{overflow-x:hidden}
   .rail--fit>.card:nth-child(n+3){display:none}
 }
+
+/* the checkout will not take an order under the shop's floor */
+.cosum__short{margin:0 0 10px;padding:10px 12px;border-radius:12px;background:#FFF2F2;color:var(--red-bright);font-size:13px;line-height:1.5}
+.cosum__submit:disabled{opacity:.5;cursor:not-allowed}

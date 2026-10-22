@@ -15,7 +15,7 @@ use Livewire\Component;
 
 class Index extends Component
 {
-    public const TRACK = ['new', 'confirmed', 'packed', 'shipped', 'completed'];
+    public const TRACK = [Order::NEW, Order::VIEWED, Order::COMPLETED];
 
     #[Url(as: 'tab', except: 'overview')]
     public string $tab = 'overview';
@@ -106,7 +106,7 @@ class Index extends Component
     protected function activeOrder(): ?Order
     {
         return Order::where('user_id', auth()->id())
-            ->whereIn('status', ['new', 'confirmed', 'packed', 'shipped'])
+            ->whereIn('status', Order::OPEN)
             ->with('items')
             ->latest('id')
             ->first();
@@ -115,9 +115,9 @@ class Index extends Component
     protected function ordersQuery()
     {
         return Order::where('user_id', auth()->id())
-            ->when($this->orderFilter === 'active', fn ($q) => $q->whereIn('status', ['new', 'confirmed', 'packed', 'shipped']))
+            ->when($this->orderFilter === 'active', fn ($q) => $q->whereIn('status', Order::OPEN))
             ->when($this->orderFilter === 'completed', fn ($q) => $q->where('status', 'completed'))
-            ->when($this->orderFilter === 'cancelled', fn ($q) => $q->whereIn('status', ['cancelled', 'returned']));
+            ->when($this->orderFilter === 'cancelled', fn ($q) => $q->where('status', Order::CANCELLED));
     }
 
     protected function orders()
@@ -155,7 +155,7 @@ class Index extends Component
             ->where('user_id', $userId)
             ->selectRaw("
                 count(*) as total,
-                sum(case when status in ('new','confirmed','packed','shipped') then 1 else 0 end) as active,
+                sum(case when status in ('new','viewed') then 1 else 0 end) as active,
                 coalesce(sum(case when status = 'completed' then total else 0 end), 0) as spent
             ")
             ->first();

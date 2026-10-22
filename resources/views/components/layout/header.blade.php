@@ -25,7 +25,7 @@
 
 				@php
 					$pending = \App\Models\Order::where('user_id', auth()->id())
-						->whereIn('status', ['new', 'confirmed', 'packed', 'shipped'])
+						->whereIn('status', \App\Models\Order::OPEN)
 						->count();
 				@endphp
 

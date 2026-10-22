@@ -56,7 +56,7 @@ class Show extends Component
             ->where('user_id', $this->user->id)
             ->selectRaw("
                 count(*) as total,
-                sum(case when status in ('new','confirmed','packed','shipped') then 1 else 0 end) as active,
+                sum(case when status in ('new','viewed') then 1 else 0 end) as active,
                 coalesce(sum(case when status = 'completed' then total else 0 end), 0) as spent,
                 max(created_at) as last_order
             ")

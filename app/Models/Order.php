@@ -32,6 +32,40 @@ class Order extends Model
         ];
     }
 
+    public const NEW = 'new';
+
+    public const VIEWED = 'viewed';
+
+    public const COMPLETED = 'completed';
+
+    public const CANCELLED = 'cancelled';
+
+    /* The four states the shop actually works in. Everything that used to sit
+       between them — confirmed, packed, shipped — said the same thing to the
+       people using it: somebody has picked this up. */
+    public const STATUSES = [self::NEW, self::VIEWED, self::COMPLETED, self::CANCELLED];
+
+    /* Still on somebody's desk. */
+    public const OPEN = [self::NEW, self::VIEWED];
+
+    /* Done with, one way or the other. */
+    public const ARCHIVED = [self::COMPLETED, self::CANCELLED];
+
+    public static function labels(): array
+    {
+        return [
+            self::NEW => __('order.status.new'),
+            self::VIEWED => __('order.status.viewed'),
+            self::COMPLETED => __('order.status.completed'),
+            self::CANCELLED => __('order.status.cancelled'),
+        ];
+    }
+
+    public function isArchived(): bool
+    {
+        return in_array($this->status, self::ARCHIVED, true);
+    }
+
     public function deliveryCity(): BelongsTo
     {
         return $this->belongsTo(DeliveryCity::class, 'delivery_city_id');

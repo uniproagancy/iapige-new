@@ -1,8 +1,7 @@
 @php
     $tone = [
-        'new' => 'pend', 'confirmed' => 'pend', 'packed' => 'pend',
-        'shipped' => 'way', 'completed' => 'done',
-        'cancelled' => 'off', 'returned' => 'off',
+        'new' => 'pend', 'viewed' => 'way',
+        'completed' => 'done', 'cancelled' => 'off',
     ];
 
     $initials = collect(explode(' ', trim($user->name)))

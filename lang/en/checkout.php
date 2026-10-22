@@ -63,4 +63,5 @@ return [
     'method_min' => 'This method does not accept less than :amount',
     'installment_min' => 'Instalments start from :amount',
 
+    'min_order' => 'The smallest order we take is :minimum — :short short',
 ];
