@@ -473,6 +473,8 @@ return [
     'order_placed' => 'შეკვეთა #:number გაფორმდა',
     'order_edit' => 'შეკვეთის რედაქტირება',
     'cb_no_product' => 'კონკრეტული პროდუქტის გარეშე',
+    'cb_reopen' => 'რიგში დაბრუნება',
+    'cb_reopened' => ':name — ისევ რიგშია',
     'cb_history' => 'ზარების ისტორია',
     'price_from' => 'დან',
     'price_to' => 'მდე',

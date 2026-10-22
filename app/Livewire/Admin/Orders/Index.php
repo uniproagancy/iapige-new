@@ -52,9 +52,12 @@ class Index extends Component
 
     public ?int $openCallback = null;
 
+    #[Url(as: 'cbs', except: '')]
+    public string $callState = '';
+
     public function updated($property): void
     {
-        if (in_array($property, ['search', 'status', 'payment', 'paid', 'from', 'to', 'sort', 'perPage'], true)) {
+        if (in_array($property, ['search', 'status', 'payment', 'paid', 'from', 'to', 'sort', 'perPage', 'callState'], true)) {
             $this->resetPage();
             $this->selected = [];
             $this->openCallback = null;
@@ -98,13 +101,18 @@ class Index extends Component
             'canDelete' => Gate::allows('owner'),
             'callbacks' => $this->callbacks(),
             'callbackCount' => $this->openCallbacks()->count(),
+
+            /* The chip stays once a call has ever come in: with the queue empty
+               it is the only way back to the handled ones. */
+            'callbackTotal' => CallbackRequest::count(),
+            'callStates' => $this->callStates(),
+            'callStateCounts' => $this->status === self::CALLBACKS ? $this->callStateCounts() : [],
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
     }
 
-    protected function openCallbacks()
+    protected function callbackQuery()
     {
-        return CallbackRequest::where('status', CallbackRequest::NEW)
-            ->whereNull('order_id')
+        return CallbackRequest::query()
             ->when($this->search, function ($q) {
                 $term = trim($this->search);
                 $digits = preg_replace('/\D/', '', $term);
@@ -115,28 +123,88 @@ class Index extends Component
             });
     }
 
+    /* The queue: what nobody has picked up yet. */
+    protected function openCallbacks()
+    {
+        return $this->callbackQuery()
+            ->where('status', CallbackRequest::NEW)
+            ->whereNull('order_id');
+    }
+
+    protected function callbackWith(): array
+    {
+        return [
+            'product' => fn ($q) => $q->withTranslation()->with([
+                'images' => fn ($i) => $i->orderBy('sort_order')->limit(1),
+            ]),
+            'order',
+            'handler',
+        ];
+    }
+
     /* They ride above the orders unless the operator narrowed the list to one
-       order status, where a lead would only be noise. */
+       order status, where a lead would only be noise. Pressing their own chip
+       opens the whole book instead — handled calls included, because they are
+       invisible everywhere else once someone has taken them. */
     protected function callbacks()
     {
-        if ($this->status !== '' && $this->status !== self::CALLBACKS) {
+        if ($this->status === self::CALLBACKS) {
+            return $this->callbackQuery()
+                ->with($this->callbackWith())
+                ->when($this->callState, fn ($q) => $q->where('status', $this->callState))
+                ->latest('id')
+                ->paginate($this->perPage, pageName: 'cb');
+        }
+
+        if ($this->status !== '') {
             return collect();
         }
 
         return $this->openCallbacks()
-            ->with([
-                'product' => fn ($q) => $q->withTranslation()->with([
-                    'images' => fn ($i) => $i->orderBy('sort_order')->limit(1),
-                ]),
-            ])
+            ->with($this->callbackWith())
             ->latest('id')
-            ->when($this->status !== self::CALLBACKS, fn ($q) => $q->limit(self::PINNED))
+            ->limit(self::PINNED)
             ->get();
+    }
+
+    public function callStates(): array
+    {
+        return [
+            CallbackRequest::NEW => __('admin.cb_new'),
+            CallbackRequest::CALLED => __('admin.cb_called'),
+            CallbackRequest::CLOSED => __('admin.cb_closed'),
+        ];
+    }
+
+    protected function callStateCounts(): array
+    {
+        return $this->callbackQuery()
+            ->selectRaw('status, count(*) as n')
+            ->groupBy('status')
+            ->pluck('n', 'status')
+            ->all();
     }
 
     public function toggleCallback(int $id): void
     {
         $this->openCallback = $this->openCallback === $id ? null : $id;
+    }
+
+    public function callReopen(int $id): void
+    {
+        $request = CallbackRequest::find($id);
+
+        if (! $request) {
+            return;
+        }
+
+        $request->update([
+            'status' => CallbackRequest::NEW,
+            'handled_by' => null,
+            'handled_at' => null,
+        ]);
+
+        $this->dispatch('toast', message: __('admin.cb_reopened', ['name' => $request->name]));
     }
 
     public function callCalled(int $id): void
@@ -217,7 +285,7 @@ class Index extends Component
 
     public function resetFilters(): void
     {
-        $this->reset(['search', 'status', 'payment', 'paid', 'from', 'to']);
+        $this->reset(['search', 'status', 'payment', 'paid', 'from', 'to', 'callState']);
         $this->resetPage();
     }
 

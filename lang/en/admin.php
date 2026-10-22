@@ -473,6 +473,8 @@ return [
     'order_placed' => 'Order #:number placed',
     'order_edit' => 'Edit order',
     'cb_no_product' => 'No particular product',
+    'cb_reopen' => 'Back to the queue',
+    'cb_reopened' => ':name — back in the queue',
     'cb_history' => 'Call history',
     'price_from' => 'From',
     'price_to' => 'To',

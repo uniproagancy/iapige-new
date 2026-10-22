@@ -9,6 +9,7 @@
             'cart'    => '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
             'money'   => '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
             'pin'     => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+            'undo'    => '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
             'link'    => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
             'check'   => '<polyline points="20 6 9 17 4 12"/>',
             'trash'   => '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
@@ -29,6 +30,12 @@
         'completed' => 'success',
         'cancelled' => 'secondary',
         'returned'  => 'warning',
+    ];
+
+    $callTone = [
+        'new'    => 'danger',
+        'called' => 'success',
+        'closed' => 'secondary',
     ];
 
     /* only the states an operator still has to act on are tinted */
@@ -53,7 +60,7 @@
             </button>
         @endforeach
 
-        @if ($callbackCount)
+        @if ($callbackTotal)
             <button type="button"
                     @class(['btn btn-sm',
                         'btn-primary' => $status === 'callback',
@@ -64,6 +71,30 @@
             </button>
         @endif
     </div>
+
+    @if ($status === 'callback')
+        <div class="d-flex flex-wrap gap-1 mb-2">
+            <button type="button"
+                    @class(['btn btn-sm',
+                        'btn-primary' => $callState === '',
+                        'btn-outline-primary' => $callState !== ''])
+                    wire:click="$set('callState', '')">
+                {{ __('admin.all') }}
+                <span class="badge bg-white text-dark ms-50">{{ array_sum($callStateCounts) }}</span>
+            </button>
+
+            @foreach ($callStates as $key => $label)
+                <button type="button"
+                        @class(['btn btn-sm',
+                            'btn-'.($callTone[$key] ?? 'secondary') => $callState === $key,
+                            'btn-outline-'.($callTone[$key] ?? 'secondary') => $callState !== $key])
+                        wire:click="$set('callState', '{{ $callState === $key ? '' : $key }}')">
+                    {{ $label }}
+                    <span class="badge bg-white text-dark ms-50">{{ $callStateCounts[$key] ?? 0 }}</span>
+                </button>
+            @endforeach
+        </div>
+    @endif
 
     @if ($selected)
         <div class="card border-primary">
@@ -108,7 +139,9 @@
                     @foreach ($statuses as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
-                    <option value="callback">{{ __('admin.order_callback') }}</option>
+                    @if ($callbackTotal)
+                        <option value="callback">{{ __('admin.order_callback') }}</option>
+                    @endif
                 </select>
             </div>
 
@@ -198,7 +231,8 @@
                 </thead>
                 <tbody>
                     @foreach ($callbacks as $request)
-                        <tr wire:key="cb-{{ $request->id }}" class="adm-row-callback">
+                        <tr wire:key="cb-{{ $request->id }}"
+                            @class(['adm-row-callback' => $request->status === 'new'])>
                             <td></td>
 
                             <td class="text-nowrap">
@@ -216,7 +250,7 @@
                                 </a>
                             </td>
 
-                            <td colspan="4" class="text-muted">
+                            <td colspan="3" class="text-muted">
                                 @if ($request->product)
                                     <a class="text-body text-truncate d-block"
                                        href="{{ route('admin.products.edit', $request->product) }}" wire:navigate>
@@ -230,6 +264,19 @@
                                 @endif
                             </td>
 
+                            <td class="text-center text-nowrap">
+                                <span class="badge rounded-pill badge-light-{{ $callTone[$request->status] ?? 'secondary' }}">
+                                    {{ $callStates[$request->status] ?? $request->status }}
+                                </span>
+
+                                @if ($request->order)
+                                    <a class="small d-block mt-25"
+                                       href="{{ route('admin.orders.show', $request->order) }}" wire:navigate>
+                                        #{{ $request->order->number }}
+                                    </a>
+                                @endif
+                            </td>
+
                             <td class="text-end text-nowrap">
                                 <button type="button"
                                         @class(['btn btn-sm btn-icon',
@@ -240,29 +287,42 @@
                                     {!! $icon('eye') !!}
                                 </button>
 
-                                <a class="btn btn-sm btn-icon btn-primary ms-25"
-                                   href="{{ route('admin.orders.create', ['callback' => $request->id]) }}"
-                                   wire:navigate
-                                   title="{{ __('admin.cb_make_order') }}">
-                                    {!! $icon('cart') !!}
-                                </a>
+                                @unless ($request->order)
+                                    <a class="btn btn-sm btn-icon btn-primary ms-25"
+                                       href="{{ route('admin.orders.create', ['callback' => $request->id]) }}"
+                                       wire:navigate
+                                       title="{{ __('admin.cb_make_order') }}">
+                                        {!! $icon('cart') !!}
+                                    </a>
+                                @endunless
 
-                                <button type="button" class="btn btn-sm btn-icon btn-outline-success ms-25"
-                                        wire:click="callCalled({{ $request->id }})"
-                                        title="{{ __('admin.cb_mark_called') }}">
-                                    {!! $icon('check') !!}
-                                </button>
+                                @if ($request->status === 'new')
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-success ms-25"
+                                            wire:click="callCalled({{ $request->id }})"
+                                            title="{{ __('admin.cb_mark_called') }}">
+                                        {!! $icon('check') !!}
+                                    </button>
+                                @else
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-warning ms-25"
+                                            wire:click="callReopen({{ $request->id }})"
+                                            title="{{ __('admin.cb_reopen') }}">
+                                        {!! $icon('undo') !!}
+                                    </button>
+                                @endif
 
-                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary ms-25"
-                                        wire:click="callClosed({{ $request->id }})"
-                                        title="{{ __('admin.cb_close') }}">
-                                    {!! $icon('x') !!}
-                                </button>
+                                @unless ($request->status === 'closed')
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-secondary ms-25"
+                                            wire:click="callClosed({{ $request->id }})"
+                                            title="{{ __('admin.cb_close') }}">
+                                        {!! $icon('x') !!}
+                                    </button>
+                                @endunless
                             </td>
                         </tr>
 
                         @if ($openCallback === $request->id)
-                            <tr wire:key="cbd-{{ $request->id }}" class="adm-row-callback">
+                            <tr wire:key="cbd-{{ $request->id }}"
+                                @class(['adm-row-callback' => $request->status === 'new'])>
                                 <td></td>
                                 <td colspan="7" class="pt-0">
                                     <div class="d-flex flex-wrap gap-2 align-items-start">
@@ -304,6 +364,15 @@
                                             @if ($request->comment)
                                                 <small class="d-block text-muted mt-1">{{ __('admin.cb_comment') }}</small>
                                                 <span>{{ $request->comment }}</span>
+                                            @endif
+
+                                            @if ($request->handled_at)
+                                                <small class="d-block text-muted mt-1">
+                                                    {{ __('admin.cb_handled_by', [
+                                                        'name' => $request->handler?->name ?: '—',
+                                                        'when' => $request->handled_at->format('d.m.Y H:i'),
+                                                    ]) }}
+                                                </small>
                                             @endif
                                         </div>
                                     </div>
@@ -394,6 +463,10 @@
 
         @if ($orders->hasPages())
             <div class="card-body pt-1">{{ $orders->links() }}</div>
+        @endif
+
+        @if ($status === 'callback' && $callbacks->hasPages())
+            <div class="card-body pt-1">{{ $callbacks->links() }}</div>
         @endif
     </x-admin.list-card>
 </div>
