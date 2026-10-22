@@ -420,17 +420,20 @@ html .content .content-wrapper .content-header .breadcrumb-item.active { opacity
  | The tint rides on --bs-table-accent-bg — the same variable Bootstrap paints
  | its own row states with — so :hover, which sets it on the cell, still wins.
  */
+.adm-row-callback { --bs-table-accent-bg: rgba(115, 103, 240, .1); }
 .adm-row-new { --bs-table-accent-bg: rgba(234, 84, 85, .1); }
 .adm-row-viewed { --bs-table-accent-bg: rgba(255, 159, 67, .1); }
 .adm-row-confirmed { --bs-table-accent-bg: rgba(0, 207, 232, .1); }
 
 /* the bar has to carry the tint along, or it would paint over it */
+.adm-row-callback > *:first-child,
 .adm-row-new > *:first-child,
 .adm-row-viewed > *:first-child,
 .adm-row-confirmed > *:first-child {
     box-shadow: inset 3px 0 0 var(--adm-row-bar), inset 0 0 0 9999px var(--bs-table-accent-bg);
 }
 
+.adm-row-callback { --adm-row-bar: #7367f0; }
 .adm-row-new { --adm-row-bar: #ea5455; }
 .adm-row-viewed { --adm-row-bar: #ff9f43; }
 .adm-row-confirmed { --adm-row-bar: #00cfe8; }

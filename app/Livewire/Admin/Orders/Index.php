@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Orders;
 
+use App\Models\CallbackRequest;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,13 @@ class Index extends Component
     use WithPagination;
 
     public const FLOW = ['new', 'viewed', 'confirmed', 'packed', 'shipped', 'completed'];
+
+    /* Not an order status — it narrows the list down to the call requests that
+       sit on top of it, so they are one click away instead of one page away. */
+    public const CALLBACKS = 'callback';
+
+    /* Enough to see the queue without burying the orders under it. */
+    public const PINNED = 10;
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -63,7 +71,8 @@ class Index extends Component
                     ->orWhere('name', 'like', "%{$term}%")
                     ->orWhere('email', 'like', "%{$term}%"));
             })
-            ->when($this->status, fn ($q) => $q->where('status', $this->status))
+            ->when($this->status === self::CALLBACKS, fn ($q) => $q->whereRaw('1 = 0'))
+            ->when($this->status && $this->status !== self::CALLBACKS, fn ($q) => $q->where('status', $this->status))
             ->when($this->payment, fn ($q) => $q->where('payment', $this->payment))
             ->when($this->paid === 'yes', fn ($q) => $q->where('is_paid', true))
             ->when($this->paid === 'no', fn ($q) => $q->where('is_paid', false))
@@ -84,7 +93,72 @@ class Index extends Component
             'totals' => $this->totals(),
             'methods' => PaymentMethod::orderBy('sort_order')->orderBy('id')->get(),
             'canDelete' => Gate::allows('owner'),
+            'callbacks' => $this->callbacks(),
+            'callbackCount' => $this->openCallbacks()->count(),
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
+    }
+
+    protected function openCallbacks()
+    {
+        return CallbackRequest::where('status', CallbackRequest::NEW)
+            ->whereNull('order_id')
+            ->when($this->search, function ($q) {
+                $term = trim($this->search);
+                $digits = preg_replace('/\D/', '', $term);
+
+                $q->where(fn ($w) => $w
+                    ->where('name', 'like', "%{$term}%")
+                    ->when($digits !== '', fn ($p) => $p->orWhere('phone', 'like', "%{$digits}%")));
+            });
+    }
+
+    /* They ride above the orders unless the operator narrowed the list to one
+       order status, where a lead would only be noise. */
+    protected function callbacks()
+    {
+        if ($this->status !== '' && $this->status !== self::CALLBACKS) {
+            return collect();
+        }
+
+        return $this->openCallbacks()
+            ->with(['product' => fn ($q) => $q->withTranslation()])
+            ->latest('id')
+            ->when($this->status !== self::CALLBACKS, fn ($q) => $q->limit(self::PINNED))
+            ->get();
+    }
+
+    public function callCalled(int $id): void
+    {
+        $request = CallbackRequest::find($id);
+
+        if (! $request) {
+            return;
+        }
+
+        $request->update([
+            'status' => CallbackRequest::CALLED,
+            'handled_by' => auth()->id(),
+            'handled_at' => now(),
+        ]);
+
+        $this->dispatch('toast', message: __('admin.cb_marked_called', ['name' => $request->name]));
+    }
+
+    public function callClosed(int $id): void
+    {
+        $request = CallbackRequest::find($id);
+
+        if (! $request) {
+            return;
+        }
+
+        $request->update([
+            'status' => CallbackRequest::CLOSED,
+            'handled_by' => auth()->id(),
+            'handled_at' => now(),
+        ]);
+
+        $this->dispatch('toast', message: __('admin.cb_marked_closed', ['name' => $request->name]));
     }
 
     public function statuses(): array

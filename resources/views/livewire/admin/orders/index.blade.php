@@ -9,6 +9,7 @@
             'cart'    => '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
             'money'   => '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
             'pin'     => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+            'check'   => '<polyline points="20 6 9 17 4 12"/>',
             'trash'   => '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
             'file'    => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
         ];
@@ -50,6 +51,17 @@
                 <span class="badge bg-white text-dark ms-50">{{ $counts[$key] }}</span>
             </button>
         @endforeach
+
+        @if ($callbackCount)
+            <button type="button"
+                    @class(['btn btn-sm',
+                        'btn-primary' => $status === 'callback',
+                        'btn-outline-primary' => $status !== 'callback'])
+                    wire:click="$set('status', '{{ $status === 'callback' ? '' : 'callback' }}')">
+                {{ __('admin.order_callback') }}
+                <span class="badge bg-white text-dark ms-50">{{ $callbackCount }}</span>
+            </button>
+        @endif
     </div>
 
     @if ($selected)
@@ -95,6 +107,7 @@
                     @foreach ($statuses as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
+                    <option value="callback">{{ __('admin.order_callback') }}</option>
                 </select>
             </div>
 
@@ -178,6 +191,62 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @foreach ($callbacks as $request)
+                        <tr wire:key="cb-{{ $request->id }}" class="adm-row-callback">
+                            <td></td>
+
+                            <td class="text-nowrap">
+                                <span class="badge rounded-pill badge-light-primary">
+                                    {{ __('admin.order_callback') }}
+                                </span>
+                                <small class="d-block text-muted">{{ $request->created_at->format('d.m.Y H:i') }}</small>
+                            </td>
+
+                            <td>
+                                <span class="fw-bolder d-block text-truncate">{{ $request->name }}</span>
+                                <a class="small text-muted d-flex align-items-center gap-25"
+                                   href="tel:{{ $request->phone }}">
+                                    {!! $icon('phone') !!}{{ $request->phone }}
+                                </a>
+                            </td>
+
+                            <td colspan="4" class="text-muted">
+                                @if ($request->product)
+                                    <a class="text-body text-truncate d-block"
+                                       href="{{ route('admin.products.edit', $request->product) }}" wire:navigate>
+                                        {{ $request->product->name }}
+                                    </a>
+                                    <small class="text-muted">{{ money($request->product->sellingPrice()) }}</small>
+                                @endif
+
+                                @if ($request->comment)
+                                    <small class="d-block text-truncate">{{ $request->comment }}</small>
+                                @endif
+                            </td>
+
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-icon btn-primary"
+                                   href="{{ route('admin.orders.create', ['callback' => $request->id]) }}"
+                                   wire:navigate
+                                   title="{{ __('admin.cb_make_order') }}">
+                                    {!! $icon('cart') !!}
+                                </a>
+
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-success ms-25"
+                                        wire:click="callCalled({{ $request->id }})"
+                                        title="{{ __('admin.cb_mark_called') }}">
+                                    {!! $icon('check') !!}
+                                </button>
+
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary ms-25"
+                                        wire:click="callClosed({{ $request->id }})"
+                                        title="{{ __('admin.cb_close') }}">
+                                    {!! $icon('x') !!}
+                                </button>
+                            </td>
+                        </tr>
+                    @endforeach
+
                     @forelse ($orders as $order)
                         <tr wire:key="o-{{ $order->id }}"
                             @class([
@@ -243,12 +312,14 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                <span class="d-block mb-25">{!! $icon('cart') !!}</span>
-                                {{ __('admin.nothing_here') }}
-                            </td>
-                        </tr>
+                        @if ($callbacks->isEmpty())
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <span class="d-block mb-25">{!! $icon('cart') !!}</span>
+                                    {{ __('admin.nothing_here') }}
+                                </td>
+                            </tr>
+                        @endif
                     @endforelse
                 </tbody>
             </table>
