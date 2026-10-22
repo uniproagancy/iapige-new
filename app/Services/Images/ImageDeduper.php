@@ -4,6 +4,7 @@ namespace App\Services\Images;
 
 use App\Models\Product;
 use App\Models\ProductImage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class ImageDeduper
@@ -17,6 +18,12 @@ class ImageDeduper
      */
     public function prune(Product $product, bool $dry = false): int
     {
+        /* The column arrived with this feature; on a database that has not
+           caught up yet there is nothing to compare against. */
+        if (! $this->ready()) {
+            return 0;
+        }
+
         $images = $product->images()->orderBy('sort_order')->orderBy('id')->get();
 
         $seen = [];
@@ -50,6 +57,13 @@ class ImageDeduper
         $this->stamp($product->images()->orderBy('sort_order')->orderBy('id')->get());
 
         return count($drop);
+    }
+
+    protected static ?bool $ready = null;
+
+    public function ready(): bool
+    {
+        return self::$ready ??= Schema::hasColumn('product_images', 'hash');
     }
 
     /* Remote files are only known by their address; local ones by their bytes. */

@@ -76,8 +76,16 @@ class ImageDownloader
             }
         }
 
-        /* Two addresses can still hand back the same picture. */
-        app(ImageDeduper::class)->prune($product->fresh());
+        /* Two addresses can still hand back the same picture. Tidying them is
+           worth doing, but never at the cost of the product itself. */
+        try {
+            app(ImageDeduper::class)->prune($product->fresh());
+        } catch (\Throwable $e) {
+            Log::channel('import')->warning('image dedupe skipped', [
+                'product' => $product->id,
+                'error' => Redact::secrets($e->getMessage()),
+            ]);
+        }
     }
 
     protected function store(Product $product, string $url, int $index): ?string
