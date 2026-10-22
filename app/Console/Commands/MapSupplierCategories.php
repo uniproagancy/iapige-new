@@ -76,7 +76,7 @@ class MapSupplierCategories extends Command
             $action = $category ? 'paired with an existing shelf' : 'a new shelf';
 
             if (! $category && ! $dry) {
-                $category = $this->make($name, $parent);
+                $category = $this->make($name, $parent, $supplier);
             }
 
             if (! $dry) {
@@ -143,7 +143,7 @@ class MapSupplierCategories extends Command
         return $id ? Category::find($id) : null;
     }
 
-    protected function make(string $name, ?string $parent): Category
+    protected function make(string $name, ?string $parent, Supplier $supplier): Category
     {
         $category = Category::create([
             'parent_id' => $parent ?: null,
@@ -153,6 +153,11 @@ class MapSupplierCategories extends Command
             'in_feed' => true,
             'sort_order' => 0,
         ]);
+
+        /* Stamped, not filled: this is the import's own mark, not something a
+           form should ever set. It is what lets the shelf be swept away later
+           without catching the shop's own. */
+        $category->forceFill(['created_by_supplier_id' => $supplier->id])->save();
 
         $slug = $this->freeSlug($name, $category->id);
 

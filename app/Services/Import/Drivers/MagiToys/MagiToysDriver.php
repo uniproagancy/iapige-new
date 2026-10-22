@@ -69,13 +69,20 @@ class MagiToysDriver implements SupplierDriver
             costPrice: $cost,
             oldCostPrice: null,
             stock: $this->stockFor($row, $page),
-            brandName: $page['brand'] ?: ($data['brand'] ?? null),
-            categoryName: $data['category'] ?? $page['category'],
+            /* Either may be missing from the sheet — the columns are optional
+               and the source page names both itself. */
+            brandName: $page['brand'] ?: $this->fromSheet($data, 'brand'),
+            categoryName: $this->fromSheet($data, 'category') ?: $page['category'],
             translations: $this->translations($page),
             specs: $this->specs($page),
             images: $page['images'],
             weight: $page['weight'],
         );
+    }
+
+    protected function fromSheet(array $data, string $role): ?string
+    {
+        return trim((string) ($data[$role] ?? '')) ?: null;
     }
 
     /* The same product reaches us under two spellings of its address, so the
