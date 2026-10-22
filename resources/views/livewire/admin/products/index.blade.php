@@ -311,60 +311,48 @@
                             <td class="text-muted">{{ $product->category?->name ?? '—' }}</td>
 
                             <td class="text-end">
-                                @if ($editing === $product->id.':price')
-                                    <input type="text" class="form-control form-control-sm adm-quick text-end"
-                                           wire:model="editValue"
-                                           wire:keydown.enter="saveEdit"
-                                           wire:keydown.escape="cancelEdit"
-                                           wire:blur="saveEdit"
-                                           autofocus>
-                                @else
-                                    <button type="button" class="adm-cell"
-                                            wire:click="edit({{ $product->id }}, 'price')"
-                                            title="{{ __('admin.quick_edit') }}">
-                                        <span class="fw-bolder">{{ money($product->price) }}</span>
+                                <button type="button" class="adm-cell"
+                                        wire:click="openQuick({{ $product->id }})"
+                                        title="{{ __('admin.quick_edit') }}">
+                                    <span class="fw-bolder">{{ money($product->price) }}</span>
 
-                                        @if ($product->price_lock)
-                                            {!! $icon('lock', 'ms-25 text-muted') !!}
-                                        @endif
-                                    </button>
+                                    @if ($product->price_lock)
+                                        {!! $icon('lock', 'ms-25 text-muted') !!}
+                                    @endif
 
                                     @if ($product->old_price)
                                         <small class="d-block text-muted text-decoration-line-through">{{ money($product->old_price) }}</small>
                                     @endif
-                                @endif
+                                </button>
                             </td>
 
                             <td class="text-center">
-                                @if ($editing === $product->id.':stock')
-                                    <input type="text" class="form-control form-control-sm adm-quick text-center"
-                                           wire:model="editValue"
-                                           wire:keydown.enter="saveEdit"
-                                           wire:keydown.escape="cancelEdit"
-                                           wire:blur="saveEdit"
-                                           autofocus>
-                                @else
-                                    <button type="button" class="adm-cell"
-                                            wire:click="edit({{ $product->id }}, 'stock')"
-                                            title="{{ __('admin.quick_edit') }}">
-                                        @if ($product->is_preorder && $product->stock < 1)
-                                            <span class="badge rounded-pill badge-light-info">{{ __('admin.preorder') }}</span>
-                                        @elseif ($product->stock > 0)
-                                            <span class="badge rounded-pill badge-light-success">{{ $product->stock }}</span>
-                                        @else
-                                            <span class="badge rounded-pill badge-light-secondary">0</span>
-                                        @endif
-                                    </button>
-                                @endif
+                                <button type="button" class="adm-cell"
+                                        wire:click="openQuick({{ $product->id }})"
+                                        title="{{ __('admin.quick_edit') }}">
+                                    @if ($product->is_preorder && $product->stock < 1)
+                                        <span class="badge rounded-pill badge-light-info">{{ __('admin.preorder') }}</span>
+                                    @elseif ($product->stock > 0)
+                                        <span class="badge rounded-pill badge-light-success">{{ $product->stock }}</span>
+                                    @else
+                                        <span class="badge rounded-pill badge-light-secondary">0</span>
+                                    @endif
+                                </button>
                             </td>
 
                             <td class="text-center">
-                                <span @class([
-                                    'badge',
-                                    'badge-light-success'   => $product->status === \App\Models\Product::STATUS_ACTIVE,
-                                    'badge-light-warning'   => $product->status === \App\Models\Product::STATUS_DRAFT,
-                                    'badge-light-secondary' => $product->status === \App\Models\Product::STATUS_ARCHIVED,
-                                ])>{{ $statuses[$product->status] ?? $product->status }}</span>
+                                <div class="form-check form-switch d-inline-flex align-items-center gap-50 mb-0">
+                                    <input type="checkbox" class="form-check-input mt-0"
+                                           id="live-{{ $product->id }}"
+                                           wire:click="togglePublished({{ $product->id }})"
+                                           wire:loading.attr="disabled"
+                                           wire:target="togglePublished({{ $product->id }})"
+                                           @checked($product->status === \App\Models\Product::STATUS_ACTIVE)>
+
+                                    <label class="form-check-label small" for="live-{{ $product->id }}">
+                                        {{ $statuses[$product->status] ?? $product->status }}
+                                    </label>
+                                </div>
                             </td>
 
                             <td class="text-end text-nowrap">
@@ -418,4 +406,73 @@
             <div class="card-body pt-1">{{ $products->links() }}</div>
         @endif
     </x-admin.list-card>
+
+    @if ($quickId)
+        @php($editing = $products->firstWhere('id', $quickId))
+
+        <div class="modal fade show d-block" tabindex="-1" style="background:rgba(34,41,47,.5)"
+             wire:keydown.escape="closeQuick">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form wire:submit="saveQuick">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                {{ __('admin.quick_edit') }}
+                                @if ($editing)
+                                    <small class="d-block text-muted">{{ $editing->sku }} — {{ $editing->name }}</small>
+                                @endif
+                            </h5>
+                            <button type="button" class="btn-close" wire:click="closeQuick"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="row g-1">
+                                <div class="col-6">
+                                    <label class="form-label" for="q-price">{{ __('admin.price') }}</label>
+                                    <input type="text" class="form-control" id="q-price"
+                                           wire:model="quickPrice" autofocus>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label" for="q-old">{{ __('admin.old_price') }}</label>
+                                    <input type="text" class="form-control" id="q-old"
+                                           placeholder="{{ __('admin.quick_edit_no_old') }}"
+                                           wire:model="quickOldPrice">
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label" for="q-stock">{{ __('admin.stock') }}</label>
+                                    <input type="text" class="form-control" id="q-stock" wire:model="quickStock">
+                                </div>
+                            </div>
+
+                            <div class="form-check form-switch mt-1">
+                                <input type="checkbox" class="form-check-input" id="q-active" wire:model="quickActive">
+                                <label class="form-check-label" for="q-active">{{ __('admin.status_active') }}</label>
+                            </div>
+
+                            <div class="form-check mt-1">
+                                <input type="checkbox" class="form-check-input" id="q-lock" wire:model="quickLock">
+                                <label class="form-check-label" for="q-lock">
+                                    {!! $icon('lock', 'me-25') !!}{{ __('admin.price_lock') }}
+                                </label>
+                                <small class="d-block text-muted">{{ __('admin.quick_edit_lock_hint') }}</small>
+                            </div>
+
+                            <small class="d-block text-muted mt-1">{{ __('admin.quick_edit_stock_hint') }}</small>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" wire:click="closeQuick">
+                                {{ __('admin.cancel') }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="saveQuick">
+                                {{ __('admin.save') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

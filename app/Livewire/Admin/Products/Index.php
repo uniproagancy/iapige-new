@@ -49,10 +49,18 @@ class Index extends Component
 
     public bool $selectPage = false;
 
-    /* The cell under the pointer, as "<id>:<field>". */
-    public ?string $editing = null;
+    /* The product whose prices and stock are open in the quick form. */
+    public ?int $quickId = null;
 
-    public string $editValue = '';
+    public string $quickPrice = '';
+
+    public string $quickOldPrice = '';
+
+    public string $quickStock = '';
+
+    public bool $quickLock = true;
+
+    public bool $quickActive = false;
 
     public ?int $bulkCategory = null;
 
@@ -63,7 +71,7 @@ class Index extends Component
         if (in_array($property, ['search', 'status', 'categoryId', 'brandId', 'supplierId', 'issue', 'priceFrom', 'priceTo', 'sort', 'perPage'], true)) {
             $this->resetPage();
             $this->clearSelection();
-            $this->cancelEdit();
+            $this->closeQuick();
         }
     }
 
@@ -179,81 +187,113 @@ class Index extends Component
         ];
     }
 
-    public const EDITABLE = ['price', 'stock'];
-
-    public function edit(int $id, string $field): void
+    public function openQuick(int $id): void
     {
-        if (! in_array($field, self::EDITABLE, true)) {
-            return;
-        }
-
         $product = Product::find($id);
 
         if (! $product) {
             return;
         }
 
-        $this->editing = $id.':'.$field;
-
-        $this->editValue = $field === 'price'
-            ? rtrim(rtrim(number_format((float) $product->price, 2, '.', ''), '0'), '.')
-            : (string) (int) $product->stock;
+        $this->quickId = $product->id;
+        $this->quickPrice = $this->asNumber($product->price);
+        $this->quickOldPrice = $product->old_price === null ? '' : $this->asNumber($product->old_price);
+        $this->quickStock = (string) (int) $product->stock;
+        $this->quickLock = (bool) $product->price_lock;
+        $this->quickActive = $product->status === Product::STATUS_ACTIVE;
     }
 
-    public function cancelEdit(): void
+    /* One click in the row, for the state that gets flipped most often. */
+    public function togglePublished(int $id): void
     {
-        $this->reset(['editing', 'editValue']);
-    }
+        $product = Product::find($id);
 
-    public function saveEdit(): void
-    {
-        if (! $this->editing) {
+        if (! $product) {
             return;
         }
 
-        [$id, $field] = explode(':', $this->editing, 2);
+        $product->status === Product::STATUS_ACTIVE
+            ? $this->unpublish($id)
+            : $this->publish($id);
+    }
 
-        if (! in_array($field, self::EDITABLE, true) || ! $product = Product::find((int) $id)) {
-            $this->cancelEdit();
+    public function closeQuick(): void
+    {
+        $this->reset(['quickId', 'quickPrice', 'quickOldPrice', 'quickStock', 'quickLock', 'quickActive']);
+    }
+
+    public function saveQuick(): void
+    {
+        if (! $this->quickId || ! $product = Product::find($this->quickId)) {
+            $this->closeQuick();
 
             return;
         }
 
-        $value = str_replace(',', '.', trim($this->editValue));
+        $price = $this->asDecimal($this->quickPrice);
+        $stock = $this->asDecimal($this->quickStock);
 
-        if ($value === '' || ! is_numeric($value) || (float) $value < 0) {
+        /* An empty old price is how the strike-through is taken off again. */
+        $old = trim($this->quickOldPrice) === '' ? null : $this->asDecimal($this->quickOldPrice);
+
+        if ($price === null || $stock === null || ($old === null && trim($this->quickOldPrice) !== '')) {
             $this->dispatch('toast', message: __('admin.quick_edit_bad'), type: 'error');
 
             return;
         }
 
-        $field === 'price'
-            ? $this->savePrice($product, round((float) $value, 2))
-            : $this->saveStock($product, (int) $value);
+        /* A struck-through price that is not higher says nothing to a shopper. */
+        if ($old !== null && $old <= $price) {
+            $this->dispatch('toast', message: __('admin.quick_edit_old_low'), type: 'error');
 
-        $this->cancelEdit();
+            return;
+        }
+
+        $wasActive = $product->status === Product::STATUS_ACTIVE;
+        $changedPrice = (float) $product->price !== round($price, 2);
+
+        /* Switching it on is the one change that can be refused, so it is
+           settled before anything is written. */
+        if ($this->quickActive && ! $wasActive && ! $this->readyToPublish($product)) {
+            return;
+        }
+
+        $product->update([
+            'price' => round($price, 2),
+            'old_price' => $old === null ? null : round($old, 2),
+            'stock' => (int) $stock,
+            'price_lock' => $this->quickLock,
+        ]);
+
+        if ($this->quickActive !== $wasActive) {
+            $this->quickActive ? $this->publish($product->id) : $this->unpublish($product->id);
+        }
+
+        $this->dispatch('toast', message: __('admin.quick_edit_saved', ['sku' => $product->sku]));
+
+        /* A hand-typed price that is left unlocked goes back to the supplier's
+           on the next import, which is easy to miss. */
+        if ($changedPrice && ! $this->quickLock) {
+            $this->dispatch('toast', message: __('admin.quick_edit_unlocked'), type: 'error');
+        }
+
+        $this->closeQuick();
     }
 
-    /* A price typed by hand is a decision; the next import would undo it
-       unless the product is told to keep it. */
-    protected function savePrice(Product $product, float $price): void
+    protected function asNumber(mixed $value): string
     {
-        $product->update(['price' => $price, 'price_lock' => true]);
-
-        $this->dispatch('toast', message: __('admin.quick_edit_price', [
-            'sku' => $product->sku,
-            'price' => money($price),
-        ]));
+        return rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
     }
 
-    protected function saveStock(Product $product, int $stock): void
+    protected function asDecimal(string $value): ?float
     {
-        $product->update(['stock' => $stock]);
+        $value = str_replace(',', '.', trim($value));
 
-        $this->dispatch('toast', message: __('admin.quick_edit_stock', [
-            'sku' => $product->sku,
-            'stock' => $stock,
-        ]));
+        if ($value === '' || ! is_numeric($value) || (float) $value < 0) {
+            return null;
+        }
+
+        return (float) $value;
     }
 
     public function resetFilters(): void
