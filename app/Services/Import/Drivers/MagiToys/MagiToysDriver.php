@@ -55,6 +55,8 @@ class MagiToysDriver implements SupplierDriver
             return null;
         }
 
+        $this->remember($row, $page);
+
         $cost = $this->cost($row, $page);
 
         if ($cost <= 0) {
@@ -83,6 +85,25 @@ class MagiToysDriver implements SupplierDriver
     protected function fromSheet(array $data, string $role): ?string
     {
         return trim((string) ($data[$role] ?? '')) ?: null;
+    }
+
+    /* The sheet names neither the section nor the brand; the page does. Keeping
+       them on the row means the shelves can be built and paired afterwards
+       without walking every page a second time. */
+    protected function remember(SupplierStock $row, array $page): void
+    {
+        $data = (array) ($row->data ?? []);
+
+        $found = array_filter([
+            'page_category' => $page['category'],
+            'page_brand' => $page['brand'],
+        ]);
+
+        if (! $found || ! array_diff_assoc($found, $data)) {
+            return;
+        }
+
+        $row->forceFill(['data' => array_merge($data, $found)])->saveQuietly();
     }
 
     /* The same product reaches us under two spellings of its address, so the

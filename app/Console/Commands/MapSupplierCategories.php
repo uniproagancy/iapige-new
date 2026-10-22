@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Category;
 use App\Models\CategoryTranslation;
+use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Support\Slug;
@@ -24,7 +25,9 @@ class MapSupplierCategories extends Command
         {supplier : the supplier code}
         {--parent= : put the new shelves under this category id}
         {--dry : show what would be built and stop}
-        {--hidden : create them switched off, to be checked first}';
+        {--hidden : create them switched off, to be checked first}
+        {--no-fill : do not place products that are already imported}
+        {--no-create : build nothing; leave unknown sections for a human to pair}';
 
     protected $description = "Build the shop's categories from a supplier's own sections, and pair them up";
 
@@ -82,6 +85,7 @@ class MapSupplierCategories extends Command
         $made = 0;
         $paired = 0;
         $already = 0;
+        $waiting = 0;
         $rows = [];
 
         foreach ($names as $name => $count) {
@@ -92,6 +96,23 @@ class MapSupplierCategories extends Command
             }
 
             $category = $this->existing($name);
+
+            if (! $category && $this->option('no-create')) {
+                /* Parked with no shelf of its own: it shows up on the mapping
+                   page, for a human to pair with a shelf they choose. */
+                if (! $dry) {
+                    $this->park($supplier, $name);
+                }
+
+                $waiting++;
+
+                if (count($rows) < 15) {
+                    $rows[] = [$name, $count, 'left for you to pair'];
+                }
+
+                continue;
+            }
+
             $action = $category ? 'paired with an existing shelf' : 'a new shelf';
 
             if (! $category && ! $dry) {
@@ -126,15 +147,34 @@ class MapSupplierCategories extends Command
         $this->line("  paired with existing: {$paired}");
         $this->line(($dry ? '  would be created:     ' : '  created:              ')."{$made}");
 
+        if ($waiting) {
+            $this->line("  left for you to pair:  {$waiting}");
+        }
+
         if ($dry) {
             $this->newLine();
             $this->info('Nothing was written. Run it without --dry to apply.');
+
+            return self::SUCCESS;
+        }
+
+        /* Products imported before the shelves existed are sitting without
+           one; now that the pairing is made they can simply be placed. */
+        if (! $this->option('no-fill')) {
+            $placed = $this->place($supplier);
+
+            $this->line("  products placed:      {$placed}");
         }
 
         return self::SUCCESS;
     }
 
     /* The sections the list itself uses, busiest first. */
+    /*
+     | A price list may name its sections in a column of its own, or not name
+     | them at all — in which case the source page does, and the import leaves
+     | each name parked here waiting for a shelf. Both are read.
+     */
     protected function sections(Supplier $supplier): array
     {
         $names = [];
@@ -143,16 +183,86 @@ class MapSupplierCategories extends Command
             ->select(['id', 'data'])
             ->lazyById(500)
             ->each(function (SupplierStock $row) use (&$names) {
-                $name = trim((string) (($row->data ?? [])['category'] ?? ''));
+                $name = $this->sectionOf((array) ($row->data ?? []));
 
                 if ($name !== '') {
                     $names[$name] = ($names[$name] ?? 0) + 1;
                 }
             });
 
+        DB::table('supplier_category_map')
+            ->where('supplier_id', $supplier->id)
+            ->whereNull('category_id')
+            ->pluck('hits', 'external_name')
+            ->each(function ($hits, $name) use (&$names) {
+                $name = trim((string) $name);
+
+                if ($name !== '' && ! isset($names[$name])) {
+                    $names[$name] = (int) $hits;
+                }
+            });
+
         arsort($names);
 
         return $names;
+    }
+
+    /* The section a row belongs to, whichever of the two named it. */
+    protected function sectionOf(array $data): string
+    {
+        return trim((string) ($data['category'] ?? $data['page_category'] ?? ''));
+    }
+
+    protected function place(Supplier $supplier): int
+    {
+        $pairs = DB::table('supplier_category_map')
+            ->where('supplier_id', $supplier->id)
+            ->whereNotNull('category_id')
+            ->pluck('category_id', 'external_name');
+
+        if ($pairs->isEmpty()) {
+            return 0;
+        }
+
+        $byName = [];
+
+        SupplierStock::where('supplier_id', $supplier->id)
+            ->select(['id', 'external_id', 'data'])
+            ->lazyById(500)
+            ->each(function (SupplierStock $row) use (&$byName) {
+                $name = $this->sectionOf((array) ($row->data ?? []));
+
+                if ($name !== '') {
+                    $byName[$name][] = $row->external_id;
+                }
+            });
+
+        $placed = 0;
+
+        foreach ($pairs as $name => $categoryId) {
+            foreach (array_chunk($byName[$name] ?? [], 500) as $chunk) {
+                $products = DB::table('product_offers')
+                    ->where('supplier_id', $supplier->id)
+                    ->whereIn('external_id', $chunk)
+                    ->pluck('product_id');
+
+                /* A shelf somebody set by hand is theirs to keep. */
+                $placed += Product::whereIn('id', $products)
+                    ->whereNull('category_id')
+                    ->where('taxonomy_lock', false)
+                    ->update(['category_id' => $categoryId]);
+            }
+        }
+
+        return $placed;
+    }
+
+    protected function park(Supplier $supplier, string $name): void
+    {
+        DB::table('supplier_category_map')->updateOrInsert(
+            ['supplier_id' => $supplier->id, 'external_name' => $name],
+            ['updated_at' => now(), 'created_at' => now()],
+        );
     }
 
     protected function existing(string $name): ?Category

@@ -25,9 +25,11 @@ class MagiToysSupplierSeeder extends Seeder
                 /* The sheet says 0 for most lines; nothing is invented on top. */
                 'default_stock' => 0,
 
-                /* The rows have no code of their own on 689 lines, and the
-                   links run to 390 characters, so the key is taken from the
-                   address rather than from a column. */
+                /* sku | stock | link | price.
+                   689 rows carry no code of their own and the links run past
+                   5000 characters, so the key is taken from the address rather
+                   than from a column. The category and the brand are not in
+                   the sheet at all — the source page names both. */
                 'columns' => [
                     'key' => 'C',
                     'key_as' => 'url',
@@ -35,8 +37,6 @@ class MagiToysSupplierSeeder extends Seeder
                     'cost' => 'D',
                     'url' => 'C',
                     'code' => 'A',
-                    'category' => 'E',
-                    'brand' => 'F',
                 ],
 
                 'key_specs' => ['სიმძლავრე', 'ვოლტაჟი', 'ტიპი', 'მოდელი'],
