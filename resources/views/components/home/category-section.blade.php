@@ -14,10 +14,6 @@
                 <a class="pill" href="{{ $sub['url'] }}">{{ $sub['name'] }}</a>
             @endforeach
             <a class="pill pill--red" href="{{ $s['url'] }}">{{ __('common.all') }}</a>
-            <div class="section__nav">
-                <button type="button" class="rail-btn" data-rail="rail-{{ $s['slug'] }}" data-dir="-1" aria-label="{{ __('common.prev_items') }}"><x-icon name="caret-left" size="14" /></button>
-                <button type="button" class="rail-btn rail-btn--dark" data-rail="rail-{{ $s['slug'] }}" data-dir="1" aria-label="{{ __('common.next_items') }}"><x-icon name="caret-right" size="14" /></button>
-            </div>
         </div>
     </div>
 

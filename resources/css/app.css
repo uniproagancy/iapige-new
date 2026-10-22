@@ -1512,3 +1512,20 @@ body.has-cookies .toast{bottom:130px}
 
 /* a field the form refused; the page script takes the shopper here */
 .field--bad .field__box{border-color:var(--red-bright);background:#FFF7F7}
+
+/* ------------------------------------------------------------------ home: one row, no carousel
+
+   The section rails used to hold forty products and scroll. They now hold a
+   single row, so the scrolling is switched off and anything the row cannot
+   take at a given width is simply not drawn.
+*/
+.rail--fit{overflow-x:hidden;scroll-snap-type:none}
+.rail--fit>.card{scroll-snap-align:none}
+
+@media(max-width:1200px){.rail--fit>.card:nth-child(n+5){display:none}}
+@media(max-width:1024px){.rail--fit>.card:nth-child(n+4){display:none}}
+
+@media(max-width:768px){
+  .rail--section{overflow-x:hidden}
+  .rail--fit>.card:nth-child(n+3){display:none}
+}

@@ -13,6 +13,7 @@ use App\Models\Promotion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 
 class Catalog
@@ -64,8 +65,12 @@ class Catalog
         $promo = $p->promoPrice();
 
         $sell = $promo ?? $price;
-        $old = $promo !== null ? $price : ($p->old_price ? (float) $p->old_price : 0);
-        $discount = $old > $sell ? (int) round((1 - $sell / $old) * 100) : null;
+        $was = $promo !== null ? $price : (float) ($p->old_price ?: 0);
+
+        /* Only a higher price is worth striking through; a lower one left on a
+           row by a supplier would read as a price rise. */
+        $old = $was > $sell ? $was : 0;
+        $discount = $old > 0 ? (int) round((1 - $sell / $old) * 100) : null;
 
         return [
             'id' => $p->id,
@@ -116,7 +121,11 @@ class Catalog
             ->first();
     }
 
-    public static function deals(int $limit = 7): array
+    /* The home page shows one row and no arrows, so a section is only ever
+       as long as the widest row: five cards. */
+    public const ROW = 5;
+
+    public static function deals(int $limit = self::ROW): array
     {
         if (! $promotion = static::dealCampaign()) {
             return [];
@@ -134,7 +143,7 @@ class Catalog
         return self::cards($products);
     }
 
-    public static function sections(int $perSection = 40): array
+    public static function sections(int $perSection = self::ROW): array
     {
         $banners = Store::sectionBanners();
         $stocked = self::stocked();
@@ -667,10 +676,12 @@ class Catalog
             return [];
         }
 
+        $here = self::variantValues($product);
         $switchers = [];
 
         foreach ($siblings as $sibling) {
             $isCurrent = $sibling->is($product);
+            $theirs = self::variantValues($sibling);
 
             foreach ($sibling->attributeValues as $value) {
                 if (! $value->attribute) {
@@ -678,20 +689,63 @@ class Catalog
                 }
 
                 $code = $value->attribute->code;
+                $kept = self::keptBesides($here, $theirs, $code);
+                $existing = $switchers[$code][$value->code] ?? null;
 
-                if ($isCurrent || ! isset($switchers[$code][$value->code])) {
-                    $switchers[$code][$value->code] = [
-                        'code' => $value->code,
-                        'label' => $value->label,
-                        'hex' => $value->color_hex,
-                        'url' => $isCurrent ? null : route('product', $sibling->slug),
-                        'current' => $isCurrent,
-                    ];
+                /* Of every sibling offering this option, the one to link to is
+                   the one that leaves the rest of the choice alone — picking a
+                   colour should not quietly change the memory as well. */
+                if ($existing && ($existing['current'] || (! $isCurrent && $existing['kept'] >= $kept))) {
+                    continue;
                 }
+
+                $switchers[$code][$value->code] = [
+                    'code' => $value->code,
+                    'label' => $value->label,
+                    'hex' => $value->color_hex,
+                    'url' => $isCurrent ? null : route('product', $sibling->slug),
+                    'current' => $isCurrent,
+                    'kept' => $kept,
+                ];
             }
         }
 
-        return array_map('array_values', $switchers);
+        return array_map(
+            fn (array $options) => array_values(array_map(
+                fn (array $option) => Arr::except($option, 'kept'),
+                $options,
+            )),
+            $switchers,
+        );
+    }
+
+    /* attribute code => chosen value code, for the variant attributes only */
+    protected static function variantValues(Product $product): array
+    {
+        $values = [];
+
+        foreach ($product->attributeValues as $value) {
+            if ($value->attribute) {
+                $values[$value->attribute->code] = $value->code;
+            }
+        }
+
+        return $values;
+    }
+
+    /* How much of the current choice a sibling keeps, the switched attribute
+       itself left out of the count. */
+    protected static function keptBesides(array $here, array $theirs, string $switching): int
+    {
+        $kept = 0;
+
+        foreach ($here as $code => $chosen) {
+            if ($code !== $switching && ($theirs[$code] ?? null) === $chosen) {
+                $kept++;
+            }
+        }
+
+        return $kept;
     }
 
     public static function matching(Builder $query, string $term): Builder

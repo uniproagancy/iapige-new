@@ -247,13 +247,24 @@ class ProductImporter
 
             if (! $product->price_lock) {
                 $product->price = $best->supplier->markup((float) $best->cost_price);
-                $product->old_price = $best->old_cost_price
-                    ? $best->supplier->markup((float) $best->old_cost_price)
-                    : null;
+                $product->old_price = $this->strikeThrough($best, (float) $product->price);
             }
         }
 
         $product->save();
+    }
+
+    /* A price with a lower one struck through above it reads as nonsense, and
+       a supplier's "old price" is not always the higher of the two. */
+    protected function strikeThrough(ProductOffer $offer, float $price): ?float
+    {
+        if (! $offer->old_cost_price) {
+            return null;
+        }
+
+        $was = $offer->supplier->markup((float) $offer->old_cost_price);
+
+        return $was > $price ? $was : null;
     }
 
     protected function fillTaxonomy(Product $product, Supplier $supplier, ProductPayload $payload): void
