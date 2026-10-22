@@ -9,6 +9,7 @@ use App\Models\SupplierStock;
 use App\Support\Slug;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /*
  | A price list names its own sections. Until somebody pairs each of them with
@@ -27,6 +28,20 @@ class MapSupplierCategories extends Command
 
     protected $description = "Build the shop's categories from a supplier's own sections, and pair them up";
 
+    /* The column arrives with a migration; without it this would read as a
+       SQL error rather than as the one thing that needs doing. */
+    protected function ready(): bool
+    {
+        if (Schema::hasColumn('categories', 'created_by_supplier_id')) {
+            return true;
+        }
+
+        $this->error('The categories table has no created_by_supplier_id column yet.');
+        $this->line('  Run: php artisan migrate --force');
+
+        return false;
+    }
+
     public function handle(): int
     {
         $supplier = Supplier::where('code', $this->argument('supplier'))->first();
@@ -42,6 +57,10 @@ class MapSupplierCategories extends Command
         if ($parent && ! Category::whereKey($parent)->exists()) {
             $this->error("No category with the id [{$parent}].");
 
+            return self::FAILURE;
+        }
+
+        if (! $this->ready()) {
             return self::FAILURE;
         }
 

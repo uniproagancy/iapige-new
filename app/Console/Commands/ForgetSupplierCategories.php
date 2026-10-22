@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Supplier;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /*
  | Undoes import:map-categories. Only the shelves that command built are swept
@@ -22,6 +23,20 @@ class ForgetSupplierCategories extends Command
 
     protected $description = 'Remove the categories a price list built, and the pairings that point at them';
 
+    /* The column arrives with a migration; without it this would read as a
+       SQL error rather than as the one thing that needs doing. */
+    protected function ready(): bool
+    {
+        if (Schema::hasColumn('categories', 'created_by_supplier_id')) {
+            return true;
+        }
+
+        $this->error('The categories table has no created_by_supplier_id column yet.');
+        $this->line('  Run: php artisan migrate --force');
+
+        return false;
+    }
+
     public function handle(): int
     {
         $supplier = Supplier::where('code', $this->argument('supplier'))->first();
@@ -29,6 +44,10 @@ class ForgetSupplierCategories extends Command
         if (! $supplier) {
             $this->error("No supplier with the code [{$this->argument('supplier')}].");
 
+            return self::FAILURE;
+        }
+
+        if (! $this->ready()) {
             return self::FAILURE;
         }
 
