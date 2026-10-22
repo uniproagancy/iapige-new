@@ -472,6 +472,7 @@ return [
     'order_place' => 'Place the order',
     'order_placed' => 'Order #:number placed',
     'order_edit' => 'Edit order',
+    'cb_history' => 'Call history',
     'order_callback' => 'Call request',
     'cb_marked_called' => ':name — marked as called',
     'cb_marked_closed' => ':name — request closed',

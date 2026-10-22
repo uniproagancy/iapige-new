@@ -5,7 +5,6 @@
     $drafts = \App\Models\Product::where('status', 'draft')->count();
     $unmapped = DB::table('supplier_category_map')->whereNull('category_id')->count();
     $newOrders = \App\Models\Order::where('status', 'new')->count();
-    $callbacks = \App\Models\CallbackRequest::where('status', 'new')->count();
 
     /*
      | Drawn here rather than by feather.
@@ -169,13 +168,6 @@
                             </a>
                         </li>
                     </ul>
-                </li>
-
-                <li class="nav-item {{ $on('admin.callbacks') }}">
-                    <a class="nav-link d-flex align-items-center" href="{{ route('admin.callbacks') }}">
-                        {!! $icon('phone') !!}<span>{{ __('admin.callbacks') }}</span>
-                        {!! $pill($callbacks, 'danger') !!}
-                    </a>
                 </li>
 
                 <li class="dropdown nav-item {{ $on('admin.slides', 'admin.promotions', 'admin.users', 'admin.users.*', 'admin.settings') }}"

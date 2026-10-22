@@ -472,6 +472,7 @@ return [
     'order_place' => 'შეკვეთის გაფორმება',
     'order_placed' => 'შეკვეთა #:number გაფორმდა',
     'order_edit' => 'შეკვეთის რედაქტირება',
+    'cb_history' => 'ზარების ისტორია',
     'order_callback' => 'მოითხოვე ზარი',
     'cb_marked_called' => ':name — დარეკილად მოინიშნა',
     'cb_marked_closed' => ':name — მოთხოვნა დაიხურა',

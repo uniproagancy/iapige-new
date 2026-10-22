@@ -173,6 +173,11 @@
                 <span class="d-flex align-items-center gap-25">
                     {!! $icon('money') !!} {{ money($totals['revenue']) }}
                 </span>
+
+                <a class="d-flex align-items-center gap-25 text-muted ms-auto"
+                   href="{{ route('admin.callbacks') }}" wire:navigate>
+                    {!! $icon('phone') !!} {{ __('admin.cb_history') }}
+                </a>
             </div>
         </x-slot:filters>
 
@@ -182,8 +187,8 @@
                     <tr>
                         <th style="width:36px"></th>
                         <th class="text-nowrap" style="width:1%">{{ __('admin.order_number') }}</th>
-                        <th>{{ __('admin.customer') }}</th>
-                        <th class="text-nowrap" style="width:1%">{{ __('admin.payment_method') }}</th>
+                        <th class="text-nowrap" style="width:1%">{{ __('admin.customer') }}</th>
+                        <th class="text-nowrap">{{ __('admin.payment_method') }}</th>
                         <th class="text-end text-nowrap" style="width:1%">{{ __('admin.total') }}</th>
                         <th class="text-center text-nowrap" style="width:1%">{{ __('admin.payment') }}</th>
                         <th class="text-center text-nowrap" style="width:1%">{{ __('admin.status') }}</th>
@@ -266,18 +271,20 @@
                             </td>
 
                             <td>
-                                <span class="fw-bolder d-block text-truncate">{{ $order->name }}</span>
+                                <span class="fw-bolder d-block">{{ $order->name }}</span>
                                 <a class="small text-muted d-flex align-items-center gap-25"
                                    href="tel:{{ $order->phone }}">
                                     {!! $icon('phone') !!}{{ $order->phone }}
                                 </a>
                             </td>
 
-                            <td class="text-muted text-nowrap">
-                                {{ $methods->firstWhere('code', $order->payment)?->name ?: ($order->payment ?: '—') }}
+                            <td class="text-nowrap">
+                                <span class="adm-chip">
+                                    {{ $methods->firstWhere('code', $order->payment)?->name ?: ($order->payment ?: '—') }}
+                                </span>
                             </td>
 
-                            <td class="text-end fw-bolder">{{ money($order->total) }}</td>
+                            <td class="text-end fw-bolder text-nowrap">{{ money($order->total) }}</td>
 
                             <td class="text-center">
                                 @if ($order->is_paid)
