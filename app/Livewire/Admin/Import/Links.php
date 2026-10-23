@@ -167,8 +167,14 @@ class Links extends Component
             ? Supplier::where('code', $this->supplierCode)->first()
             : null;
 
+        /* The list links each pasted address to the product it became, so the
+           view needs the product itself -- the id alone cannot name a page. */
         $held = $supplier
-            ? ProductOffer::where('supplier_id', $supplier->id)->pluck('product_id', 'external_id')
+            ? ProductOffer::where('supplier_id', $supplier->id)
+                ->with(['product' => fn ($q) => $q->withTranslation()])
+                ->get()
+                ->mapWithKeys(fn (ProductOffer $offer) => [$offer->external_id => $offer->product])
+                ->filter()
             : collect();
 
         return view('livewire.admin.import.links', [
