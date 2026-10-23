@@ -119,11 +119,29 @@ class ImportReport extends Command
             ->whereColumn('old_price', '>', 'price')
             ->count();
 
+        /* Of the rows that carry one, how many have reached the shop at all —
+           a row with no product behind it cannot have a struck price either. */
+        $imported = ProductOffer::where('supplier_id', $supplier->id)
+            ->whereIn('external_id', SupplierStock::where('supplier_id', $supplier->id)
+                ->select(['id', 'external_id', 'data'])
+                ->get()
+                ->filter(fn (SupplierStock $row) => trim((string) (($row->data ?? [])['discount_price'] ?? '')) !== '')
+                ->pluck('external_id'))
+            ->count();
+
         $this->table(['', 'rows'], [
             ['column '.$column.' read from the sheet', $rows],
+            ['of those, imported at all', $imported],
             ['kept on the offer', $offers],
             ['shown on the card', $shown],
         ]);
+
+        if ($rows && ! $imported) {
+            $this->warn('  None of those rows has been imported yet, so none can carry one.');
+            $this->line('  Run the import again and look here afterwards.');
+
+            return;
+        }
 
         if ($rows && ! $offers) {
             $this->warn('  The sheet carries them but no offer does — run the import again.');
