@@ -17,27 +17,54 @@ class Dashboard extends Component
             'waiting' => $this->waiting(),
             'problems' => $this->problems(),
             'recent' => Order::with('items')->latest('id')->take(8)->get(),
+            'paidThisMonth' => $this->paidThisMonth(),
             'week' => $this->week(),
         ])->layout('layouts.admin', ['title' => __('admin.dashboard')]);
     }
 
+    /*
+     | Money that has actually arrived, counted on the day it arrived. The
+     | takings used to be the sum of every order written — unpaid, cancelled
+     | and deleted alike — which read far higher than the shop had earned.
+     */
     protected function today(): array
     {
-
-        $rows = DB::table('orders')
-            ->selectRaw('date(created_at) as day, count(*) as orders, coalesce(sum(total), 0) as revenue')
+        $placed = Order::selectRaw('date(created_at) as day, count(*) as orders')
             ->whereDate('created_at', '>=', now()->subDay()->toDateString())
             ->groupBy('day')
-            ->get()
-            ->keyBy('day');
+            ->pluck('orders', 'day');
 
-        $today = $rows->get(now()->toDateString());
-        $yesterday = $rows->get(now()->subDay()->toDateString());
+        $taken = Order::selectRaw('date(paid_at) as day, coalesce(sum(total), 0) as revenue')
+            ->where('is_paid', true)
+            ->whereNotNull('paid_at')
+            ->whereDate('paid_at', '>=', now()->subDay()->toDateString())
+            ->groupBy('day')
+            ->pluck('revenue', 'day');
+
+        $today = now()->toDateString();
+        $yesterday = now()->subDay()->toDateString();
 
         return [
-            'orders' => (int) ($today->orders ?? 0),
-            'revenue' => (float) ($today->revenue ?? 0),
-            'orders_yesterday' => (int) ($yesterday->orders ?? 0),
+            'orders' => (int) ($placed[$today] ?? 0),
+            'revenue' => (float) ($taken[$today] ?? 0),
+            'orders_yesterday' => (int) ($placed[$yesterday] ?? 0),
+            'revenue_yesterday' => (float) ($taken[$yesterday] ?? 0),
+
+            /* What has been ordered and not yet paid for. */
+            'owed' => (float) Order::where('is_paid', false)
+                ->whereIn('status', Order::OPEN)
+                ->sum('total'),
+        ];
+    }
+
+    /* The month so far, on the same footing: paid only. */
+    protected function paidThisMonth(): array
+    {
+        $since = now()->startOfMonth();
+
+        return [
+            'orders' => Order::where('is_paid', true)->where('paid_at', '>=', $since)->count(),
+            'revenue' => (float) Order::where('is_paid', true)->where('paid_at', '>=', $since)->sum('total'),
         ];
     }
 
@@ -74,10 +101,10 @@ class Dashboard extends Component
 
     protected function week(): array
     {
-        $rows = DB::table('orders')
-            ->selectRaw('date(created_at) as day, coalesce(sum(total), 0) as revenue')
-            ->whereDate('created_at', '>=', now()->subDays(6)->toDateString())
-            ->where('status', '!=', Order::CANCELLED)
+        $rows = Order::selectRaw('date(paid_at) as day, coalesce(sum(total), 0) as revenue')
+            ->where('is_paid', true)
+            ->whereNotNull('paid_at')
+            ->whereDate('paid_at', '>=', now()->subDays(6)->toDateString())
             ->groupBy('day')
             ->pluck('revenue', 'day');
 
