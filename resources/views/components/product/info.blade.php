@@ -6,6 +6,12 @@
             <span class="info__brand">{{ $product['brand'] }}</span>
         </div>
         <h1 class="info__title" style="font-size: 18px">{{ $product['name'] }}</h1>
+        @if (Auth::user()?->isAdmin())
+            <span class="info__supplier">
+                მომწოდებლის SKU:
+                <b>{{ $product['sku'] }}</b>
+            </span>
+        @endif
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
         <div class="keyspecs">

@@ -5,6 +5,7 @@ namespace App\Services\Import\Drivers\MagiToys;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
+use App\Services\Import\Concerns\RecordsSkips;
 use App\Services\Import\SupplierDriver;
 use Illuminate\Support\Facades\Log;
 
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\Log;
  */
 class MagiToysDriver implements SupplierDriver
 {
+    use RecordsSkips;
+
     protected MagiToysClient $client;
 
     public function __construct(public Supplier $supplier)
@@ -94,21 +97,6 @@ class MagiToysDriver implements SupplierDriver
     protected function fromSheet(array $data, string $role): ?string
     {
         return trim((string) ($data[$role] ?? '')) ?: null;
-    }
-
-    /* Kept on the row so a run can be accounted for afterwards without
-       reading through the log. */
-    protected function note(SupplierStock $row, ?string $reason): void
-    {
-        $data = (array) ($row->data ?? []);
-
-        if (($data['skipped'] ?? null) === $reason) {
-            return;
-        }
-
-        $reason === null ? $data['skipped'] = null : $data['skipped'] = $reason;
-
-        $row->forceFill(['data' => array_filter($data, fn ($v) => $v !== null)])->saveQuietly();
     }
 
     /* The sheet names neither the section nor the brand; the page does. Keeping

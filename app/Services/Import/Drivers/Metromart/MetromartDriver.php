@@ -4,11 +4,14 @@ namespace App\Services\Import\Drivers\Metromart;
 
 use App\Models\Supplier;
 use App\Models\SupplierStock;
+use App\Services\Import\Concerns\RecordsSkips;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 
 class MetromartDriver implements SupplierDriver
 {
+    use RecordsSkips;
+
     protected MetromartClient $client;
 
     public function __construct(public Supplier $supplier)
@@ -38,12 +41,24 @@ class MetromartDriver implements SupplierDriver
         $url = $this->client->findUrl($externalId);
 
         if (! $url) {
+            $this->note($row, 'not found on the site');
+
             return null;
         }
 
         $page = $this->client->page($url);
 
-        return $page ? $this->toPayload($externalId, $row, $page) : null;
+        if (! $page) {
+            $this->note($row, 'page unreadable');
+
+            return null;
+        }
+
+        $payload = $this->toPayload($externalId, $row, $page);
+
+        $this->note($row, $payload ? null : 'no price');
+
+        return $payload;
     }
 
     protected function toPayload(string $model, SupplierStock $row, array $page): ?ProductPayload

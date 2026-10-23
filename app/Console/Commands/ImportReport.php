@@ -39,25 +39,19 @@ class ImportReport extends Command
         $offers = ProductOffer::where('supplier_id', $supplier->id)->count();
 
         $reasons = [];
-        $untouched = 0;
 
         SupplierStock::where('supplier_id', $supplier->id)
             ->select(['id', 'data'])
             ->lazyById(500)
-            ->each(function (SupplierStock $row) use (&$reasons, &$untouched) {
-                $data = (array) ($row->data ?? []);
-
-                if ($reason = $data['skipped'] ?? null) {
+            ->each(function (SupplierStock $row) use (&$reasons) {
+                if ($reason = ((array) ($row->data ?? []))['skipped'] ?? null) {
                     $reasons[$reason] = ($reasons[$reason] ?? 0) + 1;
-
-                    return;
-                }
-
-                /* Nothing was written on it either way, so it was never tried. */
-                if (! isset($data['page_category']) && ! isset($data['page_brand'])) {
-                    $untouched++;
                 }
             });
+
+        /* A row with neither a product behind it nor a reason against it was
+           never reached — the run stopped before it. */
+        $untouched = max(0, $rows - $offers - array_sum($reasons));
 
         arsort($reasons);
 
