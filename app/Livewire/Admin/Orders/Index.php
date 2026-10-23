@@ -5,6 +5,8 @@ namespace App\Livewire\Admin\Orders;
 use App\Models\CallbackRequest;
 use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Models\PaymentTransaction;
+use App\Services\Payments\PaymentCheck;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
@@ -108,13 +110,25 @@ class Index extends Component
 
     public function render()
     {
+        $orders = $this->query()->paginate($this->perPage);
+
         return view('livewire.admin.orders.index', [
-            'orders' => $this->query()->paginate($this->perPage),
+            'orders' => $orders,
             'counts' => $this->statusCounts(),
             'statuses' => $this->statuses(),
             'totals' => $this->totals(),
             'methods' => PaymentMethod::orderBy('sort_order')->orderBy('id')->get(),
             'canDelete' => Gate::allows('owner'),
+
+            /* Which rows have an online payment still waiting on the bank. */
+            'awaiting' => Order::whereKey($orders->pluck('id'))
+                ->where('is_paid', false)
+                ->whereHas('transactions', fn ($q) => $q->whereIn('status', [
+                    PaymentTransaction::PENDING,
+                    PaymentTransaction::FAILED,
+                ]))
+                ->pluck('id')
+                ->flip(),
             'callbacks' => $this->callbacks(),
             'callbackCount' => $this->openCallbacks()->count(),
 
@@ -330,6 +344,21 @@ class Index extends Component
         $this->selected = array_values(array_diff($this->selected, [$id]));
 
         $this->dispatch('toast', message: __('admin.order_deleted', ['number' => $number]));
+    }
+
+    /* The same question the order page asks, from the row — so a shelf full
+       of orders can be settled without opening each one. */
+    public function recheckPayment(int $id): void
+    {
+        $order = Order::find($id);
+
+        if (! $order || $order->is_paid) {
+            return;
+        }
+
+        $answer = app(PaymentCheck::class)->ask($order);
+
+        $this->dispatch('toast', message: '#'.$order->number.' — '.$answer['message'], type: $answer['type']);
     }
 
     public function advance(int $id): void

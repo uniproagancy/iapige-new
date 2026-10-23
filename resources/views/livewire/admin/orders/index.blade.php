@@ -11,6 +11,7 @@
             'pin'     => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
             'undo'    => '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
             'link'    => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+            'refresh' => '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
             'check'   => '<polyline points="20 6 9 17 4 12"/>',
             'trash'   => '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
             'file'    => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
@@ -449,6 +450,16 @@
                                    title="{{ __('admin.open') }}">
                                     {!! $icon('eye') !!}
                                 </a>
+
+                                @if (isset($awaiting[$order->id]))
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-primary ms-25"
+                                            wire:click="recheckPayment({{ $order->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="recheckPayment({{ $order->id }})"
+                                            title="{{ __('admin.pay_ask_bank') }}">
+                                        {!! $icon('refresh') !!}
+                                    </button>
+                                @endif
 
                                 @if ($canDelete)
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-danger ms-25"

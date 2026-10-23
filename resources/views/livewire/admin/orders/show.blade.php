@@ -46,10 +46,11 @@
             <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
                 {{ $statuses[$order->status] ?? $order->status }}
             </span>
-			@php($payment_id = \App\Models\PaymentMethod::where('code', $order->payment)->first()->id)
-			@php($payment_name = \App\Models\PaymentMethodTranslation::where('payment_method_id', $payment_id)->where('locale', 'ka')->first()->name)
+            {{-- a method that has since been removed still has orders behind it --}}
+            @php($method = \App\Models\PaymentMethod::withTranslation()->where('code', $order->payment)->first())
+
             <span class="badge rounded-pill badge-light-primary">
-                {{ $payment_name }}
+                {{ $method?->name ?: ($order->payment ?: '—') }}
             </span>
 
             @if ($order->is_paid)
@@ -247,6 +248,24 @@
                     </button>
 
                     @unless ($order->is_paid)
+                        @if ($transaction)
+                            <button type="button" class="btn btn-primary w-100 mt-1"
+                                    wire:click="askBank"
+                                    wire:loading.attr="disabled" wire:target="askBank">
+                                <span wire:loading.remove wire:target="askBank">
+                                    {!! $icon('money', 'me-25') !!}{{ __('admin.pay_ask_bank') }}
+                                </span>
+                                <span wire:loading wire:target="askBank">{{ __('admin.pay_asking') }}</span>
+                            </button>
+
+                            <small class="d-block text-muted mt-50">
+                                {{ __('admin.pay_last_checked', [
+                                    'driver' => $transaction->driver,
+                                    'when' => $transaction->checked_at?->diffForHumans() ?: __('admin.pay_never_checked'),
+                                ]) }}
+                            </small>
+                        @endif
+
                         <button type="button" class="btn btn-outline-success w-100 mt-1"
                                 wire:click="markPaid"
                                 wire:confirm="{{ __('admin.mark_paid_confirm') }}">

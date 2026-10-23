@@ -76,6 +76,11 @@ class Order extends Model
         return $this->hasMany(OrderEvent::class);
     }
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);

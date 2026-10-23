@@ -6,6 +6,7 @@ use App\Jobs\SendSmsJob;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Services\Facebook\Pixel;
+use App\Services\Payments\PaymentCheck;
 use App\Services\Payments\PaymentManager;
 use App\Support\Phone;
 use Illuminate\Support\Facades\DB;
@@ -56,6 +57,7 @@ class Show extends Component
             'statuses' => (new Index)->statuses(),
             'events' => $this->order->events()->with('user')->latest()->get(),
             'payLink' => $this->payLink(),
+            'transaction' => $this->order->transactions()->latest('id')->first(),
         ])->layout('layouts.admin', [
             'title' => __('admin.order').' #'.$this->order->number,
         ]);
@@ -179,6 +181,18 @@ class Show extends Component
         $this->order->refresh()->load(['items.product.images', 'events.user']);
 
         $this->dispatch('toast', message: __('admin.pay_link_sent_toast'));
+    }
+
+    /* The bank is the one that knows. The callback and the sweeper ask it on
+       their own; this is the same question asked by hand, for when neither has
+       come back yet and somebody is standing at the counter. */
+    public function askBank(): void
+    {
+        $answer = app(PaymentCheck::class)->ask($this->order);
+
+        $this->order->refresh()->load('events.user');
+
+        $this->dispatch('toast', message: $answer['message'], type: $answer['type']);
     }
 
     public function markPaid(): void
