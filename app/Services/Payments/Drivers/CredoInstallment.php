@@ -5,6 +5,9 @@ namespace App\Services\Payments\Drivers;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
+use App\Support\Redact;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class CredoInstallment implements PaymentDriver
 {
@@ -65,9 +68,110 @@ class CredoInstallment implements PaymentDriver
         ]);
     }
 
+    /* What Credo calls each step of an application. Only one of them means
+       the money has moved. */
+    public const FINISHED = 5;
+
+    public const SIGNED = 12;
+
+    public const REJECTED = 6;
+
+    public const CANCELLED = 7;
+
+    public function statusUrl(): string
+    {
+        return (string) config($this->configKey().'.status_url');
+    }
+
+    protected function secret(): string
+    {
+        return (string) config($this->configKey().'.secret');
+    }
+
+    public function hashFor(string $orderCode): string
+    {
+        return md5($this->shopId().$orderCode.$this->secret());
+    }
+
+    /*
+     | Credo has no callback that can be trusted on its own, so the shop asks
+     | where the application stands. Only "finished" means the funds have been
+     | transferred; a signed contract says to dispatch the goods, which is the
+     | shop's cue but not a payment.
+     */
     public function confirm(PaymentTransaction $transaction): bool
     {
-        return false;
+        if (! $this->shopId() || ! $this->secret()) {
+            return false;
+        }
+
+        $code = (string) $transaction->external_id;
+
+        try {
+            $response = Http::timeout((int) config($this->configKey().'.timeout', 20))
+                ->get($this->statusUrl(), [
+                    'merchantId' => $this->shopId(),
+                    'orderCode' => $code,
+                    'hash' => $this->hashFor($code),
+                ]);
+        } catch (\Throwable $e) {
+            Log::channel('payments')->warning('credo status unreachable', [
+                'order' => $code,
+                'error' => Redact::secrets($e->getMessage()),
+            ]);
+
+            return false;
+        }
+
+        $body = $response->json();
+
+        if (($body['status'] ?? null) !== 200) {
+            Log::channel('payments')->info('credo has no verdict yet', [
+                'order' => $code,
+                'status' => $body['status'] ?? $response->status(),
+                'message' => $body['message'] ?? null,
+            ]);
+
+            return false;
+        }
+
+        return $this->readStatus($transaction, (int) ($body['data'] ?? 0), $body);
+    }
+
+    protected function readStatus(PaymentTransaction $transaction, int $status, array $body): bool
+    {
+        $transaction->update([
+            'response' => array_merge((array) $transaction->response, ['status' => $body]),
+            'checked_at' => now(),
+        ]);
+
+        if (in_array($status, [self::REJECTED, self::CANCELLED], true)) {
+            /* Settled the other way: nothing is coming, so stop asking. */
+            $transaction->update(['status' => PaymentTransaction::CANCELLED]);
+
+            return false;
+        }
+
+        if ($status === self::SIGNED) {
+            $this->noteSigned($transaction);
+        }
+
+        return $status === self::FINISHED;
+    }
+
+    /* Said once, not on every check. */
+    protected function noteSigned(PaymentTransaction $transaction): void
+    {
+        $order = $transaction->order;
+
+        if (! $order || $order->events()->where('type', 'payment')->where('note', __('order.credo_signed'))->exists()) {
+            return;
+        }
+
+        $order->events()->create([
+            'type' => 'payment',
+            'note' => __('order.credo_signed'),
+        ]);
     }
 
     public function handleCallback(array $payload): ?PaymentTransaction

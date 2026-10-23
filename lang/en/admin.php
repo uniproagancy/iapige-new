@@ -596,4 +596,5 @@ Run it anyway?',
     'run_queue_clear' => 'Empty the queue',
     'run_queue_cleared' => ':count jobs removed from the queue',
     'run_queue_clear_confirm' => ":count jobs will be removed from the queue.\n\nThat cancels the work — nothing is updated until you run it again.\n\nRemove them?",
+    'pay_refused' => 'The application was refused or cancelled',
 ];

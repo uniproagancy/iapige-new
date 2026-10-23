@@ -46,13 +46,24 @@ class PaymentCheck
             return $this->no(__('admin.pay_check_failed'));
         }
 
-        $this->payments->settle($transaction, $paid);
+        if ($paid) {
+            $this->payments->settle($transaction, true);
 
-        return [
-            'paid' => $paid,
-            'message' => $paid ? __('admin.pay_confirmed') : __('admin.pay_not_yet'),
-            'type' => $paid ? 'success' : 'error',
-        ];
+            return ['paid' => true, 'message' => __('admin.pay_confirmed'), 'type' => 'success'];
+        }
+
+        /* Not confirmed is not the same as refused. Only a provider that has
+           actually closed the application takes it out of the queue; anything
+           else stays pending for the sweeper to ask again. */
+        $transaction->refresh();
+
+        if (in_array($transaction->status, [PaymentTransaction::CANCELLED, PaymentTransaction::FAILED], true)) {
+            return $this->no(__('admin.pay_refused'));
+        }
+
+        $transaction->update(['checked_at' => now()]);
+
+        return $this->no(__('admin.pay_not_yet'));
     }
 
     protected function no(string $message): array

@@ -42,4 +42,5 @@ return [
     'paid_via' => 'Paid via :driver',
     'payment_start_failed' => 'The payment could not be started',
 
+    'credo_signed' => 'Credo: contract signed — the goods are to be sent',
 ];
