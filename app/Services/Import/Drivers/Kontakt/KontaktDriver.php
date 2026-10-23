@@ -76,8 +76,10 @@ class KontaktDriver implements SupplierDriver
             externalId: $model,
 
             /* The article number the shop itself prints, when the page gives
-               one; the price list code only when it does not. */
-            sku: $page['sku'] ?: $this->supplier->code.'-'.$model,
+               one; the price list code only when it does not. The supplier's
+               code stays in front either way, as every other driver does it --
+               two suppliers may well print the same article number. */
+            sku: $this->supplier->code.'-'.($page['sku'] ?: $model),
             costPrice: $price,
             oldCostPrice: $old,
             stock: $stock,
