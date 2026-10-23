@@ -19,11 +19,16 @@ class ProductImporter
         protected ImageDownloader $images,
     ) {}
 
-    public function import(Supplier $supplier, ProductPayload $payload): ?Product
+    /*
+     | $insist is for a product an operator picked out by hand: it arrives
+     | even when nothing of it is in stock, because somebody asked for this
+     | one in particular rather than for whatever a price list holds.
+     */
+    public function import(Supplier $supplier, ProductPayload $payload, bool $insist = false): ?Product
     {
         $payload = $this->repair($payload);
 
-        [$product, $isNew] = $this->write($supplier, $payload);
+        [$product, $isNew] = $this->write($supplier, $payload, $insist);
 
         $wanted = min(count($payload->images), ImageDownloader::MAX_IMAGES);
 
@@ -87,9 +92,11 @@ class ProductImporter
         );
     }
 
-    protected function worthAdding(Supplier $supplier, ProductPayload $payload): bool
+    protected function worthAdding(Supplier $supplier, ProductPayload $payload, bool $insist = false): bool
     {
-        $required = $supplier->config['require_stock'] ?? config('shop.require_stock', false);
+        /* The floor below still holds -- it is about what is worth selling,
+           not about what happens to be on the shelf today. */
+        $required = ! $insist && ($supplier->config['require_stock'] ?? config('shop.require_stock', false));
 
         if ($required && $payload->stock <= 0) {
             Log::channel('import')->info('skipped: nothing in stock', [
@@ -137,10 +144,10 @@ class ProductImporter
         return false;
     }
 
-    protected function write(Supplier $supplier, ProductPayload $payload): array
+    protected function write(Supplier $supplier, ProductPayload $payload, bool $insist = false): array
     {
         try {
-            return $this->writeInTransaction($supplier, $payload);
+            return $this->writeInTransaction($supplier, $payload, $insist);
         } catch (\Throwable $e) {
 
             $this->taxonomy->forget();
@@ -149,13 +156,13 @@ class ProductImporter
         }
     }
 
-    protected function writeInTransaction(Supplier $supplier, ProductPayload $payload): array
+    protected function writeInTransaction(Supplier $supplier, ProductPayload $payload, bool $insist = false): array
     {
-        return DB::transaction(function () use ($supplier, $payload) {
+        return DB::transaction(function () use ($supplier, $payload, $insist) {
             $product = $this->find($supplier, $payload);
             $isNew = ! $product;
 
-            if ($isNew && ! $this->worthAdding($supplier, $payload)) {
+            if ($isNew && ! $this->worthAdding($supplier, $payload, $insist)) {
                 return [null, false];
             }
 

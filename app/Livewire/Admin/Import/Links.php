@@ -120,9 +120,12 @@ class Links extends Component
         try {
             $payload = $manager->driver($supplier)->fetch($row->external_id);
 
+            /* The address was pasted in by hand, so an empty shelf is no reason
+               to refuse the product. */
+
             if (! $payload) {
                 $this->lost($supplier, $row->external_id, __('admin.links_reason_page'));
-            } elseif (! $importer->import($supplier, $payload)) {
+            } elseif (! $importer->import($supplier, $payload, insist: true)) {
                 $this->lost($supplier, $row->external_id, __('admin.links_reason_refused'));
             } else {
                 $this->done++;
