@@ -349,6 +349,8 @@ return [
 
     'orders_today' => 'Orders today',
     'yesterday' => 'Yesterday',
+    'revenue_month' => 'Takings this month',
+    'owed' => 'Owed',
     'revenue_today' => 'Revenue today',
     'week_revenue' => 'Revenue this week',
     'recent_orders' => 'Recent orders',

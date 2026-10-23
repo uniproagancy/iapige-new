@@ -349,6 +349,8 @@ return [
 
     'orders_today' => 'შეკვეთა დღეს',
     'yesterday' => 'გუშინ',
+    'revenue_month' => 'შემოსავალი თვეში',
+    'owed' => 'გადასახდელი',
     'revenue_today' => 'შემოსავალი დღეს',
     'week_revenue' => 'შემოსავალი კვირაში',
     'recent_orders' => 'ბოლო შეკვეთები',

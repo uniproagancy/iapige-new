@@ -21,7 +21,22 @@
         [
             'value' => money($today['revenue']),
             'label' => __('admin.revenue_today'),
-            'url' => $orders,
+            'url' => $orders.'?paid=yes',
+            'note' => $today['revenue_yesterday'] > 0
+                ? __('admin.yesterday').': '.money($today['revenue_yesterday'])
+                : null,
+        ],
+        [
+            'value' => money($paidThisMonth['revenue']),
+            'label' => __('admin.revenue_month'),
+            'url' => $orders.'?paid=yes',
+            'note' => __('admin.orders_n', ['count' => $paidThisMonth['orders']]),
+        ],
+        [
+            'value' => money($today['owed']),
+            'label' => __('admin.owed'),
+            'url' => $orders.'?paid=no',
+            'alarm' => $today['owed'] > 0,
         ],
         [
             'value' => $waiting['new_orders'],
