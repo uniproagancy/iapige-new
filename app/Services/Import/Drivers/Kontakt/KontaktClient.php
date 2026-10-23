@@ -23,6 +23,10 @@ class KontaktClient
         }
 
         return [
+            /* Kontakt's own article number, which the shop would rather show
+               than a code built out of the price list. */
+            'sku' => trim((string) ($json['sku'] ?? '')) ?: null,
+
             'name' => $this->title((string) ($json['name'] ?? '')),
             'description' => $this->clean((string) ($json['description'] ?? '')) ?: null,
             'brand' => $json['brand']['name'] ?? null,

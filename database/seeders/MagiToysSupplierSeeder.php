@@ -25,6 +25,9 @@ class MagiToysSupplierSeeder extends Seeder
                 /* The sheet says 0 for most lines; nothing is invented on top. */
                 'default_stock' => 0,
 
+                /* Below this the courier costs more than the sale is worth. */
+                'min_cost' => 70,
+
                 /* sku | stock | link | price.
                    689 rows carry no code of their own and the links run past
                    5000 characters, so the key is taken from the address rather

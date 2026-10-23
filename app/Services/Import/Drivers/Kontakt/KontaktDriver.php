@@ -74,7 +74,10 @@ class KontaktDriver implements SupplierDriver
 
         return new ProductPayload(
             externalId: $model,
-            sku: $this->supplier->code.'-'.$model,
+
+            /* The article number the shop itself prints, when the page gives
+               one; the price list code only when it does not. */
+            sku: $page['sku'] ?: $this->supplier->code.'-'.$model,
             costPrice: $price,
             oldCostPrice: $old,
             stock: $stock,
