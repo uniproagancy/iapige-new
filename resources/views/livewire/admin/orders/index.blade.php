@@ -23,7 +23,7 @@
     };
 
     $tone = [
-        'new'       => 'danger',
+        'new'       => 'primary',
         'viewed'    => 'warning',
         'completed' => 'success',
         'cancelled' => 'secondary',
@@ -433,7 +433,7 @@
                                 @if ($order->is_paid)
                                     <span class="badge rounded-pill badge-light-success">{{ __('admin.paid') }}</span>
                                 @else
-                                    <span class="badge rounded-pill badge-light-warning">{{ __('admin.unpaid') }}</span>
+                                    <span class="badge rounded-pill badge-light-danger">{{ __('admin.unpaid') }}</span>
                                 @endif
                             </td>
 
