@@ -167,11 +167,15 @@ class PriceListLoader
     protected function keyFor(array $cells, array $map): string
     {
         $column = $map['key'] ?? '';
-        $raw = trim((string) ($cells['_links'][$column] ?? $cells[$column] ?? ''));
 
+        /* The text in the cell is the code. A cell may also carry a hyperlink,
+           but that is the product's address, not its name — reading it here
+           once turned half a price list's codes into web addresses. */
         if (($map['key_as'] ?? null) !== 'url') {
-            return $raw;
+            return trim((string) ($cells[$column] ?? ''));
         }
+
+        $raw = trim((string) ($cells['_links'][$column] ?? $cells[$column] ?? ''));
 
         if (! preg_match('~^https?://~i', $raw)) {
             return '';
