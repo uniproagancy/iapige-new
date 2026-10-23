@@ -18,10 +18,12 @@ class MetromartSupplierSeeder extends Seeder
                 'timeout' => 30,
                 'locale' => 'ka',
 
+                /* key | cost | stock | discount price */
                 'columns' => [
                     'key' => 'A',
                     'cost' => 'B',
                     'stock' => 'C',
+                    'discount_price' => 'D',
                 ],
 
                 'site_price_uplift' => 0.20,

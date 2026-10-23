@@ -85,9 +85,35 @@ class MetromartDriver implements SupplierDriver
         );
     }
 
+    /* The sheet writes money as people do: 1 234,56 */
+    protected function money(mixed $value): float
+    {
+        $text = trim((string) $value);
+
+        if ($text === '') {
+            return 0.0;
+        }
+
+        $digits = preg_replace('/[^\d.]/', '', str_replace(',', '.', $text));
+
+        return $digits === '' ? 0.0 : (float) $digits;
+    }
+
+    /*
+     | The price list carries what we pay and, on the lines that are on offer,
+     | a lower one. The lower is what the shop is charged, so it is the cost;
+     | the ordinary price becomes what is struck through on the card.
+     |
+     | A "discount" that is not actually lower says nothing, and is ignored.
+     */
     protected function prices(SupplierStock $row, array $page): array
     {
         $agreed = (float) $row->cost_price;
+        $offered = $this->money($row->data['discount_price'] ?? null);
+
+        if ($offered > 0 && ($agreed <= 0 || $offered < $agreed)) {
+            return [$offered, $agreed > 0 ? $agreed : null];
+        }
 
         if ($agreed > 0) {
             return [$agreed, null];

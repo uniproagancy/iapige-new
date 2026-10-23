@@ -10,6 +10,11 @@ return [
        through, which is where the shop starts. */
     'min_order' => (float) env('SHOP_MIN_ORDER', 0),
 
+    /* How long the shop keeps asking a provider about an unsettled payment.
+       An instalment can sit with a branch or a video review for days, so two
+       days was short enough to leave real orders unpaid. */
+    'payment_check_hours' => (int) env('PAYMENT_CHECK_HOURS', 168),
+
     'return_days' => (int) env('SHOP_RETURN_DAYS', 14),
 
     'stocked_ttl' => (int) env('SHOP_STOCKED_TTL', 10),

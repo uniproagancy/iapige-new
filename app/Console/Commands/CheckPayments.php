@@ -8,18 +8,21 @@ use Illuminate\Console\Command;
 
 class CheckPayments extends Command
 {
-    protected $signature = 'payments:check {--hours=48 : how far back to look}';
+    protected $signature = 'payments:check {--hours= : how far back to look, in hours}';
 
     protected $description = 'Confirm pending payments with their providers';
 
     public function handle(PaymentManager $payments): int
     {
-        $pending = PaymentTransaction::where('status', PaymentTransaction::PENDING)
-            ->where('created_at', '>=', now()->subHours((int) $this->option('hours')))
-            ->with('order')
-            ->get();
+        $hours = (int) ($this->option('hours') ?: config('shop.payment_check_hours', 168));
 
-        if ($pending->isEmpty()) {
+        $query = PaymentTransaction::where('status', PaymentTransaction::PENDING)
+            ->where('created_at', '>=', now()->subHours($hours))
+            ->with('order');
+
+        $waiting = (clone $query)->count();
+
+        if (! $waiting) {
             $this->info('Nothing pending.');
 
             return self::SUCCESS;
@@ -27,7 +30,8 @@ class CheckPayments extends Command
 
         $paid = 0;
 
-        foreach ($pending as $transaction) {
+        /* There can be thousands of these; they are walked rather than loaded. */
+        foreach ($query->lazyById(200) as $transaction) {
             if (! $payments->has($transaction->driver)) {
                 continue;
             }
@@ -44,7 +48,7 @@ class CheckPayments extends Command
             }
         }
 
-        $this->info("{$pending->count()} checked, {$paid} confirmed.");
+        $this->info("{$waiting} checked, {$paid} confirmed.");
 
         return self::SUCCESS;
     }

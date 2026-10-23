@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\Payments\PaymentCheck;
 use App\Services\Payments\PaymentManager;
 use App\Support\Redact;
 use Illuminate\Http\Request;
@@ -52,6 +53,13 @@ class PaymentController extends Controller
 
         if ($status !== 'success') {
             session()->flash('payment_failed', $status);
+        }
+
+        /* The provider has just finished with them, so this is the moment it
+           is most likely to have an answer. Asking here means the order is
+           usually settled before the page they land on is drawn. */
+        if (! $order->is_paid) {
+            app(PaymentCheck::class)->ask($order);
         }
 
         return redirect()->route('order', $order->number);
