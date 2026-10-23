@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Product;
 use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
@@ -78,6 +79,8 @@ class ImportReport extends Command
             ));
         }
 
+        $this->prices($supplier);
+
         if ($untouched) {
             $this->newLine();
             $this->warn("{$untouched} rows were never tried — the run did not reach them.");
@@ -85,5 +88,57 @@ class ImportReport extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /*
+     | Where a struck-through price is lost. It has to survive three steps: the
+     | column has to be mapped, the row has to carry it, and the offer has to
+     | keep it — only then does the card show it.
+     */
+    protected function prices(Supplier $supplier): void
+    {
+        $column = $supplier->config['columns']['discount_price'] ?? null;
+
+        $this->newLine();
+        $this->line('  struck-through prices');
+
+        if (! $column) {
+            $this->warn('  no discount_price column is mapped for this supplier.');
+            $this->line('  Run the supplier seeder again so the new column map is stored.');
+
+            return;
+        }
+
+        $rows = SupplierStock::where('supplier_id', $supplier->id)
+            ->select(['id', 'data'])
+            ->lazyById(500)
+            ->filter(fn (SupplierStock $row) => trim((string) (($row->data ?? [])['discount_price'] ?? '')) !== '')
+            ->count();
+
+        $offers = ProductOffer::where('supplier_id', $supplier->id)
+            ->whereNotNull('old_cost_price')
+            ->where('old_cost_price', '>', 0)
+            ->count();
+
+        $shown = Product::whereIn('id', ProductOffer::where('supplier_id', $supplier->id)->select('product_id'))
+            ->whereNotNull('old_price')
+            ->whereColumn('old_price', '>', 'price')
+            ->count();
+
+        $this->table(['', 'rows'], [
+            ['column '.$column.' read from the sheet', $rows],
+            ['kept on the offer', $offers],
+            ['shown on the card', $shown],
+        ]);
+
+        if ($rows && ! $offers) {
+            $this->warn('  The sheet carries them but no offer does — run the import again.');
+        }
+
+        if ($offers && ! $shown) {
+            $this->warn('  The offers carry them but no card shows one.');
+            $this->line('  A price is only struck through when it is above the selling price,');
+            $this->line('  and a product whose price is locked keeps the price it was given.');
+        }
     }
 }

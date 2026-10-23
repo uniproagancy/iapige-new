@@ -84,4 +84,5 @@ return [
     'callback_again' => 'კიდევ ერთი მოთხოვნა',
     'callback_too_many' => 'ძალიან ბევრი მოთხოვნაა. სცადე ცოტა ხანში.',
 
+    'supplier_sku' => 'მომწოდებლის SKU',
 ];

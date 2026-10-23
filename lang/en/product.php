@@ -84,4 +84,5 @@ return [
     'callback_again' => 'Send another request',
     'callback_too_many' => 'Too many requests. Please try again in a little while.',
 
+    'supplier_sku' => 'Supplier SKU',
 ];

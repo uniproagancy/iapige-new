@@ -503,3 +503,8 @@
   margin-top:10px;border:0;background:none;padding:0;
   font-size:12px;color:var(--red-bright);cursor:pointer;text-decoration:underline
 }
+/* the supplier's own code, shown to the shop's own people only */
+.crumbbar__supplier{
+  display:inline-block;margin-left:8px;padding:3px 9px;border-radius:999px;
+  background:var(--red-bright);color:#fff;font-weight:600;letter-spacing:.2px
+}

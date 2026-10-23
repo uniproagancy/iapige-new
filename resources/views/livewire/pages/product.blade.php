@@ -7,7 +7,13 @@
             <a href="{{ $crumb['url'] }}">{{ $crumb['name'] }}</a><i>/</i>
         @endforeach
         <b>{{ $product['brand'] }} {{ $product['name'] }}</b>
-        <span class="crumbbar__code">SKU: {{ $product['id'] }} @if(Auth::user()?->isAdmin())- მომწოდებლის SKU:{{ $product['sku'] }} @endif</span>
+        <span class="crumbbar__code">
+            SKU: {{ $product['id'] }}
+
+            @if (Auth::user()?->isAdmin())
+                <b class="crumbbar__supplier" title="{{ __('product.supplier_sku') }}">{{ $product['sku'] }}</b>
+            @endif
+        </span>
     </nav>
     <main class="pdp">
         <div class="pdp__left">
