@@ -71,6 +71,21 @@ class CitrusLinks
 
         $host = parse_url($line, PHP_URL_HOST);
 
-        return $host === null || str_contains($host, 'citrus.ge');
+        if ($host !== null && ! str_contains($host, 'citrus.ge')) {
+            return false;
+        }
+
+        return $this->looksLikeProduct($line);
+    }
+
+    /* A category address such as /products/179 also ends in something that
+       passes for a slug, and it would sit in the queue failing forever. Only
+       a product address is taken. */
+    protected function looksLikeProduct(string $line): bool
+    {
+        $path = parse_url($line, PHP_URL_PATH) ?: $line;
+        $parts = array_values(array_filter(explode('/', $path)));
+
+        return in_array('product', $parts, true);
     }
 }

@@ -125,6 +125,21 @@
                             </p>
                         @endif
                     @endif
+
+                    @if (count($failures))
+                        <hr>
+
+                        <p class="small text-danger mb-50">{{ __('admin.links_why') }}</p>
+
+                        <ul class="list-unstyled small mb-0">
+                            @foreach ($failures as $externalId => $why)
+                                <li class="border-bottom py-25" wire:key="why-{{ $loop->index }}">
+                                    <span class="font-monospace">{{ $externalId }}</span>
+                                    <span class="d-block text-muted">{{ $why }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
                 </div>
             </div>
         </div>

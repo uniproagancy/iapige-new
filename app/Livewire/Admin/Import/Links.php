@@ -34,6 +34,10 @@ class Links extends Component
 
     public string $current = '';
 
+    /* Why each address came back empty-handed -- "3 failed" on its own sends
+       nobody anywhere. */
+    public array $failures = [];
+
     public function mount(): void
     {
         $this->supplierCode = (string) ($this->suppliers()->first()?->code ?? '');
@@ -48,7 +52,7 @@ class Links extends Component
 
     public function updatedSupplierCode(): void
     {
-        $this->reset(['result', 'running', 'done', 'failed', 'total', 'current']);
+        $this->reset(['result', 'running', 'done', 'failed', 'total', 'current', 'failures']);
     }
 
     public function save(CitrusLinks $links): void
@@ -74,6 +78,7 @@ class Links extends Component
         $this->done = 0;
         $this->failed = 0;
         $this->current = '';
+        $this->failures = [];
         $this->total = $this->pending()->count();
         $this->running = $this->total > 0;
 
@@ -115,20 +120,33 @@ class Links extends Component
         try {
             $payload = $manager->driver($supplier)->fetch($row->external_id);
 
-            if ($payload && $importer->import($supplier, $payload)) {
-                $this->done++;
+            if (! $payload) {
+                $this->lost($supplier, $row->external_id, __('admin.links_reason_page'));
+            } elseif (! $importer->import($supplier, $payload)) {
+                $this->lost($supplier, $row->external_id, __('admin.links_reason_refused'));
             } else {
-                $this->failed++;
+                $this->done++;
             }
         } catch (\Throwable $e) {
-            $this->failed++;
-
-            Log::channel('import')->warning('link import failed', [
-                'supplier' => $supplier->code,
-                'external' => $row->external_id,
-                'error' => Redact::secrets($e->getMessage()),
-            ]);
+            $this->lost($supplier, $row->external_id, Redact::secrets($e->getMessage()));
         }
+    }
+
+    /* The page keeps only the first handful: the point is to show what kind of
+       address is failing, not to list a thousand of them. */
+    protected function lost(Supplier $supplier, string $externalId, string $why): void
+    {
+        $this->failed++;
+
+        if (count($this->failures) < 12) {
+            $this->failures[$externalId] = $why;
+        }
+
+        Log::channel('import')->warning('link import failed', [
+            'supplier' => $supplier->code,
+            'external' => $externalId,
+            'error' => $why,
+        ]);
     }
 
     public function forget(string $externalId): void
