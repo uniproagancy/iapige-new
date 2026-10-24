@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BogInstallmentController;
 use App\Http\Controllers\CredoController;
+use App\Http\Controllers\CronController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PageController;
@@ -68,6 +69,12 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap')
 
 Route::get('/feed/facebook.xml', [FeedController::class, 'facebook'])->name('feed.facebook');
 Route::get('/feed/google.xml', [FeedController::class, 'google'])->name('feed.google');
+
+/* The scheduler does this every five minutes; the address is for hosting
+   where only a plain cron fetch is available. */
+Route::get('/cron/payments', [CronController::class, 'payments'])
+    ->middleware('throttle:12,1')
+    ->name('cron.payments');
 
 Route::post('/payment/callback/{driver}', [PaymentController::class, 'callback'])
     ->name('payment.callback')

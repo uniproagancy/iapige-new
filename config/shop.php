@@ -15,6 +15,10 @@ return [
        days was short enough to leave real orders unpaid. */
     'payment_check_hours' => (int) env('PAYMENT_CHECK_HOURS', 168),
 
+    /* Set this and /cron/payments starts answering; leave it empty and the
+       address does not exist. */
+    'cron_token' => (string) env('CRON_TOKEN', ''),
+
     'return_days' => (int) env('SHOP_RETURN_DAYS', 14),
 
     'stocked_ttl' => (int) env('SHOP_STOCKED_TTL', 10),

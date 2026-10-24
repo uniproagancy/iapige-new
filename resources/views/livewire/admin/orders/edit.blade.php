@@ -189,8 +189,8 @@
                 </div>
                 <div class="card-body">
                     <select class="form-select" wire:model.live="delivery">
-                        <option value="courier">{{ __('checkout.courier') }}</option>
-                        <option value="pickup">{{ __('checkout.pickup') }}</option>
+                        <option value="courier">{{ __('admin.order_delivery_courier') }}</option>
+                        <option value="pickup">{{ __('admin.order_delivery_pickup') }}</option>
                     </select>
 
                     @if ($delivery === 'courier')

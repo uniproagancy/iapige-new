@@ -12,11 +12,14 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /* Deliberately short: 'role' and 'is_admin' stay out, so no form can
+       hand somebody the admin. */
     protected $fillable = [
         'name',
         'email',
         'phone',
         'password',
+        'accepts_marketing',
     ];
 
     protected $hidden = [

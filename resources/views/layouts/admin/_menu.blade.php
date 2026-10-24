@@ -189,7 +189,7 @@
                         @can('owner')
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.users') }}">
-                                    {!! $icon('users') !!}<span>{{ __('admin.users') }}</span>
+                                    {!! $icon('users') !!}<span>{{ __('admin.customers') }}</span>
                                 </a>
                             </li>
                             <li>

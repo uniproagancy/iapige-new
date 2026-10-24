@@ -10,6 +10,11 @@ class ProductOffer extends Model
     protected $fillable = [
         'product_id', 'supplier_id', 'external_id',
         'cost_price', 'old_cost_price', 'stock', 'synced_at',
+
+        /* What the supplier itself calls the category and the brand. The
+           mapping page counts products by these, so an offer written
+           without them leaves that page empty. */
+        'external_category', 'external_brand',
     ];
 
     protected function casts(): array
