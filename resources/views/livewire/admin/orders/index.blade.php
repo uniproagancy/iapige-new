@@ -264,8 +264,9 @@
 
                             <td colspan="3" class="text-muted">
                                 @if ($request->product)
-                                    <a class="text-body text-truncate d-block"
+                                    <a class="text-body d-block adm-cb-product"
                                        href="{{ $request->product->storefrontUrl() ?? route('admin.products.edit', $request->product) }}"
+                                       title="{{ $request->product->name }}"
                                        @if ($request->product->storefrontUrl()) target="_blank" rel="noopener" @else wire:navigate @endif>
                                         {{ $request->product->name }}
                                     </a>
@@ -273,7 +274,8 @@
                                 @endif
 
                                 @if ($request->comment)
-                                    <small class="d-block text-truncate">{{ $request->comment }}</small>
+                                    <small class="d-block adm-cb-product"
+                                           title="{{ $request->comment }}">{{ $request->comment }}</small>
                                 @endif
                             </td>
 
