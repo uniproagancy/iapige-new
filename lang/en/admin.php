@@ -289,7 +289,7 @@ return [
     'variants_family' => ':count products in the family',
     'variants_this' => 'this one',
     'variants_add' => 'Add to the family',
-    'variants_find' => 'Search by name or SKU…',
+    'variants_find' => 'Search this supplier’s products…',
     'variants_join' => 'Add',
     'variants_joined' => ':name joined the family',
     'variants_leave' => 'Take out of the family',

@@ -289,7 +289,7 @@ return [
     'variants_family' => 'ოჯახში :count პროდუქტია',
     'variants_this' => 'ესაა',
     'variants_add' => 'ოჯახში დამატება',
-    'variants_find' => 'ძებნა სახელით ან SKU-თი…',
+    'variants_find' => 'ძებნა იმავე მომწოდებლის პროდუქციაში…',
     'variants_join' => 'დამატება',
     'variants_joined' => ':name ოჯახში დაემატა',
     'variants_leave' => 'ოჯახიდან მოშორება',

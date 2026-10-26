@@ -231,11 +231,18 @@ class Variants extends Component
         if (mb_strlen(trim($this->find)) >= 2) {
             $term = trim($this->find);
 
+            /* The same thing in another guise comes from the same supplier.
+               A product nobody supplies -- one entered by hand -- is not held
+               to this, or there would be nothing to pair it with. */
+            $suppliers = $this->product->offers()->pluck('supplier_id');
+
             $found = Product::withTranslation()
                 ->whereKeyNot($this->product->id)
                 ->where(fn ($q) => $q
                     ->where('sku', 'like', "%{$term}%")
                     ->orWhereHas('translations', fn ($t) => $t->where('name', 'like', "%{$term}%")))
+                ->when($suppliers->isNotEmpty(), fn ($q) => $q
+                    ->whereHas('offers', fn ($o) => $o->whereIn('supplier_id', $suppliers)))
                 ->when($this->product->variant_group, fn ($q) => $q
                     ->where(fn ($w) => $w
                         ->whereNull('variant_group')
