@@ -211,6 +211,10 @@
                     @endif
                 </div>
             </div>
+
+            @if ($product)
+                @livewire('admin.products.variants', ['product' => $product], key('variants-'.$product->id))
+            @endif
         </div>
 
         <div class="col-lg-4">
