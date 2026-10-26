@@ -124,8 +124,8 @@ class ZoommerClient
                     .'User-Agent or cookie is scored as a bot and gets exactly this.'
                 : 'Cloudflare refused the caller, not the request: the token is not what is being '
                     .'rejected, and no header fixes it from here. Set ZOOMMER_WORKER_URL to a '
-                    .'worker that fetches zoommer.ge for you, the way the Elite and Alta drivers '
-                    .'already do.',
+                    .'worker that fetches zoommer.ge for you, the way the Elite driver '
+                    .'already does.',
 
             $status === 429 => 'Too many requests. Lower IMPORT_RATE_PER_MINUTE or run fewer workers.',
 

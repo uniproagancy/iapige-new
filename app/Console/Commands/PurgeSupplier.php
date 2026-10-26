@@ -9,6 +9,7 @@ use App\Models\SupplierStock;
 use App\Services\Import\ProductImporter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /*
  | Clears a supplier out so its price list can be loaded again from nothing.
@@ -24,6 +25,7 @@ class PurgeSupplier extends Command
         {supplier : the supplier code}
         {--dry : show what would go and stop}
         {--pairings : clear the category pairings as well}
+        {--forget : remove the supplier itself afterwards}
         {--force : do not ask}';
 
     protected $description = 'Remove everything one supplier brought in, so its list can be loaded afresh';
@@ -43,6 +45,10 @@ class PurgeSupplier extends Command
 
         if ($offers->isEmpty() && ! $rows) {
             $this->info('There is nothing of this supplier to remove.');
+
+            if ($this->option('forget')) {
+                return $this->forget($supplier);
+            }
 
             return self::SUCCESS;
         }
@@ -115,6 +121,39 @@ class PurgeSupplier extends Command
         } else {
             $this->line('  category pairings kept — pass --pairings to clear them too.');
         }
+
+        if ($this->option('forget')) {
+            $this->newLine();
+
+            return $this->forget($supplier);
+        }
+
+        return self::SUCCESS;
+    }
+
+    /*
+     | Takes the supplier off the list altogether, for an arrangement that has
+     | ended. Its remaining rows go with it through the database's own cascade;
+     | a shelf one of its price lists built keeps standing, with nobody named
+     | as its author any more.
+     */
+    protected function forget(Supplier $supplier): int
+    {
+        $built = Schema::hasColumn('categories', 'created_by_supplier_id')
+            ? DB::table('categories')->where('created_by_supplier_id', $supplier->id)->count()
+            : 0;
+
+        $name = $supplier->name;
+
+        $supplier->delete();
+
+        $this->info("[{$name}] is off the list.");
+
+        if ($built) {
+            $this->line('  categories it had built stay, now unclaimed: '.$built);
+        }
+
+        $this->line('  its driver class and seeder can now be deleted from the code.');
 
         return self::SUCCESS;
     }

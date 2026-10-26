@@ -37,11 +37,8 @@ return [
         'wsdl' => env('ALTA_WSDL', 'http://extra.alta.com.ge/b2b/b2bEWS?WSDL'),
         'user' => env('ALTA_B2B_USER'),
         'password' => env('ALTA_B2B_PASSWORD'),
-        'worker_url' => env('ALTA_WORKER_URL'),
-        'token' => env('ALTA_ACCESS_TOKEN'),
-
-        'cf_clearance' => env('ALTA_CF_CLEARANCE'),
-        'user_agent' => env('ALTA_USER_AGENT', 'Mozilla/5.0'),
+        'timeout' => (int) env('ALTA_TIMEOUT', 25),
+        'user_agent' => env('ALTA_USER_AGENT', 'iapi.ge importer'),
     ],
     'elite' => [
         'worker_url' => env('ELITE_WORKER_URL'),

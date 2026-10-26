@@ -69,6 +69,7 @@ return [
     'prepay_label' => 'Prepayment',
     'purchase' => 'Purchase',
     'warranty' => 'Warranty',
+
     'installment_term' => '24-month instalment',
 
     'not_available' => 'Not available right now',

@@ -102,6 +102,7 @@ Route::middleware(['auth', 'can:admin'])
         Route::get('/products/{product}/edit', Admin\Products\Form::class)->name('products.edit');
 
         Route::get('/import/upload', Admin\Import\Upload::class)->name('import.upload');
+        Route::get('/import/json', Admin\Import\Json::class)->name('import.json');
         Route::get('/import/links', Admin\Import\Links::class)->name('import.links');
         Route::get('/import/run', Admin\Import\Run::class)->name('import.run');
 

@@ -2,95 +2,124 @@
 
 namespace App\Services\Import\Drivers\Alta;
 
+use App\Support\Redact;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
+/*
+ | The shop front, asked by item code.
+ |
+ | The B2B price list gives a code and little else; the site knows that same
+ | code as a product's barCode, so one search turns it into the product the
+ | shop shows -- its own id, its address, its photograph and the price with
+ | the discount on it.
+ |
+ | alta.ge sits behind a bot check that answers some callers with 403 and a
+ | "Just a moment" page instead of the data. That is reported plainly and the
+ | caller is left to decide; nothing here tries to look like something it is
+ | not.
+ */
 class AltaClient
 {
+    protected const BASE = 'https://alta.ge';
+
     public function __construct(protected array $config = []) {}
 
-    public function route(string $externalId): ?string
+    /**
+     * What the shop front knows about one B2B item code.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function suggest(string $item): ?array
     {
-        $data = $this->get(['type' => 'suggestions', 'query' => $externalId])?->json();
+        $response = $this->get('/api/proxy/v1/Products/search/suggestions', ['query' => $item]);
 
-        return $data['products'][0]['route'] ?? null;
+        if (! $response) {
+            return null;
+        }
+
+        $products = $response->json('products');
+
+        if (! is_array($products) || ! $products) {
+            /* The code is in the price list but not on the shop front: Alta
+               sells it in the branches and does not list it online. */
+            return null;
+        }
+
+        return $this->take($products[0], $item);
     }
 
-    public function page(string $route): ?array
+    /**
+     * @return array<string, mixed>
+     */
+    protected function take(array $product, string $item): array
     {
-        $html = $this->get(['type' => 'page', 'route' => $route], 'text/html')?->body();
+        $price = (float) ($product['price'] ?? 0);
+        $previous = (float) ($product['previousPrice'] ?? 0);
+        $route = trim((string) ($product['route'] ?? ''));
 
-        if (! $html || ! preg_match('/<script id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/s', $html, $m)) {
-            return null;
-        }
+        return [
+            'item' => $item,
+            'id' => (int) ($product['id'] ?? 0),
+            'name' => trim((string) ($product['name'] ?? '')),
+            'route' => $route,
+            'url' => $route !== '' ? self::BASE.'/'.ltrim($route, '/') : null,
 
-        $json = json_decode($m[1], true);
+            'image' => $this->image($product['imageUrl'] ?? null),
+            'thumb' => $this->image($product['thumbUrl'] ?? null),
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return null;
-        }
+            'price' => $price,
 
-        $initial = $json['props']['pageProps']['initialProductData'] ?? [];
+            /* Only a price that is really higher is a previous one; the field
+               repeats the current price when nothing is off. */
+            'old_price' => $previous > $price ? $previous : null,
+            'on_sale' => (bool) ($product['onSale'] ?? false),
 
-        return empty($initial['product']) ? null : [
-            'product' => $initial['product'],
-            'availabilityInStores' => $initial['availabilityInStores'] ?? [],
+            'category_id' => (int) ($product['primaryCategoryId'] ?? 0) ?: null,
+            'category' => trim((string) ($product['primaryCategoryName'] ?? '')) ?: null,
         ];
     }
 
-    public function image(string $url): ?string
+    protected function image(mixed $url): ?string
     {
-        return $this->get(['type' => 'image', 'url' => $url], '*/*')?->body();
+        $url = trim((string) $url);
+
+        return str_starts_with($url, 'http') ? $url : null;
     }
 
-    protected const BLOCKED_STATUSES = [401, 403, 429, 503];
-
-    protected function get(array $query, string $accept = 'application/json')
+    protected function get(string $path, array $query = []): ?Response
     {
-        $response = Http::timeout($this->config['timeout'] ?? config('shop.import_request_timeout'))
-            ->retry(2, 500, throw: false)
-            ->withHeaders([
-                'Accept' => $accept,
-                'User-Agent' => config('services.alta.user_agent', 'Mozilla/5.0'),
-            ])
-            ->get(config('services.alta.worker_url'), $query + array_filter([
-                'token' => config('services.alta.token'),
+        try {
+            $response = Http::timeout((int) ($this->config['timeout'] ?? 25))
+                ->connectTimeout((int) ($this->config['connect_timeout'] ?? 10))
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'User-Agent' => (string) ($this->config['user_agent'] ?? 'iapi.ge importer'),
+                ])
+                ->get(self::BASE.$path, $query);
+        } catch (\Throwable $e) {
+            Log::channel('import')->warning('alta.ge could not be reached', [
+                'path' => $path,
+                'error' => Redact::secrets($e->getMessage()),
+            ]);
 
-                'cfClearance' => config('services.alta.cf_clearance'),
-            ]));
-
-        $body = $response->body();
-
-        if (in_array($response->status(), self::BLOCKED_STATUSES, true) || $this->isChallenge($body)) {
-            throw new BlockedByAlta($this->refusal($response->status(), $body));
+            return null;
         }
 
-        return $response->successful() ? $response : null;
-    }
+        if ($response->successful()) {
+            return $response;
+        }
 
-    protected function isChallenge(string $body): bool
-    {
-        return $body !== ''
-            && ! str_starts_with(ltrim($body), '{')
-            && (bool) preg_match('/Just a moment|cf-browser-verification|cf_chl|Attention Required/i', $body);
-    }
+        Log::channel('import')->warning('alta.ge refused the request', [
+            'path' => $path,
+            'query' => $query,
+            'status' => $response->status(),
+            'hint' => $response->status() === 403
+                ? 'the shop front is behind a bot check; it answers only callers it accepts'
+                : null,
+        ]);
 
-    protected function refusal(int $status, string $body): string
-    {
-        $reason = match (true) {
-            $this->isChallenge($body) => 'alta.ge answered with a Cloudflare browser challenge, not '
-                .'with data. That is not the worker token: the site is asking whoever calls it to '
-                .'run JavaScript first. It needs a cf_clearance cookie for alta.ge, taken from a '
-                .'browser, in ALTA_CF_CLEARANCE and forwarded by the worker — together with the '
-                .'same User-Agent it was issued for, in ALTA_USER_AGENT.',
-
-            $status === 401 => 'ALTA_ACCESS_TOKEN is missing or no longer valid — the worker checks '
-                .'it on every request.',
-
-            $status === 429 => 'Too many requests. Lower IMPORT_RATE_PER_MINUTE or run fewer workers.',
-
-            default => 'Alta is refusing requests for now; this is usually temporary.',
-        };
-
-        return "Alta refused the request (HTTP {$status}). {$reason}";
+        return null;
     }
 }

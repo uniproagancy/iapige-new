@@ -155,6 +155,11 @@
                             </a>
                         </li>
                         <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.import.json') }}">
+                                {!! $icon('edit') !!}<span>{{ __('admin.json_title') }}</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.mapping') }}">
                                 {!! $icon('shuffle') !!}<span>{{ __('admin.mapping') }}</span>
                                 @if ($unmapped)

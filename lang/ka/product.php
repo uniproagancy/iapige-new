@@ -69,6 +69,7 @@ return [
     'prepay_label' => 'წინასწარი გადახდა',
     'purchase' => 'შეძენა',
     'warranty' => 'გარანტია',
+
     'installment_term' => 'განვადება 24 თვე',
 
     'not_available' => 'ამჟამად მიუწვდომელია',
