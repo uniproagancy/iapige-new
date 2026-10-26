@@ -61,6 +61,26 @@ class AltaClient
     }
 
     /**
+     * Everything the shop front holds about one of its own products.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function details(int $id): ?array
+    {
+        $response = $this->get('/api/proxy/v1/Products/details', ['productId' => $id]);
+
+        if (! $response) {
+            return null;
+        }
+
+        $data = $response->json();
+
+        /* Handed on whole: it is the importer's business what to make of it,
+           and the admin's paste page is given the very same thing. */
+        return is_array($data) && isset($data['product']['id']) ? $data : null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function take(array $product, string $item): array
