@@ -26,6 +26,16 @@ class AltaClient
 
     public function __construct(protected array $config = []) {}
 
+    /*
+     | The address that holds everything about a product: its pictures, its
+     | specifications and the price with the discount on it. It is built from
+     | the shop front's own id, which the lookup above is what gives us.
+     */
+    public static function detailsUrl(int $id): string
+    {
+        return self::BASE.'/api/proxy/v1/Products/details?productId='.$id;
+    }
+
     /**
      * What the shop front knows about one B2B item code.
      *
