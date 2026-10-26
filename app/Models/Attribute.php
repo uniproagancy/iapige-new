@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Attribute extends Model
@@ -33,6 +34,39 @@ class Attribute extends Model
     public function values(): HasMany
     {
         return $this->hasMany(AttributeValue::class)->orderBy('sort_order');
+    }
+
+    /*
+     | The shelves this attribute belongs on. Empty means all of them, which is
+     | how every attribute stood before there was a choice.
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
+    /*
+     | Whether this attribute is offered under a given category -- which counts
+     | a parent's listing for its children, so "Mobile Phones & Accessories"
+     | covers the phones beneath it without naming each one.
+     */
+    public function appliesTo(?Category $category): bool
+    {
+        $only = $this->relationLoaded('categories')
+            ? $this->categories->pluck('id')
+            : $this->categories()->pluck('categories.id');
+
+        if ($only->isEmpty()) {
+            return true;
+        }
+
+        if (! $category) {
+            return false;
+        }
+
+        $line = collect($category->ancestorsAndSelf())->pluck('id');
+
+        return $only->intersect($line)->isNotEmpty();
     }
 
     public function scopeFilterable(Builder $query): Builder

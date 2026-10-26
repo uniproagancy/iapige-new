@@ -281,6 +281,9 @@ return [
     'delete_attribute_confirm' => 'The attribute, its values and their links will be deleted. Continue?',
     'attributes_hint' => 'Every spec becomes an attribute automatically, but none of them is a filter until you say so here. Twenty groups in the sidebar help nobody — enable the 5–8 shoppers actually look for.',
     'variant_hint' => 'Variant means it appears as a switcher on the product page (colour, storage).',
+    'attr_categories' => 'Which categories',
+    'attr_categories_all' => 'Every category',
+    'attr_categories_some' => ':count categories',
     'attribute_reserved' => 'The brand filter is built in — this attribute stays off so it is not drawn twice.',
 
     'images' => 'Images',
@@ -538,6 +541,12 @@ return [
     'order_shipping' => 'Delivery',
     'order_total' => 'Total',
 
+    'json_in_answer' => 'Answer :n —',
+    'json_saved_many' => ':count products added',
+    'json_save_many' => 'Save all :count',
+    'json_many_hint' => 'Several answers — the price and stock are saved as each one has them.',
+    'json_have_it' => 'Already here — it will be refreshed',
+    'json_skipped' => 'This one is skipped',
     'json_title' => 'Add from JSON',
     'json_hint' => 'Paste the product page answer and see what it becomes before saving it.',
     'json_label' => 'The answer',

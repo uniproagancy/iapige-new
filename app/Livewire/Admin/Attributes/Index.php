@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Attributes;
 
 use App\Models\Attribute;
 use App\Models\AttributeValue;
+use App\Models\Category;
 use App\Models\Language;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +40,10 @@ class Index extends Component
     public bool $is_filterable = false;
 
     public bool $is_variant = false;
+
+    /* Which shelves this attribute belongs on. None chosen means all of
+       them, which is how every attribute stood before there was a choice. */
+    public array $categories = [];
 
     public array $translations = [];
 
@@ -94,7 +99,61 @@ class Index extends Component
                 ? AttributeValue::where('attribute_id', $this->valuesFor)
                     ->withTranslation()->orderBy('sort_order')->orderBy('code')->get()
                 : collect(),
+
+            'shelves' => $this->shelves(),
+            'shelvesFor' => $this->shelvesFor($rows->getCollection()),
         ])->layout('layouts.admin', ['title' => __('admin.attributes')]);
+    }
+
+    /*
+     | The whole tree, flattened, so one list can hold it with its shape still
+     | readable -- a shelf under a shelf is shown indented rather than loose.
+     *
+     * @return array<int, array{id: int, name: string, depth: int}>
+     */
+    protected function shelves(): array
+    {
+        $all = Category::withTranslation()->orderBy('sort_order')->get()->groupBy('parent_id');
+
+        $flat = [];
+
+        $walk = function (?int $parent, int $depth) use (&$walk, $all, &$flat): void {
+            foreach ($all[$parent] ?? [] as $category) {
+                $flat[] = [
+                    'id' => $category->id,
+                    'name' => str_repeat('— ', $depth).($category->name ?: '#'.$category->id),
+                    'depth' => $depth,
+                ];
+
+                $walk($category->id, $depth + 1);
+            }
+        };
+
+        $walk(null, 0);
+
+        return $flat;
+    }
+
+    /*
+     | How many shelves each attribute on this page is kept to, so the list can
+     | say so without asking once per row.
+     *
+     * @return array<int, int>
+     */
+    protected function shelvesFor(iterable $rows): array
+    {
+        $ids = collect($rows)->pluck('id');
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        return DB::table('attribute_category')
+            ->whereIn('attribute_id', $ids)
+            ->selectRaw('attribute_id, count(*) as n')
+            ->groupBy('attribute_id')
+            ->pluck('n', 'attribute_id')
+            ->all();
     }
 
     protected function usage(): array
@@ -175,6 +234,7 @@ class Index extends Component
         $this->sort_order = $attribute->sort_order;
         $this->is_filterable = (bool) $attribute->is_filterable;
         $this->is_variant = (bool) $attribute->is_variant;
+        $this->categories = $attribute->categories()->pluck('categories.id')->all();
         $this->resetValidation();
 
         $this->translations = Language::active()->mapWithKeys(fn (Language $l) => [
@@ -204,6 +264,9 @@ class Index extends Component
             'is_filterable' => in_array($this->code, self::RESERVED, true) ? false : $this->is_filterable,
             'is_variant' => $this->is_variant,
         ]);
+
+        /* Nothing chosen is not a mistake: it means every shelf. */
+        $attribute->categories()->sync(array_map('intval', $this->categories));
 
         $attribute->saveTranslations(
             collect($this->translations)

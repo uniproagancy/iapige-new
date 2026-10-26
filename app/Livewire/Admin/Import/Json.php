@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Import;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Services\Import\Drivers\Alta\AltaJson;
+use App\Services\Import\Drivers\Alta\AltaPaste;
 use App\Services\Import\ProductImporter;
 use App\Services\Import\ProductPayload;
 use App\Support\Redact;
@@ -29,8 +30,9 @@ class Json extends Component
 
     public string $json = '';
 
-    /* What the paste would become, shown before anything is written. */
-    public ?array $preview = null;
+    /* What the paste would become, shown before anything is written.
+       One row per answer in it. */
+    public array $preview = [];
 
     /* Not $errors: that name belongs to Blade's own error bag, and a
        property of the same name hides it from every @error in the view. */
@@ -41,7 +43,7 @@ class Json extends Component
 
     public ?string $price = null;
 
-    public ?array $result = null;
+    public array $result = [];
 
     public function mount(): void
     {
@@ -58,6 +60,13 @@ class Json extends Component
         $this->reset(['preview', 'problems', 'result', 'stock', 'price']);
     }
 
+    /* The two corrections are only offered for a single answer: with a
+       hundred of them there is nothing sensible one figure could mean. */
+    public function alone(): bool
+    {
+        return count($this->preview) === 1;
+    }
+
     public function updatedJson(): void
     {
         $this->reset(['preview', 'problems', 'result']);
@@ -70,20 +79,29 @@ class Json extends Component
             'json' => ['required', 'string', 'min:20'],
         ]);
 
-        $this->result = null;
+        $this->result = [];
+        $this->problems = [];
+        $this->preview = [];
 
-        $read = (new AltaJson($this->supplier()))->read($this->json);
+        $reader = new AltaJson($this->supplier());
 
-        $this->problems = $read['errors'];
-        $this->preview = $read['seen'] ?: null;
+        foreach (AltaPaste::split($this->json) as $i => $one) {
+            $read = $reader->read($one);
 
-        if (! $read['payload']) {
-            return;
+            foreach ($read['errors'] as $error) {
+                $this->problems[] = __('admin.json_in_answer', ['n' => $i + 1]).' '.$error;
+            }
+
+            if ($read['seen']) {
+                $this->preview[] = $read['seen'] + ['ok' => $read['payload'] !== null];
+            }
         }
 
         /* Filled in from the paste, and left for the operator to correct. */
-        $this->stock ??= (string) $read['seen']['stock'];
-        $this->price ??= (string) $read['seen']['price'];
+        if ($this->alone()) {
+            $this->stock ??= (string) $this->preview[0]['stock'];
+            $this->price ??= (string) $this->preview[0]['price'];
+        }
     }
 
     public function save(ProductImporter $importer): void
@@ -96,53 +114,71 @@ class Json extends Component
         ]);
 
         $supplier = $this->supplier();
-        $read = (new AltaJson($supplier))->read($this->json);
+        $reader = new AltaJson($supplier);
+        $answers = AltaPaste::split($this->json);
 
-        $this->problems = $read['errors'];
-        $this->preview = $read['seen'] ?: null;
+        $this->problems = [];
+        $this->result = [];
 
-        if (! $read['payload']) {
+        $alone = count($answers) === 1;
+
+        foreach ($answers as $i => $one) {
+            $read = $reader->read($one);
+
+            if (! $read['payload']) {
+                foreach ($read['errors'] as $error) {
+                    $this->problems[] = __('admin.json_in_answer', ['n' => $i + 1]).' '.$error;
+                }
+
+                continue;
+            }
+
+            /* A lone answer can have its cost and stock corrected by hand;
+               among many there is no one figure to correct them with. */
+            $payload = $alone ? $this->corrected($read['payload']) : $read['payload'];
+
+            try {
+                $product = $importer->import($supplier, $payload, insist: true);
+            } catch (\Throwable $e) {
+                Log::channel('import')->warning('pasted answer could not be saved', [
+                    'supplier' => $supplier->code,
+                    'external' => $payload->externalId,
+                    'error' => Redact::secrets($e->getMessage()),
+                ]);
+
+                $this->problems[] = __('admin.json_in_answer', ['n' => $i + 1]).' '
+                    .__('admin.json_failed', ['error' => $e->getMessage()]);
+
+                continue;
+            }
+
+            if (! $product) {
+                $this->problems[] = __('admin.json_in_answer', ['n' => $i + 1]).' '.__('admin.json_refused');
+
+                continue;
+            }
+
+            $this->result[] = [
+                'id' => $product->id,
+                'sku' => $product->sku,
+                'name' => $product->name,
+                'price' => $product->price,
+                'stock' => $product->stock,
+                'images' => $product->images()->count(),
+                'edit' => route('admin.products.edit', $product),
+                'live' => $product->storefrontUrl(),
+            ];
+        }
+
+        if (! $this->result) {
             $this->dispatch('toast', message: __('admin.json_nothing_to_save'));
 
             return;
         }
 
-        $payload = $this->corrected($read['payload']);
-
-        try {
-            $product = $importer->import($supplier, $payload, insist: true);
-        } catch (\Throwable $e) {
-            Log::channel('import')->warning('pasted answer could not be saved', [
-                'supplier' => $supplier->code,
-                'external' => $payload->externalId,
-                'error' => Redact::secrets($e->getMessage()),
-            ]);
-
-            $this->problems[] = __('admin.json_failed', ['error' => $e->getMessage()]);
-
-            return;
-        }
-
-        if (! $product) {
-            $this->problems[] = __('admin.json_refused');
-
-            return;
-        }
-
-        $this->result = [
-            'id' => $product->id,
-            'sku' => $product->sku,
-            'name' => $product->name,
-            'price' => $product->price,
-            'stock' => $product->stock,
-            'images' => $product->images()->count(),
-            'edit' => route('admin.products.edit', $product),
-            'live' => $product->storefrontUrl(),
-        ];
-
         $this->reset(['json', 'preview', 'stock', 'price']);
 
-        $this->dispatch('toast', message: __('admin.json_saved', ['sku' => $product->sku]));
+        $this->dispatch('toast', message: __('admin.json_saved_many', ['count' => count($this->result)]));
     }
 
     /*
@@ -183,14 +219,19 @@ class Json extends Component
             'supplier' => $supplier,
 
             /* What the markup would make of the price being shown. */
-            'selling' => $supplier && $this->price !== null && $this->price !== ''
+            'selling' => $supplier && $this->alone() && $this->price !== null && $this->price !== ''
                 ? $supplier->markup((float) $this->price)
                 : null,
-            'already' => $this->preview
+
+            /* Which of the pasted answers the shop already holds. */
+            'already' => $supplier && $this->preview
                 ? Product::withTrashed()
-                    ->where('sku', ($supplier?->code ?? '').'-'.$this->preview['code'])
-                    ->first()
-                : null,
+                    ->whereIn('sku', array_map(
+                        fn (array $row) => $supplier->code.'-'.$row['code'],
+                        $this->preview,
+                    ))
+                    ->pluck('sku', 'sku')
+                : collect(),
         ])->layout('layouts.admin', ['title' => __('admin.json_title')]);
     }
 }

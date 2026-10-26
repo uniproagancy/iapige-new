@@ -676,6 +676,23 @@ class Catalog
             return [];
         }
 
+        /* An attribute can be kept to certain shelves: colour is something to
+           choose between on a phone and nothing at all on a kettle. One left
+           on no shelf in particular is offered everywhere, as all of them
+           were before there was a choice. */
+        $shelf = $product->category;
+
+        $offered = Attribute::where('is_variant', true)
+            ->with('categories:id')
+            ->get()
+            ->filter(fn (Attribute $attribute) => $attribute->appliesTo($shelf))
+            ->pluck('code')
+            ->flip();
+
+        if ($offered->isEmpty()) {
+            return [];
+        }
+
         $here = self::variantValues($product);
         $switchers = [];
 
@@ -689,6 +706,11 @@ class Catalog
                 }
 
                 $code = $value->attribute->code;
+
+                if (! $offered->has($code)) {
+                    continue;
+                }
+
                 $kept = self::keptBesides($here, $theirs, $code);
                 $existing = $switchers[$code][$value->code] ?? null;
 

@@ -130,6 +130,14 @@
                                            wire:click="toggleVariant({{ $attribute->id }})"
                                            @checked($attribute->is_variant)>
                                 </div>
+
+                                @if ($attribute->is_variant)
+                                    <small class="d-block text-muted">
+                                        {{ ($shelvesFor[$attribute->id] ?? 0)
+                                            ? __('admin.attr_categories_some', ['count' => $shelvesFor[$attribute->id]])
+                                            : __('admin.attr_categories_all') }}
+                                    </small>
+                                @endif
                             </td>
 
                             <td class="text-end text-nowrap">
@@ -254,6 +262,29 @@
                             </div>
 
                             <small class="text-muted d-block mt-1">{{ __('admin.variant_hint') }}</small>
+
+                            <hr>
+
+                            <label class="form-label d-flex justify-content-between align-items-center">
+                                <span>{{ __('admin.attr_categories') }}</span>
+
+                                @if (count($categories))
+                                    <button type="button" class="btn btn-sm btn-flat-secondary py-0"
+                                            wire:click="$set('categories', [])">{{ __('admin.reset') }}</button>
+                                @endif
+                            </label>
+
+                            <select class="form-select" wire:model="categories" multiple size="9">
+                                @foreach ($shelves as $shelf)
+                                    <option value="{{ $shelf['id'] }}">{{ $shelf['name'] }}</option>
+                                @endforeach
+                            </select>
+
+                            <small class="text-muted d-block mt-50">
+                                {{ count($categories)
+                                    ? __('admin.attr_categories_some', ['count' => count($categories)])
+                                    : __('admin.attr_categories_all') }}
+                            </small>
                         </div>
 
                         <div class="modal-footer">

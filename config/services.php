@@ -38,6 +38,10 @@ return [
         'user' => env('ALTA_B2B_USER'),
         'password' => env('ALTA_B2B_PASSWORD'),
         'timeout' => (int) env('ALTA_TIMEOUT', 25),
+
+        /* The access token Alta issued for this account; its shop front
+           sends it as a cookie and answers nothing without it. */
+        'token' => env('ALTA_ACCESS_TOKEN'),
         'user_agent' => env('ALTA_USER_AGENT', 'iapi.ge importer'),
     ],
     'elite' => [

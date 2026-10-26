@@ -120,14 +120,24 @@ class AltaClient
 
     protected function get(string $path, array $query = []): ?Response
     {
+        $token = trim((string) ($this->config['token'] ?? ''));
+
         try {
-            $response = Http::timeout((int) ($this->config['timeout'] ?? 25))
+            $request = Http::timeout((int) ($this->config['timeout'] ?? 25))
                 ->connectTimeout((int) ($this->config['connect_timeout'] ?? 10))
                 ->withHeaders([
                     'Accept' => 'application/json',
+                    'Accept-Language' => 'ka-GE,ka;q=0.9,en;q=0.8',
                     'User-Agent' => (string) ($this->config['user_agent'] ?? 'iapi.ge importer'),
-                ])
-                ->get(self::BASE.$path, $query);
+                ]);
+
+            /* The access token Alta issued for this account, sent the way its
+               own shop front sends it. Without it every answer is a refusal. */
+            if ($token !== '') {
+                $request = $request->withCookies(['alta-access_token' => $token], 'alta.ge');
+            }
+
+            $response = $request->get(self::BASE.$path, $query);
         } catch (\Throwable $e) {
             Log::channel('import')->warning('alta.ge could not be reached', [
                 'path' => $path,
@@ -145,8 +155,11 @@ class AltaClient
             'path' => $path,
             'query' => $query,
             'status' => $response->status(),
+            'token_sent' => $token !== '',
             'hint' => $response->status() === 403
-                ? 'the shop front is behind a bot check; it answers only callers it accepts'
+                ? ($token === ''
+                    ? 'no access token was sent; set ALTA_ACCESS_TOKEN'
+                    : 'refused even with the token, which points at the address it was asked from')
                 : null,
         ]);
 
