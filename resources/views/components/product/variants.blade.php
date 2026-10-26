@@ -7,10 +7,6 @@
     <div class="opts">
         @if ($colors)
             <div class="opt">
-                <span class="opt__label">{{ __('product.color') }}:
-                    <b>{{ collect($colors)->firstWhere('current', true)['label'] ?? '' }}</b>
-                </span>
-
                 <div class="colors" role="group" aria-label="{{ __('product.color') }}">
                     @foreach ($colors as $c)
                         @if (! empty($c['current']) || empty($c['url']))
@@ -32,10 +28,6 @@
 
         @if ($configs)
             <div class="opt">
-                <span class="opt__label">{{ __('product.memory') }}:
-                    <b>{{ collect($configs)->firstWhere('current', true)['label'] ?? '' }}</b>
-                </span>
-
                 <div class="cfg" role="group" aria-label="{{ __('product.memory') }}">
                     @foreach ($configs as $item)
                         @if (! empty($item['current']) || empty($item['url']))

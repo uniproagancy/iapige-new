@@ -120,8 +120,6 @@
 
 .opts{display:flex;flex-direction:column;gap:18px;margin-top:20px}
 .opt{display:flex;flex-direction:column;gap:10px}
-.opt__label{font-size:13px;color:var(--muted-2)}
-.opt__label b{color:var(--ink);font-weight:600}
 .colors{display:flex;gap:12px;align-items:center}
 /*
  | Anchors now, not buttons: choosing a colour opens another product.
