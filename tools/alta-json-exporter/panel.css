@@ -25,6 +25,9 @@ a { color: #bb5100; text-underline-offset: 3px; font-size: 13px; }
 .admin-option button { margin-top: 12px; }
 footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 10px 3px; color: #747d8c; font-size: 12px; }
 textarea { width: 100%; resize: vertical; border: 1px solid #d8dde5; border-radius: 10px; padding: 12px; font: inherit; }
+.feed-link { border: 1px solid #ffd4b5; background: #fff9f4; border-radius: 12px; padding: 16px; margin-bottom: 22px; }
+.feed-link label { margin-top: 0; font-weight: 650; }
+.feed-link input { display: block; width: 100%; border: 1px solid #d8dde5; border-radius: 9px; padding: 12px; font: inherit; font-size: 13px; margin: 10px 0 12px; }
 .limit { display: flex; gap: 12px; align-items: center; }
 .limit input { width: 95px; border: 1px solid #d8dde5; border-radius: 8px; padding: 9px; font: inherit; }
 .limit span, .hint { color: #747d8c; font-size: 13px; line-height: 1.7; }

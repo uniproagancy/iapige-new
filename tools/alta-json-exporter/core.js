@@ -1,5 +1,11 @@
 export const MAX_CANDIDATES = 5;
+export const STOCK_MAX_AGE_MS = 26 * 60 * 60 * 1000;
 const ALTA_ORIGIN = 'https://alta.ge';
+const STOCK_ERRORS = new Map([
+    ['invalid_feed_link', 'invalid_feed_link'], ['invalid_stock_feed_link', 'invalid_feed_link'],
+    ['supplier_unavailable', 'supplier_unavailable'], ['stock_snapshot_missing', 'stock_snapshot_missing'],
+    ['stock_snapshot_unavailable', 'stock_snapshot_missing'], ['stock_snapshot_stale', 'stock_snapshot_stale'],
+]);
 
 function itemCode(value) {
     if (typeof value === 'number' && !Number.isSafeInteger(value)) throw new Error('invalid_item');
@@ -50,6 +56,51 @@ export function parseFeed(value) {
         if (!row || typeof row !== 'object' || Array.isArray(row)) throw new Error('invalid_feed_row');
         return {item: itemCode(row.item), quantity: quantity(row.quantity ?? row.qty_text)};
     }));
+}
+
+export function validateFeedUrl(value) {
+    if (typeof value !== 'string' || value.includes('#')) throw new Error('invalid_feed_link');
+    let url;
+    try { url = new URL(value.trim()); } catch { throw new Error('invalid_feed_link'); }
+    const keys = [...url.searchParams.keys()];
+    if (url.protocol !== 'https:' || url.hostname !== 'iapi.ge' || url.username || url.password
+        || /^https:\/\/[^/?#]*@/i.test(value.trim()) || (url.port && url.port !== '443')
+        || url.pathname !== '/feeds/alta-stock.json' || keys.length !== 2
+        || url.searchParams.getAll('version').length !== 1 || url.searchParams.getAll('signature').length !== 1
+        || keys.some(key => key !== 'version' && key !== 'signature')
+        || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(url.searchParams.get('version') || '')
+        || !/^[0-9a-f]{64}$/i.test(url.searchParams.get('signature') || '')) {
+        throw new Error('invalid_feed_link');
+    }
+    return url.href;
+}
+
+export function assertStockFresh(snapshot, now = Date.now()) {
+    if (snapshot?.source !== 'signed_feed') return snapshot;
+    const collected = typeof snapshot.syncedAt === 'string' ? Date.parse(snapshot.syncedAt) : NaN;
+    if (!Number.isFinite(now) || !Number.isFinite(collected) || now - collected > STOCK_MAX_AGE_MS
+        || collected - now > 5 * 60 * 1000) throw new Error('stock_snapshot_stale');
+    return snapshot;
+}
+
+export function parseStockSnapshot(value, now = Date.now()) {
+    if (typeof value === 'string') {
+        try { value = JSON.parse(value); } catch { throw new Error('invalid_feed'); }
+    }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid_feed');
+    if (Object.hasOwn(value, 'error')) {
+        throw new Error(STOCK_ERRORS.get(value.error) || 'invalid_feed');
+    }
+    if (value.schema !== 'iapi.supplier-stock.v1' || value.supplier !== 'alta' || value.source !== 'supplier_stocks'
+        || !Array.isArray(value.items) || !Number.isSafeInteger(value.count) || value.count !== value.items.length
+        || value.items.some(row => !row || typeof row !== 'object' || Array.isArray(row)
+            || typeof row.item !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(row.item)
+            || !Number.isSafeInteger(row.quantity) || row.quantity < 0)) throw new Error('invalid_feed');
+    const fresh = assertStockFresh({source: 'signed_feed', syncedAt: value.synced_at}, now);
+    let items;
+    try { items = parseFeed(value); } catch { throw new Error('invalid_feed'); }
+    if (items.length !== value.count) throw new Error('invalid_feed');
+    return {items, syncedAt: new Date(fresh.syncedAt).toISOString(), source: 'signed_feed'};
 }
 
 function positiveId(value) {

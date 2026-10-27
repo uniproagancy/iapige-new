@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AltaBrowserController;
+use App\Http\Controllers\AltaStockFeedController;
 use App\Http\Controllers\BogInstallmentController;
 use App\Http\Controllers\CredoController;
 use App\Http\Controllers\CronController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocialAuthController;
+use App\Http\Middleware\TrackPageView;
 use App\Livewire\Account\Index;
 use App\Livewire\Admin;
 use App\Livewire\Auth\ResetPassword;
@@ -70,6 +72,11 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap')
 
 Route::get('/feed/facebook.xml', [FeedController::class, 'facebook'])->name('feed.facebook');
 Route::get('/feed/google.xml', [FeedController::class, 'google'])->name('feed.google');
+
+Route::get('/feeds/alta-stock.json', AltaStockFeedController::class)
+    ->middleware('throttle:12,1')
+    ->withoutMiddleware([TrackPageView::class])
+    ->name('feeds.alta-stock');
 
 /* The scheduler does this every five minutes; the address is for hosting
    where only a plain cron fetch is available. */

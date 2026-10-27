@@ -4,6 +4,7 @@ import {createBrowserReader, readRenderedJson, LANGUAGE_RULE_ID, LANGUAGE_RULE_P
 
 const FIRST = 'https://alta.ge/api/proxy/v1/Products/search/suggestions?query=001234';
 const SECOND = 'https://alta.ge/api/proxy/v1/Products/details?productId=741';
+const FEED_LINK = `https://iapi.ge/feeds/alta-stock.json?version=11111111-1111-4111-8111-111111111111&signature=${'a'.repeat(64)}`;
 const KEY = 'altaJsonExporterHelper';
 
 function fixture() {
@@ -167,11 +168,22 @@ test('IAPI navigation removes only the exporter rule and never adds a language h
     const reader = createBrowserReader(f.chrome, {minIntervalMs: 0});
     await reader.readJson(FIRST);
     const before = f.ruleUpdates.length;
-    const url = 'https://iapi.ge/admin/alta-browser/feed?include_out_of_stock=1';
+    const url = FEED_LINK;
     assert.deepEqual(await reader.readJson(url), {raw: url});
     const changes = f.ruleUpdates.slice(before);
     assert.ok(changes.length > 0);
     assert.ok(changes.every(change => !change.addRules?.length && change.removeRuleIds.length === 1 && change.removeRuleIds[0] === LANGUAGE_RULE_ID));
+});
+
+test('IAPI reader accepts only a valid signed stock endpoint, before any tab or rule operation', async () => {
+    const f = fixture();
+    const reader = createBrowserReader(f.chrome, {minIntervalMs: 0});
+    for (const url of ['https://iapi.ge/admin/alta-browser/feed?include_out_of_stock=1',
+        'https://iapi.ge/feeds/alta-stock.json', FEED_LINK + '&extra=1', FEED_LINK + '#fragment']) {
+        await assert.rejects(reader.readJson(url), /invalid_feed_link/);
+    }
+    assert.equal(f.navigations.length, 0);
+    assert.equal(f.ruleUpdates.length, 0);
 });
 
 async function until(predicate) {

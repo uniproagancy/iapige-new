@@ -16,6 +16,31 @@
 @endphp
 
 <div>
+    @if ($altaFeedAvailable)
+        <div class="card mb-2">
+            <div class="card-body">
+                <h4 class="card-title">{{ __('admin.alta_stock_link_title') }}</h4>
+                <p class="text-muted">{{ __('admin.alta_stock_link_hint') }}</p>
+                @if ($altaFeedUrl)
+                    <label class="form-label" for="alta-stock-feed-url">{{ __('admin.alta_stock_link_label') }}</label>
+                    <input id="alta-stock-feed-url" class="form-control mb-1" type="url" readonly
+                           value="{{ $altaFeedUrl }}" onclick="this.select()" autocomplete="off" spellcheck="false">
+                    <small class="text-muted d-block mb-1">{{ __('admin.alta_stock_link_scope') }}</small>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            wire:click="createAltaStockLink" wire:loading.attr="disabled"
+                            wire:confirm="{{ __('admin.alta_stock_link_rotate_confirm') }}">
+                        {{ __('admin.alta_stock_link_rotate') }}
+                    </button>
+                @else
+                    <button type="button" class="btn btn-primary"
+                            wire:click="createAltaStockLink" wire:loading.attr="disabled">
+                        {{ __('admin.alta_stock_link_create') }}
+                    </button>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <x-admin.list-card :title="__('admin.suppliers')" :count="$suppliers->count()">
         <x-slot:actions>
             <a class="btn btn-outline-primary" href="{{ route('admin.import.upload') }}" wire:navigate>

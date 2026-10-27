@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
+use App\Services\Import\Drivers\Alta\AltaDriver;
+use App\Services\Import\Drivers\Alta\AltaStockFeed;
 use App\Services\Import\ImportManager;
 use Livewire\Component;
 
@@ -25,9 +27,24 @@ class Index extends Component
 
     public function render()
     {
+        $alta = Supplier::where('code', 'alta')->where('is_active', true)
+            ->where('driver', AltaDriver::class)->first();
+
         return view('livewire.admin.suppliers.index', [
             'suppliers' => $this->suppliers(),
+            'altaFeedAvailable' => $alta !== null,
+            'altaFeedUrl' => $alta ? app(AltaStockFeed::class)->link($alta) : null,
         ])->layout('layouts.admin', ['title' => __('admin.suppliers')]);
+    }
+
+    public function createAltaStockLink(AltaStockFeed $feed): void
+    {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+        $supplier = Supplier::where('code', 'alta')->where('is_active', true)
+            ->where('driver', AltaDriver::class)->firstOrFail();
+
+        $feed->rotateLink($supplier);
+        $this->dispatch('toast', message: __('admin.alta_stock_link_created'));
     }
 
     protected function suppliers()

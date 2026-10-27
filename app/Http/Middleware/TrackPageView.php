@@ -17,6 +17,7 @@ class TrackPageView
         'payment/*',
         'invoice/*',
         'sitemap.xml', 'robots.txt', 'up',
+        'feeds/alta-stock.json',
     ];
 
     protected const BOTS = [

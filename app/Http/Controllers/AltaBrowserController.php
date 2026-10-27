@@ -9,6 +9,8 @@ use App\Services\Import\Drivers\Alta\AltaB2bClient;
 use App\Services\Import\Drivers\Alta\AltaClient;
 use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Services\Import\Drivers\Alta\AltaImageCache;
+use App\Services\Import\Drivers\Alta\AltaStockFeed;
+use App\Services\Import\Drivers\Alta\AltaUnavailable;
 use App\Support\Html;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,32 +24,22 @@ class AltaBrowserController extends Controller
     public function feed(Request $request): JsonResponse
     {
         $supplier = $this->supplier($request);
-        $rows = $this->b2b($supplier)->all();
         $minimum = max(1, (int) ($supplier->config['min_quantity'] ?? 2));
         $includeOutOfStock = $request->boolean('include_out_of_stock');
-        $items = [];
 
-        foreach ($rows as $row) {
-            $code = (string) ($row['item'] ?? '');
-
-            if (! preg_match('/\A[A-Za-z0-9_-]{1,64}\z/D', $code)
-                || (! $includeOutOfStock && ($row['quantity'] ?? 0) < $minimum)) {
-                continue;
-            }
-
-            $saved = $this->directory($supplier).DIRECTORY_SEPARATOR.$code.'.json';
-            $document = is_file($saved) ? json_decode(File::get($saved), true) : [];
-            $url = $document['source_url'] ?? null;
-            $items[] = [
-                'item' => $code,
-                'name' => $row['name'] ?? $row['model'] ?? $code,
-                'quantity' => (int) $row['quantity'],
-                'url' => is_string($url) && $this->productUrl($url, (int) ($document['product']['id'] ?? 0)) ? $url : null,
-            ];
+        try {
+            $snapshot = (new AltaStockFeed)->snapshot($supplier);
+        } catch (AltaUnavailable $e) {
+            return response()->json(['error' => $e->getMessage()], 503, ['Cache-Control' => 'private, no-store']);
         }
 
-        return response()->json(['items' => $items, 'minimum_quantity' => $minimum,
-            'include_out_of_stock' => $includeOutOfStock, 'source' => 'alta_b2b']);
+        if (! $includeOutOfStock) {
+            $snapshot['items'] = array_values(array_filter($snapshot['items'], fn (array $row) => $row['quantity'] >= $minimum));
+            $snapshot['count'] = count($snapshot['items']);
+        }
+
+        return response()->json($snapshot + ['minimum_quantity' => $minimum, 'include_out_of_stock' => $includeOutOfStock],
+            200, ['Cache-Control' => 'private, no-store']);
     }
 
     public function store(Request $request): JsonResponse

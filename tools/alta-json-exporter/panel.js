@@ -1,9 +1,11 @@
-import {parseCodes, parseFeed, candidateIds, exactDetails, toImportDocument, suggestionsUrl, detailsUrl} from './core.js';
+import {parseCodes, parseFeed, candidateIds, exactDetails, toImportDocument, suggestionsUrl, detailsUrl, validateFeedUrl, parseStockSnapshot, assertStockFresh} from './core.js';
 import {createBrowserReader} from './browser.js';
 import {saveResult, getResult, countResults, listResults} from './db.js';
 
 const JOB_KEY = 'altaJsonExporterJob';
 const FEED_KEY = 'altaJsonExporterFeed';
+const FEED_META_KEY = 'altaJsonExporterFeedMeta';
+const FEED_URL_KEY = 'altaJsonExporterFeedUrl';
 const reader = createBrowserReader();
 const byId = id => document.getElementById(id);
 const errors = {
@@ -11,7 +13,11 @@ const errors = {
     invalid_limit: 'რაოდენობა უნდა იყოს 0 ან დადებითი მთელი რიცხვი.',
     invalid_item: 'პროდუქტის კოდი არასწორად არის მითითებული.',
     invalid_feed_json: 'ფაილში სწორი JSON არ არის.',
-    invalid_feed: 'B2B სიის ფორმატი ვერ წავიკითხეთ. გადაამოწმეთ ფაილი ან შედით იაფის ადმინში.',
+    invalid_feed: 'B2B სიის ფორმატი ვერ წავიკითხეთ. გადაამოწმეთ ბმული ან ფაილი.',
+    invalid_feed_link: 'სიის ბმული არასწორია ან გაუქმებულია. გამოიყენეთ მფლობელის გაცემული მოქმედი ბმული.',
+    supplier_unavailable: 'Alta-ს სია ამჟამად ხელმისაწვდომი არ არის. შენახული შედეგები დარჩა.',
+    stock_snapshot_missing: 'მარაგის დადასტურებული სია არ არის. თავიდან ჩატვირთეთ მოქმედი ბმულით ან თქვენი ფაილით.',
+    stock_snapshot_stale: 'მარაგის სია მოძველებულია. განაახლეთ იგი; საწყისი JSON-ის ჩამოტვირთვა კვლავ შეგიძლიათ.',
     invalid_feed_row: 'B2B სიის ერთ-ერთი ჩანაწერი არასწორია.',
     invalid_quantity: 'B2B მარაგი უნდა იყოს 0 ან დადებითი მთელი რიცხვი.',
     conflicting_quantity: 'ერთ კოდს სიაში განსხვავებული მარაგები აქვს. გადაამოწმეთ სია.',
@@ -22,7 +28,7 @@ const errors = {
     navigation_timeout: 'დამხმარე ჩანართის ჩატვირთვას ვადა გაუვიდა. გადაამოწმეთ იგი და გააგრძელეთ.',
     script_timeout: 'დამხმარე ჩანართმა პასუხი დროულად არ დააბრუნა. გადაამოწმეთ იგი და გააგრძელეთ.',
     language_rule_failed: 'ქართული ენის მოთხოვნა ვერ დაყენდა. Alta-ს მოთხოვნა არ გაიგზავნა; განაახლეთ გაფართოება და გააგრძელეთ.',
-    wrong_page: 'დამხმარე ჩანართი სხვა გვერდზე გადავიდა. იაფის სიისთვის შედით იაფის ადმინში.',
+    wrong_page: 'დამხმარე ჩანართი სხვა გვერდზე გადავიდა. გადაამოწმეთ სიის ბმული ან Alta-ს პასუხი.',
     navigation_failed: 'დამხმარე ჩანართის გახსნა ვერ მოხერხდა. სცადეთ გაგრძელება.',
     session_unavailable: 'დამხმარე ჩანართის მდგომარეობა ვერ შეინახა. დახურეთ ზედმეტი პანელები და სცადეთ თავიდან.',
     stock_unknown: 'იმპორტის JSON-ს B2B მარაგი სჭირდება. ჩატვირთეთ სია; საწყისი JSON უკვე ხელმისაწვდომია.',
@@ -35,6 +41,7 @@ const errors = {
     iapi_permission_failed: 'იაფის წვდომის მოთხოვნა ვერ შესრულდა. სცადეთ თავიდან ან გამოიყენეთ JSON ფაილი და კოდები.',
 };
 let feed = [];
+let feedMeta = null;
 let job = null;
 let busy = false;
 let initializing = true;
@@ -64,23 +71,31 @@ function render() {
     byId('missing').textContent = job?.missing || 0;
     byId('progress').max = Math.max(1, total);
     byId('progress').value = job?.cursor || 0;
-    for (const id of ['start', 'load-feed', 'feed-file', 'codes', 'limit']) byId(id).disabled = busy || initializing || permissionPending;
+    for (const id of ['start', 'load-feed', 'feed-url', 'feed-file', 'codes', 'limit']) byId(id).disabled = busy || initializing || permissionPending;
     byId('pause').disabled = !busy || activeToken === null;
     byId('resume').disabled = busy || initializing || permissionPending || !job || job.cursor >= total;
     byId('download-raw').disabled = !job?.collected;
     byId('download-import').disabled = !job?.collected;
     const known = feed.filter(row => row.quantity !== null).length;
-    byId('feed-status').textContent = feed.length ? `ჩატვირთულია ${feed.length} კოდი; B2B მარაგი ცნობილია ${known}-ზე.` : 'B2B სია ჯერ არ არის ჩატვირთული.';
+    const synced = feedMeta?.source === 'signed_feed' ? ` განახლებულია: ${new Date(feedMeta.syncedAt).toLocaleString('ka-GE')}.` : '';
+    byId('feed-status').textContent = feed.length ? `ჩატვირთულია ${feed.length} კოდი; B2B მარაგი ცნობილია ${known}-ზე.${synced}` : 'B2B სია ჯერ არ არის ჩატვირთული.';
 }
 
-async function useFeed(rows) {
+function checkStock(snapshot) {
+    if (snapshot?.source === 'legacy_unverified') throw new Error('stock_snapshot_missing');
+    assertStockFresh(snapshot);
+}
+
+async function useFeed(rows, metadata = null) {
     const latest = await chrome.storage.local.get(JOB_KEY);
     job = latest[JOB_KEY] || null;
     feed = rows;
-    await chrome.storage.local.set({[FEED_KEY]: rows});
+    feedMeta = metadata;
+    await chrome.storage.local.set({[FEED_KEY]: rows, [FEED_META_KEY]: metadata});
     if (job) {
         const quantities = new Map(feed.map(row => [row.item, row.quantity]));
-        job = {...job, items: job.items.map(row => quantities.has(row.item) ? {...row, quantity: quantities.get(row.item)} : row)};
+        job = {...job, stockSnapshot: metadata,
+            items: job.items.map(row => ({...row, quantity: quantities.get(row.item) ?? null}))};
         await persist(job);
     }
     render();
@@ -116,12 +131,18 @@ async function collect(resume) {
             if (!Number.isSafeInteger(limit) || limit < 0) throw new Error('invalid_limit');
             if (limit > 0) items = items.slice(0, limit);
             if (!items.length) throw new Error('empty_input');
+            const stockSnapshot = items.some(row => row.quantity !== null) ? feedMeta : null;
+            checkStock(stockSnapshot);
             job = {version: 1, id: crypto.randomUUID(), items, cursor: 0, collected: 0, missing: 0,
-                status: 'running', createdAt: new Date().toISOString()};
+                stockSnapshot, status: 'running', createdAt: new Date().toISOString()};
         } else {
             const saved = await chrome.storage.local.get(JOB_KEY);
             job = saved[JOB_KEY];
             if (!job || job.cursor >= job.items.length) throw new Error('empty_input');
+            if (!Object.hasOwn(job, 'stockSnapshot') && job.items.some(row => row.quantity !== null)) {
+                job = {...job, stockSnapshot: {source: 'legacy_unverified'}};
+            }
+            checkStock(job.stockSnapshot);
             job = {...job, status: 'running'};
         }
         let current = structuredClone(job);
@@ -130,6 +151,7 @@ async function collect(resume) {
         try {
             for (; current.cursor < current.items.length;) {
                 if (activeToken !== token) return;
+                checkStock(current.stockSnapshot);
                 const entry = current.items[current.cursor];
                 say(`იკითხება ${entry.item} · ${current.cursor + 1} / ${current.items.length}`);
                 let saved = await getResult(current.id, entry.item);
@@ -175,6 +197,7 @@ async function collect(resume) {
 async function download(raw) {
     try {
         const snapshot = structuredClone(job);
+        if (!raw) checkStock(snapshot.stockSnapshot);
         const rows = await listResults(snapshot.id);
         const quantities = new Map(snapshot.items.map(row => [row.item, row.quantity]));
         const documents = rows.map(row => raw ? row.raw : toImportDocument(row.raw,
@@ -205,6 +228,13 @@ byId('pause').addEventListener('click', () => void (async () => {
 })());
 byId('load-feed').addEventListener('click', () => {
     if (busy || initializing || permissionPending) return;
+    let endpoint;
+    try {
+        endpoint = validateFeedUrl(byId('feed-url').value);
+    } catch (error) {
+        say(describe(error), true);
+        return;
+    }
     permissionPending = true;
     render();
     let request;
@@ -217,16 +247,17 @@ byId('load-feed').addEventListener('click', () => {
         render();
         return;
     }
-    void Promise.resolve(request).then(granted => {
+    void Promise.resolve(request).then(async granted => {
         permissionPending = false;
+        await chrome.storage.local.set({[FEED_URL_KEY]: endpoint});
         if (!granted) {
             say(errors.iapi_permission_denied, true);
             return;
         }
         return exclusive(async () => {
-            say('B2B სია იკითხება. ამავე ბრაუზერში იაფის ადმინში უნდა იყოთ შესული.');
-            const data = await reader.readJson('https://iapi.ge/admin/alta-browser/feed?include_out_of_stock=1');
-            await useFeed(parseFeed(data));
+            say('B2B სია იკითხება წვდომის ბმულით.');
+            const snapshot = parseStockSnapshot(await reader.readJson(endpoint));
+            await useFeed(snapshot.items, {source: snapshot.source, syncedAt: snapshot.syncedAt});
             say('B2B სია ჩატვირთულია. შეგიძლიათ დაიწყოთ ან კონკრეტული კოდები ჩასვათ.');
         });
     }).catch(() => say(errors.iapi_permission_failed, true)).finally(() => {
@@ -236,7 +267,16 @@ byId('load-feed').addEventListener('click', () => {
 });
 byId('feed-file').addEventListener('change', () => void exclusive(async () => {
         const file = byId('feed-file').files[0];
-        if (file) await useFeed(parseFeed(await file.text()));
+        if (file) {
+            let data;
+            try { data = JSON.parse(await file.text()); } catch { throw new Error('invalid_feed_json'); }
+            if (data?.schema === 'iapi.supplier-stock.v1') {
+                const snapshot = parseStockSnapshot(data);
+                await useFeed(snapshot.items, {source: snapshot.source, syncedAt: snapshot.syncedAt});
+            } else {
+                await useFeed(parseFeed(data));
+            }
+        }
         say('B2B სიის ფაილი ჩატვირთულია.');
 }));
 byId('download-import').addEventListener('click', () => void download(false));
@@ -249,10 +289,17 @@ window.addEventListener('beforeunload', event => {
 
 render();
 void (async () => {
-    const saved = await chrome.storage.local.get([JOB_KEY, FEED_KEY]);
+    const saved = await chrome.storage.local.get([JOB_KEY, FEED_KEY, FEED_META_KEY, FEED_URL_KEY]);
     feed = saved[FEED_KEY] || [];
+    feedMeta = saved[FEED_META_KEY] === undefined && feed.length ? {source: 'legacy_unverified'} : saved[FEED_META_KEY] || null;
+    if (saved[FEED_URL_KEY]) {
+        try { byId('feed-url').value = validateFeedUrl(saved[FEED_URL_KEY]); } catch { /* A legacy or invalid URL is not reused. */ }
+    }
     job = saved[JOB_KEY] || null;
     if (job) {
+        if (!Object.hasOwn(job, 'stockSnapshot') && job.items.some(row => row.quantity !== null)) {
+            job = {...job, stockSnapshot: {source: 'legacy_unverified'}};
+        }
         job.collected = await countResults(job.id);
         say(job.cursor < job.items.length ? 'შენახული სამუშაო ხელმისაწვდომია. დააჭირეთ „გაგრძელებას“.' : 'შენახული შედეგები მზადაა ჩამოსატვირთად.');
     }

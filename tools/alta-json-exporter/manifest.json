@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "IAPI · Alta JSON",
     "description": "Alta-ს JSON პასუხების შეგროვება და ჩამოტვირთვა ხელით იმპორტისთვის.",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "minimum_chrome_version": "120",
     "permissions": ["scripting", "storage", "declarativeNetRequestWithHostAccess"],
     "host_permissions": ["https://alta.ge/*"],

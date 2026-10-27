@@ -8,10 +8,16 @@
 </head>
 <body>
 <main>
-    <header><img class="mark" src="icons/icon48.png" alt="IAPI" width="48" height="48"><div><h1>Alta JSON <span class="version">0.2.1</span></h1><p>ალტას პროდუქტის კოდები — სრულ JSON ფაილად.</p></div></header>
+    <header><img class="mark" src="icons/icon48.png" alt="IAPI" width="48" height="48"><div><h1>Alta JSON <span class="version">0.3.0</span></h1><p>ალტას პროდუქტის კოდები — სრულ JSON ფაილად.</p></div></header>
     <section>
         <h2>1. პროდუქტის სია</h2>
-        <p class="intro">ჩასვით კოდები ან აირჩიეთ თქვენი B2B სიის ფაილი. ამ გზით იაფის ანგარიში არ გჭირდებათ.</p>
+        <p class="intro">წვდომის ბმულით სია ადმინში შესვლის გარეშე ჩაიტვირთება. კოდები და საკუთარი ფაილიც შეგიძლიათ გამოიყენოთ.</p>
+        <div class="feed-link">
+            <label for="feed-url">B2B სიის წვდომის ბმული</label>
+            <input id="feed-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://iapi.ge/feeds/alta-stock.json?version=…&amp;signature=…">
+            <button id="load-feed">სიის ჩატვირთვა</button>
+            <p class="hint">ბმულს მფლობელი გაძლევთ. იგი ამ ბრაუზერში შეინახება; სხვას მხოლოდ ნებართვით გაუზიარეთ.</p>
+        </div>
         <label for="codes">პროდუქტის კოდები — თითო ხაზზე ერთი</label>
         <textarea id="codes" rows="4" placeholder="172951&#10;176426&#10;164355"></textarea>
         <p class="hint">მხოლოდ კოდებით სრულ საწყის JSON-ს მიიღებთ. B2B მარაგით იმპორტის ფაილისთვის სიის ფაილიც ჩატვირთეთ.</p>
@@ -21,11 +27,6 @@
         </div>
         <p class="hint">შაბლონში კოდები და რაოდენობები თქვენი რეალური მონაცემებით შეცვალეთ. კოდების ველის შევსებით ჩატვირთული სიიდან კონკრეტულ პროდუქტებს აირჩევთ.</p>
         <p id="feed-status" class="hint">B2B სია ჯერ არ არის ჩატვირთული.</p>
-        <details class="admin-option">
-            <summary>იაფის ადმინიდან სიის წამოღება</summary>
-            <p class="hint">არჩევითი გზა იაფის ადმინისტრატორისთვის. ღილაკის დაჭერისას ბრაუზერი iapi.ge-ზე წვდომას მოგთხოვთ; საჭიროა იმავე ბრაუზერში ადმინისტრატორის მოქმედი სესია.</p>
-            <button id="load-feed" class="secondary">B2B სია იაფის ადმინიდან</button>
-        </details>
         <label class="limit" for="limit">რაოდენობა <input id="limit" type="number" min="0" step="1" value="3"><span>0 = ყველა</span></label>
     </section>
     <section>

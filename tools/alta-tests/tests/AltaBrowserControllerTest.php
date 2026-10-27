@@ -214,10 +214,13 @@ final class AltaBrowserControllerTest extends TestCase
         self::assertFalse($status()['matches_export']);
     }
 
-    public function test_feed_exposes_item_name_and_stock_without_dealer_prices(): void
+    public function test_feed_reads_database_item_and_stock_without_dealer_prices_or_soap(): void
     {
+        DB::table('supplier_stocks')->insert(['supplier_id' => $this->supplier->id, 'external_id' => '001234',
+            'quantity' => 3, 'cost_price' => 599, 'data' => json_encode(['name' => 'Synthetic item', 'private' => 'not for export']),
+            'synced_at' => now()]);
         $b2b = Mockery::mock(AltaB2bClient::class);
-        $b2b->shouldReceive('all')->andReturn([['item' => '001234', 'name' => 'Synthetic item', 'quantity' => 3, 'price' => 599]]);
+        $b2b->shouldNotReceive('all');
         $controller = new class($b2b) extends AltaBrowserController {
             public function __construct(private AltaB2bClient $fixture) {}
 
@@ -227,20 +230,22 @@ final class AltaBrowserControllerTest extends TestCase
             }
         };
         $data = $controller->feed($this->request([], method: 'GET'))->getData(true);
-        self::assertSame(['item', 'name', 'quantity', 'url'], array_keys($data['items'][0]));
+        self::assertSame(['item', 'quantity'], array_keys($data['items'][0]));
         self::assertSame(3, $data['items'][0]['quantity']);
         self::assertArrayNotHasKey('price', $data['items'][0]);
+        self::assertSame('supplier_stocks', $data['source']);
+        self::assertStringNotContainsString('not for export', json_encode($data));
         Http::assertNothingSent();
     }
 
     public function test_full_export_includes_zero_stock_only_when_requested_and_keeps_prices_private(): void
     {
+        foreach (['001234' => 3, '001235' => 1, '001236' => 0] as $item => $quantity) {
+            DB::table('supplier_stocks')->insert(['supplier_id' => $this->supplier->id, 'external_id' => (string) $item,
+                'quantity' => $quantity, 'cost_price' => 599, 'synced_at' => now()]);
+        }
         $b2b = Mockery::mock(AltaB2bClient::class);
-        $b2b->shouldReceive('all')->andReturn([
-            ['item' => '001234', 'name' => 'Available', 'quantity' => 3, 'price' => 599],
-            ['item' => '001235', 'name' => 'Last unit', 'quantity' => 1, 'price' => 499],
-            ['item' => '001236', 'name' => 'Unavailable', 'quantity' => 0, 'price' => 399],
-        ]);
+        $b2b->shouldNotReceive('all');
         $controller = new class($b2b) extends AltaBrowserController {
             public function __construct(private AltaB2bClient $fixture) {}
 

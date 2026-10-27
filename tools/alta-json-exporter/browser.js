@@ -1,3 +1,5 @@
+import {validateFeedUrl} from './core.js';
+
 const SESSION_KEY = 'altaJsonExporterHelper';
 const ORIGINS = new Set(['https://alta.ge', 'https://iapi.ge']);
 export const LANGUAGE_RULE_ID = 761031;
@@ -7,6 +9,7 @@ function allowedUrl(value) {
     let url;
     try { url = new URL(value); } catch { throw new Error('wrong_page'); }
     if (!ORIGINS.has(url.origin) || url.username || url.password) throw new Error('wrong_page');
+    if (url.origin === 'https://iapi.ge') return validateFeedUrl(value);
     url.hash = '';
     return url.href;
 }
