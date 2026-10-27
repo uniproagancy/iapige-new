@@ -4,12 +4,17 @@ namespace App\Services\Import;
 
 use App\Models\Supplier;
 use App\Models\SupplierStock;
+use App\Support\Figure;
 use App\Support\XlsxReader;
 use RuntimeException;
 
 class PriceListLoader
 {
     public const MODE_REPLACE = 'replace';
+
+    /* The roles that hold money, and so are read rather than kept as
+       whatever the cell happened to say. */
+    protected const FIGURES = ['cost', 'discount_price', 'old_price'];
 
     public const MODE_MERGE = 'merge';
 
@@ -210,12 +215,19 @@ class PriceListLoader
                 ? trim((string) ($links[$column] ?? $cells[$column] ?? ''))
                 : trim((string) ($cells[$column] ?? ''));
 
-            if ($value !== '') {
-                $picked[$role] = $value;
+            if ($value === '') {
+                continue;
             }
+
+            /* A figure is stored as a figure. The struck-through price used
+               to be kept as whatever the cell said and read much later, which
+               is how "2,899.00" survived long enough to be misread. */
+            $picked[$role] = in_array($role, self::FIGURES, true)
+                ? Figure::money($value)
+                : $value;
         }
 
-        return $picked;
+        return array_filter($picked, fn ($value) => $value !== null);
     }
 
     protected function quantity(array $cells, array $map): int
@@ -239,20 +251,9 @@ class PriceListLoader
         return $digits === '' ? 0 : min(PHP_INT_MAX, (int) $digits);
     }
 
+    /* Read in one place, so there is only ever one thing to put right. */
     protected function money(?string $text): ?float
     {
-        $text = trim((string) $text);
-
-        if ($text === '') {
-            return null;
-        }
-
-        if (is_numeric($text)) {
-            return (float) $text;
-        }
-
-        $digits = preg_replace('/[^\d.]/', '', str_replace(',', '.', $text));
-
-        return $digits === '' ? null : (float) $digits;
+        return Figure::money($text);
     }
 }

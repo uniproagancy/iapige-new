@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Support\Figure;
 
 class MideaDriver implements SupplierDriver
 {
@@ -122,8 +123,6 @@ class MideaDriver implements SupplierDriver
 
     protected function money(?string $text): ?float
     {
-        $digits = preg_replace('/[^\d.]/', '', str_replace(',', '.', (string) $text));
-
-        return $digits === '' ? null : (float) $digits;
+        return Figure::money($text);
     }
 }

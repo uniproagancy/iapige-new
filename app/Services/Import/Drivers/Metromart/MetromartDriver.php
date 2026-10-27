@@ -7,6 +7,7 @@ use App\Models\SupplierStock;
 use App\Services\Import\Concerns\RecordsSkips;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Support\Figure;
 
 class MetromartDriver implements SupplierDriver
 {
@@ -103,15 +104,7 @@ class MetromartDriver implements SupplierDriver
     /* The sheet writes money as people do: 1 234,56 */
     protected function money(mixed $value): float
     {
-        $text = trim((string) $value);
-
-        if ($text === '') {
-            return 0.0;
-        }
-
-        $digits = preg_replace('/[^\d.]/', '', str_replace(',', '.', $text));
-
-        return $digits === '' ? 0.0 : (float) $digits;
+        return Figure::amount($value);
     }
 
     /*

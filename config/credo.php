@@ -8,7 +8,11 @@ return [
     'label' => env('CREDO_LABEL', 'Credo'),
 
     /* Asking Credo where an application stands. The hash is MD5 of the
-       merchant id, the order code and this secret, run together. */
+       merchant id, the order code and this secret, run together.
+
+       Credo issued a secret for the split product and none for this one, so
+       this is ordinarily empty and these applications are settled by hand.
+       Should Credo ever hand one over, filling it in is all it takes. */
     'status_url' => env('CREDO_STATUS_URL', 'https://ganvadeba.credo.ge/widget/api.php'),
     'secret' => env('CREDO_SECRET'),
 
@@ -20,6 +24,9 @@ return [
         'field' => env('CREDO_SPLIT_FIELD', 'credoinstallment'),
         'label' => env('CREDO_SPLIT_LABEL', 'Credo Split'),
         'status_url' => env('CREDO_SPLIT_STATUS_URL', env('CREDO_STATUS_URL', 'https://ganvadeba.credo.ge/widget/api.php')),
-        'secret' => env('CREDO_SPLIT_SECRET', env('CREDO_SECRET')),
+
+        /* Its own, and only its own: the other product has no secret to fall
+           back on. */
+        'secret' => env('CREDO_SPLIT_SECRET'),
     ],
 ];

@@ -101,7 +101,17 @@ class CredoInstallment implements PaymentDriver
      */
     public function confirm(PaymentTransaction $transaction): bool
     {
+        /* Without a secret there is nothing to sign the question with, and
+           Credo issued one for the split product only. Said plainly, so the
+           sweeper's silence is not mistaken for a refusal: these are settled
+           by hand until Credo hands a secret over. */
         if (! $this->shopId() || ! $this->secret()) {
+            Log::channel('payments')->info('credo cannot be asked, so nothing is confirmed here', [
+                'driver' => $this->driverName(),
+                'order' => $transaction->external_id,
+                'missing' => ! $this->shopId() ? 'merchant id' : 'secret',
+            ]);
+
             return false;
         }
 
