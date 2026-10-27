@@ -103,7 +103,7 @@ class TestPixel extends Command
             return $all === 0 ? '0 — the queue is empty' : "0 (but {$all} other jobs are waiting)";
         }
 
-        return "{$mine} waiting — is queue:work running?";
+        return "{$mine} waiting — is a worker running on the meta queue?";
     }
 
     protected function failed(): string
@@ -138,7 +138,11 @@ class TestPixel extends Command
 
         if ($after > $before) {
             $this->warn("queued, and still waiting ({$after} pixel jobs in the table).");
-            $this->line('  A worker has to pick it up. Start one with: php artisan queue:work --queue=default');
+
+            /* These go to a queue of their own, so a worker on the default
+               queue alone will never touch them. */
+            $this->line('  A worker has to pick it up. Start one with:');
+            $this->line('    php artisan queue:work --queue=meta,default');
 
             return self::FAILURE;
         }

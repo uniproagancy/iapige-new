@@ -223,15 +223,26 @@ class CredoInstallment implements PaymentDriver
         ];
     }
 
+    /*
+     | The basket's signature, as Credo spells it out:
+     |
+     |   MD5(product[0].id + product[0].title + product[0].amount
+     |       + product[0].price + product[0].type + … + product[n].type
+     |       + secret)
+     |
+     | Every field of every line, in order, with the secret last. The shop
+     | that has no secret of its own signs with the basket alone, which is
+     | what it has always sent.
+     */
     protected function checksum(array $products): string
     {
-        $string = ' ';
+        $string = '';
 
         foreach ($products as $product) {
             $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'];
         }
 
-        return md5($string);
+        return md5($string.$this->secret());
     }
 
     public function total(Order $order): float
