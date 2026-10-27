@@ -331,9 +331,12 @@
   transition:border-color .18s,box-shadow .18s,transform .18s
 }
 .subcard:hover{border-color:var(--red-bright);box-shadow:0 10px 24px rgba(22,24,28,.07);transform:translateY(-2px)}
+/* A small square rather than a band across the card. Stretched the full
+   width, an uploaded photograph was cropped to a letterbox and a product
+   shot floated in the middle of it; neither looked like it belonged. */
 .subcard__media{
-  width:100%;height:108px;border-radius:14px;background:var(--soft-2);overflow:hidden;
-  display:flex;align-items:center;justify-content:center
+  width:84px;height:84px;border-radius:14px;background:var(--soft-2);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;flex:none
 }
 .subcard__media img{width:100%;height:100%;object-fit:cover}
 .subcard__media img.is-broken{opacity:0}
@@ -348,7 +351,7 @@
 @media(max-width:768px){
   .subcards{grid-template-columns:repeat(2,1fr);gap:10px;padding-bottom:16px;margin-bottom:16px}
   .subcard{padding:12px 10px}
-  .subcard__media{height:84px}
+  .subcard__media{width:64px;height:64px}
 
   /*
    | The title lines up with the controls under it.
