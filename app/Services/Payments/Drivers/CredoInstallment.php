@@ -240,7 +240,9 @@ class CredoInstallment implements PaymentDriver
         foreach ($products as $product) {
             $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'].$this->secret();
         }
-        Log::warning($this->secret(), $string, md5($string));
+        Log::info($this->secret());
+        Log::info($string);
+        Log::info(md5($string));
         return md5($string);
     }
 
