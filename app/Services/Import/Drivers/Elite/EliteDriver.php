@@ -60,7 +60,7 @@ class EliteDriver implements SupplierDriver
         $locale = $this->supplier->config['locale'] ?? 'ka';
         $barcode = trim((string) ($p['barCode'] ?? ''));
 		
-		[$costPrice, $oldCostPrice] = $this->prices($product);
+		[$costPrice, $oldCostPrice] = $this->prices($p);
 
         if ($barcode === '') {
             return null;
