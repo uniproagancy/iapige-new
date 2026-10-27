@@ -237,11 +237,10 @@ class CredoInstallment implements PaymentDriver
     protected function checksum(array $products): string
     {
         $string = '';
-
         foreach ($products as $product) {
             $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'].$this->secret();
         }
-
+        Log::warning($this->secret(), $string, md5($string));
         return md5($string);
     }
 
