@@ -109,7 +109,7 @@ class Checkout extends Component
         $pixel = app(Pixel::class);
         $browser = $pixel->browserData();
 
-        return OrderPixelData::updateOrCreate(['order_id' => $order->id], [
+        return OrderPixelData::firstOrCreate(['order_id' => $order->id], [
             'event_id' => Pixel::eventId('pu'),
             'fbp' => $browser['fbp'] ?? null,
             'fbc' => $browser['fbc'] ?? null,
@@ -117,6 +117,7 @@ class Checkout extends Component
             'user_agent' => $browser['client_user_agent'] ?? null,
             'source_url' => route('order', $order->number),
             'consented' => $pixel->consented(),
+            'external_id' => (string) ($order->user_id ?: $order->number),
         ]);
     }
 
@@ -129,10 +130,6 @@ class Checkout extends Component
         }
 
         $pixel = app(Pixel::class);
-
-        if ($this->buyNow) {
-            $this->dispatch('pixel', $pixel->addToCart($lines[0]));
-        }
 
         $subtotal = array_sum(array_column($lines, 'sum'));
 
@@ -291,15 +288,11 @@ class Checkout extends Component
             'total' => money($order->total),
         ]));
 
-        $snapshot = $this->snapshotForPixel($order);
+        $this->snapshotForPixel($order);
 
         if ($this->isOnline()) {
 
             return $this->sendToBank($order, $this->method());
-        }
-
-        if (app(Pixel::class)->purchase($order->loadMissing('items'), $snapshot->event_id)) {
-            $snapshot->markSent();
         }
 
         session()->flash('toast', __('checkout.placed', ['number' => $order->number]));

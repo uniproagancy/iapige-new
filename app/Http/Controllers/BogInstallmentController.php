@@ -31,7 +31,7 @@ class BogInstallmentController extends Controller
         }
 
         try {
-            $transaction = $this->payments->driver('bog-installment')->start($order, [
+            $transaction = $this->payments->startTransaction($order, 'bog-installment', [
                 'months' => (int) $data['month'],
                 'type' => $this->typeFor($order),
             ]);

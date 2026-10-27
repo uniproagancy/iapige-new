@@ -11,11 +11,19 @@ class OrderPixelData extends Model
 
     protected $fillable = [
         'order_id', 'event_id', 'fbp', 'fbc', 'ip', 'user_agent', 'source_url', 'consented', 'sent_at',
+        'external_id', 'occurred_at', 'action_source', 'custom_data', 'user_data', 'browser_sent_at',
     ];
 
     protected function casts(): array
     {
-        return ['consented' => 'boolean', 'sent_at' => 'datetime'];
+        return [
+            'consented' => 'boolean',
+            'sent_at' => 'datetime',
+            'occurred_at' => 'datetime',
+            'browser_sent_at' => 'datetime',
+            'custom_data' => 'array',
+            'user_data' => 'array',
+        ];
     }
 
     public function order(): BelongsTo

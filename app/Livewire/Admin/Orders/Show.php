@@ -209,6 +209,8 @@ class Show extends Component
             'note' => __('admin.marked_paid'),
         ]);
 
+        $this->reportSale();
+
         $this->order->refresh()->load('events.user');
         $this->dispatch('toast', message: __('admin.saved'));
     }

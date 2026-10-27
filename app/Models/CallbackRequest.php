@@ -18,11 +18,19 @@ class CallbackRequest extends Model
         'status', 'note', 'handled_by', 'handled_at', 'page',
         'lead_event_id', 'fbp', 'fbc', 'ip', 'user_agent', 'source_url', 'consented',
         'order_id',
+        'submission_key', 'submission_owner', 'request_hash',
+        'product_name', 'product_sku', 'quantity', 'unit_price', 'total', 'currency',
+        'payment_category', 'payment_method', 'external_id', 'checkout_event_id', 'checkout_started_at', 'checkout_data',
     ];
 
     protected function casts(): array
     {
-        return ['handled_at' => 'datetime'];
+        return [
+            'handled_at' => 'datetime', 'checkout_started_at' => 'datetime',
+            'consented' => 'boolean', 'quantity' => 'integer',
+            'checkout_data' => 'array',
+            'unit_price' => 'decimal:2', 'total' => 'decimal:2',
+        ];
     }
 
     public function product(): BelongsTo
@@ -48,6 +56,11 @@ class CallbackRequest extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method', 'code');
     }
 
     public function pixelData(): array

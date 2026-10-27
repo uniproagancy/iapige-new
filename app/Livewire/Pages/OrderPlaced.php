@@ -3,8 +3,6 @@
 namespace App\Livewire\Pages;
 
 use App\Models\Order;
-use App\Models\OrderPixelData;
-use App\Models\PaymentMethod;
 use App\Services\Facebook\Pixel;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
@@ -28,23 +26,9 @@ class OrderPlaced extends Component
 
     protected function trackPurchase(Order $order): void
     {
-        $snapshot = OrderPixelData::where('order_id', $order->id)->first();
-
-        if (! $snapshot || ! $snapshot->consented) {
-            return;
+        if ($event = app(Pixel::class)->browserPurchase($order)) {
+            $this->dispatch('pixel', $event);
         }
-
-        $method = PaymentMethod::where('code', $order->payment)->first();
-
-        if (! $order->is_paid && $method?->is_online) {
-            return;
-        }
-
-        $this->dispatch('pixel', [
-            'event' => 'Purchase',
-            'id' => $snapshot->event_id,
-            'data' => app(Pixel::class)->purchaseData($order->loadMissing('items')),
-        ]);
     }
 
     public function render()

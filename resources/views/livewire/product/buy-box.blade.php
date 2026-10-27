@@ -1,14 +1,20 @@
-<div>
+<div x-data>
 
     <div class="buyrow">
 
         @if ($product->isSellable())
             <div class="stepper">
-                <button type="button" wire:click="decrement" @disabled($qty <= 1) aria-label="{{ __('common.decrease') }}">
+                <button type="button" wire:click="decrement" @disabled($qty <= 1)
+                        x-on:click="$dispatch('quick-order-quantity-pending', { productId: {{ $productId }} })"
+                        wire:loading.attr="disabled" wire:target="increment,decrement"
+                        aria-label="{{ __('common.decrease') }}">
                     <x-icon name="minus" size="14" />
                 </button>
                 <span>{{ $qty }}</span>
-                <button type="button" wire:click="increment" aria-label="{{ __('common.increase') }}">
+                <button type="button" wire:click="increment" @disabled($qty >= 99)
+                        x-on:click="$dispatch('quick-order-quantity-pending', { productId: {{ $productId }} })"
+                        wire:loading.attr="disabled" wire:target="increment,decrement"
+                        aria-label="{{ __('common.increase') }}">
                     <x-icon name="plus" size="14" />
                 </button>
             </div>

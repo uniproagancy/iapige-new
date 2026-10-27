@@ -64,6 +64,7 @@
     @isset($pageCss)
         @vite("resources/css/pages/{$pageCss}.css")
     @endisset
+    <style>.card__monthly{background:#e4f7ec;color:#16914e}</style>
     @stack('styles')
 </head>
 <body data-page="@yield('page', $page ?? 'home')">

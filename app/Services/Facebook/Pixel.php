@@ -3,11 +3,13 @@
 namespace App\Services\Facebook;
 
 use App\Jobs\SendPixelEventJob;
+use App\Models\CallbackRequest;
 use App\Models\Order;
 use App\Models\OrderPixelData;
 use App\Models\User;
 use App\Support\Phone;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -36,9 +38,12 @@ class Pixel
 
     public function enabled(): bool
     {
-        return $this->pixelId()
-            && config('services.facebook.access_token')
-            && $this->consented();
+        return $this->configured() && $this->consented();
+    }
+
+    protected function configured(): bool
+    {
+        return (bool) ($this->pixelId() && config('services.facebook.access_token'));
     }
 
     public function staff(): bool
@@ -119,6 +124,77 @@ class Pixel
         return $this->pair('Lead', 'ld', [], $identity);
     }
 
+    public function savedLead(CallbackRequest $lead): array
+    {
+        $data = [];
+
+        if ($lead->product_id && $lead->unit_price !== null) {
+            $data = [
+                'content_type' => 'product',
+                'content_ids' => [(string) $lead->product_id],
+                'content_name' => $lead->product_name,
+                'contents' => $this->contents([[
+                    'id' => $lead->product_id,
+                    'qty' => $lead->quantity,
+                    'price' => $lead->unit_price,
+                ]]),
+                'num_items' => (int) $lead->quantity,
+                'value' => round((float) $lead->total, 2),
+                'currency' => $lead->currency ?: 'GEL',
+            ];
+        }
+
+        return $this->storedLeadPair('Lead', $lead, (string) $lead->lead_event_id, $data, $lead->created_at?->getTimestamp());
+    }
+
+    public function quickCheckout(CallbackRequest $lead, Order $order): array
+    {
+        return $this->storedLeadPair(
+            'InitiateCheckout',
+            $lead,
+            (string) $lead->checkout_event_id,
+            $lead->checkout_data ?: $this->purchaseData($order->loadMissing('items')),
+            $lead->checkout_started_at?->getTimestamp(),
+        );
+    }
+
+    protected function storedLeadPair(string $event, CallbackRequest $lead, string $eventId, array $data, ?int $occurredAt): array
+    {
+        if (! $lead->consented || ! $eventId || ! $occurredAt || ! $this->pixelId()) {
+            return [];
+        }
+
+        $identity = ['name' => $lead->name, 'phone' => $lead->phone, 'id' => $lead->external_id ?: $lead->user_id];
+        $visitor = array_filter([
+            'fbp' => $lead->fbp,
+            'fbc' => $lead->fbc,
+            'client_ip_address' => $lead->ip,
+            'client_user_agent' => $lead->user_agent,
+        ]);
+        $payload = [
+            'event_name' => $event,
+            'event_id' => $eventId,
+            'event_time' => $occurredAt,
+            'event_source_url' => $lead->source_url,
+            'action_source' => 'website',
+            'user_data' => array_merge($visitor, $this->hashedIdentity($identity)),
+        ];
+
+        if ($data) {
+            $payload['custom_data'] = $data;
+        }
+
+        if ($this->configured()) {
+            try {
+                $this->dispatchEvent($event, $payload);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return ['event' => $event, 'id' => $eventId, 'data' => $data];
+    }
+
     public function completeRegistration(User $user): array
     {
         return $this->pair('CompleteRegistration', 'cr', [], [
@@ -142,43 +218,101 @@ class Pixel
 
     public function purchase(Order $order, ?string $eventId = null, ?OrderPixelData $snapshot = null): bool
     {
-        return $this->send('Purchase', $this->purchaseData($order), $eventId ?? $snapshot?->event_id, [
+        if (! $this->isSale($order)) {
+            return false;
+        }
+
+        return $this->send('Purchase', $snapshot?->custom_data ?: $this->purchaseData($order), $eventId ?? $snapshot?->event_id, [
             'email' => $order->email,
             'phone' => $order->phone,
             'name' => $order->name,
             'city' => $order->city,
-            'id' => $order->user_id ?: $order->number,
+            'id' => $snapshot?->external_id ?: ($order->user_id ?: $order->number),
         ], $snapshot);
     }
 
     public function reportPurchase(Order $order, bool $offline = false): bool
     {
-        $snapshot = OrderPixelData::where('order_id', $order->id)->first();
-
-        if ($snapshot?->alreadySent()) {
+        if (! $this->configured()) {
             return false;
         }
 
-        if (! $snapshot) {
+        return DB::transaction(function () use ($order, $offline) {
+            $order = $order->fresh('items');
+            $snapshot = OrderPixelData::where('order_id', $order?->id)->lockForUpdate()->first();
 
-            if (! $offline) {
+            if (! $order || ! $this->isSale($order) || ! $snapshot || ! $snapshot->consented || $snapshot->alreadySent()) {
                 return false;
             }
 
-            $snapshot = OrderPixelData::create([
-                'order_id' => $order->id,
-                'event_id' => self::eventId('pur'),
-                'consented' => true,
-            ]);
+            $this->freezePurchase($order, $snapshot, $offline);
+
+            if (! $this->purchase($order, $snapshot->event_id, $snapshot)) {
+                $payload = $this->payload('Purchase', $snapshot->custom_data, $snapshot->event_id, [], $snapshot);
+                DB::afterCommit(function () use ($snapshot, $payload) {
+                    try {
+                        SendPixelEventJob::dispatch('Purchase', $payload, $snapshot->id);
+                    } catch (\Throwable $e) {
+                        report($e);
+                    }
+                });
+
+                return false;
+            }
+
+            $snapshot->markSent();
+
+            return true;
+        });
+    }
+
+    public function browserPurchase(Order $order): array
+    {
+        if ($this->staff()) {
+            return [];
         }
 
-        if (! $this->purchase($order->loadMissing('items'), $snapshot->event_id, $snapshot)) {
-            return false;
+        $this->reportPurchase($order);
+
+        return DB::transaction(function () use ($order) {
+            $order = $order->fresh('items');
+            $snapshot = OrderPixelData::where('order_id', $order?->id)->lockForUpdate()->first();
+
+            if (! $order || ! $this->isSale($order) || ! $snapshot?->consented || $snapshot->browser_sent_at || ! $this->pixelId()) {
+                return [];
+            }
+
+            $this->freezePurchase($order, $snapshot, false);
+            $snapshot->forceFill(['browser_sent_at' => now()])->save();
+
+            return ['event' => 'Purchase', 'id' => $snapshot->event_id, 'data' => $snapshot->custom_data];
+        });
+    }
+
+    protected function isSale(Order $order): bool
+    {
+        return $order->status !== Order::CANCELLED && ($order->is_paid || $order->status === Order::COMPLETED);
+    }
+
+    protected function freezePurchase(Order $order, OrderPixelData $snapshot, bool $offline): void
+    {
+        if ($snapshot->occurred_at) {
+            return;
         }
 
-        $snapshot->markSent();
-
-        return true;
+        $identity = [
+            'email' => $order->email,
+            'phone' => $order->phone,
+            'name' => $order->name,
+            'city' => $order->city,
+            'id' => $snapshot->external_id ?: ($order->user_id ?: $order->number),
+        ];
+        $snapshot->forceFill([
+            'occurred_at' => $order->paid_at ?? $order->updated_at ?? now(),
+            'action_source' => $snapshot->action_source ?: 'website',
+            'custom_data' => $this->purchaseData($order),
+            'user_data' => $this->userData($identity, $snapshot),
+        ])->save();
     }
 
     public function purchaseData(Order $order): array
@@ -194,7 +328,7 @@ class Pixel
             'content_ids' => array_map(fn ($l) => (string) $l['id'], $lines),
             'contents' => $this->contents($lines),
             'num_items' => array_sum(array_column($lines, 'qty')),
-            'value' => round((float) $order->total),
+            'value' => round((float) $order->total, 2),
             'currency' => 'GEL',
             'order_id' => $order->number,
         ];
@@ -207,7 +341,7 @@ class Pixel
         array $identity = [],
         ?OrderPixelData $snapshot = null,
     ): bool {
-        if (! $this->enabled() && ! $snapshot) {
+        if (! $this->configured() || (! $this->enabled() && ! $snapshot)) {
             return false;
         }
 
@@ -241,18 +375,20 @@ class Pixel
 
     public function deliver(string $event, array $payload): bool
     {
-        return $this->post($event, $payload);
+        return $this->configured() && $this->post($event, $payload);
     }
 
     public function dispatchEvent(string $event, array $payload): void
     {
         if (config('services.facebook.queue_events', true)) {
-            SendPixelEventJob::dispatch($event, $payload);
+            SendPixelEventJob::dispatch($event, $payload)->afterCommit();
 
             return;
         }
 
-        $this->post($event, $payload);
+        if (! $this->post($event, $payload)) {
+            SendPixelEventJob::dispatch($event, $payload)->afterCommit();
+        }
     }
 
     protected function payload(
@@ -264,10 +400,10 @@ class Pixel
     ): array {
         $payload = [
             'event_name' => $event,
-            'event_time' => time(),
+            'event_time' => $snapshot?->occurred_at?->getTimestamp() ?? time(),
             'event_source_url' => $snapshot?->source_url ?? request()->url(),
-            'action_source' => 'website',
-            'user_data' => $this->userData($identity, $snapshot),
+            'action_source' => $snapshot?->action_source ?: 'website',
+            'user_data' => $snapshot?->user_data ?: $this->userData($identity, $snapshot),
         ];
 
         if ($eventId) {
@@ -295,7 +431,7 @@ class Pixel
         try {
             $response = Http::timeout(self::TIMEOUT)->post($this->endpoint, $body);
 
-            if ($response->successful()) {
+            if ($response->successful() && (int) $response->json('events_received', 0) > 0) {
                 Log::channel('pixel')->info('sent', [
                     'event' => $event,
                     'event_id' => $payload['event_id'] ?? null,
@@ -394,7 +530,7 @@ class Pixel
         return array_map(fn ($l) => [
             'id' => (string) $l['id'],
             'quantity' => (int) ($l['qty'] ?? 1),
-            'item_price' => round((float) ($l['price'] ?? 0)),
+            'item_price' => round((float) ($l['price'] ?? 0), 2),
         ], $lines);
     }
 

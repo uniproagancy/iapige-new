@@ -86,4 +86,17 @@ return [
     'callback_too_many' => 'Too many requests. Please try again in a little while.',
 
     'supplier_sku' => 'Supplier SKU',
+    'quick_order' => 'Quick purchase',
+    'quick_payment_title' => 'Choose a payment method',
+    'quick_card' => 'Pay by card',
+    'quick_on_delivery' => 'Pay on delivery',
+    'quick_transfer' => 'Bank transfer',
+    'quick_monthly_from' => 'From :amount / month',
+    'quick_online_installment' => 'Online instalments',
+    'quick_bog_split' => 'Split payments',
+    'quick_credo_split' => 'Da-Ka-Vi',
+    'quick_continue_bank' => 'Continue to bank',
+    'quick_send' => 'Send order request',
+    'quick_saved' => 'Your request is saved',
+    'quick_resume_order' => 'View order / continue payment',
 ];

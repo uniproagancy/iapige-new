@@ -3,10 +3,13 @@
 namespace App\Livewire\Product;
 
 use App\Models\Product;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class BuyBox extends Component
 {
+    #[Locked]
     public int $productId;
 
     public int $qty = 1;
@@ -21,15 +24,31 @@ class BuyBox extends Component
     public function increment(): void
     {
         $this->qty = min(99, $this->qty + 1);
+        $this->quantityChanged();
     }
 
     public function decrement(): void
     {
         $this->qty = max(1, $this->qty - 1);
+        $this->quantityChanged();
+    }
+
+    #[On('product-quantity-changed')]
+    public function syncQuantity(int $productId, int $qty): void
+    {
+        if ($productId === $this->productId) {
+            $this->qty = max(1, min(99, $qty));
+        }
+    }
+
+    protected function quantityChanged(): void
+    {
+        $this->dispatch('product-quantity-changed', productId: $this->productId, qty: $this->qty);
     }
 
     public function add(): void
     {
+        $this->qty = max(1, min(99, $this->qty));
         $this->dispatch('cart-add', productId: $this->productId, qty: $this->qty);
 
         $this->added = true;

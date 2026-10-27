@@ -105,7 +105,21 @@
                             </td>
 
                             <td class="text-muted">
-                                @if ($request->product)
+                                @if ($request->product_name)
+                                    @if ($request->product)
+                                        <a href="{{ $request->product->storefrontUrl() ?? route('admin.products.edit', $request->product) }}"
+                                           @if ($request->product->storefrontUrl()) target="_blank" rel="noopener" @endif>
+                                            {{ $request->product_name }}
+                                        </a>
+                                    @else
+                                        <span>{{ $request->product_name }}</span>
+                                    @endif
+                                    <small class="d-block">{{ __('product.code') }}: {{ $request->product_id ?? '—' }}@if ($request->product_sku) · {{ $request->product_sku }}@endif</small>
+                                    <small class="d-block">
+                                        {{ $request->quantity }} × {{ money($request->unit_price) }} = <b>{{ money($request->total) }}</b>
+                                        @if ($request->currency && $request->currency !== 'GEL') ({{ $request->currency }}) @endif
+                                    </small>
+                                @elseif ($request->product)
                                     <a href="{{ $request->product->storefrontUrl() ?? route('admin.products.edit', $request->product) }}"
                                        @if ($request->product->storefrontUrl()) target="_blank" rel="noopener" @endif>
                                         {{ $request->product->name }}
@@ -118,6 +132,17 @@
                                     </a>
                                 @else
                                     —
+                                @endif
+                                @if ($request->product_name || $request->payment_method)
+                                    <small class="d-block mt-25">
+                                        {{ __('admin.cb_payment') }}:
+                                        {{ $request->payment_method ? ($paymentLabels[$request->payment_method] ?? $request->payment_method) : __('admin.cb_operator_payment') }}
+                                    </small>
+                                @endif
+                                @if ($request->order)
+                                    <small class="badge rounded-pill badge-light-{{ $request->order->is_paid ? 'success' : 'warning' }} mt-25">
+                                        {{ $request->order->is_paid ? __('admin.cb_paid') : __('admin.cb_payment_pending') }}
+                                    </small>
                                 @endif
                             </td>
 

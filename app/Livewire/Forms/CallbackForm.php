@@ -3,16 +3,35 @@
 namespace App\Livewire\Forms;
 
 use App\Jobs\SendSmsJob;
-use App\Models\CallbackRequest;
+use App\Livewire\Concerns\SendsToBank;
+use App\Models\Order;
 use App\Services\Facebook\Pixel;
+use App\Services\Orders\QuickOrder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class CallbackForm extends Component
 {
+    use SendsToBank;
+
+    #[Locked]
     public ?int $productId = null;
+
+    #[Locked]
+    public string $submissionKey = '';
+
+    #[Locked]
+    public float $monthly = 0;
+
+    #[Validate('integer|min:1|max:99')]
+    public int $quantity = 1;
+    public string $paymentCategory = '';
+    public string $paymentMethod = '';
 
     #[Validate('required|string|min:2|max:80')]
     public string $name = '';
@@ -23,76 +42,157 @@ class CallbackForm extends Component
     #[Validate('nullable|string|max:500')]
     public string $comment = '';
 
+    #[Locked]
     public bool $sent = false;
 
-    public function mount(?int $productId = null): void
+    #[Locked]
+    public ?string $orderNumber = null;
+
+    #[Locked]
+    public ?string $orderError = null;
+
+    public function mount(?int $productId = null, int $quantity = 1, float $monthly = 0): void
     {
         $this->productId = $productId;
-
+        $this->quantity = max(1, min(99, $quantity));
+        $this->monthly = $monthly;
+        $this->submissionKey = (string) Str::uuid();
         if ($user = Auth::user()) {
             $this->name = (string) $user->name;
             $this->phone = (string) ($user->phone ?? '');
         }
     }
 
-    public function send(): void
+    #[On('product-quantity-changed')]
+    public function syncQuantity(int $productId, int $qty): void
     {
-        $this->validate();
-
-        $key = 'callback:'.request()->ip();
-
-        if (RateLimiter::tooManyAttempts($key, 5)) {
-            $this->addError('phone', __('product.callback_too_many'));
-
+        if ($productId !== $this->productId) {
             return;
         }
+        if (! $this->sent) {
+            $this->quantity = max(1, min(99, $qty));
+            $groups = app(QuickOrder::class)->groups($this->summary()['total']);
+            $methods = $groups[$this->paymentCategory] ?? collect();
+            if (! $methods->contains('code', $this->paymentMethod)) {
+                $this->paymentMethod = '';
+            }
+            if ($this->paymentMethod === '' && in_array($this->paymentCategory, ['card', 'cash', 'transfer'], true) && $methods->count() === 1) {
+                $this->paymentMethod = (string) $methods->first()->code;
+            }
+        }
+        $this->dispatch('quick-order-quantity-synced', productId: $productId, qty: $this->quantity);
+    }
 
-        RateLimiter::hit($key, 3600);
+    public function updatedPaymentCategory(): void
+    {
+        $this->paymentMethod = '';
+        $this->resetErrorBag('paymentMethod');
+        if (! in_array($this->paymentCategory, ['card', 'cash', 'transfer'], true) || ! $this->productId) {
+            return;
+        }
+        $groups = app(QuickOrder::class)->groups($this->summary()['total']);
+        $methods = $groups[$this->paymentCategory];
+        if ($methods->count() === 1) {
+            $this->paymentMethod = (string) $methods->first()->code;
+        }
+    }
 
+    public function send()
+    {
+        $this->validate();
         $pixel = app(Pixel::class);
+        $owner = $this->owner();
 
-        $lead = $pixel->lead([
-            'phone' => $this->phone,
-            'name' => $this->name,
+        $orders = app(QuickOrder::class);
+        $lead = $orders->capture([
+            'submissionKey' => $this->submissionKey, 'productId' => $this->productId,
+            'quantity' => $this->quantity, 'name' => $this->name, 'phone' => $this->phone,
+            'comment' => $this->comment, 'paymentCategory' => $this->paymentCategory,
+            'paymentMethod' => $this->paymentMethod,
+        ], $pixel->browserData() + [
+            'owner' => $owner, 'user_id' => Auth::id(),
+            'source_url' => mb_substr(url()->previous(), 0, 500), 'consented' => $pixel->consented(),
         ]);
-
-        $browser = $pixel->browserData();
-
-        CallbackRequest::create([
-            'user_id' => Auth::id(),
-            'product_id' => $this->productId,
-            'name' => $this->name,
-            'phone' => $this->phone,
-            'comment' => $this->comment ?: null,
-            'page' => url()->previous(),
-
-            'lead_event_id' => $lead['id'] ?? null,
-            'fbp' => $browser['fbp'] ?? null,
-            'fbc' => $browser['fbc'] ?? null,
-            'ip' => $browser['client_ip_address'] ?? null,
-            'user_agent' => $browser['client_user_agent'] ?? null,
-            'source_url' => url()->previous(),
-            'consented' => $pixel->consented(),
-        ]);
-
-        SendSmsJob::dispatch($this->phone, __('sms.callback'));
-
+        if ($lead->wasRecentlyCreated) {
+            if (! $lead->payment_method && ! $pixel->staff()) {
+                SendSmsJob::dispatch($lead->phone, __('sms.callback'));
+            }
+        }
+        $this->track(fn () => $pixel->savedLead($lead));
         $this->sent = true;
+        if (! $lead->payment_method || ! $lead->product_id) {
+            $this->dispatch('toast', message: __('product.callback_sent'));
+            return null;
+        }
 
-        $this->dispatch('pixel', $lead);
-
-        $this->reset('comment');
-
+        try {
+            $order = $orders->orderForLead($lead->id);
+        } catch (ValidationException $e) {
+            $this->orderError = (string) collect($e->errors())->flatten()->first();
+            return null;
+        }
+        $this->orderNumber = $order->number;
+        $lead->refresh();
+        $placed = (array) session('placed_orders', []);
+        if (! in_array($order->id, $placed, true)) {
+            session()->push('placed_orders', $order->id);
+        }
+        $this->track(fn () => $pixel->quickCheckout($lead, $order));
+        if ($order->is_paid || $order->status === Order::COMPLETED) {
+            return $this->redirect(route('order', $order->number), navigate: false);
+        }
+        $method = $orders->method((string) $lead->payment_method, (string) $lead->payment_category, (float) $order->total);
+        if ($method->is_online) {
+            return $this->sendToBank($order, $method);
+        }
         $this->dispatch('toast', message: __('product.callback_sent'));
+        return null;
+    }
+
+    protected function track(callable $capture): void
+    {
+        try {
+            if ($event = $capture()) {
+                $this->dispatch('pixel', $event);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    protected function owner(): string
+    {
+        return hash_hmac('sha256', session()->getId(), (string) config('app.key'));
+    }
+
+    protected function summary(): ?array
+    {
+        if (! $this->productId) {
+            return null;
+        }
+        $summary = app(QuickOrder::class)->quote($this->productId, $this->quantity);
+        if ($this->monthly > 0) {
+            $summary['monthly'] = $this->monthly;
+        }
+        return $summary;
     }
 
     public function again(): void
     {
         $this->sent = false;
+        $this->orderNumber = null;
+        $this->orderError = null;
+        $this->submissionKey = (string) Str::uuid();
+        $this->reset('paymentCategory', 'paymentMethod', 'comment');
+        $this->resetErrorBag();
     }
 
     public function render()
     {
-        return view('livewire.forms.callback-form');
+        $summary = $this->summary();
+        return view('livewire.forms.callback-form', [
+            'productSummary' => $summary,
+            'paymentGroups' => $summary ? app(QuickOrder::class)->groups($summary['total']) : [],
+        ]);
     }
 }

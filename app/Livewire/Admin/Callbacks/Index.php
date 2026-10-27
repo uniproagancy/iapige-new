@@ -3,9 +3,8 @@
 namespace App\Livewire\Admin\Callbacks;
 
 use App\Models\CallbackRequest;
-use App\Models\Order;
-use App\Models\OrderPixelData;
-use App\Services\Facebook\Pixel;
+use App\Models\PaymentMethod;
+use App\Services\Orders\QuickOrder;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -49,7 +48,8 @@ class Index extends Component
     {
         return view('livewire.admin.callbacks.index', [
             'requests' => CallbackRequest::query()
-                ->with(['product' => fn ($q) => $q->withTranslation(), 'user', 'handler'])
+                ->with(['product' => fn ($q) => $q->withTranslation(), 'user', 'handler', 'order',
+                    'paymentMethod' => fn ($q) => $q->withTranslation()])
                 ->when($this->status, fn ($q) => $q->where('status', $this->status))
                 ->when($this->search, function ($q) {
                     $term = trim($this->search);
@@ -62,6 +62,8 @@ class Index extends Component
                 ->latest('id')
                 ->paginate(25),
             'counts' => $this->counts(),
+            'paymentLabels' => PaymentMethod::withTranslation()->get(['id', 'code'])
+                ->mapWithKeys(fn ($method) => [$method->code => $method->name])->all(),
             'statuses' => [
                 CallbackRequest::NEW => __('admin.cb_new'),
                 CallbackRequest::CALLED => __('admin.cb_called'),
@@ -100,63 +102,7 @@ class Index extends Component
 
     public function createOrder(int $id)
     {
-        $request = CallbackRequest::with('product')->findOrFail($id);
-
-        if ($request->order_id) {
-            return $this->redirect(route('admin.orders.show', $request->order_id), navigate: true);
-        }
-
-        $order = DB::transaction(function () use ($request) {
-            $product = $request->product;
-            $price = $product ? $product->sellingPrice() : 0.0;
-
-            $order = Order::create([
-                'number' => Order::nextNumber(),
-                'user_id' => $request->user_id,
-                'status' => 'new',
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'email' => $request->user?->email,
-
-                'delivery' => 'courier',
-                'payment' => 'cash',
-                'comment' => $request->comment,
-                'subtotal' => $price,
-                'shipping' => 0,
-                'total' => $price,
-            ]);
-
-            if ($product) {
-                $order->items()->create([
-                    'product_id' => $product->id,
-                    'sku' => $product->sku,
-                    'name' => product_title($product->brand?->name, $product->name),
-                    'price' => $price,
-                    'qty' => 1,
-                    'sum' => $price,
-                ]);
-            }
-
-            OrderPixelData::create([
-                'order_id' => $order->id,
-                'event_id' => Pixel::eventId('pur'),
-                'fbp' => $request->fbp,
-                'fbc' => $request->fbc,
-                'ip' => $request->ip,
-                'user_agent' => $request->user_agent,
-                'source_url' => $request->source_url,
-                'consented' => (bool) $request->consented,
-            ]);
-
-            $request->update([
-                'order_id' => $order->id,
-                'status' => CallbackRequest::CALLED,
-                'handled_by' => auth()->id(),
-                'handled_at' => now(),
-            ]);
-
-            return $order;
-        });
+        $order = app(QuickOrder::class)->orderForLead($id, auth()->id());
 
         return $this->redirect(route('admin.orders.show', $order), navigate: true);
     }

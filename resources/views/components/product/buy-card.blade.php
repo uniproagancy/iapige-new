@@ -39,18 +39,10 @@
         </div>
     </div>
 
+    <livewire:forms.callback-form :product-id="$model->id" :monthly="$product['monthly']" :key="'callback-'.$model->id" />
+
     <livewire:product.buy-box
         :product="$model"
         :key="'buy-card-'.$model->id" />
 
-    @if ($model->isSellable())
-        <a class="btn-buy" href="{{ route('checkout', ['product' => $model->id]) }}">
-            <x-icon name="credit-card" size="16" />
-            <span class="btn-buy__label">{{ __('product.buy') }}</span>
-            <span class="btn-buy__sep" aria-hidden="true"></span>
-            <span class="btn-buy__note">{{ __('common.per_month', ['amount' => $product['monthly']]) }} · 0%</span>
-        </a>
-    @endif
-
-    <livewire:forms.callback-form :product-id="$model->id" :key="'callback-'.$model->id" />
 </aside>

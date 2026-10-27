@@ -86,4 +86,17 @@ return [
     'callback_too_many' => 'ძალიან ბევრი მოთხოვნაა. სცადე ცოტა ხანში.',
 
     'supplier_sku' => 'მომწოდებლის სკუ',
+    'quick_order' => 'სწრაფი შეძენა',
+    'quick_payment_title' => 'აირჩიე გადახდის მეთოდი',
+    'quick_card' => 'ბარათით გადახდა',
+    'quick_on_delivery' => 'მიღებისას გადახდა',
+    'quick_transfer' => 'საბანკო გადარიცხვა',
+    'quick_monthly_from' => 'თვეში :amount-დან',
+    'quick_online_installment' => 'ონლაინ განვადება',
+    'quick_bog_split' => 'ნაწილ-ნაწილ',
+    'quick_credo_split' => 'და-ყა-ვი',
+    'quick_continue_bank' => 'ბანკში გაგრძელება',
+    'quick_send' => 'შეკვეთის გაგზავნა',
+    'quick_saved' => 'მოთხოვნა შენახულია',
+    'quick_resume_order' => 'შეკვეთის ნახვა / გადახდის გაგრძელება',
 ];

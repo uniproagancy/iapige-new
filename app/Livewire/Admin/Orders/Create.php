@@ -5,14 +5,13 @@ namespace App\Livewire\Admin\Orders;
 use App\Models\CallbackRequest;
 use App\Models\DeliveryCity;
 use App\Models\Order;
-use App\Models\OrderPixelData;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Services\Delivery\DeliveryCalculator;
-use App\Services\Facebook\Pixel;
 use App\Services\Orders\OrderLines;
+use App\Services\Orders\QuickOrder;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
@@ -101,7 +100,11 @@ class Create extends Component
         $this->email = (string) ($request->user?->email ?? '');
 
         if ($request->product_id) {
-            $this->qty[$request->product_id] = 1;
+            $this->qty[$request->product_id] = $request->quantity ?: 1;
+        }
+
+        if ($request->payment_method && PaymentMethod::active()->where('code', $request->payment_method)->exists()) {
+            $this->payment = $request->payment_method;
         }
     }
 
@@ -389,6 +392,13 @@ class Create extends Component
 
     protected function write(array $wanted): Order
     {
+        if ($this->callbackId) {
+            $lead = CallbackRequest::lockForUpdate()->findOrFail($this->callbackId);
+            if ($lead->order_id) {
+                return Order::findOrFail($lead->order_id);
+            }
+        }
+
         $lines = app(OrderLines::class);
         $priced = $lines->price($wanted);
 
@@ -437,28 +447,8 @@ class Create extends Component
 
     protected function closeCallback(Order $order): void
     {
-        $request = CallbackRequest::find($this->callbackId);
-
-        if (! $request || $request->order_id) {
-            return;
-        }
-
-        OrderPixelData::updateOrCreate(['order_id' => $order->id], [
-            'event_id' => Pixel::eventId('pur'),
-            'fbp' => $request->fbp,
-            'fbc' => $request->fbc,
-            'ip' => $request->ip,
-            'user_agent' => $request->user_agent,
-            'source_url' => $request->source_url,
-            'consented' => (bool) $request->consented,
-        ]);
-
-        $request->update([
-            'order_id' => $order->id,
-            'status' => CallbackRequest::CALLED,
-            'handled_by' => auth()->id(),
-            'handled_at' => now(),
-        ]);
+        $request = CallbackRequest::lockForUpdate()->findOrFail($this->callbackId);
+        app(QuickOrder::class)->link($request, $order, auth()->id());
     }
 
     public function render()

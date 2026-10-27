@@ -39,12 +39,22 @@
             </div>
         </section>
     @endif
-    <div class="actionbar">
+    <div class="actionbar" data-quick-order-bar="quick-order-{{ $model->id }}" hidden inert aria-hidden="true">
         <livewire:product.buy-box :product="$model" :key="'buy-bar-'.$model->id" />
-        <a class="btn-buy" href="{{ route('checkout', ['product' => $model->id]) }}">
+        @if ($model->isSellable())
+        <a class="btn-buy" href="#quick-order-{{ $model->id }}"
+           data-quick-order-open="quick-order-{{ $model->id }}">
             <span class="btn-buy__label">{{ __('product.buy') }}</span>
             <span class="btn-buy__sep" aria-hidden="true"></span>
             <span class="btn-buy__note">{{ __('common.per_month', ['amount' => $product['monthly']]) }} · 0%</span>
         </a>
+        @else
+            <span class="btn-buy is-unavailable" aria-disabled="true">{{ __('product.not_available') }}</span>
+        @endif
     </div>
+    @once
+        @push('scripts')
+            @include('livewire.pages.checkout-bog-script')
+        @endpush
+    @endonce
 </div>
