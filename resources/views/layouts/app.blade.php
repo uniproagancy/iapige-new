@@ -24,7 +24,6 @@
         'buyNow'       => __('product.buy_now_demo'),
         'callSent'     => __('product.call_sent'),
         'callMe'       => __('product.call_me'),
-        'consultSent'  => __('product.consult_sent'),
         'sent'         => __('info.sent'),
         'send'         => __('info.send'),
     ];

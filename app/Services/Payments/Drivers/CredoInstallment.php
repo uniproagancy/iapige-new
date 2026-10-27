@@ -224,25 +224,27 @@ class CredoInstallment implements PaymentDriver
     }
 
     /*
-     | The basket's signature, as Credo spells it out:
+     | The basket's signature: every field of a line, then the secret, for
+     | each line in turn.
      |
-     |   MD5(product[0].id + product[0].title + product[0].amount
-     |       + product[0].price + product[0].type + … + product[n].type
-     |       + secret)
+     |   MD5(id + title + amount + price + type + secret   [line 1]
+     |     + id + title + amount + price + type + secret   [line 2] …)
      |
-     | Every field of every line, in order, with the secret last. The shop
-     | that has no secret of its own signs with the basket alone, which is
-     | what it has always sent.
+     | Credo's written formula shows the secret once at the end, which comes
+     | to the same thing for a basket of one -- and these baskets hold one.
+     | This is the form Credo accepts.
+     |
+     | A shop with no secret of its own signs with the basket alone.
      */
     protected function checksum(array $products): string
     {
         $string = '';
+        $secret = $this->secret();
+
         foreach ($products as $product) {
-            $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'].$this->secret();
+            $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'].$secret;
         }
-        Log::info($this->secret());
-        Log::info($string);
-        Log::info(md5($string));
+
         return md5($string);
     }
 
