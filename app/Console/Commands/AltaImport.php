@@ -5,7 +5,9 @@ namespace App\Console\Commands;
 use App\Models\Supplier;
 use App\Services\Import\Drivers\Alta\AltaB2bClient;
 use App\Services\Import\Drivers\Alta\AltaClient;
+use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Services\Import\Drivers\Alta\AltaJson;
+use App\Services\Import\Drivers\Alta\AltaUnavailable;
 use App\Services\Import\ProductImporter;
 use App\Support\Redact;
 use Illuminate\Console\Command;
@@ -42,15 +44,22 @@ class AltaImport extends Command
             return self::FAILURE;
         }
 
-        $answers = $this->option('from')
-            ? $this->saved($this->option('from'))
-            : $this->asked($supplier);
+        try {
+            $answers = $this->option('from')
+                ? $this->saved($this->option('from'))
+                : $this->asked($supplier);
+        } catch (AltaUnavailable $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         if ($answers === null) {
             return self::FAILURE;
         }
 
         $reader = new AltaJson($supplier);
+        $driver = new AltaDriver($supplier);
 
         $made = $refreshed = $refused = 0;
         $rows = [];
@@ -70,7 +79,21 @@ class AltaImport extends Command
                 continue;
             }
 
-            $payload = $read['payload'];
+            try {
+                $details = is_string($answer) ? json_decode($answer, true, 512, JSON_THROW_ON_ERROR) : $answer;
+                $payload = $driver->fromDetails($read['payload']->externalId, $details);
+            } catch (AltaUnavailable $e) {
+                $this->error($e->getMessage());
+
+                return self::FAILURE;
+            }
+
+            if (! $payload) {
+                $refused++;
+                $rows[] = [$label, '—', '—', 'no matching complete retail data and B2B quantity'];
+
+                continue;
+            }
 
             if ($this->option('dry')) {
                 $rows[] = [
@@ -217,18 +240,10 @@ class AltaImport extends Command
         foreach ($wanted as $row) {
             $bar->advance();
 
-            $found = $site->suggest($row['item']);
-
-            if (! $found || ! $found['id']) {
-                $unlisted++;
-
-                continue;
-            }
-
-            $details = $site->details($found['id']);
+            $details = $site->product($row['item']);
 
             if (! $details) {
-                $silent++;
+                $unlisted++;
 
                 continue;
             }

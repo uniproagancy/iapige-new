@@ -43,6 +43,8 @@ return [
            sends it as a cookie and answers nothing without it. */
         'token' => env('ALTA_ACCESS_TOKEN'),
         'user_agent' => env('ALTA_USER_AGENT', 'iapi.ge importer'),
+        'retail_directory' => env('ALTA_RETAIL_DIRECTORY', storage_path('app/private/alta-retail')),
+        'retail_max_age' => (int) env('ALTA_RETAIL_MAX_AGE', 86400),
     ],
     'elite' => [
         'worker_url' => env('ELITE_WORKER_URL'),

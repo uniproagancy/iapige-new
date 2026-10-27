@@ -48,7 +48,7 @@ class AltaJson
         }
 
         $name = trim((string) ($product['name'] ?? ''));
-        $price = (float) ($product['price'] ?? 0);
+        $price = is_numeric($product['price'] ?? null) ? (float) $product['price'] : 0.0;
 
         if ($name === '') {
             $errors[] = __('admin.json_no_name');
@@ -65,7 +65,7 @@ class AltaJson
         }
 
         $locale = $this->supplier->config['locale'] ?? 'ka';
-        $previous = (float) ($product['previousPrice'] ?? 0);
+        $previous = is_numeric($product['previousPrice'] ?? null) ? (float) $product['previousPrice'] : 0.0;
 
         $payload = new ProductPayload(
             externalId: $code,

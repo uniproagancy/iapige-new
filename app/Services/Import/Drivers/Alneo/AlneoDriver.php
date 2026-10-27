@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use Illuminate\Support\Facades\Log;
 
 class AlneoDriver implements SupplierDriver
 {
@@ -46,7 +47,30 @@ class AlneoDriver implements SupplierDriver
 
         $page = $this->client->page($url);
 
-        return $page ? $this->toPayload($externalId, $row, $page) : null;
+        if (! $page) {
+            return null;
+        }
+
+        /*
+         | The page says whose it is, and that is the last word.
+         |
+         | The price comes from our own sheet and everything else -- the name,
+         | the photographs -- from this page. If the two are not the same
+         | product, the shop would show one thing under another's pictures at
+         | a third one's price, so nothing is taken at all.
+         */
+        if (! $this->same($externalId, (string) ($page['sku'] ?? ''))) {
+            Log::channel('import')->warning('alneo page belongs to another product', [
+                'supplier' => $this->supplier->code,
+                'wanted' => $externalId,
+                'page_says' => $page['sku'] ?? null,
+                'url' => $url,
+            ]);
+
+            return null;
+        }
+
+        return $this->toPayload($externalId, $row, $page);
     }
 
     protected function urlFor(string $code): ?string
@@ -57,15 +81,42 @@ class AlneoDriver implements SupplierDriver
             return $index[$code];
         }
 
-        $trimmed = ltrim($code, '0');
+        /* The sheet and the shop pad their codes differently -- 01396 against
+           1396 -- so one may be found by the other. Only when exactly one
+           answers to it, though: picking the first of several would be
+           guessing, and a guess here shows the wrong product. */
+        $found = array_keys(array_filter(
+            $index,
+            fn ($url, $sku) => $this->same($code, (string) $sku),
+            ARRAY_FILTER_USE_BOTH,
+        ));
 
-        foreach ($index as $sku => $url) {
-            if (ltrim((string) $sku, '0') === $trimmed) {
-                return $url;
-            }
+        if (count($found) === 1) {
+            return $index[$found[0]];
+        }
+
+        if (count($found) > 1) {
+            Log::channel('import')->warning('alneo code answers to several products', [
+                'supplier' => $this->supplier->code,
+                'code' => $code,
+                'candidates' => $found,
+            ]);
         }
 
         return null;
+    }
+
+    /* Two codes are the same when only the padding differs. */
+    protected function same(string $ours, string $theirs): bool
+    {
+        $ours = trim($ours);
+        $theirs = trim($theirs);
+
+        if ($ours === '' || $theirs === '') {
+            return false;
+        }
+
+        return $ours === $theirs || ltrim($ours, '0') === ltrim($theirs, '0');
     }
 
     protected function toPayload(string $code, SupplierStock $row, array $page): ?ProductPayload

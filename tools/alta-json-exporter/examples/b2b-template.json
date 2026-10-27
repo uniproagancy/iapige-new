@@ -1,0 +1,6 @@
+{
+    "items": [
+        {"item": "ITEM_CODE_1", "quantity": 2},
+        {"item": "ITEM_CODE_2", "quantity": 0}
+    ]
+}

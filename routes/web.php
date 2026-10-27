@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AltaBrowserController;
 use App\Http\Controllers\BogInstallmentController;
 use App\Http\Controllers\CredoController;
 use App\Http\Controllers\CronController;
@@ -124,6 +125,9 @@ Route::middleware(['auth', 'can:admin'])
         /* The shop's own settings, its people and its suppliers stay with
            the owner; an operator works the orders and the catalogue. */
         Route::middleware('can:owner')->group(function () {
+            Route::get('/alta-browser/feed', [AltaBrowserController::class, 'feed'])->middleware('throttle:6,1')->name('alta-browser.feed');
+            Route::post('/alta-browser/product', [AltaBrowserController::class, 'store'])->middleware('throttle:30,1')->name('alta-browser.product');
+            Route::get('/alta-browser/status', [AltaBrowserController::class, 'status'])->middleware('throttle:60,1')->name('alta-browser.status');
             Route::get('/suppliers', Admin\Suppliers\Index::class)->name('suppliers');
             Route::get('/settings', Admin\Settings\Index::class)->name('settings');
             Route::get('/users', Admin\Users\Index::class)->name('users');

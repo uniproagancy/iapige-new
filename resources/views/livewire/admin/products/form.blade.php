@@ -279,7 +279,9 @@
 
                         <div class="col-6 mb-1">
                             <label class="form-label">{{ __('admin.old_price') }}</label>
-                            <input type="number" step="0.01" min="0" class="form-control" wire:model="old_price">
+                            <input type="number" step="0.01" min="0"
+                                   class="form-control @error('old_price') is-invalid @enderror" wire:model="old_price">
+                            @error('old_price') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="col-6 mb-1">

@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'alta_invalid_export' => 'The Alta product code, source or collection time is invalid. Nothing was imported.',
+    'alta_price_parity' => 'Alta retail prices must be imported unchanged. Check supplier markup before starting.',
 
     'shop' => 'Shop',
     'priority' => 'Priority',

@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Services\Images\ImageDeduper;
 use App\Services\Images\Thumbnailer;
+use App\Services\Import\Drivers\Alta\AltaDriver;
+use App\Services\Import\Drivers\Alta\AltaImageCache;
 use App\Support\Redact;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -90,17 +92,42 @@ class ImageDownloader
 
     protected function store(Product $product, string $url, int $index): ?string
     {
+        $cached = null;
+
+        if (in_array(strtolower((string) parse_url($url, PHP_URL_HOST)), ['imgstore.alta.ge', 'alta.ge'], true)) {
+            $product->loadMissing('offers.supplier');
+
+            foreach ($product->offers as $offer) {
+                if ($offer->supplier?->driver !== AltaDriver::class) {
+                    continue;
+                }
+
+                $config = array_replace((array) config('services.alta', []), $offer->supplier->config ?? []);
+                $directory = $config['retail_directory'] ?? storage_path('app/private/alta-retail');
+
+                if ($directory) {
+                    $cached = AltaImageCache::read($directory, $url, (int) ($config['retail_max_age'] ?? 86400));
+                }
+
+                break;
+            }
+        }
+
         $path = sprintf(
             'products/%d/%s-%02d-%s.%s',
             $product->id,
             Str::slug(Str::limit($product->sku, 40, '')) ?: 'p'.$product->id,
             $index + 1,
-            substr(sha1($url), 0, 12),
-            $this->extension($url),
+            substr(sha1($url.($cached['hash'] ?? '')), 0, 12),
+            $cached['extension'] ?? $this->extension($url),
         );
 
         if (Storage::disk(self::DISK)->exists($path)) {
             return $path;
+        }
+
+        if ($cached !== null) {
+            return Storage::disk(self::DISK)->put($path, $cached['bytes']) ? $path : null;
         }
 
         if ($this->hostIsDown($url)) {

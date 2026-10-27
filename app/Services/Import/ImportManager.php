@@ -28,12 +28,19 @@ class ImportManager
 
     public function run(Supplier $supplier, ?array $only = null): int
     {
+        $driver = $this->driver($supplier);
+
+        if ($driver instanceof ChecksImportSource) {
+            $driver->checkSource();
+        }
+
+        $ids = $driver->ids();
         $empty = $this->settleEmptyRows($supplier);
         $wanted = $only === null ? null : array_flip(array_map('strval', $only));
         $queued = 0;
         $pending = [];
 
-        foreach ($this->driver($supplier)->ids() as $externalId) {
+        foreach ($ids as $externalId) {
             if (isset($empty[(string) $externalId])) {
                 continue;
             }

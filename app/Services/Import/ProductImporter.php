@@ -7,6 +7,7 @@ use App\Models\ProductOffer;
 use App\Models\ProductSpec;
 use App\Models\ProductSpecTranslation;
 use App\Models\Supplier;
+use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Support\Slug;
 use App\Support\Text;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,7 @@ class ProductImporter
 
         $wanted = min(count($payload->images), ImageDownloader::MAX_IMAGES);
 
-        if ($product && $wanted > 0 && ($isNew || $product->images()->count() < $wanted)) {
+        if ($product && $wanted > 0 && ($supplier->driver === AltaDriver::class || $isNew || $product->images()->count() < $wanted)) {
             $this->images->sync($product, $payload->images);
         }
 

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ka">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Alta JSON · IAPI</title>
+    <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+<main>
+    <header><img class="mark" src="icons/icon48.png" alt="IAPI" width="48" height="48"><div><h1>Alta JSON <span class="version">0.2.1</span></h1><p>ალტას პროდუქტის კოდები — სრულ JSON ფაილად.</p></div></header>
+    <section>
+        <h2>1. პროდუქტის სია</h2>
+        <p class="intro">ჩასვით კოდები ან აირჩიეთ თქვენი B2B სიის ფაილი. ამ გზით იაფის ანგარიში არ გჭირდებათ.</p>
+        <label for="codes">პროდუქტის კოდები — თითო ხაზზე ერთი</label>
+        <textarea id="codes" rows="4" placeholder="172951&#10;176426&#10;164355"></textarea>
+        <p class="hint">მხოლოდ კოდებით სრულ საწყის JSON-ს მიიღებთ. B2B მარაგით იმპორტის ფაილისთვის სიის ფაილიც ჩატვირთეთ.</p>
+        <div class="feed-actions">
+            <label class="file" for="feed-file">B2B JSON ფაილი <input id="feed-file" type="file" accept=".json,application/json"></label>
+            <a href="examples/b2b-template.json" download>სიის შაბლონი ↓</a>
+        </div>
+        <p class="hint">შაბლონში კოდები და რაოდენობები თქვენი რეალური მონაცემებით შეცვალეთ. კოდების ველის შევსებით ჩატვირთული სიიდან კონკრეტულ პროდუქტებს აირჩევთ.</p>
+        <p id="feed-status" class="hint">B2B სია ჯერ არ არის ჩატვირთული.</p>
+        <details class="admin-option">
+            <summary>იაფის ადმინიდან სიის წამოღება</summary>
+            <p class="hint">არჩევითი გზა იაფის ადმინისტრატორისთვის. ღილაკის დაჭერისას ბრაუზერი iapi.ge-ზე წვდომას მოგთხოვთ; საჭიროა იმავე ბრაუზერში ადმინისტრატორის მოქმედი სესია.</p>
+            <button id="load-feed" class="secondary">B2B სია იაფის ადმინიდან</button>
+        </details>
+        <label class="limit" for="limit">რაოდენობა <input id="limit" type="number" min="0" step="1" value="3"><span>0 = ყველა</span></label>
+    </section>
+    <section>
+        <h2>2. შეგროვება</h2>
+        <div class="actions"><button id="start">დაწყება</button><button id="pause" class="secondary" disabled>პაუზა</button><button id="resume" class="secondary" disabled>გაგრძელება</button></div>
+        <p id="message" role="status" aria-live="polite">ჩატვირთეთ სია ან ჩასვით პროდუქტის კოდები.</p>
+        <div class="progress"><span id="position">0 / 0</span><span>შენახულია <b id="collected">0</b></span><span>ვერ მოიძებნა <b id="missing">0</b></span></div>
+        <progress id="progress" value="0" max="1"></progress>
+        <p class="hint">საჭიროა ჩართული პანელი. დამხმარე ჩანართი თვითონ იხსნება; მასში ხელით ნუ გადახვალთ.</p>
+        <p class="hint">ახალი მოთხოვნები იგზავნება ქართული ენის არჩევით. ადრე შენახული ინგლისური პასუხების თავიდან მისაღებად აირჩიეთ „დაწყება“.</p>
+    </section>
+    <section>
+        <h2>3. ჩამოტვირთვა</h2>
+        <div class="actions"><button id="download-import" disabled>იმპორტის JSON</button><button id="download-raw" class="secondary" disabled>საწყისი JSON</button></div>
+        <p id="download-status" class="hint">ჩამოტვირთვა შეგეძლებათ ნაწილობრივი შეგროვების შემდეგაც.</p>
+        <p class="hint">ფაილებში ინახება ფოტოების მისამართები; ფოტოები ცალკე არ იტვირთება. საიტზე არაფერი იგზავნება.</p>
+    </section>
+    <footer><a href="INSTALL-KA.txt" target="_blank" rel="noopener">ინსტალაცია და გამოყენება ↗</a><span>შედეგები ინახება ამ ბრაუზერში.</span></footer>
+</main>
+<script type="module" src="panel.js"></script>
+</body>
+</html>

@@ -50,7 +50,7 @@ class AltaB2bClient
                 'hint' => 'set ALTA_B2B_USER and ALTA_B2B_PASSWORD',
             ]);
 
-            return [];
+            throw new AltaUnavailable('Alta B2B credentials are not configured.');
         }
 
         try {
@@ -65,7 +65,7 @@ class AltaB2bClient
                 'error' => Redact::secrets($e->getMessage()),
             ]);
 
-            return [];
+            throw new AltaUnavailable('Alta B2B could not be reached. The previous data was preserved.', 0, $e);
         }
 
         $items = $response->PriceList->items->item ?? null;
@@ -75,10 +75,9 @@ class AltaB2bClient
                rather than an error, which is how a dead login looks. */
             Log::channel('import')->warning('alta b2b answered with no items', [
                 'item' => $item ?: '(all)',
-                'user' => $user,
             ]);
 
-            return [];
+            throw new AltaUnavailable('Alta B2B returned an empty envelope. The previous data was preserved.');
         }
 
         $rows = [];
