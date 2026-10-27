@@ -41,12 +41,26 @@ class EliteDriver implements SupplierDriver
 
         return $data ? $this->toPayload($externalId, $data) : null;
     }
+	
+	protected function prices(array $product): array
+    {
+        $current = (float) ($product['price'] ?? 0);
+        $previous = (float) ($product['previousPrice'] ?? 0);
+
+        if ($previous > 0 && $current > 0) {
+            return [min($current, $previous), max($current, $previous)];
+        }
+
+        return [$current ?: $previous, null];
+    }
 
     protected function toPayload(string $externalId, array $data): ?ProductPayload
     {
         $p = $data['product'];
         $locale = $this->supplier->config['locale'] ?? 'ka';
         $barcode = trim((string) ($p['barCode'] ?? ''));
+		
+		[$costPrice, $oldCostPrice] = $this->prices($product);
 
         if ($barcode === '') {
             return null;
@@ -85,8 +99,8 @@ class EliteDriver implements SupplierDriver
             externalId: $externalId,
 
             sku: $this->supplier->code.'-'.$barcode,
-            costPrice: (float) ($p['previousPrice'] ?? $p['price'] ?? 0),
-            oldCostPrice: isset($p['previousPrice']) ? (float) $p['price'] : null,
+            costPrice: $costPrice,
+            oldCostPrice: $oldCostPrice,
             stock: $this->stockFor($barcode),
             brandName: $this->brand($p),
             categoryName: TaxonomyResolver::trail(
