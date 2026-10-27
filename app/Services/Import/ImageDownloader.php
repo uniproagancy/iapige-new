@@ -93,6 +93,7 @@ class ImageDownloader
     protected function store(Product $product, string $url, int $index): ?string
     {
         $cached = null;
+        $altaImage = false;
 
         if (in_array(strtolower((string) parse_url($url, PHP_URL_HOST)), ['imgstore.alta.ge', 'alta.ge'], true)) {
             $product->loadMissing('offers.supplier');
@@ -102,6 +103,7 @@ class ImageDownloader
                     continue;
                 }
 
+                $altaImage = true;
                 $config = array_replace((array) config('services.alta', []), $offer->supplier->config ?? []);
                 $directory = $config['retail_directory'] ?? storage_path('app/private/alta-retail');
 
@@ -123,10 +125,18 @@ class ImageDownloader
         );
 
         if (Storage::disk(self::DISK)->exists($path)) {
+            if ($altaImage && $this->altaRasterExtension(Storage::disk(self::DISK)->get($path)) === null) {
+                return null;
+            }
+
             return $path;
         }
 
         if ($cached !== null) {
+            if ($this->altaRasterExtension($cached['bytes']) === null) {
+                return null;
+            }
+
             return Storage::disk(self::DISK)->put($path, $cached['bytes']) ? $path : null;
         }
 
@@ -159,9 +169,26 @@ class ImageDownloader
                 return null;
             }
 
+            $bytes = $response->body();
+
+            if ($altaImage) {
+                $extension = $this->altaRasterExtension($bytes);
+
+                if ($extension === null) {
+                    $this->noteFailure($url);
+                    Log::channel('import')->warning('image response was not a valid raster', [
+                        'product' => $product->id, 'url' => Redact::secrets($url),
+                    ]);
+
+                    return null;
+                }
+
+                $path = preg_replace('/\.[^.\/]+$/', '.'.$extension, $path);
+            }
+
             unset(self::$failures[$this->hostOf($url)]);
 
-            if (Storage::disk(self::DISK)->put($path, $response->body()) === false) {
+            if (Storage::disk(self::DISK)->put($path, $bytes) === false) {
                 Log::channel('import')->error('image could not be written to disk', [
                     'product' => $product->id,
                     'path' => $path,
@@ -182,6 +209,22 @@ class ImageDownloader
 
             return null;
         }
+    }
+
+    protected function altaRasterExtension(string $bytes): ?string
+    {
+        if (strlen($bytes) > 1048576) {
+            return null;
+        }
+
+        $image = @getimagesizefromstring($bytes);
+
+        if (! $image || $image[0] < 1 || $image[1] < 1 || $image[0] > 12_000 || $image[1] > 12_000
+            || $image[0] * $image[1] > 40_000_000) {
+            return null;
+        }
+
+        return ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'][$image['mime'] ?? ''] ?? null;
     }
 
     protected function hostIsDown(string $url): bool

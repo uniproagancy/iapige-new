@@ -31,6 +31,10 @@ textarea { width: 100%; resize: vertical; border: 1px solid #d8dde5; border-radi
 .limit { display: flex; gap: 12px; align-items: center; }
 .limit input { width: 95px; border: 1px solid #d8dde5; border-radius: 8px; padding: 9px; font: inherit; }
 .limit span, .hint { color: #747d8c; font-size: 13px; line-height: 1.7; }
+.photo-option { display: flex; align-items: center; gap: 10px; font-weight: 650; margin-bottom: 0; }
+.photo-option input { width: 18px; height: 18px; accent-color: #ff6b00; }
+.parts { margin-bottom: 16px; }
+.parts select { width: 100%; border: 1px solid #d8dde5; border-radius: 9px; padding: 11px; background: white; font: inherit; font-size: 13px; }
 .hint { margin-bottom: 0; }
 #message { line-height: 1.75; margin-top: 22px; }
 #message.error { color: #b3392d; }

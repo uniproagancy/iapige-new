@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import * as core from '../core.js';
+import * as exporting from '../exports.js';
+import * as photoHelpers from '../photos.js';
 
 const source = fs.readFileSync(new URL('../panel.js', import.meta.url), 'utf8').replace(/^import .*;\r?\n/gm, '');
 const clone = value => value === undefined ? undefined : structuredClone(value);
@@ -10,16 +12,20 @@ const FEED_LINK = `https://iapi.ge/feeds/alta-stock.json?version=11111111-1111-4
 const stockSnapshot = (items, syncedAt = new Date().toISOString()) => ({schema: 'iapi.supplier-stock.v1',
     supplier: 'alta', source: 'supplier_stocks', synced_at: syncedAt, count: items.length, items});
 const details = item => ({product: {id: Number(item), barCode: item, name: `Synthetic ${item}`, price: 129,
-    previousPrice: 199, storageQuantity: 77, description: 'Original API text', images: ['https://alta.ge/photo.jpg']},
+    previousPrice: 199, storageQuantity: 77, description: 'Original API text', images: ['https://imgstore.alta.ge/images/photo.jpg']},
 availabilityInStores: [{inStock: true}], untouched: {flag: true}});
 
 async function fixture(read, {grantIapi = true, permissionFailure = null, clickWhileInitializing = false,
-    initialMemory = {}, initialRecords = []} = {}) {
+    initialMemory = {}, initialRecords = [], initialAssets = [], embedPhotos = false, grantPhotos = true, collectPhotos, storageGet} = {}) {
     const memory = clone(initialMemory), records = new Map(clone(initialRecords)), downloads = [], blobs = new Map(), requests = [], permissions = [];
+    const assetRecords = new Map(clone(initialAssets));
+    const storageReads = {listAll: 0, metadata: 0};
     const ids = ['load-feed', 'feed-url', 'feed-file', 'codes', 'limit', 'start', 'pause', 'resume', 'message', 'position',
-        'collected', 'missing', 'progress', 'download-import', 'download-raw', 'download-status', 'feed-status'];
+        'collected', 'missing', 'progress', 'download-import', 'download-raw', 'download-status', 'feed-status', 'save-photos', 'prepare-import', 'import-part'];
     const elements = Object.fromEntries(ids.map(id => [id, {value: '', files: [], handlers: {},
+        options: [], replaceChildren() { this.options = []; }, append(option) { this.options.push(option); },
         addEventListener(type, fn) { this.handlers[type] = fn; }}]));
+    elements['save-photos'].checked = embedPhotos;
     elements.limit.value = '3';
     elements['feed-url'].value = FEED_LINK;
     let locked = false;
@@ -28,7 +34,7 @@ async function fixture(read, {grantIapi = true, permissionFailure = null, clickW
         userGesture = true;
         try { elements[id].handlers.click(); } finally { userGesture = false; }
     };
-    const context = vm.createContext({...core, structuredClone, crypto, Blob, Map, Set, Promise, Number, Date,
+    const context = vm.createContext({...core, ...exporting, ...photoHelpers, structuredClone, crypto, Blob, Map, Set, Promise, Number, Date, AbortController,
         URL: {createObjectURL(blob) { const id = `blob:${blobs.size}`; blobs.set(id, blob); return id; }, revokeObjectURL() {}},
         setTimeout(fn, ms) { const timer = setTimeout(fn, ms); timer.unref(); return timer; },
         document: {getElementById: id => elements[id], createElement: () => ({click() { downloads.push({url: this.href, name: this.download}); }})},
@@ -43,9 +49,12 @@ async function fixture(read, {grantIapi = true, permissionFailure = null, clickW
             permissions.push(clone(options));
             if (permissionFailure === 'throw') throw new Error('Synthetic permission error');
             if (permissionFailure === 'reject') return Promise.reject(new Error('Synthetic permission error'));
-            return Promise.resolve(grantIapi);
+            return Promise.resolve(options.origins.includes('https://imgstore.alta.ge/*') ? grantPhotos : grantIapi);
         }}, storage: {local: {
-            get: async keys => Object.fromEntries((Array.isArray(keys) ? keys : [keys]).map(key => [key, clone(memory[key])])),
+            get: async keys => {
+                const snapshot = Object.fromEntries((Array.isArray(keys) ? keys : [keys]).map(key => [key, clone(memory[key])]));
+                return storageGet ? storageGet(keys, snapshot) : snapshot;
+            },
             set: async values => Object.assign(memory, clone(values)),
         }}},
         createBrowserReader: () => ({readJson: async url => { requests.push(url); return read(url); }}),
@@ -53,12 +62,17 @@ async function fixture(read, {grantIapi = true, permissionFailure = null, clickW
             quantity: entry.quantity, raw: clone(raw), sequence}),
         getResult: async (jobId, item) => clone(records.get(`${jobId}:${item}`)),
         countResults: async jobId => [...records.values()].filter(row => row.jobId === jobId).length,
-        listResults: async jobId => clone([...records.values()].filter(row => row.jobId === jobId).sort((a, b) => a.sequence - b.sequence)),
+        listResults: async jobId => { storageReads.listAll++; return clone([...records.values()].filter(row => row.jobId === jobId).sort((a, b) => a.sequence - b.sequence)); },
+        listResultMetadata: async jobId => { storageReads.metadata++; return [...records.values()].filter(row => row.jobId === jobId).sort((a, b) => a.sequence - b.sequence)
+            .map(({item, quantity, sequence}) => ({item, quantity, sequence})); },
+        saveAssets: async (jobId, item, assets) => assetRecords.set(`${jobId}:${item}`, clone(assets)),
+        getAssets: async (jobId, item) => clone(assetRecords.get(`${jobId}:${item}`)),
+        createPhotoCollector: () => ({collect: collectPhotos || (async raw => photoHelpers.imageUrls(raw).map(url => ({url, base64: 'c3ludGhldGlj'})))}),
     });
     vm.runInContext(source, context);
     if (clickWhileInitializing) click('load-feed');
     await until(() => !elements.start.disabled);
-    return {memory, records, requests, elements, downloads, blobs, permissions, click,
+    return {memory, records, assetRecords, storageReads, requests, elements, downloads, blobs, permissions, click,
         async importFeed(items) {
             elements['feed-file'].files = [{text: async () => JSON.stringify({items})}];
             elements['feed-file'].handlers.change();
@@ -234,4 +248,204 @@ test('stale job stock blocks Resume and import download while preserving the raw
     f.click('download-raw');
     await until(() => f.downloads.length === 1);
     assert.deepEqual(JSON.parse(await f.blobs.get(f.downloads[0].url).text()), [raw]);
+});
+
+test('photo permission is requested directly on Start, assets enrich only the import copy and HTML defaults to photos enabled', async () => {
+    const html = fs.readFileSync(new URL('../panel.html', import.meta.url), 'utf8');
+    assert.match(html, /id="save-photos"[^>]*checked/);
+    const manifest = JSON.parse(fs.readFileSync(new URL('../manifest.json', import.meta.url), 'utf8'));
+    assert.equal(manifest.version, '0.4.0');
+    assert.deepEqual(manifest.optional_host_permissions, ['https://iapi.ge/*', 'https://imgstore.alta.ge/*']);
+    assert.ok(!manifest.permissions.includes('cookies'));
+    const raw = details('001234');
+    const f = await fixture(async url => url.includes('/search/suggestions') ? {products: [{id: 1234}]} : raw, {embedPhotos: true});
+    await f.importFeed([{item: '001234', quantity: 0}]);
+    f.click('start');
+    assert.deepEqual(f.permissions, [{origins: ['https://imgstore.alta.ge/*']}]);
+    await until(() => f.memory.altaJsonExporterJob?.status === 'complete' && !f.elements.start.disabled);
+    assert.equal(f.memory.altaJsonExporterJob.version, 2);
+    assert.equal(f.memory.altaJsonExporterJob.savePhotos, true);
+    const savedAssets = f.assetRecords.values().next().value;
+    assert.deepEqual(f.records.values().next().value.raw, raw);
+    assert.ok(!JSON.stringify(f.memory).includes('base64'));
+    f.click('download-import');
+    await until(() => f.downloads.length === 1);
+    const imported = JSON.parse(await f.blobs.get(f.downloads[0].url).text());
+    assert.deepEqual(imported[0].iapiAssets, savedAssets);
+    assert.equal(imported[0].product.storageQuantity, 0);
+    f.click('download-raw');
+    await until(() => f.downloads.length === 2);
+    assert.deepEqual(JSON.parse(await f.blobs.get(f.downloads[1].url).text()), [raw]);
+});
+
+test('denied or failed photo permission makes no request and unchecking photos keeps URL-only collection available', async () => {
+    for (const permissionFailure of [null, 'throw', 'reject']) {
+        const f = await fixture(async url => url.includes('/search/suggestions') ? {products: [{id: 1234}]} : details('001234'),
+            {embedPhotos: true, grantPhotos: false, permissionFailure});
+        f.elements.codes.value = '001234';
+        f.click('start');
+        await until(() => !f.elements.start.disabled && f.elements.message.className === 'error');
+        assert.equal(f.requests.length, 0);
+        assert.equal(f.memory.altaJsonExporterJob, undefined);
+        assert.match(f.elements.message.textContent, /ფოტო/);
+        f.elements['save-photos'].checked = false;
+        f.click('start');
+        await until(() => f.memory.altaJsonExporterJob?.status === 'complete' && !f.elements.start.disabled);
+        assert.equal(f.permissions.length, 1);
+        assert.equal(f.memory.altaJsonExporterJob.savePhotos, false);
+        assert.equal(f.assetRecords.size, 0);
+    }
+});
+
+test('a photo failure preserves and exposes the full API result; Resume enriches it without repeating API navigation', async () => {
+    let photoCalls = 0;
+    const raw = details('001234');
+    const f = await fixture(async url => url.includes('/search/suggestions') ? {products: [{id: 1234}]} : raw,
+        {embedPhotos: true, collectPhotos: async value => {
+            photoCalls++;
+            if (photoCalls === 1) throw new Error('photo_forbidden');
+            return photoHelpers.imageUrls(value).map(url => ({url, base64: 'c3ludGhldGlj'}));
+        }});
+    await f.importFeed([{item: '001234', quantity: 0}]);
+    f.click('start');
+    await until(() => f.memory.altaJsonExporterJob?.status === 'paused' && !f.elements.start.disabled);
+    assert.equal(f.memory.altaJsonExporterJob.cursor, 0);
+    assert.equal(f.memory.altaJsonExporterJob.collected, 1);
+    assert.equal(f.assetRecords.size, 0);
+    assert.match(f.elements.message.textContent, /403/);
+    f.click('download-raw');
+    await until(() => f.downloads.length === 1 && !f.elements.start.disabled);
+    assert.deepEqual(JSON.parse(await f.blobs.get(f.downloads[0].url).text()), [raw]);
+    f.click('download-import');
+    await until(() => !f.elements.start.disabled && f.elements.message.textContent.includes('ჯერ არ აქვს'));
+    assert.equal(f.downloads.length, 1);
+    const requestsBeforeResume = f.requests.length;
+    f.click('resume');
+    assert.equal(f.permissions.length, 2, 'Resume requests photo access inside its own click too.');
+    await until(() => f.memory.altaJsonExporterJob.status === 'complete' && !f.elements.start.disabled);
+    assert.equal(f.requests.length, requestsBeforeResume);
+    assert.equal(photoCalls, 2);
+    assert.equal(f.assetRecords.size, 1);
+});
+
+test('Pause wins over a late photo response without discarding raw details or saving late assets', async () => {
+    let release, hold = true, photoSignal;
+    const f = await fixture(async url => url.includes('/search/suggestions') ? {products: [{id: 1234}]} : details('001234'),
+        {embedPhotos: true, collectPhotos: async (raw, {signal}) => {
+            photoSignal = signal;
+            const assets = photoHelpers.imageUrls(raw).map(url => ({url, base64: 'c3ludGhldGlj'}));
+            if (hold) return new Promise(resolve => { release = () => resolve(assets); });
+            return assets;
+        }});
+    f.elements.codes.value = '001234';
+    f.click('start');
+    await until(() => typeof release === 'function');
+    assert.equal(f.records.size, 1);
+    f.click('pause');
+    assert.equal(photoSignal.aborted, true);
+    await until(() => f.memory.altaJsonExporterJob.status === 'paused');
+    release();
+    await until(() => !f.elements.start.disabled);
+    assert.equal(f.assetRecords.size, 0);
+    assert.equal(f.memory.altaJsonExporterJob.cursor, 0);
+    assert.equal(f.memory.altaJsonExporterJob.collected, 1);
+    hold = false;
+    f.click('resume');
+    await until(() => f.memory.altaJsonExporterJob.status === 'complete' && !f.elements.start.disabled);
+    assert.equal(f.assetRecords.size, 1);
+});
+
+test('enabling photos on an old paused job revisits saved rows without refetching their API details', async () => {
+    const items = [{item: '001234', quantity: 0}, {item: '001235', quantity: 2}];
+    const old = {id: 'old-job', version: 1, status: 'paused', cursor: 1, collected: 1, missing: 0, items, stockSnapshot: null};
+    const raw = details('001234');
+    const f = await fixture(async url => url.includes('/search/suggestions') ? {products: [{id: 1235}]} : details('001235'),
+        {embedPhotos: true, initialMemory: {altaJsonExporterJob: old}, initialRecords: [
+            ['old-job:001234', {jobId: old.id, item: '001234', quantity: 0, raw, sequence: 0}],
+        ]});
+    f.click('resume');
+    await until(() => f.memory.altaJsonExporterJob.status === 'complete' && !f.elements.start.disabled);
+    assert.equal(f.assetRecords.size, 2);
+    assert.equal(f.requests.length, 2);
+    assert.ok(f.requests.every(url => !url.includes('1234')));
+    assert.deepEqual(f.records.get('old-job:001234').raw, raw);
+});
+
+test('part selector downloads all 201 results exactly once using per-row reads rather than getAll photos', async () => {
+    const items = Array.from({length: 201}, (_, i) => ({item: String(100000 + i), quantity: i % 3}));
+    const job = {id: 'parts-job', version: 2, savePhotos: false, status: 'complete', cursor: items.length,
+        collected: items.length, missing: 0, stockSnapshot: null, items};
+    const initialRecords = items.map((entry, sequence) => [`parts-job:${entry.item}`,
+        {jobId: job.id, ...entry, sequence, raw: details(entry.item)}]);
+    const f = await fixture(async () => { throw new Error('No API navigation'); },
+        {initialMemory: {altaJsonExporterJob: job}, initialRecords});
+    f.click('prepare-import');
+    await until(() => f.elements['import-part'].options.length === 3 && !f.elements.start.disabled);
+    assert.match(f.elements['import-part'].options[1].textContent, /101–200/);
+    const imported = [];
+    for (let i = 0; i < 3; i++) {
+        f.elements['import-part'].value = String(i);
+        f.click('download-import');
+        await until(() => f.downloads.length === i + 1 && !f.elements.start.disabled);
+        const blob = f.blobs.get(f.downloads[i].url);
+        assert.ok(blob.size <= 8 * 1024 * 1024);
+        const part = JSON.parse(await blob.text());
+        assert.ok(part.length <= 100);
+        imported.push(...part);
+        assert.ok(f.downloads[i].name.includes(`part-${i + 1}-of-3`));
+    }
+    assert.deepEqual(imported.map(raw => raw.product.barCode), items.map(row => row.item));
+    assert.equal(f.storageReads.listAll, 0);
+    assert.equal(f.storageReads.metadata, 1);
+    assert.equal(f.requests.length, 0);
+});
+
+test('Pause during the initial Resume storage read cannot be overwritten by its late response', async () => {
+    const job = {id: 'resume-race', version: 2, savePhotos: false, status: 'paused', cursor: 0,
+        collected: 0, missing: 0, stockSnapshot: null, items: [{item: '001234', quantity: 0}]};
+    let release;
+    const f = await fixture(async () => { throw new Error('Paused Resume must not navigate'); }, {
+        initialMemory: {altaJsonExporterJob: job}, storageGet: (keys, snapshot) => {
+            if (keys === 'altaJsonExporterJob') return new Promise(resolve => { release = () => resolve(snapshot); });
+            return snapshot;
+        },
+    });
+    f.click('resume');
+    await until(() => typeof release === 'function');
+    assert.equal(f.elements.pause.disabled, false);
+    f.click('pause');
+    await until(() => f.memory.altaJsonExporterJob.status === 'paused');
+    release();
+    await until(() => !f.elements.start.disabled);
+    assert.equal(f.memory.altaJsonExporterJob.status, 'paused');
+    assert.equal(f.memory.altaJsonExporterJob.cursor, 0);
+    assert.equal(f.requests.length, 0);
+    assert.match(f.elements.message.textContent, /შეჩერებულია/);
+});
+
+test('a completed pre-photo job cannot silently export URL-only JSON while the photo checkbox is checked', async () => {
+    const job = {id: 'legacy-complete', version: 1, status: 'complete', cursor: 1, collected: 1,
+        missing: 0, stockSnapshot: null, items: [{item: '001234', quantity: 0}]};
+    const raw = details('001234');
+    const f = await fixture(async () => { throw new Error('No automatic navigation'); }, {embedPhotos: true,
+        initialMemory: {altaJsonExporterJob: job}, initialRecords: [
+            ['legacy-complete:001234', {jobId: job.id, item: '001234', quantity: 0, raw, sequence: 0}],
+        ],
+    });
+    for (const action of ['prepare-import', 'download-import']) {
+        f.click(action);
+        await until(() => !f.elements.start.disabled && f.elements.message.textContent.includes('ჯერ არ აქვს'));
+        assert.equal(f.downloads.length, 0);
+        assert.equal(f.elements['import-part'].options.length, 0);
+    }
+    f.click('download-raw');
+    await until(() => f.downloads.length === 1 && !f.elements.start.disabled);
+    assert.deepEqual(JSON.parse(await f.blobs.get(f.downloads[0].url).text()), [raw]);
+    f.elements['save-photos'].checked = false;
+    f.click('download-import');
+    await until(() => f.downloads.length === 2 && !f.elements.start.disabled);
+    const imported = JSON.parse(await f.blobs.get(f.downloads[1].url).text());
+    assert.equal(imported[0].iapiAssets, undefined);
+    assert.equal(imported[0].product.storageQuantity, 0);
+    assert.equal(f.requests.length, 0);
 });

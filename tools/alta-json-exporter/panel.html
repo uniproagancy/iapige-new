@@ -8,7 +8,7 @@
 </head>
 <body>
 <main>
-    <header><img class="mark" src="icons/icon48.png" alt="IAPI" width="48" height="48"><div><h1>Alta JSON <span class="version">0.3.0</span></h1><p>ალტას პროდუქტის კოდები — სრულ JSON ფაილად.</p></div></header>
+    <header><img class="mark" src="icons/icon48.png" alt="IAPI" width="48" height="48"><div><h1>Alta JSON <span class="version">0.4.0</span></h1><p>ალტას პროდუქტის კოდები — სრულ JSON ფაილად.</p></div></header>
     <section>
         <h2>1. პროდუქტის სია</h2>
         <p class="intro">წვდომის ბმულით სია ადმინში შესვლის გარეშე ჩაიტვირთება. კოდები და საკუთარი ფაილიც შეგიძლიათ გამოიყენოთ.</p>
@@ -31,6 +31,8 @@
     </section>
     <section>
         <h2>2. შეგროვება</h2>
+        <label class="photo-option"><input id="save-photos" type="checkbox" checked> ფოტოების შენახვა JSON-ში</label>
+        <p class="hint">პირველად ფოტოებზე წვდომას მოგთხოვთ. ერთ ფოტოზე მაქსიმუმ 1 MiB, პროდუქტზე ჯამში 2 MiB; ინახება პირველი 8 ფოტო. გამორთვისას მხოლოდ ბმულები დარჩება.</p>
         <div class="actions"><button id="start">დაწყება</button><button id="pause" class="secondary" disabled>პაუზა</button><button id="resume" class="secondary" disabled>გაგრძელება</button></div>
         <p id="message" role="status" aria-live="polite">ჩატვირთეთ სია ან ჩასვით პროდუქტის კოდები.</p>
         <div class="progress"><span id="position">0 / 0</span><span>შენახულია <b id="collected">0</b></span><span>ვერ მოიძებნა <b id="missing">0</b></span></div>
@@ -40,9 +42,10 @@
     </section>
     <section>
         <h2>3. ჩამოტვირთვა</h2>
+        <div class="parts"><button id="prepare-import" class="secondary" disabled>ნაწილების მომზადება</button><label for="import-part">ჩამოსატვირთი ნაწილი</label><select id="import-part" disabled></select></div>
         <div class="actions"><button id="download-import" disabled>იმპორტის JSON</button><button id="download-raw" class="secondary" disabled>საწყისი JSON</button></div>
-        <p id="download-status" class="hint">ჩამოტვირთვა შეგეძლებათ ნაწილობრივი შეგროვების შემდეგაც.</p>
-        <p class="hint">ფაილებში ინახება ფოტოების მისამართები; ფოტოები ცალკე არ იტვირთება. საიტზე არაფერი იგზავნება.</p>
+        <p id="download-status" class="hint">იმპორტი დაიყოფა მაქსიმუმ 8 MiB / 100 პროდუქტის ნაწილებად. ჩამოტვირთეთ თითოეული ნაწილი ცალ-ცალკე.</p>
+        <p class="hint">ფოტოები ემატება მხოლოდ იმპორტის JSON-ს (iapiAssets). საწყისი JSON სრული და უცვლელია. საიტზე არაფერი იგზავნება.</p>
     </section>
     <footer><a href="INSTALL-KA.txt" target="_blank" rel="noopener">ინსტალაცია და გამოყენება ↗</a><span>შედეგები ინახება ამ ბრაუზერში.</span></footer>
 </main>

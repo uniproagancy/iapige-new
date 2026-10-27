@@ -20,18 +20,40 @@
                         @error('code') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
+                    <div class="mb-1" x-data="{ uploading: false }"
+                         x-on:livewire-upload-start="uploading = true"
+                         x-on:livewire-upload-finish="uploading = false"
+                         x-on:livewire-upload-error="uploading = false"
+                         x-on:livewire-upload-cancel="uploading = false">
+                        <label class="form-label" for="j-file">{{ __('admin.json_file_label') }}</label>
+                        <input id="j-file" type="file" accept=".json,application/json"
+                               class="form-control @error('upload') is-invalid @enderror" wire:model="upload"
+                               wire:loading.attr="disabled" wire:target="look,save,clearUpload">
+                        @error('upload') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <small class="text-muted d-block">{{ __('admin.json_file_hint', ['mb' => 10, 'count' => \App\Livewire\Admin\Import\Json::MAX_ANSWERS]) }}</small>
+                        <small class="text-muted" x-cloak x-show="uploading">{{ __('admin.json_uploading') }}</small>
+                        @if ($upload)
+                            <div class="d-flex align-items-center gap-1 mt-50">
+                                <span class="small text-break">{{ $upload->getClientOriginalName() }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="clearUpload"
+                                        wire:loading.attr="disabled">{{ __('admin.json_file_remove') }}</button>
+                            </div>
+                        @endif
+                    </div>
+
                     <div class="mb-1">
                         <label class="form-label" for="j-json">{{ __('admin.json_label') }}</label>
                         <textarea id="j-json" rows="12"
                                   class="form-control font-monospace small @error('json') is-invalid @enderror"
                                   wire:model.blur="json"
+                                  @disabled($upload !== null)
                                   placeholder='{"product":{"id":45491,"barCode":"169226", …}}'></textarea>
                         @error('json') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         <small class="text-muted">{{ __('admin.json_separators') }}</small>
                     </div>
 
                     <button type="button" class="btn btn-outline-primary"
-                            wire:click="look" wire:loading.attr="disabled" wire:target="look">
+                            wire:click="look" wire:loading.attr="disabled">
                         <span wire:loading.remove wire:target="look">{{ __('admin.json_look') }}</span>
                         <span wire:loading wire:target="look">{{ __('admin.json_look') }}…</span>
                     </button>
@@ -47,10 +69,10 @@
             </div>
 
             @if (count($result))
-                <div class="card border-success">
+                <div class="card {{ $photoWarnings ? 'border-warning' : 'border-success' }}">
                     <div class="card-header pb-50">
-                        <h5 class="card-title mb-0 text-success">
-                            {{ __('admin.json_saved_many', ['count' => count($result)]) }}
+                        <h5 class="card-title mb-0 {{ $photoWarnings ? 'text-warning' : 'text-success' }}">
+                            {{ __($photoWarnings ? 'admin.json_saved_with_photo_warnings' : 'admin.json_saved_many', ['count' => count($result)]) }}
                         </h5>
                     </div>
 
@@ -66,6 +88,9 @@
                                         {{ __('admin.json_stock', ['count' => $saved['stock']]) }} ·
                                         {{ __('admin.json_images', ['count' => $saved['images']]) }}
                                     </small>
+                                    @if (! ($saved['photos_complete'] ?? true))
+                                        <small class="text-warning d-block">{{ __('admin.json_photos_warning') }}</small>
+                                    @endif
                                 </span>
 
                                 <span class="text-nowrap">
@@ -165,7 +190,7 @@
                         @endif
 
                         <button type="button" class="btn btn-success w-100 mt-1"
-                                wire:click="save" wire:loading.attr="disabled" wire:target="save">
+                                wire:click="save" wire:loading.attr="disabled" @disabled($previewFingerprint === null)>
                             <span wire:loading.remove wire:target="save">
                                 {{ __('admin.json_save_many', ['count' => count($preview)]) }}
                             </span>
