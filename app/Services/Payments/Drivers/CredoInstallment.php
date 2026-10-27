@@ -239,10 +239,10 @@ class CredoInstallment implements PaymentDriver
         $string = '';
 
         foreach ($products as $product) {
-            $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'];
+            $string .= $product['id'].$product['title'].$product['amount'].$product['price'].$product['type'].$this->secret();
         }
 
-        return md5($string.$this->secret());
+        return md5($string);
     }
 
     public function total(Order $order): float
