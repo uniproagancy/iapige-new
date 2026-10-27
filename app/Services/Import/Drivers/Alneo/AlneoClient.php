@@ -36,51 +36,52 @@ class AlneoClient
         });
     }
 
+    /*
+     | Pairs each code on the listing with the page it belongs to.
+     |
+     | The order on the page is the whole of it: a card opens with its links
+     | -- two of them, one on the picture and one on the title -- and closes
+     | with the add-to-cart button, which is where the code lives. So a code's
+     | own page is the last link before it, never the next one along.
+     |
+     | Splitting the html before each code paired every product with the one
+     | after it, and the shop showed each item under its neighbour's
+     | photographs and price.
+     */
     protected function indexFrom(string $html): array
     {
-        $index = [];
+        preg_match_all(
+            '/data-product_sku=["\']([^"\']+)["\']/',
+            $html, $skus, PREG_OFFSET_CAPTURE,
+        );
 
-        $cards = preg_split('/(?=data-product_sku)/', $html);
+        preg_match_all(
+            '#href="([^"]+/product/[^"]+)"#i',
+            $html, $links, PREG_OFFSET_CAPTURE,
+        );
 
-        foreach ($cards as $card) {
-            if (! preg_match('/data-product_sku=["\']([^"\']+)["\']/', $card, $sku)) {
-                continue;
-            }
-
-            $code = trim($sku[1]);
-
-            if ($code === '' || isset($index[$code])) {
-                continue;
-            }
-
-            if (preg_match('#href="([^"]+/product/[^"]+)"#i', $card, $link)) {
-                $index[$code] = $link[1];
-            }
-        }
-
-        if (count($index) < 10) {
-            $index = $this->indexByPosition($html);
-        }
-
-        return $index;
-    }
-
-    protected function indexByPosition(string $html): array
-    {
-        preg_match_all('/data-product_sku=["\']([^"\']+)["\']/', $html, $skus);
-        preg_match_all('#<a\s+[^>]*href="([^"]+/product/[^"]+)"[^>]*class="[^"]*woocommerce-LoopProduct-link#i', $html, $links);
-
-        if (count($skus[1]) !== count($links[1])) {
+        if (! $skus[1] || ! $links[1]) {
             return [];
         }
 
         $index = [];
+        $at = 0;
 
-        foreach ($skus[1] as $i => $code) {
-            $code = trim($code);
+        foreach ($skus[1] as $sku) {
+            $code = trim($sku[0]);
 
-            if ($code !== '' && ! isset($index[$code])) {
-                $index[$code] = $links[1][$i];
+            /* Walk the links forward only: both lists are in page order, so
+               the nearest one behind this code is found without searching
+               the whole page again for every card. */
+            $found = null;
+
+            while ($at < count($links[1]) && $links[1][$at][1] < $sku[1]) {
+                $found = $links[1][$at][0];
+                $at++;
+            }
+
+            if ($code !== '' && $found && ! isset($index[$code])) {
+                $index[$code] = $found;
             }
         }
 
