@@ -40,7 +40,7 @@ class Order extends Model
 
     public const CANCELLED = 'cancelled';
 	
-	public const NOANSWER = 'noanswer'
+	public const NOANSWER = 'noanswer';
 
     /* The four states the shop actually works in. Everything that used to sit
        between them — confirmed, packed, shipped — said the same thing to the
