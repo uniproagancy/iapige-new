@@ -146,7 +146,6 @@ class Store
                 ],
                 'services' => [
                     ['უფასო მიწოდება 24 საათში', 'თბილისში უფასოდ, რეგიონებში 2–3 დღეში კურიერით.'],
-                    ['განვადება 0% — 12 თვემდე', 'ონლაინ დამტკიცება 3 წუთში, თავდაპირველი შენატანის გარეშე.'],
                     ['30 დღიანი დაბრუნება', 'შეკვეთა არ მოგერგო? დააბრუნე ყოველგვარი კითხვის გარეშე.'],
                 ],
             ],
@@ -159,7 +158,6 @@ class Store
                 ],
                 'services' => [
                     ['Free delivery within 24 hours', 'Free in Tbilisi, 2–3 days by courier in the regions.'],
-                    ['0% instalments up to 12 months', 'Approved online in 3 minutes, no down payment.'],
                     ['30-day returns', 'Not the right fit? Send it back, no questions asked.'],
                 ],
             ],
