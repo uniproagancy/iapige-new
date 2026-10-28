@@ -27,6 +27,7 @@
         'viewed'    => 'warning',
         'completed' => 'success',
         'cancelled' => 'secondary',
+        'noanswer' => 'danger',
     ];
 
     $callTone = [
