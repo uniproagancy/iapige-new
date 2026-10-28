@@ -37,6 +37,7 @@ return [
         'completed' => 'დასრულებული',
         'cancelled' => 'გაუქმებული',
         'returned' => 'დაბრუნებული',
+        'noanswer' => 'არ პასუხობს',
     ],
 
     'paid_via' => 'გადახდილია — :driver',
