@@ -216,7 +216,6 @@ class Store
                     'intro' => 'განვადება საქართველოს ბანკის, თიბისისა და კრედო ბანკის პარტნიორობით.',
                     'sections' => [
                         ['h' => 'დამტკიცება', 'p' => 'განაცხადი ივსება ონლაინ, დამტკიცება 3 წუთში.'],
-                        ['h' => 'ვადები', 'p' => 'ხელმისაწვდომია 3, 6, 12 და 18 თვიანი გრაფიკი.', 'list' => ['შენატანი 0 ₾-დან', 'მინიმუმი 150 ₾', 'ვადამდე დაფარვა უჯარიმოდ']],
                     ]],
             ],
             'en' => [
@@ -242,7 +241,6 @@ class Store
                     'intro' => 'Instalments with Bank of Georgia, TBC and Credo Bank.',
                     'sections' => [
                         ['h' => 'Approval', 'p' => 'Apply online and get a decision within 3 minutes.'],
-                        ['h' => 'Terms', 'p' => '3, 6, 12 and 18-month schedules are available.', 'list' => ['Down payment from 0 ₾', 'Minimum 150 ₾', 'Early repayment without penalty']],
                     ]],
             ],
         ]);
