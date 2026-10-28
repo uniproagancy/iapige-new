@@ -256,13 +256,9 @@
 
                             <td>
                                 <span class="fw-bolder d-block text-truncate">{{ $request->name }}</span>
-                                <a class="small text-muted d-flex align-items-center gap-25"
-                                   href="tel:{{ $request->phone }}">
-                                    {!! $icon('phone') !!}{{ $request->phone }}
-                                </a>
                             </td>
 
-                            <td colspan="4" class="text-muted">
+                            <td colspan="3" class="text-muted">
                                 @if ($request->product)
                                     <a class="text-body d-block adm-cb-product"
                                        href="{{ $request->product->storefrontUrl() ?? route('admin.products.edit', $request->product) }}"
@@ -413,6 +409,10 @@
                                     #{{ $order->number }}
                                 </a>
                                 <small class="d-block text-muted">{{ $order->created_at->format('d.m.Y H:i') }}</small>
+                            </td>
+
+                            <td>
+                                <span class="fw-bolder d-block">{{ $order->name }}</span>
                             </td>
 
                             <td class="text-nowrap">
