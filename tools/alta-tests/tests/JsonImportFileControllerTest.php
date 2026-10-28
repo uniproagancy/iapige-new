@@ -146,4 +146,28 @@ final class JsonImportFileControllerTest extends TestCase
         self::assertArrayNotHasKey('user_id', $response->getData(true));
         self::assertSame(hash('sha256', '[]'), $response->getData(true)['sha256']);
     }
+
+    public function test_client_serves_only_the_fixed_module_with_javascript_mime_and_no_cache(): void
+    {
+        $this->app->setBasePath(ALTA_TEST_SOURCE_ROOT);
+        $request = $this->request();
+        $request->query->set('path', '.env');
+        $response = (new JsonImportFileController)->client($request);
+
+        self::assertSame(realpath(ALTA_TEST_SOURCE_ROOT.'/public/js/admin-json-upload.js'), $response->getFile()->getRealPath());
+        self::assertSame('text/javascript; charset=utf-8', $response->headers->get('Content-Type'));
+        self::assertStringContainsString('private', (string) $response->headers->get('Cache-Control'));
+        self::assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+        self::assertSame(hash_file('sha256', ALTA_TEST_SOURCE_ROOT.'/public/js/admin-json-upload.js'), hash_file('sha256', $response->getFile()->getPathname()));
+    }
+
+    public function test_client_module_is_not_available_to_customers(): void
+    {
+        try {
+            (new JsonImportFileController)->client($this->request('', 'customer'));
+            self::fail('A customer cannot fetch the admin module.');
+        } catch (HttpException $e) {
+            self::assertSame(403, $e->getStatusCode());
+        }
+    }
 }

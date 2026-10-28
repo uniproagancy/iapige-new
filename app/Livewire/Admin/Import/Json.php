@@ -693,6 +693,7 @@ class Json extends Component
         }
 
         $messages['upload_cancelled'] = __('admin.json_upload_cancelled');
+        $messages['upload_client_missing'] = __('admin.json_upload_client_missing');
         $messages['upload_disk_full'] = __('admin.json_source_no_space');
         $messages['upload_too_large'] = __('admin.json_upload_chunk_limit');
 

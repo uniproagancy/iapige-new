@@ -574,6 +574,7 @@ return [
     'json_uploading' => 'Uploading file…',
     'json_upload_ready' => 'The file is ready. Press Look and wait for the full check.',
     'json_upload_retry' => 'The upload did not finish. Check the connection and choose the file again.',
+    'json_upload_client_missing' => 'The upload helper could not load. Refresh the page and try again.',
     'json_upload_cancelled' => 'The upload was stopped. Choose the file again to upload it.',
     'json_upload_access' => 'Your session or upload permission is no longer valid. Sign into the admin and try again.',
     'json_upload_invalid' => 'Choose a valid .json file and supplier.',

@@ -5,15 +5,16 @@ import vm from 'node:vm';
 
 const blade = fs.readFileSync(new URL('../../../resources/views/livewire/admin/import/json.blade.php', import.meta.url), 'utf8');
 const attribute = blade.match(/^<div x-data="([\s\S]*?)">\s*<div class="row">/)[1];
-const expression = attribute.replace(/@js\(\$uploadErrors\)/g, '{upload_cancelled: "admin.json_bulk_paused"}')
-    .replace(/@js\(asset\([^)]*\)\s*\.\s*[^)]*\)/g, '"/js/admin-json-upload.js?v=fixture"')
+const expression = attribute.replace(/@js\(\$uploadErrors\)/g,
+    '{upload_cancelled: "admin.json_bulk_paused", upload_client_missing: "admin.json_upload_client_missing"}')
+    .replace(/@js\(route\([^)]*\)\s*\.\s*[^)]*\)/g, '"/admin/import/json-file/client.js?v=fixture"')
     .replace(/@js\(__\('([^']+)'\)\)/g, (_, key) => JSON.stringify(key))
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
     .replace(/\bimport\([^)]*\)/, '__loadUploader()');
 
-function panel(wire, module = {}) {
+function panel(wire, module = {}, loadUploader = async () => module) {
     const value = vm.runInNewContext(`(${expression})`, {$wire: wire, AbortController,
-        document: {querySelector: () => ({content: 'synthetic-token'})}, __loadUploader: async () => module});
+        document: {querySelector: () => ({content: 'synthetic-token'})}, __loadUploader: loadUploader});
     value.$refs = {sourceFile: {value: 'selected.json'}};
     return value;
 }
@@ -23,6 +24,25 @@ test('actual Alpine expression parses and large files use the native chunk helpe
     const input = blade.match(/<input id="j-file"[\s\S]*?>/)[0];
     assert.ok(!input.includes('wire:model'));
     assert.match(input, /choose\(\$event\.target\.files\[0\]\)/);
+    assert.match(blade, /route\('admin\.import\.json-file\.client', \[\], false\)/);
+    assert.ok(!blade.includes("asset('js/admin-json-upload.js')"));
+});
+
+test('a failed helper import reports its own error and never starts uploading or adopts a source', async () => {
+    const calls = [];
+    const value = panel({code: 'alta',
+        async clearUpload() { calls.push('clear'); },
+        async useSource() { calls.push('adopt'); throw new Error('Unexpected source adoption'); },
+    }, {createJsonUploader() { calls.push('upload'); throw new Error('Unexpected upload'); }}, async () => {
+        calls.push('load');
+        throw new TypeError('Failed to fetch dynamically imported module');
+    });
+    await value.choose({name: 'large.json', size: 90 * 1024 * 1024});
+    assert.deepEqual(calls, ['clear', 'load']);
+    assert.equal(value.message, 'admin.json_upload_client_missing');
+    assert.equal(value.busy, false);
+    assert.equal(value.phase, '');
+    assert.equal(value.$refs.sourceFile.value, '');
 });
 
 test('preview requests stay sequential; Pause waits for its current request and Resume continues the saved cursor', async () => {

@@ -8,7 +8,12 @@
         this.cancelUpload = () => controller.abort();
         try {
             await $wire.clearUpload();
-            const module = await import(@js(asset('js/admin-json-upload.js').'?v=20261028'));
+            let module;
+            try {
+                module = await import(@js(route('admin.import.json-file.client', [], false).'?v=20261028-2'));
+            } catch (error) {
+                throw Object.assign(new Error(), { code: 'upload_client_missing' });
+            }
             const uploader = module.createJsonUploader({
                 csrfToken: document.querySelector('meta[name=csrf-token]')?.content,
                 signal: controller.signal,

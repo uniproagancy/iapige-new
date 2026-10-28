@@ -112,6 +112,7 @@ Route::middleware(['auth', 'can:admin'])
 
         Route::get('/import/upload', Admin\Import\Upload::class)->name('import.upload');
         Route::get('/import/json', Admin\Import\Json::class)->name('import.json');
+        Route::get('/import/json-file/client', [JsonImportFileController::class, 'client'])->name('import.json-file.client');
         Route::post('/import/json-file/begin', [JsonImportFileController::class, 'begin'])->name('import.json-file.begin');
         Route::post('/import/json-file/{id}/chunk', [JsonImportFileController::class, 'chunk'])->whereUuid('id')->name('import.json-file.chunk');
         Route::post('/import/json-file/{id}/finish', [JsonImportFileController::class, 'finish'])->whereUuid('id')->name('import.json-file.finish');

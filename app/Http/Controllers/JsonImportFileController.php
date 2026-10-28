@@ -8,9 +8,20 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class JsonImportFileController extends Controller
 {
+    public function client(Request $request): BinaryFileResponse
+    {
+        $this->userId($request);
+
+        return response()->file(base_path('public/js/admin-json-upload.js'), [
+            'Content-Type' => 'text/javascript; charset=utf-8',
+            'Cache-Control' => 'private, no-store',
+        ])->setPrivate();
+    }
+
     public function begin(Request $request, JsonImportSource $sources): JsonResponse
     {
         $userId = $this->userId($request);
