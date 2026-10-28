@@ -12,8 +12,7 @@
          data-product-id="{{ $p['id'] }}"
          data-product-name="{{ trim(($p['brand'] ?? '').' '.$p['name']) }}"
          data-index="0"
-         data-order="{{ $p['order'] ?? 0 }}">
-
+         data-order="{{ $p['order'] ?? 0 }}"
     <div class="card__media">
         <a class="card__media-link" href="{{ $p['url'] }}" aria-label="{{ $p['name'] }}">
             <img class="card__img" data-img src="{{ $p['thumb'] }}" alt="{{ $p['name'] }}"
@@ -37,25 +36,6 @@
 
         @if (! empty($p['discount']))
             <span class="card__discount">{{ $p['discount'] }}</span>
-        @endif
-
-        @if ($many)
-            <button type="button" class="card__arrow card__arrow--prev" data-img-prev
-                    aria-label="{{ __('card.image_prev') }}">
-                <x-icon name="caret-left" size="14" />
-            </button>
-            <button type="button" class="card__arrow card__arrow--next" data-img-next
-                    aria-label="{{ __('card.image_next') }}">
-                <x-icon name="caret-right" size="14" />
-            </button>
-
-            <div class="card__dots">
-                @foreach ($images as $i => $image)
-                    <button type="button" @class(['card__dot', 'is-active' => $i === 0])
-                            data-img-go="{{ $i }}"
-                            aria-label="{{ __('card.image_n', ['n' => $i + 1]) }}"></button>
-                @endforeach
-            </div>
         @endif
     </div>
 
