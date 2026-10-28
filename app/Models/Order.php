@@ -45,7 +45,7 @@ class Order extends Model
     /* The four states the shop actually works in. Everything that used to sit
        between them — confirmed, packed, shipped — said the same thing to the
        people using it: somebody has picked this up. */
-    public const STATUSES = [self::NEW, self::VIEWED, self::COMPLETED, self::CANCELLED, selft::NOANSWER];
+    public const STATUSES = [self::NEW, self::VIEWED, self::COMPLETED, self::CANCELLED, self::NOANSWER];
 
     /* Still on somebody's desk. */
     public const OPEN = [self::NEW, self::VIEWED];
