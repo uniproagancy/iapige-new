@@ -12,8 +12,7 @@
          data-product-id="{{ $p['id'] }}"
          data-product-name="{{ trim(($p['brand'] ?? '').' '.$p['name']) }}"
          data-index="0"
-         data-order="{{ $p['order'] ?? 0 }}"
-         @if ($many) data-images="{{ json_encode($images, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}" @endif>
+         data-order="{{ $p['order'] ?? 0 }}">
 
     <div class="card__media">
         <a class="card__media-link" href="{{ $p['url'] }}" aria-label="{{ $p['name'] }}">
