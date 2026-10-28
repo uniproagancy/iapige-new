@@ -254,6 +254,14 @@
                                 <small class="d-block text-muted">{{ $request->created_at->format('d.m.Y H:i') }}</small>
                             </td>
 
+                            <td>
+                                <span class="fw-bolder d-block text-truncate">{{ $request->name }}</span>
+                                <a class="small text-muted d-flex align-items-center gap-25"
+                                   href="tel:{{ $request->phone }}">
+                                    {!! $icon('phone') !!}{{ $request->phone }}
+                                </a>
+                            </td>
+
                             <td colspan="3" class="text-muted">
                                 @if ($request->product)
                                     <a class="text-body d-block adm-cb-product"
@@ -399,12 +407,12 @@
                                 <input type="checkbox" class="form-check-input"
                                        value="{{ $order->id }}" wire:model.live="selected">
                             </td>
-                            <td>
-                                <span class="fw-bolder d-block">{{ $order->name }}</span>
-                                <a class="small text-muted d-flex align-items-center gap-25"
-                                   href="tel:{{ $order->phone }}">
-                                    {!! $icon('phone') !!}{{ $order->phone }}
+
+                            <td class="text-nowrap">
+                                <a class="fw-bolder text-body" href="{{ route('admin.orders.show', $order) }}" wire:navigate>
+                                    #{{ $order->number }}
                                 </a>
+                                <small class="d-block text-muted">{{ $order->created_at->format('d.m.Y H:i') }}</small>
                             </td>
 
                             <td class="text-nowrap">
