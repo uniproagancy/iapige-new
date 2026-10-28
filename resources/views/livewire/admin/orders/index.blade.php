@@ -262,7 +262,7 @@
                                 </a>
                             </td>
 
-                            <td colspan="3" class="text-muted">
+                            <td colspan="4" class="text-muted">
                                 @if ($request->product)
                                     <a class="text-body d-block adm-cb-product"
                                        href="{{ $request->product->storefrontUrl() ?? route('admin.products.edit', $request->product) }}"
