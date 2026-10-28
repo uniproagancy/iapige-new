@@ -1,13 +1,14 @@
 <?php
 
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AltaBrowserController;
 use App\Http\Controllers\AltaStockFeedController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BogInstallmentController;
 use App\Http\Controllers\CredoController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\JsonImportFileController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SitemapController;
@@ -28,13 +29,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
-
-use Auth;
-
-
-Route::get('/auth-as-anano', function(){
-    Auth::loginUsingId(6);
-});
 
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
@@ -118,6 +112,9 @@ Route::middleware(['auth', 'can:admin'])
 
         Route::get('/import/upload', Admin\Import\Upload::class)->name('import.upload');
         Route::get('/import/json', Admin\Import\Json::class)->name('import.json');
+        Route::post('/import/json-file/begin', [JsonImportFileController::class, 'begin'])->name('import.json-file.begin');
+        Route::post('/import/json-file/{id}/chunk', [JsonImportFileController::class, 'chunk'])->whereUuid('id')->name('import.json-file.chunk');
+        Route::post('/import/json-file/{id}/finish', [JsonImportFileController::class, 'finish'])->whereUuid('id')->name('import.json-file.finish');
         Route::get('/import/links', Admin\Import\Links::class)->name('import.links');
         Route::get('/import/run', Admin\Import\Run::class)->name('import.run');
 

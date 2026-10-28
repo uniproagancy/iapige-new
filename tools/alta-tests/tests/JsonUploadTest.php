@@ -8,10 +8,16 @@ use App\Livewire\Admin\Import\Json;
 use App\Models\Product;
 use App\Models\ProductTranslation;
 use App\Models\Supplier;
+use App\Models\User;
 use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Services\Import\Drivers\Alta\AltaJsonAssets;
+use App\Services\Import\JsonImportSource;
 use App\Services\Import\ProductImporter;
 use App\Services\Import\ProductPayload;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\Access\Gate as AccessGate;
+use Illuminate\Contracts\Auth\Access\Gate as GateContract;
+use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -27,16 +33,26 @@ final class JsonUploadTest extends TestCase
 {
     protected string $directory;
 
+    protected ?User $actor = null;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->app->singleton(Kernel::class, \Illuminate\Foundation\Http\Kernel::class);
         $this->app->register(LivewireServiceProvider::class);
+        $this->actor = (new User)->forceFill(['id' => 73, 'role' => User::ADMIN]);
+        $gate = new AccessGate($this->app, fn () => $this->actor);
+        $gate->define('admin', fn (User $user) => $user->isStaff());
+        $this->app->instance(GateContract::class, $gate);
+        $auth = Mockery::mock(AuthFactory::class);
+        $auth->shouldReceive('id')->andReturnUsing(fn () => $this->actor?->id);
+        $this->app->instance(AuthFactory::class, $auth);
         $this->directory = dirname(__DIR__).'/storage/json-upload-'.bin2hex(random_bytes(6));
         config(['filesystems.default' => 'json-fixtures', 'filesystems.disks.json-fixtures' => [
             'driver' => 'local', 'root' => $this->directory, 'throw' => true,
         ], 'livewire.temporary_file_upload.directory' => 'livewire-tmp']);
         mkdir($this->directory, 0700, true);
+        $this->app->instance(JsonImportSource::class, new JsonImportSource($this->directory.'/sources'));
         Supplier::create(['code' => 'alta', 'name' => 'Alta fixture', 'driver' => AltaDriver::class,
             'is_active' => true, 'priority' => 20, 'config' => ['locale' => 'ka'], 'markup' => []]);
     }
@@ -191,13 +207,17 @@ final class JsonUploadTest extends TestCase
         }
     }
 
-    public function test_more_than_one_hundred_answers_is_rejected_without_a_preview_or_import(): void
+    public function test_more_than_one_hundred_answers_are_counted_without_a_catalogue_write(): void
     {
         $component = $this->component();
-        $component->upload = $this->upload($this->encode(array_fill(0, Json::MAX_ANSWERS + 1, $this->document())));
+        $component->upload = $this->upload($this->encode(array_fill(0, 101, $this->document())));
+        $component->look();
 
-        $this->rejects(fn () => $component->look(), 'upload');
-        self::assertNull($component->previewFingerprint);
+        self::assertSame(101, $component->totalRecords);
+        self::assertSame(101, $component->validRecords);
+        self::assertCount(50, $component->preview);
+        self::assertNotNull($component->previewFingerprint);
+        self::assertSame(0, DB::table('products')->count());
     }
 
     public function test_malformed_json_file_never_becomes_a_valid_preview(): void
@@ -401,5 +421,166 @@ final class JsonUploadTest extends TestCase
         $events = \Livewire\store($component)->get('dispatched');
         self::assertSame('warning', end($events)->serialize()['params']['type']);
         Http::assertNothingSent();
+    }
+
+    protected function sourceFile(string $contents, int $userId = 73, string $supplier = 'alta'): array
+    {
+        $source = app(JsonImportSource::class);
+        $meta = $source->create($userId, $supplier, 'complete-products.json', strlen($contents));
+        $temporary = tempnam(sys_get_temp_dir(), 'json-component-');
+
+        try {
+            for ($offset = 0; $offset < strlen($contents); $offset += JsonImportSource::CHUNK_BYTES) {
+                file_put_contents($temporary, substr($contents, $offset, JsonImportSource::CHUNK_BYTES));
+                $source->append($userId, $meta['id'], $offset, $temporary);
+            }
+
+            return $source->finalize($userId, $meta['id']);
+        } finally {
+            unlink($temporary);
+        }
+    }
+
+    public function test_large_private_source_has_no_ten_megabyte_or_hundred_product_limit_and_preview_stays_bounded(): void
+    {
+        $documents = [];
+        for ($i = 0; $i < 111; $i++) {
+            $documents[] = $this->document(['id' => 1000 + $i, 'barCode' => (string) (100000 + $i)])
+                + ['large_original_field' => str_repeat('x', 100000)];
+        }
+        $encoded = $this->encode($documents);
+        self::assertGreaterThan(10 * 1024 * 1024, strlen($encoded));
+        $meta = $this->sourceFile($encoded);
+        $component = $this->component();
+        $component->useSource($meta['id']);
+        self::assertSame('', $component->json);
+        $step = $component->look();
+        self::assertFalse($step['done']);
+        self::assertSame(10, $step['processed']);
+        self::assertNull($component->previewFingerprint);
+        $calls = 1;
+        while (! $step['done']) {
+            $step = $component->previewNext();
+            $calls++;
+        }
+
+        self::assertSame(12, $calls);
+        self::assertSame(111, $component->totalRecords);
+        self::assertSame(111, $component->validRecords);
+        self::assertTrue($component->previewComplete);
+        self::assertNotNull($component->previewFingerprint);
+        self::assertCount(50, $component->preview);
+        self::assertStringNotContainsString('large_original_field', json_encode(get_object_vars($component)));
+        self::assertSame(0, DB::table('products')->count());
+        Http::assertNothingSent();
+    }
+
+    public function test_saving_requires_the_full_file_preview_and_runs_only_three_records_per_step(): void
+    {
+        $documents = [];
+        for ($i = 0; $i < 11; $i++) {
+            $documents[] = $this->document(['id' => 1000 + $i, 'barCode' => (string) (100000 + $i), 'images' => [], 'imageUrl' => '']);
+        }
+        $meta = $this->sourceFile($this->encode($documents));
+        $component = $this->component();
+        $component->useSource($meta['id']);
+        $component->look();
+        $this->rejects(fn () => $component->save($this->noImporter()), 'upload');
+        $component->previewNext();
+        $product = $this->savedProduct();
+        $seen = [];
+        $importer = Mockery::mock(ProductImporter::class);
+        $importer->shouldReceive('import')->times(11)->andReturnUsing(function (Supplier $supplier, ProductPayload $payload) use (&$seen, $product) {
+            $seen[] = $payload->externalId;
+
+            return $product;
+        });
+        $step = $component->save($importer);
+        self::assertFalse($step['done']);
+        self::assertSame(3, $step['processed']);
+        self::assertSame(3, $component->savedCount);
+        while (! $step['done']) {
+            $step = $component->saveNext($importer);
+        }
+
+        self::assertSame(array_column(array_column($documents, 'product'), 'barCode'), $seen);
+        self::assertSame(11, $component->saveProcessed);
+        self::assertSame(11, $component->savedCount);
+        self::assertTrue($component->saveComplete);
+        self::assertNull($component->previewFingerprint);
+        self::assertSame(['done' => true, 'processed' => 11], $component->saveNext($this->noImporter()));
+        Http::assertNothingSent();
+    }
+
+    public function test_truncated_source_never_unlocks_save_even_after_some_valid_preview_rows(): void
+    {
+        $json = '['.implode(',', array_fill(0, 11, $this->encode($this->document())));
+        $meta = $this->sourceFile($json);
+        $component = $this->component();
+        $component->useSource($meta['id']);
+        $component->look();
+        self::assertSame(10, $component->totalRecords);
+        $this->rejects(fn () => $component->previewNext(), 'upload');
+        self::assertFalse($component->previewComplete);
+        self::assertNull($component->previewFingerprint);
+        $this->rejects(fn () => $component->save($this->noImporter()), 'upload');
+    }
+
+    public function test_foreign_owner_and_supplier_sources_cannot_attach_to_the_component(): void
+    {
+        $foreignOwner = $this->sourceFile($this->encode([$this->document()]), userId: 74);
+        $foreignSupplier = $this->sourceFile($this->encode([$this->document()]), supplier: 'other');
+        $component = $this->component();
+        $this->rejects(fn () => $component->useSource($foreignOwner['id']), 'upload');
+        $this->rejects(fn () => $component->useSource($foreignSupplier['id']), 'upload');
+        self::assertNull($component->sourceId);
+    }
+
+    public function test_unfinished_upload_cannot_bind_a_private_source_or_unlock_preview(): void
+    {
+        $meta = app(JsonImportSource::class)->create(73, 'alta', 'not-finished.json', 1000);
+        $component = $this->component();
+        $this->rejects(fn () => $component->useSource($meta['id']), 'upload');
+        self::assertNull($component->sourceId);
+        self::assertNull($component->sourceSha);
+        self::assertNull($component->previewFingerprint);
+    }
+
+    public function test_semantic_errors_do_not_grow_public_arrays_or_hide_a_valid_record_after_the_sample(): void
+    {
+        $bad = $this->document(['name' => '', 'price' => 0]);
+        $meta = $this->sourceFile($this->encode([...array_fill(0, 60, $bad), $this->document()]));
+        $component = $this->component();
+        $component->useSource($meta['id']);
+        $step = $component->look();
+        while (! $step['done']) {
+            $step = $component->previewNext();
+        }
+        self::assertSame(61, $component->totalRecords);
+        self::assertSame(1, $component->validRecords);
+        self::assertSame(120, $component->errorCount);
+        self::assertCount(50, $component->preview);
+        self::assertCount(20, $component->problems);
+        self::assertNotNull($component->previewFingerprint);
+        self::assertSame(0, DB::table('products')->count());
+    }
+
+    public function test_guest_and_customer_cannot_invoke_import_actions(): void
+    {
+        foreach ([null, (new User)->forceFill(['id' => 74, 'role' => User::CUSTOMER])] as $actor) {
+            $this->actor = $actor;
+            foreach (['look', 'previewNext', 'clearUpload'] as $method) {
+                try {
+                    $this->component()->{$method}();
+                    self::fail('Import actions require a staff member.');
+                } catch (AuthorizationException) {
+                    self::assertSame(0, DB::table('products')->count());
+                }
+            }
+        }
+        $this->actor = (new User)->forceFill(['id' => 73, 'role' => User::OPERATOR]);
+        $component = $this->component();
+        $component->json = $this->encode($this->document());
+        self::assertTrue($component->look()['done']);
     }
 }

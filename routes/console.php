@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\Import\JsonImportSource;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -24,3 +25,8 @@ Schedule::command('feed:generate')
     ->dailyAt('05:30')
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::call(fn () => app(JsonImportSource::class)->purgeExpired(100))
+    ->name('json-imports:cleanup')
+    ->hourly()
+    ->withoutOverlapping(10);
