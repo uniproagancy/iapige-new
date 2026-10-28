@@ -28,6 +28,7 @@
         'completed' => 'success',
         'cancelled' => 'secondary',
         'noanswer' => 'danger',
+        'calllater' => 'danger',
     ];
 
     $callTone = [

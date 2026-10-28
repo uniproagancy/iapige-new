@@ -41,11 +41,13 @@ class Order extends Model
     public const CANCELLED = 'cancelled';
 	
 	public const NOANSWER = 'noanswer';
+	
+	public const CALLLATER = 'calllater';
 
     /* The four states the shop actually works in. Everything that used to sit
        between them — confirmed, packed, shipped — said the same thing to the
        people using it: somebody has picked this up. */
-    public const STATUSES = [self::NEW, self::VIEWED, self::COMPLETED, self::CANCELLED, self::NOANSWER];
+    public const STATUSES = [self::NEW, self::VIEWED, self::COMPLETED, self::CANCELLED, self::NOANSWER, self::CALLLATER];
 
     /* Still on somebody's desk. */
     public const OPEN = [self::NEW, self::VIEWED];
@@ -61,6 +63,7 @@ class Order extends Model
             self::COMPLETED => __('order.status.completed'),
             self::CANCELLED => __('order.status.cancelled'),
             self::NOANSWER => __('order.status.noanswer'),
+            self::CALLLATER => __('order.status.calllater'),
         ];
     }
 

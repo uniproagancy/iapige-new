@@ -38,6 +38,7 @@ return [
         'cancelled' => 'გაუქმებული',
         'returned' => 'დაბრუნებული',
         'noanswer' => 'არ პასუხობს',
+        'calllater' => 'დამირეკე მოგვიანებით',
     ],
 
     'paid_via' => 'გადახდილია — :driver',
