@@ -213,17 +213,17 @@ class Store
                         ['h' => 'სათადარიგო', 'p' => 'თუ შეკეთება 5 დღეზე მეტს გრძელდება, უფასოდ გადმოგცემთ დროებით მოწყობილობას.'],
                     ]],
                 'installments' => ['name' => 'განვადება', 'title' => 'განვადების პირობები', 'updated' => '1 აგვისტო, 2026',
-                    'intro' => '0% განვადება 12 თვემდე საქართველოს ბანკის, თიბისისა და კრედო ბანკის პარტნიორობით.',
+                    'intro' => 'განვადება საქართველოს ბანკის, თიბისისა და კრედო ბანკის პარტნიორობით.',
                     'sections' => [
                         ['h' => 'დამტკიცება', 'p' => 'განაცხადი ივსება ონლაინ, დამტკიცება 3 წუთში.'],
-                        ['h' => 'ვადები', 'p' => 'ხელმისაწვდომია 3, 6, 12 და 18 თვიანი გრაფიკი.', 'list' => ['შენატანი 0 ₾-დან', 'მინიმუმი 300 ₾', 'ვადამდე დაფარვა უჯარიმოდ']],
+                        ['h' => 'ვადები', 'p' => 'ხელმისაწვდომია 3, 6, 12 და 18 თვიანი გრაფიკი.', 'list' => ['შენატანი 0 ₾-დან', 'მინიმუმი 150 ₾', 'ვადამდე დაფარვა უჯარიმოდ']],
                     ]],
             ],
             'en' => [
                 'delivery' => ['name' => 'Delivery', 'title' => 'Delivery terms', 'updated' => '12 August 2026',
                     'intro' => 'IAPI orders are delivered by courier across Georgia. The rate depends on the city and the order total.',
                     'sections' => [
-                        ['h' => 'Timing', 'p' => 'Orders arrive within 24 hours in Tbilisi and in 2—3 working days in the regions.', 'list' => ['Tbilisi — 24 hours', 'Rustavi, Mtskheta — 24—48 hours', 'Other cities — 2—3 days']],
+                        ['h' => 'Timing', 'p' => 'Orders arrive within 2 days in Tbilisi and in 3—7 working days in the regions.', 'list' => ['Tbilisi — 24 hours', 'Rustavi, Mtskheta — 24—48 hours', 'Other cities — 2—3 days']],
                         ['h' => 'Rates', 'p' => 'Courier delivery starts at 10 ₾; every city has a free-delivery threshold.'],
                     ]],
                 'returns' => ['name' => 'Returns', 'title' => 'Returns and exchanges', 'updated' => '12 August 2026',
@@ -239,10 +239,10 @@ class Store
                         ['h' => 'Loan device', 'p' => 'If a repair takes longer than 5 days, you get a temporary device free of charge.'],
                     ]],
                 'installments' => ['name' => 'Instalments', 'title' => 'Instalment terms', 'updated' => '1 August 2026',
-                    'intro' => '0% instalments for up to 12 months with Bank of Georgia, TBC and Credo Bank.',
+                    'intro' => 'Instalments with Bank of Georgia, TBC and Credo Bank.',
                     'sections' => [
                         ['h' => 'Approval', 'p' => 'Apply online and get a decision within 3 minutes.'],
-                        ['h' => 'Terms', 'p' => '3, 6, 12 and 18-month schedules are available.', 'list' => ['Down payment from 0 ₾', 'Minimum 300 ₾', 'Early repayment without penalty']],
+                        ['h' => 'Terms', 'p' => '3, 6, 12 and 18-month schedules are available.', 'list' => ['Down payment from 0 ₾', 'Minimum 150 ₾', 'Early repayment without penalty']],
                     ]],
             ],
         ]);
