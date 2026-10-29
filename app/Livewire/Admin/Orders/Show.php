@@ -45,6 +45,7 @@ class Show extends Component
         }
     }
 
+    #[On('order-edit-closed')]
     public function stopEditing(): void
     {
         $this->editing = false;

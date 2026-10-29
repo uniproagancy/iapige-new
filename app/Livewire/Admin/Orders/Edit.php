@@ -71,6 +71,13 @@ class Edit extends Component
         $this->shippingOverride = (string) $order->shipping;
     }
 
+    /* Drawn inside the order there is nowhere to go back to -- the order is
+       already underneath -- so the page is asked to put the editor away. */
+    public function close(): void
+    {
+        $this->dispatch('order-edit-closed');
+    }
+
     public function editable(): bool
     {
         return $this->order->status !== Order::CANCELLED;

@@ -16,14 +16,19 @@
 @endphp
 
 <div>
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-2">
-        <div class="d-flex align-items-center gap-1">
-            <a class="btn btn-outline-secondary btn-sm" href="{{ route('admin.orders.show', $order) }}" wire:navigate>
-                {!! $icon('back', 'me-25') !!}#{{ $order->number }}
-            </a>
-            <h4 class="mb-0">{{ __('admin.order_edit') }}</h4>
+    {{-- Inside the order the page already says which order this is and carries
+         the way out, so a heading and a link back would only read as having
+         left the order behind. --}}
+    @unless ($inline)
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-2">
+            <div class="d-flex align-items-center gap-1">
+                <a class="btn btn-outline-secondary btn-sm" href="{{ route('admin.orders.show', $order) }}" wire:navigate>
+                    {!! $icon('back', 'me-25') !!}#{{ $order->number }}
+                </a>
+                <h4 class="mb-0">{{ __('admin.order_edit') }}</h4>
+            </div>
         </div>
-    </div>
+    @endunless
 
     @unless ($this->editable())
         <div class="alert alert-secondary">
@@ -245,9 +250,15 @@
                         {{ __('admin.save') }}
                     </button>
 
-                    <a class="btn btn-outline-secondary" href="{{ route('admin.orders.show', $order) }}" wire:navigate>
-                        {{ __('admin.cancel') }}
-                    </a>
+                    @if ($inline)
+                        <button type="button" class="btn btn-outline-secondary" wire:click="close">
+                            {{ __('admin.cancel') }}
+                        </button>
+                    @else
+                        <a class="btn btn-outline-secondary" href="{{ route('admin.orders.show', $order) }}" wire:navigate>
+                            {{ __('admin.cancel') }}
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
