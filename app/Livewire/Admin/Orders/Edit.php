@@ -40,8 +40,13 @@ class Edit extends Component
 
     public string $productSearch = '';
 
-    public function mount(Order $order): void
+    /* True when the editor is drawn inside the order rather than on a page of
+       its own; then it reports back instead of navigating away. */
+    public bool $inline = false;
+
+    public function mount(Order $order, bool $inline = false): void
     {
+        $this->inline = $inline;
         $this->order = $order->load('items');
 
         $this->name = (string) $order->name;
@@ -288,6 +293,16 @@ class Edit extends Component
                 'now' => money($this->order->total),
             ]),
         ]);
+
+        /* Shown inside the order, the page itself picks this up, closes the
+           editor and reads the order again. On its own page nobody is
+           listening, so it goes back to the order as it always did. */
+        if ($this->inline) {
+            $this->dispatch('toast', message: __('admin.saved'));
+            $this->dispatch('order-edited');
+
+            return null;
+        }
 
         session()->flash('toast', __('admin.saved'));
 

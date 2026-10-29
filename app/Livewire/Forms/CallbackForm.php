@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Forms;
 
-use App\Jobs\SendSmsJob;
 use App\Livewire\Concerns\SendsToBank;
 use App\Models\Order;
 use App\Services\Facebook\Pixel;
@@ -30,7 +29,9 @@ class CallbackForm extends Component
 
     #[Validate('integer|min:1|max:99')]
     public int $quantity = 1;
+
     public string $paymentCategory = '';
+
     public string $paymentMethod = '';
 
     #[Validate('required|string|min:2|max:80')]
@@ -100,6 +101,18 @@ class CallbackForm extends Component
     public function send()
     {
         $this->validate();
+
+        /*
+         | The shop takes orders here, and nothing else. A number left without
+         | a way to pay used to become a call-back request for somebody to
+         | ring; that is gone, so the form asks for the one thing it needs.
+         */
+        if ($this->paymentMethod === '' || ! $this->productId) {
+            $this->addError('paymentMethod', __('quick_order.payment_needed'));
+
+            return null;
+        }
+
         $pixel = app(Pixel::class);
         $owner = $this->owner();
 
@@ -113,22 +126,14 @@ class CallbackForm extends Component
             'owner' => $owner, 'user_id' => Auth::id(),
             'source_url' => mb_substr(url()->previous(), 0, 500), 'consented' => $pixel->consented(),
         ]);
-        if ($lead->wasRecentlyCreated) {
-            if (! $lead->payment_method && ! $pixel->staff()) {
-                SendSmsJob::dispatch($lead->phone, __('sms.callback'));
-            }
-        }
         $this->track(fn () => $pixel->savedLead($lead));
         $this->sent = true;
-        if (! $lead->payment_method || ! $lead->product_id) {
-            $this->dispatch('toast', message: __('product.callback_sent'));
-            return null;
-        }
 
         try {
             $order = $orders->orderForLead($lead->id);
         } catch (ValidationException $e) {
             $this->orderError = (string) collect($e->errors())->flatten()->first();
+
             return null;
         }
         $this->orderNumber = $order->number;
@@ -145,7 +150,8 @@ class CallbackForm extends Component
         if ($method->is_online) {
             return $this->sendToBank($order, $method);
         }
-        $this->dispatch('toast', message: __('product.callback_sent'));
+        $this->dispatch('toast', message: __('quick_order.order_placed'));
+
         return null;
     }
 
@@ -174,6 +180,7 @@ class CallbackForm extends Component
         if ($this->monthly > 0) {
             $summary['monthly'] = $this->monthly;
         }
+
         return $summary;
     }
 
@@ -190,6 +197,7 @@ class CallbackForm extends Component
     public function render()
     {
         $summary = $this->summary();
+
         return view('livewire.forms.callback-form', [
             'productSummary' => $summary,
             'paymentGroups' => $summary ? app(QuickOrder::class)->groups($summary['total']) : [],

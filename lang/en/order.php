@@ -36,6 +36,8 @@ return [
         'shipped' => 'On its way',
         'completed' => 'Completed',
         'cancelled' => 'Cancelled',
+        'noanswer' => 'No answer',
+        'calllater' => 'Call back later',
         'returned' => 'Returned',
     ],
 

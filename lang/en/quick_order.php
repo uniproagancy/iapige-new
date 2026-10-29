@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'payment_needed' => 'Choose how you will pay -- an order cannot be placed without it.',
+    'order_placed' => 'The order is in -- a consultant will be in touch.',
     'phone_invalid' => 'Enter a 9-digit Georgian mobile number starting with 5.',
     'changed_request' => 'This request is already saved. Send a new request to change the details.',
     'closed_order' => 'The order linked to this request is already completed or closed.',

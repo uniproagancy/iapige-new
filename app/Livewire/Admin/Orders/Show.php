@@ -11,6 +11,7 @@ use App\Services\Payments\PaymentManager;
 use App\Support\Phone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Show extends Component
@@ -25,11 +26,38 @@ class Show extends Component
 
     public string $note = '';
 
+    /* The editor opens here rather than on a page of its own, so whoever is
+       on the telephone can change a line without losing sight of the order. */
+    public bool $editing = false;
+
     public function mount(Order $order): void
     {
         $this->markSeen($order);
 
         $this->order = $order->load(['items.product.images', 'events.user', 'user']);
+        $this->status = $this->order->status;
+    }
+
+    public function edit(): void
+    {
+        if ($this->order->status !== Order::CANCELLED) {
+            $this->editing = true;
+        }
+    }
+
+    public function stopEditing(): void
+    {
+        $this->editing = false;
+    }
+
+    /* The editor says when it has written, and the page reads the order again
+       so the totals, the lines and the history all catch up. */
+    #[On('order-edited')]
+    public function reload(): void
+    {
+        $this->editing = false;
+
+        $this->order = $this->order->fresh(['items.product.images', 'events.user', 'user']);
         $this->status = $this->order->status;
     }
 

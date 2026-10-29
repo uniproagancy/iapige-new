@@ -75,12 +75,24 @@
             </a>
 
             @unless ($order->status === \App\Models\Order::CANCELLED)
-                <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.orders.edit', $order) }}" wire:navigate>
-                    {!! $icon('edit', 'me-25') !!}{{ __('admin.order_edit') }}
-                </a>
+                @if ($editing)
+                    <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="stopEditing">
+                        {{ __('admin.cancel') }}
+                    </button>
+                @else
+                    <button type="button" class="btn btn-sm btn-outline-primary" wire:click="edit">
+                        {!! $icon('edit', 'me-25') !!}{{ __('admin.order_edit') }}
+                    </button>
+                @endif
             @endunless
         </div>
     </div>
+
+    @if ($editing)
+        {{-- the editor opens here, so whoever is on the telephone can change a
+             line without losing sight of the order --}}
+        @livewire('admin.orders.edit', ['order' => $order, 'inline' => true], key('edit-'.$order->id))
+    @else
 
     <div class="row">
 
@@ -386,4 +398,5 @@
             </div>
         </div>
     </div>
+    @endif
 </div>

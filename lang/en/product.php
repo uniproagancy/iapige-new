@@ -71,11 +71,8 @@ return [
 
     'adding' => 'Adding…',
 
-    'callback_title' => 'Shall we call you?',
-    'callback_text' => 'Leave your number and a consultant will call you back to help you buy.',
     'callback_comment' => 'Comment (optional)',
     'callback_send' => 'Send',
-    'callback_sent' => 'Request received',
     'callback_when' => 'We will call during working hours',
     'callback_again' => 'Send another request',
     'callback_too_many' => 'Too many requests. Please try again in a little while.',
