@@ -510,7 +510,6 @@ return [
     'order_edited' => 'Order edited by :name. Total :was → :now',
     'order_price_today' => 'today :amount',
     'order_recalculate_shipping' => 'Recalculate the carriage',
-    'order_needs_a_city' => 'Choose a city.',
     'order_method_unavailable' => 'not available at this total',
     'order_needs_an_item' => 'The order is empty — add at least one product',
     'product_not_sellable' => 'This product is not for sale — it is suspended or a pre-order',

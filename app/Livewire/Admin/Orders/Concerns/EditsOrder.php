@@ -230,12 +230,6 @@ trait EditsOrder
             'shippingOverride' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        if ($this->delivery === 'courier' && ! $this->cityId) {
-            $this->addError('cityId', __('admin.order_needs_a_city'));
-
-            return;
-        }
-
         if (! $this->lines()) {
             $this->addError('qty', __('admin.order_needs_an_item'));
 
@@ -264,6 +258,9 @@ trait EditsOrder
                 'sum' => $line['sum'],
             ], $lines));
 
+            /* A quick order carries a telephone number and nothing else, so
+               there is no city to write until somebody rings back and asks.
+               Without one the courier fee stays whatever it was. */
             $city = $this->delivery === 'courier' && $this->cityId
                 ? DeliveryCity::withTranslation()->find($this->cityId)
                 : null;

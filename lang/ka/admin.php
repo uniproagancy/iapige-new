@@ -510,7 +510,6 @@ return [
     'order_edited' => 'შეკვეთა დაარედაქტირა: :name. ჯამი :was → :now',
     'order_price_today' => 'დღეს :amount',
     'order_recalculate_shipping' => 'მიწოდების ხელახლა დათვლა',
-    'order_needs_a_city' => 'აირჩიე ქალაქი.',
     'order_method_unavailable' => 'ამ ჯამზე მიუწვდომელია',
     'order_needs_an_item' => 'შეკვეთა ცარიელია — დაამატე ერთი პროდუქტი მაინც',
     'product_not_sellable' => 'ეს პროდუქტი არ იყიდება — შეჩერებულია ან წინასწარი შეკვეთაა',
