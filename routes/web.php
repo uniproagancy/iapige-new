@@ -124,7 +124,6 @@ Route::middleware(['auth', 'can:admin'])
 
         Route::get('/orders', Admin\Orders\Index::class)->name('orders');
         Route::get('/orders/create', Admin\Orders\Create::class)->name('orders.create');
-        Route::get('/orders/{order}/edit', Admin\Orders\Edit::class)->name('orders.edit');
         Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])->name('orders.invoice');
         Route::get('/orders/{order}/invoice/preview', [InvoiceController::class, 'preview'])->name('orders.invoice.preview');
         Route::get('/orders/{order}', Admin\Orders\Show::class)->name('orders.show');

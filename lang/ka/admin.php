@@ -487,7 +487,7 @@ return [
     'order_back' => 'უკან',
     'order_place' => 'შეკვეთის გაფორმება',
     'order_placed' => 'შეკვეთა #:number გაფორმდა',
-    'order_edit' => 'შეკვეთის რედაქტირება',
+    'order_save_changes' => 'ცვლილებების შენახვა',
     'quick_edit' => 'სწრაფი რედაქტირება',
     'quick_edit_no_old' => 'ფასდაკლების გარეშე',
     'quick_edit_lock_hint' => 'ჩაკეტილ ფასს იმპორტი აღარ შეცვლის',

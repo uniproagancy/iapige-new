@@ -1,21 +1,22 @@
 <?php
 
-namespace App\Livewire\Admin\Orders;
+namespace App\Livewire\Admin\Orders\Concerns;
 
 use App\Models\DeliveryCity;
 use App\Models\Order;
-use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Orders\OrderLines;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\DB;
-use Livewire\Component;
 
-class Edit extends Component
+/*
+ | An order is read and corrected in the same place, so the page that shows it
+ | carries its fields too. This lives apart from that page only because there
+ | is a lot of it, not because it is used anywhere else.
+ */
+trait EditsOrder
 {
-    public Order $order;
-
     public string $name = '';
 
     public string $phone = '';
@@ -40,14 +41,11 @@ class Edit extends Component
 
     public string $productSearch = '';
 
-    /* True when the editor is drawn inside the order rather than on a page of
-       its own; then it reports back instead of navigating away. */
-    public bool $inline = false;
-
-    public function mount(Order $order, bool $inline = false): void
+    /* The fields start as whatever the order already says, and are read back
+       from it after every write so a correction never leaves a stale figure. */
+    public function fillFromOrder(): void
     {
-        $this->inline = $inline;
-        $this->order = $order->load('items');
+        $order = $this->order;
 
         $this->name = (string) $order->name;
         $this->phone = (string) $order->phone;
@@ -59,6 +57,9 @@ class Edit extends Component
         $this->comment = (string) $order->comment;
         $this->payment = (string) $order->payment;
 
+        $this->qty = [];
+        $this->agreed = [];
+
         foreach ($order->items as $item) {
             if (! $item->product_id) {
                 continue;
@@ -69,13 +70,6 @@ class Edit extends Component
         }
 
         $this->shippingOverride = (string) $order->shipping;
-    }
-
-    /* Drawn inside the order there is nowhere to go back to -- the order is
-       already underneath -- so the page is asked to put the editor away. */
-    public function close(): void
-    {
-        $this->dispatch('order-edit-closed');
     }
 
     public function editable(): bool
@@ -215,12 +209,12 @@ class Edit extends Component
         $this->shippingOverride = null;
     }
 
-    public function save()
+    public function save(): void
     {
         if (! $this->editable()) {
             $this->dispatch('toast', type: 'error', message: __('admin.order_closed_for_edit'));
 
-            return null;
+            return;
         }
 
         $this->validate([
@@ -238,13 +232,13 @@ class Edit extends Component
         if ($this->delivery === 'courier' && ! $this->cityId) {
             $this->addError('cityId', __('admin.order_needs_a_city'));
 
-            return null;
+            return;
         }
 
         if (! $this->lines()) {
             $this->addError('qty', __('admin.order_needs_an_item'));
 
-            return null;
+            return;
         }
 
         $was = (float) $this->order->total;
@@ -301,19 +295,10 @@ class Edit extends Component
             ]),
         ]);
 
-        /* Shown inside the order, the page itself picks this up, closes the
-           editor and reads the order again. On its own page nobody is
-           listening, so it goes back to the order as it always did. */
-        if ($this->inline) {
-            $this->dispatch('toast', message: __('admin.saved'));
-            $this->dispatch('order-edited');
+        $this->order = $this->order->fresh(['items.product.images', 'events.user', 'user']);
+        $this->fillFromOrder();
 
-            return null;
-        }
-
-        session()->flash('toast', __('admin.saved'));
-
-        return $this->redirect(route('admin.orders.show', $this->order), navigate: true);
+        $this->dispatch('toast', message: __('admin.saved'));
     }
 
     protected function moveSales(Order $order): void
@@ -335,25 +320,5 @@ class Edit extends Component
                 Product::whereKey($id)->decrement('sales_count', (int) $qty);
             }
         }
-    }
-
-    public function render()
-    {
-        $total = $this->total();
-
-        return view('livewire.admin.orders.edit', [
-            'lines' => $this->lines(),
-            'subtotal' => $this->subtotal(),
-            'shipping' => $this->shipping(),
-            'total' => $total,
-            'cities' => DeliveryCity::active()->withTranslation()->get(),
-            'methods' => PaymentMethod::active()->withTranslation()->get(),
-            'fits' => PaymentMethod::active()->get()
-                ->mapWithKeys(fn (PaymentMethod $m) => [$m->code => $m->fitsTotal($total)])
-                ->all(),
-            'found' => $this->found(),
-        ])->layout('layouts.admin', [
-            'title' => __('admin.order_edit').' #'.$this->order->number,
-        ]);
     }
 }

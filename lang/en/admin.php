@@ -487,7 +487,7 @@ return [
     'order_back' => 'Back',
     'order_place' => 'Place the order',
     'order_placed' => 'Order #:number placed',
-    'order_edit' => 'Edit order',
+    'order_save_changes' => 'Save changes',
     'quick_edit' => 'Quick edit',
     'quick_edit_no_old' => 'No discount',
     'quick_edit_lock_hint' => 'A locked price is left alone by the import',

@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin\Orders;
 
 use App\Jobs\SendSmsJob;
+use App\Livewire\Admin\Orders\Concerns\EditsOrder;
+use App\Models\DeliveryCity;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Services\Facebook\Pixel;
@@ -11,11 +13,12 @@ use App\Services\Payments\PaymentManager;
 use App\Support\Phone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
-use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Show extends Component
 {
+    use EditsOrder;
+
     public const COMPLETED = 'completed';
 
     public const LINK_DAYS = 3;
@@ -26,40 +29,16 @@ class Show extends Component
 
     public string $note = '';
 
-    /* The editor opens here rather than on a page of its own, so whoever is
-       on the telephone can change a line without losing sight of the order. */
-    public bool $editing = false;
-
     public function mount(Order $order): void
     {
         $this->markSeen($order);
 
         $this->order = $order->load(['items.product.images', 'events.user', 'user']);
         $this->status = $this->order->status;
-    }
 
-    public function edit(): void
-    {
-        if ($this->order->status !== Order::CANCELLED) {
-            $this->editing = true;
-        }
-    }
-
-    #[On('order-edit-closed')]
-    public function stopEditing(): void
-    {
-        $this->editing = false;
-    }
-
-    /* The editor says when it has written, and the page reads the order again
-       so the totals, the lines and the history all catch up. */
-    #[On('order-edited')]
-    public function reload(): void
-    {
-        $this->editing = false;
-
-        $this->order = $this->order->fresh(['items.product.images', 'events.user', 'user']);
-        $this->status = $this->order->status;
+        /* The order is corrected where it is read, so the fields are filled
+           the moment it opens -- there is no editor to ask for first. */
+        $this->fillFromOrder();
     }
 
     /* Opening a new order is the operator picking it up, so it stops being
@@ -82,11 +61,23 @@ class Show extends Component
 
     public function render()
     {
+        $total = $this->total();
+
         return view('livewire.admin.orders.show', [
             'statuses' => (new Index)->statuses(),
             'events' => $this->order->events()->with('user')->latest()->get(),
             'payLink' => $this->payLink(),
             'transaction' => $this->order->transactions()->latest('id')->first(),
+            'lines' => $this->lines(),
+            'subtotal' => $this->subtotal(),
+            'shipping' => $this->shipping(),
+            'total' => $total,
+            'cities' => DeliveryCity::active()->withTranslation()->get(),
+            'methods' => PaymentMethod::active()->withTranslation()->get(),
+            'fits' => PaymentMethod::active()->get()
+                ->mapWithKeys(fn (PaymentMethod $m) => [$m->code => $m->fitsTotal($total)])
+                ->all(),
+            'found' => $this->found(),
         ])->layout('layouts.admin', [
             'title' => __('admin.order').' #'.$this->order->number,
         ]);

@@ -9,10 +9,14 @@
             'clock'  => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
             'user'   => '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
             'check'  => '<polyline points="20 6 9 17 4 12"/>',
-            'edit'   => '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>',
             'box'    => '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>',
             'link'   => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
             'file'   => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+            'plus'   => '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+            'minus'  => '<line x1="5" y1="12" x2="19" y2="12"/>',
+            'trash'  => '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>',
+            'sync'   => '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+            'warn'   => '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
         ];
 
         return '<svg class="adm-ico '.$class.'" width="16" height="16" viewBox="0 0 24 24" fill="none"'
@@ -74,57 +78,97 @@
                 {!! $icon('file', 'me-25') !!}{{ __('admin.invoice_download') }}
             </a>
 
-            @unless ($order->status === \App\Models\Order::CANCELLED)
-                @if ($editing)
-                    <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="stopEditing">
-                        {{ __('admin.cancel') }}
-                    </button>
-                @else
-                    <button type="button" class="btn btn-sm btn-outline-primary" wire:click="edit">
-                        {!! $icon('edit', 'me-25') !!}{{ __('admin.order_edit') }}
-                    </button>
-                @endif
-            @endunless
+            @if ($this->editable())
+                <button type="button" class="btn btn-sm btn-primary"
+                        wire:click="save" wire:loading.attr="disabled" wire:target="save">
+                    {!! $icon('check', 'me-25') !!}{{ __('admin.order_save_changes') }}
+                </button>
+            @endif
         </div>
     </div>
 
-    @if ($editing)
-        {{-- the editor opens here, so whoever is on the telephone can change a
-             line without losing sight of the order --}}
-        @livewire('admin.orders.edit', ['order' => $order, 'inline' => true], key('edit-'.$order->id))
-    @else
+    @unless ($this->editable())
+        <div class="alert alert-secondary">
+            <div class="alert-body d-flex align-items-center gap-50">
+                {!! $icon('warn') !!}{{ __('admin.order_closed_for_edit') }}
+            </div>
+        </div>
+    @endunless
+
+    @if ($order->is_paid)
+        <div class="alert alert-warning">
+            <div class="alert-body d-flex align-items-start gap-50">
+                {!! $icon('warn') !!}
+                <span>{{ __('admin.order_paid_edit_warning', ['amount' => money($order->total)]) }}</span>
+            </div>
+        </div>
+    @endif
 
     <div class="row">
 
         <div class="col-lg-8">
-            <x-admin.list-card :title="__('admin.items')" :count="$order->items->sum('qty')">
+            {{-- the lines are the order and the form at once: what is read here
+                 is what a correction changes, with no editor to open first --}}
+            <x-admin.list-card :title="__('admin.items')" :count="collect($lines)->sum('qty')">
+                <div class="card-body">
+                    <label class="form-label" for="findProduct">{{ __('admin.order_find_product') }}</label>
+                    <input type="search" id="findProduct" class="form-control"
+                           wire:model.live.debounce.400ms="productSearch"
+                           placeholder="{{ __('admin.order_find_product') }}">
+
+                    @if ($found->isNotEmpty())
+                        <div class="list-group mt-1">
+                            @foreach ($found as $product)
+                                <button type="button"
+                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                        wire:key="found-{{ $product->id }}"
+                                        wire:click="add({{ $product->id }})">
+                                    <span>
+                                        <b>{{ trim(($product->brand?->name ?? '').' '.$product->name) }}</b>
+                                        <small class="text-muted ms-50">{{ $product->sku }}</small>
+                                    </span>
+                                    <span class="text-nowrap">
+                                        {{ money($product->sellingPrice()) }}
+                                        @if ($product->stock > 0)
+                                            <span class="badge rounded-pill badge-light-success ms-50">{{ __('admin.order_in_stock', ['n' => $product->stock]) }}</span>
+                                        @else
+                                            <span class="badge rounded-pill badge-light-danger ms-50">{{ __('admin.order_no_stock') }}</span>
+                                        @endif
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @error('qty') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+                </div>
+
                 <div class="table-responsive">
-                    <table class="table mb-0">
+                    <table class="table mb-0 align-middle">
                         <thead>
                             <tr>
                                 <th>{{ __('admin.name') }}</th>
-                                <th class="text-center" style="width:90px">{{ __('admin.qty') }}</th>
-                                <th class="text-end" style="width:120px">{{ __('admin.price') }}</th>
+                                <th class="text-end" style="width:130px">{{ __('admin.price') }}</th>
+                                <th class="text-center" style="width:140px">{{ __('admin.qty') }}</th>
                                 <th class="text-end" style="width:120px">{{ __('admin.total') }}</th>
+                                <th style="width:50px"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($order->items as $item)
-                                @php($photo = $item->product?->images->first())
-								@php($slug = \App\Models\ProductTranslation::where([
-										'product_id' => $item->product_id,
-										'locale' => 'ka',
-									])->first()->slug)
-                                <tr wire:key="i-{{ $item->id }}">
+                            @forelse ($lines as $line)
+                                @php($item = $order->items->firstWhere('product_id', $line['id']))
+                                @php($photo = $item?->product?->images->first())
+                                @php($slug = \App\Models\ProductTranslation::where([
+                                        'product_id' => $line['id'],
+                                        'locale' => 'ka',
+                                    ])->first()?->slug)
+                                <tr wire:key="line-{{ $line['id'] }}">
                                     <td>
                                         <div class="d-flex align-items-center gap-1">
-
                                             <span class="order-thumb flex-shrink-0">
                                                 @if ($photo)
-                                                    <a href="#">
-                                                        <img src="{{ $photo->url() }}" alt="{{ $item->name }}"
-                                                             loading="lazy" width="48" height="48">
-                                                    </a>
+                                                    <img src="{{ $photo->url() }}" alt="{{ $line['name'] }}"
+                                                         loading="lazy" width="48" height="48">
                                                 @else
                                                     <span class="avatar avatar-md bg-light-secondary">
                                                         <span class="avatar-content">{!! $icon('box') !!}</span>
@@ -133,18 +177,18 @@
                                             </span>
 
                                             <span>
-                                                @if ($item->product_id)
+                                                @if ($slug)
                                                     <a class="fw-bolder d-block text-body"
-                                                       href="{{ route('product', $slug) }}" target="_blank" wire:navigate>
-                                                        {{ $item->name }}
+                                                       href="{{ route('product', $slug) }}" target="_blank" rel="noopener">
+                                                        {{ $line['name'] }}
                                                     </a>
                                                 @else
-                                                    <span class="fw-bolder d-block">{{ $item->name }}</span>
+                                                    <span class="fw-bolder d-block">{{ $line['name'] }}</span>
                                                 @endif
 
                                                 <small class="text-muted">
-                                                    {{ $item->sku }}
-                                                    @if ($item->is_preorder)
+                                                    {{ $line['sku'] }}
+                                                    @if ($item?->is_preorder)
                                                         · <span class="text-info">{{ __('admin.preorder') }}</span>
                                                         @if ($item->release_date)
                                                             {{ $item->release_date->format('d.m.Y') }}
@@ -154,30 +198,67 @@
                                             </span>
                                         </div>
                                     </td>
-                                    <td class="text-center">{{ $item->qty }}</td>
-                                    <td class="text-end">{{ money($item->price) }}</td>
-                                    <td class="text-end fw-bolder">{{ money($item->price * $item->qty) }}</td>
+
+                                    <td class="text-end">
+                                        {{ money($line['price']) }}
+
+                                        @if ($line['agreed'] && (float) $line['today'] !== (float) $line['price'])
+                                            <small class="d-block text-muted">
+                                                {{ __('admin.order_price_today', ['amount' => money($line['today'])]) }}
+                                            </small>
+                                        @endif
+                                    </td>
+
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                    wire:click="decrement({{ $line['id'] }})">{!! $icon('minus') !!}</button>
+                                            <span class="btn btn-outline-secondary disabled">{{ $line['qty'] }}</span>
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                    wire:click="increment({{ $line['id'] }})">{!! $icon('plus') !!}</button>
+                                        </div>
+                                    </td>
+
+                                    <td class="text-end fw-bolder">{{ money($line['sum']) }}</td>
+
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
+                                                wire:click="remove({{ $line['id'] }})">{!! $icon('trash') !!}</button>
+                                    </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">{{ __('admin.order_needs_an_item') }}</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="3" class="text-end text-muted">{{ __('checkout.subtotal') }}</td>
-                                <td class="text-end">{{ money($order->subtotal) }}</td>
+                                <td class="text-end">{{ money($subtotal) }}</td>
+                                <td></td>
                             </tr>
                             @if ($order->discount)
                                 <tr>
                                     <td colspan="3" class="text-end text-muted">{{ __('checkout.discount') }}</td>
                                     <td class="text-end text-success">−{{ money($order->discount) }}</td>
+                                    <td></td>
                                 </tr>
                             @endif
                             <tr>
-                                <td colspan="3" class="text-end text-muted">{{ __('checkout.shipping') }}</td>
-                                <td class="text-end">{{ $order->shipping > 0 ? money($order->shipping) : __('checkout.free') }}</td>
+                                <td colspan="3" class="text-end text-muted">
+                                    {{ __('checkout.shipping') }}
+                                    <button type="button" class="btn btn-sm btn-link p-0 ms-50"
+                                            wire:click="recalculateShipping"
+                                            title="{{ __('admin.order_recalculate_shipping') }}">{!! $icon('sync') !!}</button>
+                                </td>
+                                <td class="text-end">{{ $shipping > 0 ? money($shipping) : __('checkout.free') }}</td>
+                                <td></td>
                             </tr>
                             <tr>
                                 <td colspan="3" class="text-end fw-bolder">{{ __('admin.total') }}</td>
-                                <td class="text-end fw-bolder fs-5">{{ money($order->total) }}</td>
+                                <td class="text-end fw-bolder fs-5">{{ money($total) }}</td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -358,17 +439,31 @@
                         </div>
                     </div>
 
-                    <a class="btn btn-outline-primary w-100 mb-1 d-flex align-items-center justify-content-center gap-50"
-                       href="{{ \App\Support\Phone::link($order->phone) }}">
-                        {!! $icon('phone') !!}{{ $order->phone }}
-                    </a>
+                    <label class="form-label" for="orderName">{{ __('checkout.name') }}</label>
+                    <input type="text" id="orderName" class="form-control @error('name') is-invalid @enderror"
+                           wire:model="name">
+                    @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
-                    @if ($order->email)
-                        <a class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-50"
-                           href="mailto:{{ $order->email }}">
-                            {!! $icon('mail') !!}<span class="text-truncate">{{ $order->email }}</span>
-                        </a>
-                    @endif
+                    <label class="form-label mt-1" for="orderPhone">{{ __('checkout.phone') }}</label>
+                    {{-- the button dials what the order already holds, not what is
+                         being typed into the field beside it --}}
+                    <div class="input-group">
+                        <input type="text" id="orderPhone" class="form-control @error('phone') is-invalid @enderror"
+                               wire:model="phone">
+                        <a class="btn btn-outline-primary" href="{{ \App\Support\Phone::link($order->phone) }}"
+                           title="{{ $order->phone }}">{!! $icon('phone') !!}</a>
+                    </div>
+                    @error('phone') <div class="text-danger small mt-25">{{ $message }}</div> @enderror
+
+                    <label class="form-label mt-1" for="orderEmail">{{ __('checkout.email') }}</label>
+                    <div class="input-group">
+                        <input type="email" id="orderEmail" class="form-control @error('email') is-invalid @enderror"
+                               wire:model="email">
+                        @if ($order->email)
+                            <a class="btn btn-outline-secondary" href="mailto:{{ $order->email }}">{!! $icon('mail') !!}</a>
+                        @endif
+                    </div>
+                    @error('email') <div class="text-danger small mt-25">{{ $message }}</div> @enderror
                 </div>
             </div>
 
@@ -378,25 +473,66 @@
                 </div>
 
                 <div class="card-body">
-                    <div class="d-flex align-items-start gap-50">
-                        <span class="text-muted mt-25">{!! $icon('pin') !!}</span>
+                    <select class="form-select" wire:model.live="delivery">
+                        <option value="courier">{{ __('admin.order_delivery_courier') }}</option>
+                        <option value="pickup">{{ __('admin.order_delivery_pickup') }}</option>
+                    </select>
 
-                        <span>
-                            <b>{{ $order->city ?: '—' }}</b>
-                            @if ($order->address)
-                                <span class="d-block text-muted">{{ $order->address }}</span>
-                            @endif
-                        </span>
-                    </div>
+                    @if ($delivery === 'courier')
+                        <label class="form-label mt-1" for="orderCity">{{ __('checkout.city') }}</label>
+                        <select id="orderCity" class="form-select @error('cityId') is-invalid @enderror"
+                                wire:model.live="cityId">
+                            <option value="">—</option>
+                            @foreach ($cities as $city)
+                                <option value="{{ $city->id }}">{{ $city->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('cityId') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
-                    @if ($order->comment)
-                        <div class="alert alert-warning mt-1 mb-0">
-                            <div class="alert-body">{{ $order->comment }}</div>
-                        </div>
+                        <label class="form-label mt-1" for="orderAddress">{{ __('checkout.address') }}</label>
+                        <input type="text" id="orderAddress" class="form-control" wire:model="address">
                     @endif
+
+                    <label class="form-label mt-1" for="orderShipping">{{ __('checkout.shipping') }}</label>
+                    <input type="number" step="0.01" min="0" id="orderShipping"
+                           class="form-control @error('shippingOverride') is-invalid @enderror"
+                           placeholder="{{ __('admin.order_shipping_auto') }}"
+                           wire:model.live.debounce.600ms="shippingOverride">
+                    @error('shippingOverride') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                    <label class="form-label mt-1" for="orderComment">{{ __('checkout.comment') }}</label>
+                    <textarea id="orderComment" rows="2" class="form-control" wire:model="comment"></textarea>
                 </div>
             </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">{{ __('admin.payment') }}</h4>
+                </div>
+
+                <div class="card-body">
+                    <select class="form-select @error('payment') is-invalid @enderror" wire:model.live="payment">
+                        @foreach ($methods as $method)
+                            <option value="{{ $method->code }}" @disabled(! ($fits[$method->code] ?? true))>
+                                {{ $method->name }}
+                                @unless ($fits[$method->code] ?? true) — {{ __('admin.order_method_unavailable') }} @endunless
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('payment') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+
+            @if ($this->editable())
+                <div class="card">
+                    <div class="card-body">
+                        <button type="button" class="btn btn-primary w-100"
+                                wire:click="save" wire:loading.attr="disabled" wire:target="save">
+                            {!! $icon('check', 'me-25') !!}{{ __('admin.order_save_changes') }}
+                        </button>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
-    @endif
 </div>
