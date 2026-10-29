@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Orders;
 
-use App\Models\CallbackRequest;
 use App\Models\DeliveryCity;
 use App\Models\Order;
 use App\Models\PaymentMethod;
@@ -11,7 +10,6 @@ use App\Models\User;
 use App\Models\UserAddress;
 use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Orders\OrderLines;
-use App\Services\Orders\QuickOrder;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
@@ -50,9 +48,6 @@ class Create extends Component
 
     public string $payment = '';
 
-    #[Url(as: 'callback', except: null)]
-    public ?int $callbackId = null;
-
     #[Url(as: 'product', except: null)]
     public ?int $productId = null;
 
@@ -61,10 +56,6 @@ class Create extends Component
 
     public function mount(): void
     {
-        if ($this->callbackId) {
-            $this->fillFromCallback();
-        }
-
         if ($this->forUser) {
             $this->useCustomer($this->forUser);
         }
@@ -75,37 +66,6 @@ class Create extends Component
 
         $this->cityId ??= DeliveryCity::active()->value('id');
         $this->payment = $this->payment ?: (string) (PaymentMethod::active()->value('code') ?? 'cash');
-    }
-
-    protected function fillFromCallback(): void
-    {
-        $request = CallbackRequest::with('product')->find($this->callbackId);
-
-        if (! $request) {
-            $this->callbackId = null;
-
-            return;
-        }
-
-        if ($request->order_id) {
-            $this->redirect(route('admin.orders.show', $request->order_id), navigate: true);
-
-            return;
-        }
-
-        $this->name = (string) $request->name;
-        $this->phone = (string) $request->phone;
-        $this->comment = (string) $request->comment;
-        $this->userId = $request->user_id;
-        $this->email = (string) ($request->user?->email ?? '');
-
-        if ($request->product_id) {
-            $this->qty[$request->product_id] = $request->quantity ?: 1;
-        }
-
-        if ($request->payment_method && PaymentMethod::active()->where('code', $request->payment_method)->exists()) {
-            $this->payment = $request->payment_method;
-        }
     }
 
     public function next(): void
@@ -392,13 +352,6 @@ class Create extends Component
 
     protected function write(array $wanted): Order
     {
-        if ($this->callbackId) {
-            $lead = CallbackRequest::lockForUpdate()->findOrFail($this->callbackId);
-            if ($lead->order_id) {
-                return Order::findOrFail($lead->order_id);
-            }
-        }
-
         $lines = app(OrderLines::class);
         $priced = $lines->price($wanted);
 
@@ -438,17 +391,7 @@ class Create extends Component
             'note' => __('order.placed_by_operator', ['name' => auth()->user()?->name ?? '—']),
         ]);
 
-        if ($this->callbackId) {
-            $this->closeCallback($order);
-        }
-
         return $order;
-    }
-
-    protected function closeCallback(Order $order): void
-    {
-        $request = CallbackRequest::lockForUpdate()->findOrFail($this->callbackId);
-        app(QuickOrder::class)->link($request, $order, auth()->id());
     }
 
     public function render()

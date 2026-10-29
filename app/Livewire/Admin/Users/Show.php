@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Users;
 
-use App\Models\CallbackRequest;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\UserAddress;
@@ -41,11 +40,6 @@ class Show extends Component
                 ->take(50)
                 ->get(),
             'addresses' => UserAddress::where('user_id', $this->user->id)->with('city')->get(),
-            'callbacks' => CallbackRequest::where('user_id', $this->user->id)
-                ->orWhere('phone', $this->user->phone)
-                ->latest('id')
-                ->take(20)
-                ->get(),
             'stats' => $this->stats(),
         ])->layout('layouts.admin', ['title' => $this->user->name]);
     }

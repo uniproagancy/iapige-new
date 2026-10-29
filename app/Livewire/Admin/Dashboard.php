@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\CallbackRequest;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
@@ -76,7 +75,6 @@ class Dashboard extends Component
             'unpaid' => Order::where('is_paid', false)
                 ->whereIn('status', Order::OPEN)
                 ->count(),
-            'callbacks' => CallbackRequest::where('status', 'new')->count(),
         ];
     }
 

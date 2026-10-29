@@ -33,10 +33,6 @@
                         <span class="text-muted">—</span>
                     @endif
                 @endforeach
-
-                @if ($callbackId)
-                    <span class="badge rounded-pill badge-light-info ms-auto">{{ __('admin.order_from_callback') }}</span>
-                @endif
             </div>
         </div>
     </div>

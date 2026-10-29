@@ -159,36 +159,6 @@
                 </div>
             </x-admin.list-card>
 
-            @if ($callbacks->isNotEmpty())
-                <x-admin.list-card :title="__('admin.callbacks')" :count="$callbacks->count()">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width:160px">{{ __('admin.date') }}</th>
-                                    <th>{{ __('admin.comment') }}</th>
-                                    <th class="text-end" style="width:140px">{{ __('admin.status') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($callbacks as $callback)
-                                    <tr wire:key="cb-{{ $callback->id }}">
-                                        <td class="text-muted">
-                                            <small>{{ $callback->created_at->format('d.m.Y H:i') }}</small>
-                                        </td>
-                                        <td>{{ $callback->comment ?: '—' }}</td>
-                                        <td class="text-end">
-                                            <span class="badge rounded-pill badge-light-secondary">
-                                                {{ __('admin.cb_'.$callback->status) }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </x-admin.list-card>
-            @endif
         </div>
 
         <div class="col-lg-4">

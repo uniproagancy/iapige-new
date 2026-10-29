@@ -422,30 +422,12 @@ html .content .content-wrapper .content-header .breadcrumb-item.active { opacity
  | row itself keeps the table's own colours.
  */
 .adm-row-new > *:first-child,
-.adm-row-viewed > *:first-child,
-.adm-row-callback > *:first-child {
+.adm-row-viewed > *:first-child {
     box-shadow: inset 3px 0 0 var(--adm-row-bar);
 }
 
 .adm-row-new { --adm-row-bar: #7367f0; }
 .adm-row-viewed { --adm-row-bar: #ff9f43; }
-.adm-row-callback { --adm-row-bar: #7367f0; }
-
-/*
- | What the caller was looking at, on a call-back row. Some of those names run
- | to a hundred characters; on one line they pushed the whole table sideways
- | and the buttons at its end went off the screen. Two lines, then an ellipsis.
- */
-.adm-cb-product {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    max-width: 46ch;
-    line-height: 1.3;
-}
 
 /* ------------------------------------------------------------------ the quiet chip */
 
@@ -466,15 +448,6 @@ html .content .content-wrapper .content-header .breadcrumb-item.active { opacity
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: middle;
-}
-
-/* the photo in a call request's detail row */
-.adm-cb-photo {
-    width: 64px;
-    height: 64px;
-    object-fit: contain;
-    border-radius: .4rem;
-    background: rgba(255, 255, 255, .06);
 }
 
 /* ------------------------------------------------------------------ cells you can type in */

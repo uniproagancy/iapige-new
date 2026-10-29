@@ -31,8 +31,6 @@ return [
     'added' => 'Added',
     'buy_now' => 'Buy / instalments',
     'buy_now_demo' => 'Instalment application — demo mode',
-    'callback' => 'Request a call',
-    'callback_note' => 'We\'ll call within 15 minutes',
     'phone' => 'Phone number',
     'call_me' => 'Call me',
     'call_sent' => 'Request received',
@@ -71,11 +69,8 @@ return [
 
     'adding' => 'Adding…',
 
-    'callback_comment' => 'Comment (optional)',
-    'callback_send' => 'Send',
     'callback_when' => 'We will call during working hours',
     'callback_again' => 'Send another request',
-    'callback_too_many' => 'Too many requests. Please try again in a little while.',
 
     'supplier_sku' => 'Supplier SKU',
     'quick_order' => 'Quick purchase',

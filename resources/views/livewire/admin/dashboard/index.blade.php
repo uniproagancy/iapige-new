@@ -44,12 +44,6 @@
             'url' => $orders.'?status=new',
             'alarm' => $waiting['new_orders'] > 0,
         ],
-        [
-            'value' => $waiting['callbacks'],
-            'label' => __('admin.callbacks'),
-            'url' => route('admin.callbacks'),
-            'alarm' => $waiting['callbacks'] > 0,
-        ],
     ];
 @endphp
 
@@ -152,7 +146,6 @@
                         ['label' => __('admin.awaiting_call'), 'n' => $waiting['new_orders'], 'url' => route('admin.orders').'?status=new'],
                         ['label' => __('admin.packing'),       'n' => $waiting['packing'],    'url' => route('admin.orders').'?status=confirmed'],
                         ['label' => __('admin.unpaid'),        'n' => $waiting['unpaid'],     'url' => route('admin.orders')],
-                        ['label' => __('admin.callbacks'),     'n' => $waiting['callbacks'],  'url' => route('admin.callbacks')],
                     ] as $item)
                         <a class="d-flex justify-content-between align-items-center py-50 text-body"
                            href="{{ $item['url'] }}">

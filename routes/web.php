@@ -132,8 +132,6 @@ Route::middleware(['auth', 'can:admin'])
         Route::get('/promotions', Admin\Promotions\Index::class)->name('promotions');
         Route::get('/slides', Admin\Slides\Index::class)->name('slides');
 
-        Route::get('/callbacks', Admin\Callbacks\Index::class)->name('callbacks');
-
         /* The shop's own settings, its people and its suppliers stay with
            the owner; an operator works the orders and the catalogue. */
         Route::middleware('can:owner')->group(function () {
