@@ -21,9 +21,6 @@ class TestPixel extends Command
 
     public function handle(Pixel $pixel): int
     {
-
-        request()->cookies->set('cookie_consent', 'all');
-
         if ($this->option('live')) {
             config(['services.facebook.test_event_code' => null]);
         }

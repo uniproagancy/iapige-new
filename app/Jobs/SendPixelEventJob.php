@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Services\Facebook\Pixel;
 use App\Models\OrderPixelData;
+use App\Services\Facebook\Pixel;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +43,7 @@ class SendPixelEventJob implements ShouldQueue
         DB::transaction(function () use ($pixel) {
             $snapshot = OrderPixelData::whereKey($this->purchaseSnapshotId)->lockForUpdate()->first();
 
-            if (! $snapshot || ! $snapshot->consented || $snapshot->alreadySent()) {
+            if (! $snapshot || $snapshot->alreadySent()) {
                 return;
             }
 

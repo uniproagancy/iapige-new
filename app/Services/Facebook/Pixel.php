@@ -51,13 +51,15 @@ class Pixel
         return Gate::allows('admin');
     }
 
+    /*
+     | Tracking is on for visitors and off for whoever is working in the admin.
+     | The cookie banner used to decide this as well; the shop's owner asked for
+     | that condition to go, so the answer to it is recorded on an order but no
+     | longer keeps the sale from being reported.
+     */
     public function consented(): bool
     {
-        if ($this->staff()) {
-            return false;
-        }
-
-        return request()->cookie('cookie_consent') === 'all';
+        return ! $this->staff();
     }
 
     public function testMode(): bool
@@ -241,7 +243,7 @@ class Pixel
             $order = $order->fresh('items');
             $snapshot = OrderPixelData::where('order_id', $order?->id)->lockForUpdate()->first();
 
-            if (! $order || ! $this->isSale($order) || ! $snapshot || ! $snapshot->consented || $snapshot->alreadySent()) {
+            if (! $order || ! $this->isSale($order) || ! $snapshot || $snapshot->alreadySent()) {
                 return false;
             }
 
@@ -317,7 +319,7 @@ class Pixel
             $order = $order->fresh('items');
             $snapshot = OrderPixelData::where('order_id', $order?->id)->lockForUpdate()->first();
 
-            if (! $order || ! $this->isSale($order) || ! $snapshot?->consented || $snapshot->browser_sent_at || ! $this->pixelId()) {
+            if (! $order || ! $this->isSale($order) || ! $snapshot || $snapshot->browser_sent_at || ! $this->pixelId()) {
                 return [];
             }
 
@@ -381,10 +383,6 @@ class Pixel
         ?OrderPixelData $snapshot = null,
     ): bool {
         if (! $this->configured() || (! $this->enabled() && ! $snapshot)) {
-            return false;
-        }
-
-        if ($snapshot && ! $snapshot->consented) {
             return false;
         }
 

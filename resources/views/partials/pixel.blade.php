@@ -83,12 +83,10 @@
             p.queue.splice(0).forEach(([event, data, eventId]) => window.pixelTrack(event, data, eventId));
         }
 
-        /* already answered on an earlier visit, or answered just now */
-        if (document.cookie.split('; ').includes('cookie_consent=all')) {
-            pixelStart();
-        } else {
-            window.addEventListener('consent:all', pixelStart);
-        }
+        /* The banner used to hold this back until it was answered. It no
+           longer does, by the owner's decision, so tracking starts with the
+           page for everybody the server counts as a visitor. */
+        pixelStart();
 
         /*
          | Livewire components raise their events on the server, where the page
