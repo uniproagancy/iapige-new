@@ -5,6 +5,7 @@ namespace App\Services\Import\Drivers\Alta;
 use App\Models\Supplier;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\TaxonomyResolver;
+use App\Services\Import\VariantKey;
 
 /*
  | Turns one answer from alta.ge's details endpoint into a product.
@@ -67,6 +68,7 @@ class AltaJson
 
         $locale = $this->supplier->config['locale'] ?? 'ka';
         $previous = is_numeric($product['previousPrice'] ?? null) ? (float) $product['previousPrice'] : 0.0;
+        $specs = $this->specs($product, $locale);
 
         $payload = new ProductPayload(
             externalId: $code,
@@ -86,9 +88,18 @@ class AltaJson
                 'name' => $name,
                 'description' => $this->text($product['description'] ?? null),
             ])],
-            specs: $this->specs($product, $locale),
+            specs: $specs,
             images: $seen['images'],
             weight: $seen['weight'],
+
+            /* Alta files each colour and each capacity as its own product and
+               never says they belong together, so the name says it instead. */
+            variantGroup: VariantKey::fromSpecs(
+                $this->supplier->code,
+                $product['brandName'] ?? null,
+                $name,
+                $specs,
+            ),
         );
 
         return ['payload' => $payload, 'errors' => $errors, 'seen' => $seen];

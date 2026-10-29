@@ -116,8 +116,14 @@ class Show extends Component
 
     protected function reportSale(): void
     {
+        $pixel = app(Pixel::class);
+
         try {
-            $sent = app(Pixel::class)->reportPurchase($this->order->fresh('items'), offline: true);
+            /* Nothing was remembered from a browser for an order written here,
+               so the event is given the customer's own details to carry. */
+            $pixel->snapshotForStaffOrder($this->order);
+
+            $sent = $pixel->reportPurchase($this->order->fresh('items'), offline: true);
         } catch (\Throwable $e) {
             report($e);
 

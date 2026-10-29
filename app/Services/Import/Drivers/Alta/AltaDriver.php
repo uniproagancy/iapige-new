@@ -111,6 +111,7 @@ class AltaDriver implements ChecksImportSource, HasStockFeed, SupplierDriver
             specs: $payload->specs,
             images: $payload->images,
             weight: $payload->weight ?? ($row['weight'] ?? null),
+            variantGroup: $payload->variantGroup,
         );
     }
 

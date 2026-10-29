@@ -8,8 +8,8 @@ use App\Models\Order;
 use App\Models\OrderPixelData;
 use App\Models\User;
 use App\Support\Phone;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -264,6 +264,45 @@ class Pixel
 
             return true;
         });
+    }
+
+    /*
+     | An order written in the admin or taken over the telephone has no browser
+     | behind it to remember anything from, and the operator sitting in front
+     | of it is not the customer. The snapshot is what makes the event carry
+     | the order's own details, so an order that never had one is given one.
+     */
+    public function snapshotForStaffOrder(Order $order): OrderPixelData
+    {
+        return OrderPixelData::firstOrCreate(['order_id' => $order->id], [
+            'event_id' => self::eventId('pus'),
+            'source_url' => route('order', $order->number),
+            'consented' => true,
+            'action_source' => 'phone',
+            'external_id' => (string) ($order->user_id ?: $order->number),
+        ]);
+    }
+
+    /*
+     | A corrected order is a different sale. While nothing has gone to Meta the
+     | frozen copy is dropped, so the next report reads the order as it now
+     | stands. Once it has gone, Meta keeps the figures it was given.
+     */
+    public function refreshAfterEdit(Order $order): bool
+    {
+        $snapshot = OrderPixelData::where('order_id', $order->id)->first();
+
+        if (! $snapshot || $snapshot->alreadySent() || $snapshot->browser_sent_at) {
+            return false;
+        }
+
+        $snapshot->forceFill([
+            'occurred_at' => null,
+            'custom_data' => null,
+            'user_data' => null,
+        ])->save();
+
+        return true;
     }
 
     public function browserPurchase(Order $order): array

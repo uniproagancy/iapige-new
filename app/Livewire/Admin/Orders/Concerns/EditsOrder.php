@@ -6,6 +6,7 @@ use App\Models\DeliveryCity;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\Delivery\DeliveryCalculator;
+use App\Services\Facebook\Pixel;
 use App\Services\Orders\OrderLines;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\DB;
@@ -294,6 +295,10 @@ trait EditsOrder
                 'now' => money($this->order->total),
             ]),
         ]);
+
+        /* What Meta is told about must be the order as corrected, so the
+           frozen copy goes while nothing has been sent yet. */
+        app(Pixel::class)->refreshAfterEdit($this->order);
 
         $this->order = $this->order->fresh(['items.product.images', 'events.user', 'user']);
         $this->fillFromOrder();
