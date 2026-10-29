@@ -4,6 +4,7 @@ namespace App\Services\Import\Drivers\Alta;
 
 use App\Models\Supplier;
 use App\Services\Import\ProductPayload;
+use App\Services\Import\TaxonomyResolver;
 
 /*
  | Turns one answer from alta.ge's details endpoint into a product.
@@ -77,7 +78,10 @@ class AltaJson
             oldCostPrice: $previous > $price ? $previous : null,
             stock: $seen['stock'],
             brandName: trim((string) ($product['brandName'] ?? '')) ?: null,
-            categoryName: trim((string) ($product['categoryName'] ?? '')) ?: null,
+            categoryName: TaxonomyResolver::trail(
+                $product['parentCategoryName'] ?? null,
+                $product['categoryName'] ?? null,
+            ),
             translations: [$locale => array_filter([
                 'name' => $name,
                 'description' => $this->text($product['description'] ?? null),

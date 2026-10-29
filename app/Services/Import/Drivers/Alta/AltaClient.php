@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Alta;
 
+use App\Services\Import\TaxonomyResolver;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -294,7 +295,10 @@ class AltaClient
             'on_sale' => (bool) ($product['onSale'] ?? false),
 
             'category_id' => (int) ($product['primaryCategoryId'] ?? $product['categoryId'] ?? 0) ?: null,
-            'category' => trim((string) ($product['primaryCategoryName'] ?? $product['categoryName'] ?? '')) ?: null,
+            'category' => TaxonomyResolver::trail(
+                $product['parentCategoryName'] ?? null,
+                $product['primaryCategoryName'] ?? $product['categoryName'] ?? null,
+            ),
         ];
     }
 

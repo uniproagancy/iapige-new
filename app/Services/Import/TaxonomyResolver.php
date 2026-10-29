@@ -79,7 +79,14 @@ class TaxonomyResolver
             $candidates[] = implode(self::TRAIL, array_slice($parts, 0, $i));
         }
 
-        return array_values(array_unique($candidates));
+        /* Last of all, the section's own name. A list that used to send its
+           sections flat and now sends them with their parent would otherwise
+           lose every pairing somebody had already made. The full trail still
+           wins when it is paired, and it is parked either way, so the finer
+           name is there to be paired later. */
+        $candidates[] = end($parts);
+
+        return array_values(array_filter(array_unique($candidates), fn (string $c) => $c !== ''));
     }
 
     public static function trail(?string ...$names): ?string

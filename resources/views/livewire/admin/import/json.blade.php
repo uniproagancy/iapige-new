@@ -210,6 +210,10 @@
                                     <small class="text-muted d-block">
                                         <span class="font-monospace">{{ $row['code'] }}</span> ·
                                         {{ $row['brand'] ?? '—' }} ·
+                                        {{-- the shelf Alta files it under, parent first when it names one --}}
+                                        @if ($row['parent_category'] ?? null)
+                                            {{ $row['parent_category'] }} &rsaquo;
+                                        @endif
                                         {{ $row['category'] ?? '—' }}
                                     </small>
 
