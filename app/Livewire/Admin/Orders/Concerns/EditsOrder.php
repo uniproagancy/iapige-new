@@ -119,9 +119,13 @@ trait EditsOrder
         $this->dispatch('toast', message: __('admin.saved'));
     }
 
+    /* The name is a translation, not a column, so the model is asked for it
+       rather than the table. */
     protected function methodName(string $code): string
     {
-        return (string) (PaymentMethod::withTranslation()->where('code', $code)->value('name') ?: $code);
+        $method = PaymentMethod::withTranslation()->where('code', $code)->first();
+
+        return (string) ($method?->name ?: $code);
     }
 
     public function editable(): bool

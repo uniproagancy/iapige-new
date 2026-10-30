@@ -7,6 +7,7 @@ use App\Livewire\Admin\Orders\Concerns\EditsOrder;
 use App\Models\DeliveryCity;
 use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Models\PaymentTransaction;
 use App\Services\Facebook\Pixel;
 use App\Services\Payments\PaymentCheck;
 use App\Services\Payments\PaymentManager;
@@ -68,6 +69,7 @@ class Show extends Component
             'events' => $this->order->events()->with('user')->latest()->get(),
             'payLink' => $this->payLink(),
             'transaction' => $this->order->transactions()->latest('id')->first(),
+            'locked' => $this->lockedBy(),
             'lines' => $this->lines(),
             'subtotal' => $this->subtotal(),
             'shipping' => $this->shipping(),
@@ -155,6 +157,29 @@ class Show extends Component
         $this->order->load('events.user');
 
         $this->dispatch('toast', message: __('admin.saved'));
+    }
+
+    /*
+     | A payment the bank has not answered for yet. While one is open no other
+     | can be started -- time alone never authorises a second attempt -- so an
+     | order with one is stuck until somebody asks the bank how it ended.
+     */
+    public function lockedBy(): ?PaymentTransaction
+    {
+        $pending = $this->order->transactions()
+            ->where('status', PaymentTransaction::PENDING)
+            ->latest('id')
+            ->first();
+
+        if (! $pending || $this->order->is_paid) {
+            return null;
+        }
+
+        $method = PaymentMethod::active()->where('code', $this->order->payment)->first();
+
+        /* Paying the same way again can reuse the attempt; it is a different
+           way of paying that cannot start while this one is open. */
+        return $method && $method->driver === $pending->driver ? null : $pending;
     }
 
     public function payLink(): ?string

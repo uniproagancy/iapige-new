@@ -389,6 +389,18 @@
                     </select>
                     @error('payment') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
+                    {{-- A payment already sitting at the bank holds the order: a
+                         second one is never started while the first has not been
+                         answered for, so the operator is told here rather than
+                         finding out on the paying page. --}}
+                    @if ($locked)
+                        <div class="alert alert-warning mt-1 mb-0">
+                            <div class="alert-body small">
+                                {{ __('admin.order_payment_locked', ['driver' => $locked->driver]) }}
+                            </div>
+                        </div>
+                    @endif
+
                     @if ($payLink)
                         <hr class="my-1">
 
