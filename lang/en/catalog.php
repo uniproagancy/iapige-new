@@ -33,6 +33,8 @@ return [
     'load_more' => ':count more products',
     'index_title' => 'Catalog',
     'search_title' => 'Search: :term',
+    'yes' => 'Yes',
+    'no' => 'No',
     'index_lead' => 'Pick a category and see every product',
 
 ];

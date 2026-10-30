@@ -144,10 +144,45 @@ class Catalog extends Component
 
             $key === 'brand'
                 ? $query->whereHas('brand', fn (Builder $b) => $b->whereIn('slug', $codes))
-                : $query->withAttributeValue($key, $codes);
+                : $query->withAttributeValue($key, $this->expanded($key, $codes));
         }
 
         return $query;
+    }
+
+    /*
+     | One box in the sidebar can stand for several of the answers underneath
+     | it -- a colour for all its shades, a size for both ways of writing it --
+     | so what was picked is read back into the answers it was offered for.
+     */
+    protected array $expands = [];
+
+    protected function remember(array $groups): void
+    {
+        $this->expands = [];
+
+        foreach ($groups as $group) {
+            foreach ($group['items'] as $item) {
+                $this->expands[$group['key']][$item['code']] = $item['codes'] ?? [$item['code']];
+            }
+        }
+    }
+
+    protected function expanded(string $key, array $codes): array
+    {
+        if (! isset($this->expands[$key])) {
+            return $codes;
+        }
+
+        $answers = [];
+
+        foreach ($codes as $code) {
+            foreach ($this->expands[$key][$code] ?? [$code] as $answer) {
+                $answers[] = $answer;
+            }
+        }
+
+        return array_values(array_unique($answers));
     }
 
     protected function sorted(Builder $query): Builder
@@ -173,16 +208,37 @@ class Catalog extends Component
                     ->join('brands', 'brands.id', '=', 'products.brand_id')
                     ->groupBy('brands.slug')
                     ->pluck(DB::raw('count(*)'), 'brands.slug')->all()
-                : DB::table('attribute_value_product as avp')
+                : $this->fold($group, DB::table('attribute_value_product as avp')
                     ->join('attribute_values as av', 'av.id', '=', 'avp.attribute_value_id')
                     ->join('attributes as a', 'a.id', '=', 'av.attribute_id')
                     ->whereIn('avp.product_id', $matching)
                     ->where('a.code', $key)
                     ->groupBy('av.code')
-                    ->pluck(DB::raw('count(*)'), 'av.code')->all();
+                    ->pluck(DB::raw('count(*)'), 'av.code')->all());
         }
 
         return $counts;
+    }
+
+    /* What each box in the sidebar now leads to, which is everything the
+       answers underneath it lead to between them. */
+    protected function fold(array $group, array $counts): array
+    {
+        $folded = [];
+
+        foreach ($group['items'] as $item) {
+            $reached = 0;
+
+            foreach ($item['codes'] ?? [$item['code']] as $answer) {
+                $reached += (int) ($counts[$answer] ?? 0);
+            }
+
+            if ($reached > 0) {
+                $folded[$item['code']] = $reached;
+            }
+        }
+
+        return $folded;
     }
 
     public function render()
@@ -235,11 +291,16 @@ class Catalog extends Component
 
     protected function listingData(): array
     {
-        $listing = CatalogData::listing($this->categoryId ? $this->category() : null);
+        $listing = CatalogData::listing($this->categoryId ? $this->category() : null, $this->picked);
 
         if ($term = trim($this->q)) {
             $listing['title'] = __('catalog.search_title', ['term' => $term]);
         }
+
+        /* The groups say what each box stands for, and the products are asked
+           for after that, because a picked box is only a filter once its
+           answers are known. */
+        $this->remember($listing['groups']);
 
         $query = $this->sorted($this->query());
         $total = (clone $query)->reorder()->count();

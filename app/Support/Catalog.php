@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Models\Attribute;
-use App\Models\AttributeValue;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Language;
@@ -23,9 +22,9 @@ class Catalog
         'brand', 'images', 'category', 'attributeValues.attribute', 'livePromotions',
     ];
 
-    protected const MAX_OPTION_LENGTH = 24;
+    public const MAX_OPTION_LENGTH = 24;
 
-    protected const RESERVED_FILTERS = ['brand', 'brendi', 'manufacturer'];
+    public const RESERVED_FILTERS = ['brand', 'brendi', 'manufacturer'];
 
     public static function productQuery(): Builder
     {
@@ -386,16 +385,189 @@ class Catalog
        Below it, picking anything hides almost everything. */
     public const FILTER_COVERAGE = 0.15;
 
-    protected static function worthOffering(string $code, $covered, int $total): bool
+    /*
+     | An answer only one product on the shelf gives is not a choice to make:
+     | picking it is a longer way of opening that product. Whole groups are
+     | nothing but such answers -- a model code, a depth in millimetres -- and
+     | that is how a specification ends up in the sidebar dressed as a filter.
+     */
+    public const MIN_PER_ANSWER = 2;
+
+    /*
+     | Past this many answers a group stops being a choice and becomes a list
+     | to read through. Brand is the exception: the brands a shop carries are
+     | a list people come looking for by name.
+     */
+    public const MAX_ANSWERS = 24;
+
+    /*
+     | Whether a group speaks for enough of the shelf to be offered -- counted
+     | over the answers it actually prints, not over everything the attribute
+     | ever knew. A shelf of model codes keeps a couple of answers two products
+     | happen to share; between them they reach four products out of seven
+     | hundred, and picking one empties the shelf.
+     */
+    protected static function worthOffering(array $group, int $total): bool
     {
         if ($total < 1) {
             return true;
         }
 
-        return ((int) ($covered[$code] ?? 0)) / $total >= self::FILTER_COVERAGE;
+        $reach = array_sum(array_column($group['items'], 'held'));
+
+        return $reach / $total >= self::FILTER_COVERAGE;
     }
 
-    public static function listing(?Category $category = null): array
+    /*
+     | A group is still worth printing while there is something to decide in
+     | it: two answers to pick between, and few enough of them to be read. One
+     | already picked keeps the group whatever it looks like, so that a filter
+     | is never withdrawn from under the person holding it.
+     |
+     | @param  array<int, string>  $picked
+     */
+    protected static function stillAChoice(array $group, array $picked): bool
+    {
+        if ($picked !== []) {
+            return $group['items'] !== [];
+        }
+
+        return count($group['items']) > 1 && count($group['items']) <= self::MAX_ANSWERS;
+    }
+
+    /**
+     * The answers a group offers on this shelf.
+     *
+     * @param  array<string, int>  $held  how many products give each answer
+     * @param  array<int, string>  $picked
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function answers(Attribute $attribute, array $held, array $picked): array
+    {
+        $items = $attribute->type === Attribute::TYPE_COLOR
+            ? self::shades($attribute, $held)
+            : self::readings($attribute, $held);
+
+        return array_values(array_filter(
+            $items,
+            fn (array $item) => $item['held'] >= self::MIN_PER_ANSWER
+                || in_array($item['code'], $picked, true),
+        ));
+    }
+
+    /**
+     * Everything that is not a colour. A reading is offered in the one unit
+     * the shelf mostly speaks -- 32" and 81 სმ are one screen size, not two --
+     * and an answer that says something other than a reading keeps its words.
+     *
+     * @param  array<string, int>  $held
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function readings(Attribute $attribute, array $held): array
+    {
+        $readings = [];
+
+        foreach ($attribute->values as $value) {
+            if (filled($value->label)) {
+                $readings[$value->code] = Measure::read($value->label);
+            }
+        }
+
+        $units = Measure::prevailing($readings, $held);
+        $items = [];
+
+        foreach ($attribute->values as $value) {
+            if (! filled($value->label)) {
+                continue;
+            }
+
+            $reading = $readings[$value->code] ?? null;
+            $yesNo = $reading ? null : Answer::yesNo($value->label);
+
+            $label = match (true) {
+                (bool) $reading => Measure::canonical($reading, $units[$reading['dimension']] ?? null),
+                $yesNo !== null => Answer::label($yesNo),
+                default => $value->label,
+            };
+
+            if (mb_strlen($label) > self::MAX_OPTION_LENGTH) {
+                continue;
+            }
+
+            /* Two spellings of one answer share one box, which has to be named
+               after the answer rather than after either spelling. */
+            $code = match (true) {
+                (bool) $reading => $reading['dimension'].'-'.Slug::make($label),
+                $yesNo !== null => $yesNo ? 'yes' : 'no',
+                default => $value->code,
+            };
+
+            $items[$code] ??= ['code' => $code, 'label' => $label, 'codes' => [], 'held' => 0];
+            $items[$code]['codes'][] = $value->code;
+            $items[$code]['held'] += (int) ($held[$value->code] ?? 0);
+        }
+
+        return array_values($items);
+    }
+
+    /**
+     * Colour, offered as the colours people think in rather than as every
+     * shade a supplier ever wrote down. A shade whose name says no colour at
+     * all is left standing on its own; it is usually the only product with it,
+     * and then it goes the way of any other answer nobody else gives.
+     *
+     * @param  array<string, int>  $held
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function shades(Attribute $attribute, array $held): array
+    {
+        $buckets = [];
+
+        foreach ($attribute->values as $value) {
+            if (! filled($value->label)) {
+                continue;
+            }
+
+            $base = Palette::baseOf($value->label);
+
+            if ($base === null) {
+                continue;
+            }
+
+            $buckets[$base] ??= [
+                'code' => $base,
+                'label' => Palette::label($base),
+                'codes' => [],
+                'held' => 0,
+            ];
+
+            $buckets[$base]['codes'][] = $value->code;
+            $buckets[$base]['held'] += (int) ($held[$value->code] ?? 0);
+        }
+
+        /* In the palette's own order, so colour reads the same on every
+           shelf rather than in whatever order the shelf was filled. */
+        $ordered = [];
+
+        foreach (Palette::names() as $name) {
+            if (isset($buckets[$name])) {
+                $ordered[] = $buckets[$name];
+            }
+        }
+
+        /* A shade whose name says no colour at all -- "Tinsel Lucent",
+           "Squad" -- is left out rather than offered beside the colours: a
+           dozen colours is a choice, and a dozen colours followed by forty
+           names nobody recognises is the list this was meant to replace. */
+        return $ordered;
+    }
+
+    /**
+     * @param  array<string, array<int, string>>  $picked  what is already chosen, so a
+     *                                                     filter being used is never withdrawn
+     *                                                     from under the person using it
+     */
+    public static function listing(?Category $category = null, array $picked = []): array
     {
         $ids = null;
 
@@ -410,17 +582,23 @@ class Catalog
 
         $total = $inListing(Product::query())->count();
 
-        /* How much of the shelf each filter can speak for at all. A filter
-           only a handful of products carry throws the rest of the shelf away
-           the moment somebody picks something in it, which reads as the shop
-           losing products rather than as the shop not knowing. */
-        $covered = DB::table('attribute_value_product as avp')
+        /*
+         | How many products on this shelf give each answer. It tells a choice
+         | apart from a catalogue number, and it tells how much of the shelf a
+         | filter speaks for: one only a handful of products carry throws the
+         | rest away the moment anything in it is picked, which reads as the
+         | shop losing products rather than as the shop not knowing.
+         */
+        $held = DB::table('attribute_value_product as avp')
             ->join('attribute_values as av', 'av.id', '=', 'avp.attribute_value_id')
             ->join('attributes as a', 'a.id', '=', 'av.attribute_id')
             ->whereIn('avp.product_id', $inListing(Product::query())->select('products.id')->toBase())
-            ->selectRaw('a.code as code, count(distinct avp.product_id) as covers')
-            ->groupBy('a.code')
-            ->pluck('covers', 'code');
+            ->selectRaw('a.code as attribute, av.code as answer, count(*) as n')
+            ->groupBy('a.code', 'av.code')
+            ->get()
+            ->groupBy('attribute')
+            ->map(fn ($rows) => $rows->pluck('n', 'answer')->all())
+            ->all();
 
         $range = $inListing(Product::query())
             ->selectRaw('min(price) as low, max(price) as high')
@@ -429,29 +607,30 @@ class Catalog
         $brands = Brand::whereHas('products', $inListing)
             ->orderBy('name')
             ->get(['id', 'slug', 'name'])
-            ->map(fn (Brand $b) => ['code' => $b->slug, 'label' => $b->name])
+            ->map(fn (Brand $b) => ['code' => $b->slug, 'label' => $b->name, 'codes' => [$b->slug]])
             ->values()->all();
 
         $attributeGroups = Attribute::filterable()->withTranslation()
 
             ->whereNotIn('code', self::RESERVED_FILTERS)
+            ->with(['categories:id'])
             ->with(['values' => fn ($q) => $q->withTranslation()
                 ->whereHas('products', $inListing)
                 ->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->get()
+            /* A filter kept to certain shelves is offered on those shelves,
+               the same reading of it as the choices on a product page make --
+               one kept to none in particular is still offered everywhere. */
+            ->filter(fn (Attribute $a) => $a->appliesTo($category))
             ->map(fn (Attribute $a) => [
                 'name' => $a->name,
                 'key' => $a->code,
                 'open' => true,
-                'items' => $a->values
-
-                    ->filter(fn (AttributeValue $v) => filled($v->label) && mb_strlen($v->label) <= self::MAX_OPTION_LENGTH)
-                    ->map(fn (AttributeValue $v) => ['code' => $v->code, 'label' => $v->label])
-                    ->values()->all(),
+                'items' => self::answers($a, $held[$a->code] ?? [], (array) ($picked[$a->code] ?? [])),
             ])
-            ->filter(fn ($g) => count($g['items']) > 1)
-            ->filter(fn ($g) => self::worthOffering($g['key'], $covered, $total))
+            ->filter(fn ($g) => self::stillAChoice($g, (array) ($picked[$g['key']] ?? [])))
+            ->filter(fn ($g) => ($picked[$g['key']] ?? []) !== [] || self::worthOffering($g, $total))
             ->values()
             ->all();
 

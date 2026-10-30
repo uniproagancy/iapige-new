@@ -1,0 +1,21 @@
+<?php
+
+return [
+    'mm' => 'mm',
+    'cm' => 'cm',
+    'm' => 'm',
+    'inch' => '"',
+    'ml' => 'ml',
+    'l' => 'l',
+    'g' => 'g',
+    'kg' => 'kg',
+    'w' => 'W',
+    'kw' => 'kW',
+    'btu' => 'BTU',
+    'mb' => 'MB',
+    'gb' => 'GB',
+    'tb' => 'TB',
+    'sqm' => 'm²',
+    'hz' => 'Hz',
+    'khz' => 'kHz',
+];
