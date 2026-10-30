@@ -73,17 +73,27 @@
 .catlist__all:hover{background:var(--line-2)}
 
 /* ---- filter options, as boxes to pick from ---- */
-.fopts{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px}
+.fopts{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
 .fopt{
-  display:flex;width:100%;min-height:42px;align-items:center;justify-content:center;
-  padding:9px 10px;text-align:center;border-radius:12px;
-  background:#fff;border:1.5px solid var(--line-2);
-  transition:border-color .16s,background .16s,color .16s
+  position:relative;display:flex;width:100%;min-height:44px;
+  align-items:center;justify-content:center;
+  padding:10px 12px;text-align:center;border-radius:10px;
+  background:#fff;border:1px solid var(--line-2);
+  transition:border-color .16s,background .16s,box-shadow .16s
 }
-.fopt:hover{border-color:var(--ink-3,#9aa2ab)}
-.fopt.is-on{background:var(--red-bright);border-color:var(--red-bright)}
-.fopt__name{font-size:13px;font-weight:600;color:var(--ink-2);line-height:1.25;overflow-wrap:anywhere}
+.fopt:hover{border-color:var(--ink-4,#B9C0C8)}
+.fopt__name{font-size:13px;font-weight:700;color:var(--ink);line-height:1.25;overflow-wrap:anywhere}
+
+/* the one in hand, so it is plain which it is and plain how to let it go */
+.fopt.is-on{
+  background:var(--red-bright);border-color:var(--red-bright);
+  box-shadow:0 4px 12px rgba(255,105,0,.24)
+}
 .fopt.is-on .fopt__name{color:#fff}
+.fopt.is-on::after{
+  content:'';position:absolute;top:5px;inset-inline-end:6px;
+  width:6px;height:6px;border-radius:50%;background:#fff;opacity:.9
+}
 .fchips{display:flex;flex-wrap:wrap;gap:8px}
 .fchip{
   padding:11px 16px;border-radius:var(--r-pill);background:#fff;border:1.5px solid var(--line-2);

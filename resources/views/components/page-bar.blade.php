@@ -1,4 +1,4 @@
-@props(['back', 'title' => null, 'count' => null, 'path' => null, 'wishId' => null, 'heart' => false])
+@props(['back', 'title' => null, 'count' => null, 'path' => null, 'wishId' => null, 'heart' => false, 'search' => true])
 
 <div class="pagebar">
     <div class="pagebar__row">
@@ -13,6 +13,16 @@
             </div>
         @else
             <span class="pagebar__title">{{ $title }}</span>
+        @endif
+
+        {{-- These pages put this bar where the header is on a phone, and the
+             header is what holds the search. The sheet brings it back without
+             going anywhere; on a wide screen the header is there and this bar
+             is not drawn at all. --}}
+        @if ($search)
+            <button type="button" class="pagebar__btn" data-search-tab aria-label="{{ __('layout.search') }}">
+                <x-icon name="magnifying-glass" size="18" />
+            </button>
         @endif
 
         @if ($wishId)

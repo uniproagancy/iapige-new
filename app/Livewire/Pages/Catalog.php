@@ -267,11 +267,19 @@ class Catalog extends Component
             $key = $group['key'];
             $picked = (array) ($this->picked[$key] ?? []);
 
-            $groups[$at]['items'] = array_values(array_filter(
+            $items = array_values(array_filter(
                 $group['items'],
                 fn (array $item) => ($facets[$key][$item['code']] ?? 0) > 0
                     || in_array($item['code'], $picked, true),
             ));
+
+            /* What is picked goes to the top, where it can be seen and let go
+               of without hunting down a long list for it. The rest keep the
+               order they were given in. */
+            usort($items, fn (array $a, array $b) => (int) in_array($b['code'], $picked, true)
+                <=> (int) in_array($a['code'], $picked, true));
+
+            $groups[$at]['items'] = $items;
         }
 
         return array_values(array_filter(

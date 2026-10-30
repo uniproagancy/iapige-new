@@ -1,5 +1,5 @@
 <div>
-    <x-page-bar :back="route('catalog')" :title="__('checkout.title')" />
+    <x-page-bar :back="route('catalog')" :title="__('checkout.title')" :search="false" />
 
     <main class="page">
         <nav class="crumbs" aria-label="{{ __('catalog.breadcrumbs') }}">
