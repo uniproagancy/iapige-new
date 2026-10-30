@@ -66,6 +66,58 @@ class PaymentCheck
         return $this->no(__('admin.pay_not_yet'));
     }
 
+    /*
+     | Letting an unfinished attempt go, so that pressing pay again opens a
+     | fresh application at the bank instead of meeting the guard that keeps
+     | two of them from being open at once.
+     |
+     | The bank is asked first and always. An attempt it says was paid is
+     | settled and never let go; one it has not answered for is let go only
+     | because somebody asked for a new one, and the going is written into the
+     | order's history so it can be read later.
+     */
+    public function release(Order $order): array
+    {
+        $answer = $this->ask($order);
+
+        if ($answer['paid']) {
+            return $answer;
+        }
+
+        /* The bank did not answer at all -- no driver, no reply. Nothing is
+           let go on a silence. */
+        if (in_array($answer['message'], [__('admin.pay_check_failed'), __('admin.pay_no_driver', ['driver' => $this->driverOf($order)])], true)) {
+            return $answer;
+        }
+
+        $pending = $order->transactions()
+            ->where('status', PaymentTransaction::PENDING)
+            ->latest('id')
+            ->first();
+
+        if (! $pending) {
+            return $answer;
+        }
+
+        $pending->update(['status' => PaymentTransaction::CANCELLED, 'checked_at' => now()]);
+
+        $order->events()->create([
+            'user_id' => auth()->id(),
+            'type' => 'payment',
+            'note' => __('order.payment_attempt_released', ['driver' => $pending->driver]),
+        ]);
+
+        return ['paid' => false, 'message' => __('admin.pay_released'), 'type' => 'success'];
+    }
+
+    protected function driverOf(Order $order): string
+    {
+        return (string) $order->transactions()
+            ->whereIn('status', [PaymentTransaction::PENDING, PaymentTransaction::FAILED])
+            ->latest('id')
+            ->value('driver');
+    }
+
     protected function no(string $message): array
     {
         return ['paid' => false, 'message' => $message, 'type' => 'error'];

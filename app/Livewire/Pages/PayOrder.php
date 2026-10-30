@@ -5,6 +5,7 @@ namespace App\Livewire\Pages;
 use App\Livewire\Concerns\SendsToBank;
 use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Services\Payments\PaymentCheck;
 use App\Services\Payments\PaymentManager;
 use Livewire\Component;
 
@@ -65,6 +66,20 @@ class PayOrder extends Component
         $this->refused = $this->refusalNow();
 
         if ($this->refused) {
+            return null;
+        }
+
+        /* Every press is a request for a new application at the bank. An older
+           one still open would otherwise stand in the way, so it is asked
+           about and let go -- unless the bank says it was paid, in which case
+           there is nothing left to start. */
+        app(PaymentCheck::class)->release($this->order);
+
+        $this->order->refresh();
+
+        if ($this->order->is_paid) {
+            $this->refused = 'paid';
+
             return null;
         }
 

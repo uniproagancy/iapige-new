@@ -344,6 +344,7 @@ return [
     'add' => 'Add',
     'pay_ask_bank' => 'Check with the bank',
     'pay_asking' => 'Checking…',
+    'pay_released' => 'The earlier attempt was closed; a new payment can start.',
     'pay_confirmed' => 'The bank confirmed the payment',
     'pay_not_yet' => 'The bank does not confirm it yet',
     'pay_check_failed' => 'The bank could not be reached — try again later',

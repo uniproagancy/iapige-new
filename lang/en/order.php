@@ -42,6 +42,7 @@ return [
     ],
 
     'paid_via' => 'Paid via :driver',
+    'payment_attempt_released' => 'The earlier attempt (:driver) was closed so a new payment could start.',
     'payment_start_failed' => 'The payment could not be started',
 
     'credo_signed' => 'Credo: contract signed — the goods are to be sent',
