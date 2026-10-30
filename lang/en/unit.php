@@ -18,4 +18,8 @@ return [
     'sqm' => 'm²',
     'hz' => 'Hz',
     'khz' => 'kHz',
+    'v' => 'V',
+    'db' => 'dB',
+    'month' => 'months',
+    'year' => 'years',
 ];

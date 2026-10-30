@@ -34,7 +34,7 @@ class Measure
             'l' => ['factor' => 1000, 'words' => ['l', 'ლ', 'ლიტრი', 'ლტ', 'liter', 'litre', 'liters', 'litres']],
         ],
         'weight' => [
-            'g' => ['factor' => 1, 'words' => ['g', 'gr', 'გრ', 'გრამი']],
+            'g' => ['factor' => 1, 'words' => ['g', 'gr', 'გრ', 'გ', 'გრამი']],
             'kg' => ['factor' => 1000, 'words' => ['kg', 'კგ', 'კილოგრამი']],
         ],
         'power' => [
@@ -56,6 +56,18 @@ class Measure
             'hz' => ['factor' => 1, 'words' => ['hz', 'ჰც', 'ჰერცი']],
             'khz' => ['factor' => 1000, 'words' => ['khz', 'კჰც']],
         ],
+        'voltage' => [
+            'v' => ['factor' => 1, 'words' => ['v', 'ვ', 'ვოლტი', 'volt', 'volts']],
+        ],
+        'sound' => [
+            'db' => ['factor' => 1, 'words' => ['db', 'დბ', 'დეციბელი']],
+        ],
+        /* A guarantee is given in months by one supplier and in years by the
+           next, and three years is two years longer than one. */
+        'time' => [
+            'month' => ['factor' => 1, 'words' => ['თვე', 'თვის', 'month', 'months', 'mo']],
+            'year' => ['factor' => 12, 'words' => ['წელი', 'წლის', 'წელიწადი', 'year', 'years', 'yr']],
+        ],
     ];
 
     /*
@@ -69,6 +81,14 @@ class Measure
     /* A reading given to the nearest tenth, and read as a whole number when it
        lands this near one: 81 სმ is 31.89 inches, which is a 32" screen. */
     protected const SNAP = 0.15;
+
+    /* Band widths worth offering, narrowest first. Every one of them is a
+       figure somebody would name on their own. */
+    protected const LADDER = [
+        0.1, 0.25, 0.5, 1, 2, 5, 10, 20, 25, 50,
+        100, 200, 250, 500, 1000, 2000, 5000, 10000, 20000, 50000,
+        100000, 200000, 500000, 1000000,
+    ];
 
     protected static ?array $index = null;
 
@@ -134,17 +154,27 @@ class Measure
         return $reading && $reading['dimension'] === 'memory' ? $reading : null;
     }
 
-    /** @return array{dimension: string, unit: string, low: float, high: ?float} */
-    protected static function reading(string $word, string $low, string $high): array
+    /** @return array{dimension: string, unit: string, low: float, high: ?float}|null */
+    protected static function reading(string $word, string $low, string $high): ?array
     {
         [$dimension, $unit] = self::index()[$word];
         $factor = self::UNITS[$dimension][$unit]['factor'];
 
+        $from = self::figure($low) * $factor;
+        $to = $high === '' ? null : self::figure($high) * $factor;
+
+        /* "9/5 კგ" is a washing machine that washes nine and dries five, not a
+           range from nine down to five. A second figure below the first is
+           two readings, so the label is left to speak for itself. */
+        if ($to !== null && $to <= $from) {
+            return null;
+        }
+
         return [
             'dimension' => $dimension,
             'unit' => $unit,
-            'low' => self::figure($low) * $factor,
-            'high' => $high === '' ? null : self::figure($high) * $factor,
+            'low' => $from,
+            'high' => $to,
         ];
     }
 
@@ -211,6 +241,50 @@ class Measure
         return str_starts_with($written, '"') || $written === '"'
             ? $figure.$written
             : $figure.' '.$written;
+    }
+
+    /*
+     | Whether readings of this quantity may be gathered into bands. Memory
+     | may not: "0-500 GB" is nobody's idea of a telephone, while the handful
+     | of sizes telephones are made in is a choice already.
+     */
+    public static function bandable(string $dimension): bool
+    {
+        return ! in_array($dimension, self::FIXED, true);
+    }
+
+    public static function factor(string $dimension, string $unit): float
+    {
+        return (float) (self::UNITS[$dimension][$unit]['factor'] ?? 1);
+    }
+
+    /*
+     | A band width that leaves few enough bands to read: the narrowest round
+     | step that does. Round, because 200-300 ლ is a size somebody thinks in
+     | and 187-294 ლ is not.
+     */
+    public static function step(float $low, float $high, int $most): float
+    {
+        foreach (self::LADDER as $step) {
+            if (ceil($high / $step) - floor($low / $step) <= $most) {
+                return $step;
+            }
+        }
+
+        return (float) self::LADDER[count(self::LADDER) - 1];
+    }
+
+    /* One band, written out: "200-300 ლ". */
+    public static function span(float $from, float $to, string $dimension, string $unit): string
+    {
+        $factor = self::factor($dimension, $unit);
+
+        return self::canonical([
+            'dimension' => $dimension,
+            'unit' => $unit,
+            'low' => $from * $factor,
+            'high' => $to * $factor,
+        ], $unit);
     }
 
     protected static function write(float $value): string

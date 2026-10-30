@@ -114,8 +114,8 @@ class OfferMoreFilters extends Command
             return self::SUCCESS;
         }
 
-        foreach ($earned as $id => $shelves) {
-            $this->offer($id, $shelves);
+        foreach (array_keys($earned) as $id) {
+            $this->offer($id);
         }
 
         $this->line(count($earned).' specifications are now offered as filters');
@@ -189,10 +189,7 @@ class OfferMoreFilters extends Command
             ->sortDesc();
     }
 
-    /**
-     * @param  array<int, int>  $shelves
-     */
-    protected function offer(int $id, array $shelves): void
+    protected function offer(int $id): void
     {
         $attribute = Attribute::find($id);
 
@@ -200,13 +197,10 @@ class OfferMoreFilters extends Command
             return;
         }
 
-        DB::transaction(function () use ($attribute, $shelves) {
-            $attribute->update(['is_filterable' => true]);
-
-            /* Kept to the shelves that earned it, so a cable's length is not
-               offered on the shelf of refrigerators that happen to carry a
-               line of the same name. */
-            $attribute->categories()->syncWithoutDetaching($shelves);
-        });
+        /* Only the offering. The shelves are left alone: a shelf whose
+           products say nothing about a specification does not print it
+           anyway, and listing the attribute under the shelves that earned it
+           is how colour came to be offered on one shelf out of fifty. */
+        $attribute->update(['is_filterable' => true]);
     }
 }

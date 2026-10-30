@@ -24,7 +24,7 @@ class Catalog
 
     public const MAX_OPTION_LENGTH = 24;
 
-    public const RESERVED_FILTERS = ['brand', 'brendi', 'manufacturer'];
+    public const RESERVED_FILTERS = ['brand', 'brendi', 'manufacturer', 'mtsarmoebeli'];
 
     public static function productQuery(): Builder
     {
@@ -398,7 +398,7 @@ class Catalog
      | to read through. Brand is the exception: the brands a shop carries are
      | a list people come looking for by name.
      */
-    public const MAX_ANSWERS = 24;
+    public const MAX_ANSWERS = 30;
 
     /*
      | Whether a group speaks for enough of the shelf to be offered -- counted
@@ -502,12 +502,122 @@ class Catalog
                 default => $value->code,
             };
 
-            $items[$code] ??= ['code' => $code, 'label' => $label, 'codes' => [], 'held' => 0];
+            $items[$code] ??= [
+                'code' => $code, 'label' => $label, 'codes' => [], 'held' => 0,
+                'reading' => $reading,
+            ];
             $items[$code]['codes'][] = $value->code;
             $items[$code]['held'] += (int) ($held[$value->code] ?? 0);
         }
 
-        return array_values($items);
+        $items = array_values($items);
+
+        /* Figures in the order figures have. A short column of centimetres is
+           still a wall when 191 comes before 143, and the order a shelf was
+           filled in is no order at all. Anything that is not a figure keeps
+           its place after them. */
+        usort($items, fn (array $a, array $b) => $a['reading'] && $b['reading']
+            ? $a['reading']['low'] <=> $b['reading']['low']
+            : ($a['reading'] ? 0 : 1) <=> ($b['reading'] ? 0 : 1));
+
+        return self::bandedIfLong($items, $units);
+    }
+
+    /*
+     | Past this many bands a reading is a list again, so the band is widened
+     | until there are no more than this.
+     */
+    public const MAX_BANDS = 8;
+
+    /* How much of a group has to be readings before the group is treated as
+       a measurement at all. */
+    protected const MOSTLY = 0.75;
+
+    /**
+     | A reading that runs on and on -- a refrigerator's litres, a machine's
+     | load, a height in centimetres -- gives almost every product an answer
+     | of its own. Offered one by one they are a hundred boxes, and dropping
+     | the ones only a single product gives leaves the shelf reachable only
+     | through the few figures that happen to repeat.
+     |
+     | So where there are too many they are gathered into bands, and every
+     | product is reachable through the band its figure falls in. A group
+     | small enough to read is left exactly as it is: nobody wants a washing
+     | machine of "5-10 კგ" when 7 კგ and 8 კგ are the choice.
+     |
+     | @param  array<int, array<string, mixed>>  $items
+     | @param  array<string, string>  $units  the unit each quantity is banded in
+     | @return array<int, array<string, mixed>>
+     */
+    protected static function bandedIfLong(array $items, array $units): array
+    {
+        if (count($items) <= self::MAX_ANSWERS) {
+            return $items;
+        }
+
+        $readings = array_filter(array_column($items, 'reading'));
+
+        if (count($readings) < count($items) * self::MOSTLY) {
+            return $items;
+        }
+
+        /* One quantity, or the figures are not comparable and banding them
+           would put litres beside kilograms. Two units of the same quantity
+           are no obstacle: grams and kilograms are already held as the one
+           figure and are banded in whichever of them the shelf speaks. */
+        $quantities = array_unique(array_column($readings, 'dimension'));
+
+        if (count($quantities) !== 1) {
+            return $items;
+        }
+
+        $dimension = (string) reset($quantities);
+
+        if (! Measure::bandable($dimension)) {
+            return $items;
+        }
+
+        return self::bands($items, $dimension, (string) ($units[$dimension] ?? reset($readings)['unit']));
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function bands(array $items, string $dimension, string $unit): array
+    {
+        $factor = Measure::factor($dimension, $unit);
+        $figures = array_map(fn (array $i) => $i['reading']['low'] / $factor, array_filter($items, fn ($i) => $i['reading']));
+
+        $step = Measure::step(min($figures), max($figures), self::MAX_BANDS);
+        $bands = [];
+        $rest = [];
+
+        foreach ($items as $item) {
+            if (! $item['reading']) {
+                $rest[] = $item;
+
+                continue;
+            }
+
+            $from = floor(($item['reading']['low'] / $factor) / $step) * $step;
+            $label = Measure::span($from, $from + $step, $dimension, $unit);
+            $code = $dimension.'-'.Slug::make($label);
+
+            $bands[$code] ??= [
+                'code' => $code, 'label' => $label, 'codes' => [], 'held' => 0,
+                'reading' => null, 'from' => $from,
+            ];
+
+            $bands[$code]['codes'] = array_merge($bands[$code]['codes'], $item['codes']);
+            $bands[$code]['held'] += $item['held'];
+        }
+
+        $bands = array_values($bands);
+
+        usort($bands, fn (array $a, array $b) => $a['from'] <=> $b['from']);
+
+        return array_merge($bands, $rest);
     }
 
     /**
@@ -613,16 +723,18 @@ class Catalog
         $attributeGroups = Attribute::filterable()->withTranslation()
 
             ->whereNotIn('code', self::RESERVED_FILTERS)
-            ->with(['categories:id'])
             ->with(['values' => fn ($q) => $q->withTranslation()
                 ->whereHas('products', $inListing)
                 ->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->get()
-            /* A filter kept to certain shelves is offered on those shelves,
-               the same reading of it as the choices on a product page make --
-               one kept to none in particular is still offered everywhere. */
-            ->filter(fn (Attribute $a) => $a->appliesTo($category))
+            /* Deliberately not kept to the shelves an attribute is listed
+               under. That listing is what offers colour as a picker on a
+               telephone and not on a kettle, and reading it here as well took
+               colour out of the sidebar on forty-nine shelves: the shelf it
+               was listed under was the only one that kept it. A filter is
+               offered wherever the products on the shelf answer it, and the
+               rules below decide whether it is worth offering. */
             ->map(fn (Attribute $a) => [
                 'name' => $a->name,
                 'key' => $a->code,
