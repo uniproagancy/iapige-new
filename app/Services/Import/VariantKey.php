@@ -89,6 +89,23 @@ class VariantKey
 
         $base = (string) preg_replace('/(?<=^|\s)\d+(?:[.,]\d+)?\s?(?:'.self::UNITS.')(?=\s|$)/u', ' ', $base);
 
+        /*
+         | A television writes its size into its model: "Sony TV K-55XR50" and
+         | "K-65XR50" are one television in two sizes, and the only thing
+         | telling them apart is the 55 buried in the code. Where the product
+         | itself says it is 55 inches, that figure comes out of the name
+         | wherever it sits -- but only a screen size, because taking a figure
+         | out of the middle of a word is otherwise how two different products
+         | end up looking alike.
+         */
+        foreach ($distinguishing as $value) {
+            $inches = self::screenSize((string) $value);
+
+            if ($inches !== null) {
+                $base = (string) preg_replace('/(?<!\d)'.$inches.'(?!\d)/u', ' ', $base);
+            }
+        }
+
         $base = (string) preg_replace(
             '/(?<=^|\s)(?:'.implode('|', self::COLOURS).')(?=\s|$)/u', ' ', $base);
 
@@ -166,6 +183,22 @@ class VariantKey
         }
 
         return $values;
+    }
+
+    /*
+     | "55 inches", "55\"", "140 სმ" -- the figure, when the answer is a screen
+     | size and nothing else. Anything carrying another unit, or more words
+     | than a size has, is not one.
+     */
+    public static function screenSize(string $value): ?string
+    {
+        $value = trim(mb_strtolower($value));
+
+        if (! preg_match('/^(\d{2,3})\s*(?:"|”|\x{201D}|inch|inches|inc|იანი|სმ|cm)?$/u', $value, $m)) {
+            return null;
+        }
+
+        return $m[1];
     }
 
     public static function isAxis(string $specName): bool
