@@ -389,6 +389,14 @@
                     </select>
                     @error('payment') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
+                    {{-- The link is issued against the order as it stands, so a
+                         method picked but not yet saved has none. --}}
+                    @if ($payment !== $order->payment)
+                        <small class="d-block text-warning mt-50">
+                            {{ __('admin.pay_link_after_save') }}
+                        </small>
+                    @endif
+
                     @if ($payLink)
                         <hr class="my-1">
 

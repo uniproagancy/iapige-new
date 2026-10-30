@@ -1,6 +1,10 @@
 @props(['docs', 'active'])
 
-@php $doc = $docs[$active]; @endphp
+@php
+    $doc = $docs[$active];
+    $contactEmail = (string) config('shop.email', 'info@iapi.ge');
+    $contactSubject = $doc['contact_subject'] ?? '';
+@endphp
 
 <section class="pview" aria-label="{{ __('info.text') }}">
     <div class="docs">
@@ -35,7 +39,7 @@
 
             <div class="doc__foot">
                 <span>{{ __('info.doc_questions') }}</span>
-                <a class="doc__mail" href="mailto:legal@iapi.ge">legal@iapi.ge</a>
+                <a class="doc__mail" href="mailto:{{ $contactEmail }}{{ $contactSubject !== '' ? '?subject='.rawurlencode($contactSubject) : '' }}">{{ $contactEmail }}</a>
             </div>
         </article>
     </div>

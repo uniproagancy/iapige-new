@@ -30,3 +30,5 @@ Schedule::call(fn () => app(JsonImportSource::class)->purgeExpired(100))
     ->name('json-imports:cleanup')
     ->hourly()
     ->withoutOverlapping(10);
+
+Schedule::command('social:run')->everyMinute()->withoutOverlapping(10)->appendOutputTo(storage_path('logs/social-publishing.log'));

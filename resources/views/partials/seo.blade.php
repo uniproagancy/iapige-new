@@ -10,10 +10,10 @@
 <meta property="og:type" content="{{ $seo['type'] }}">
 <meta property="og:title" content="{{ $seo['title'] }}">
 <meta property="og:description" content="{{ $seo['description'] }}">
-<meta property="og:url" content="{{ $seo['canonical'] }}">
+<meta property="og:url" content="{{ $seo['og_url'] }}">
 <meta property="og:image" content="{{ $seo['image'] }}">
-<meta property="og:image:width" content="{{ \App\Support\Seo::IMAGE_WIDTH }}">
-<meta property="og:image:height" content="{{ \App\Support\Seo::IMAGE_HEIGHT }}">
+<meta property="og:image:width" content="{{ $seo['image_width'] }}">
+<meta property="og:image:height" content="{{ $seo['image_height'] }}">
 <meta property="og:image:alt" content="{{ $seo['image_alt'] }}">
 <meta property="og:locale" content="{{ str_replace('-', '_', app()->getLocale()) }}">
 

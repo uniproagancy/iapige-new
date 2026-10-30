@@ -355,6 +355,7 @@ return [
     'mark_paid_confirm' => 'Mark this order as paid?',
     'purchase_reported' => 'The sale was reported to Meta (Purchase)',
     'pay_online' => 'Pay online',
+    'pay_link_after_save' => 'Save the order to issue a payment link for this method.',
     'pay_link_note' => 'The link is good for :days days. Send it to the customer, or open it and pay here.',
     'pay_link_sms' => 'Send the link by SMS',
     'pay_link_sms_confirm' => 'Send the payment link to :phone?',

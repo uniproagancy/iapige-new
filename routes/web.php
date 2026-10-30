@@ -4,6 +4,7 @@ use App\Http\Controllers\AltaBrowserController;
 use App\Http\Controllers\AltaStockFeedController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BogInstallmentController;
+use App\Http\Controllers\BusinessSuiteBundleController;
 use App\Http\Controllers\CredoController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\FeedController;
@@ -13,6 +14,9 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocialAuthController;
+use App\Http\Controllers\SocialFeedImageController;
+use App\Http\Controllers\SocialPublicationMediaController;
+use App\Http\Controllers\SocialPublishingController;
 use App\Http\Middleware\TrackPageView;
 use App\Livewire\Account\Index;
 use App\Livewire\Admin;
@@ -68,6 +72,17 @@ Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'
     ->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
     ->name('social.callback');
+
+Route::get('/social-media/{publication}/{key}', SocialPublicationMediaController::class)
+    ->whereNumber('publication')->where('key', '[a-f0-9]{64}')
+    ->middleware(['signed', 'throttle:120,1'])
+    ->withoutMiddleware([TrackPageView::class])
+    ->name('social.media');
+
+Route::get('/social-feed-image/{publication}/{key}', SocialFeedImageController::class)
+    ->whereNumber('publication')->where('key', '[a-f0-9]{64}')
+    ->middleware('throttle:120,1')->withoutMiddleware(TrackPageView::class)
+    ->name('social.feed-image');
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
@@ -134,6 +149,13 @@ Route::middleware(['auth', 'can:admin'])
         /* The shop's own settings, its people and its suppliers stay with
            the owner; an operator works the orders and the catalogue. */
         Route::middleware('can:owner')->group(function () {
+            Route::get('/social', Admin\Social\Index::class)->name('social');
+            Route::get('/social/facebook/connect', [SocialPublishingController::class, 'connect'])->name('social.connect');
+            Route::post('/social/facebook/token', [SocialPublishingController::class, 'connectToken'])->middleware('throttle:6,1')->name('social.token');
+            Route::get('/social/artwork/{post}', [SocialPublishingController::class, 'artwork'])->name('social.artwork');
+            Route::get('/social/bundles/{bundle}/{format}', [BusinessSuiteBundleController::class, 'asset'])
+                ->where('bundle', '[a-f0-9]{64}')->whereIn('format', ['feed', 'story'])
+                ->name('social.bundle.asset');
             Route::get('/alta-browser/feed', [AltaBrowserController::class, 'feed'])->middleware('throttle:6,1')->name('alta-browser.feed');
             Route::post('/alta-browser/product', [AltaBrowserController::class, 'store'])->middleware('throttle:30,1')->name('alta-browser.product');
             Route::get('/alta-browser/status', [AltaBrowserController::class, 'status'])->middleware('throttle:60,1')->name('alta-browser.status');

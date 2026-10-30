@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages;
 
 use App\Services\Facebook\Pixel;
+use App\Services\Social\SocialFeedLink;
 use App\Support\Catalog;
 use App\Support\Seo;
 use Illuminate\Support\Str;
@@ -70,7 +71,7 @@ class Product extends Component
                 'tab' => 'catalog',
                 'pageCss' => 'product',
                 'pageJs' => 'product',
-                'seo' => [
+                'seo' => array_replace([
 
                     'title' => $model->meta_title ?: $name.' — '.config('app.name'),
                     'description' => $model->meta_description
@@ -87,7 +88,7 @@ class Product extends Component
                         Seo::product($data['product'], $model),
                         Seo::breadcrumbs($data['product']['breadcrumbs']),
                     ],
-                ],
+                ], app(SocialFeedLink::class)->metadata($model->getKey(), request())),
             ])
             ->section('content');
     }

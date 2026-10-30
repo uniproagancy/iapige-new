@@ -27,6 +27,10 @@ class SocialAuthController extends Controller
     {
         $this->guard($provider);
 
+        if ($provider === 'facebook' && session()->has('social.facebook_connect_owner')) {
+            return app(SocialPublishingController::class)->callback();
+        }
+
         try {
             $account = Socialite::driver($provider)->user();
         } catch (\Throwable $e) {

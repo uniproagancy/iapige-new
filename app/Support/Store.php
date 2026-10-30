@@ -243,6 +243,6 @@ class Store
                         ['h' => 'Approval', 'p' => 'Apply online and get a decision within 3 minutes.'],
                     ]],
             ],
-        ]);
+        ]) + __('privacy.documents');
     }
 }

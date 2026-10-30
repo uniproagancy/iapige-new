@@ -69,7 +69,7 @@
         <span class="foot__copy">© {{ date('Y') }} IAPI · {{ __('footer.rights') }}</span>
         <div class="foot__legal">
             <a href="{{ route('info', 'delivery') }}">{{ __('footer.terms') }}</a>
-            <a href="#">{{ __('footer.privacy') }}</a>
+            <a href="{{ route('info', 'privacy') }}">{{ __('footer.privacy') }}</a>
             <span>{{ __('footer.address') }}</span>
         </div>
     </div>

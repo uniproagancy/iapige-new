@@ -175,7 +175,7 @@
                     </ul>
                 </li>
 
-                <li class="dropdown nav-item {{ $on('admin.slides', 'admin.promotions', 'admin.users', 'admin.users.*', 'admin.settings') }}"
+                <li class="dropdown nav-item {{ $on('admin.slides', 'admin.promotions', 'admin.users', 'admin.users.*', 'admin.settings', 'admin.social', 'admin.social.*') }}"
                     data-menu="dropdown">
                     <a class="dropdown-toggle nav-link d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                         {!! $icon('store') !!}<span>{{ __('admin.shop') }}</span>
@@ -192,6 +192,11 @@
                             </a>
                         </li>
                         @can('owner')
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.social') }}">
+                                    {!! $icon('image') !!}<span>{{ __('social.nav') }}</span>
+                                </a>
+                            </li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.users') }}">
                                     {!! $icon('users') !!}<span>{{ __('admin.customers') }}</span>
