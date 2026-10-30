@@ -71,8 +71,6 @@
                 </div>
 
                 @if ($active)
-                    @php $step = $this->trackStep($active); @endphp
-
                     <section class="track">
                         <div class="track__head">
                             <div>
@@ -83,15 +81,6 @@
                                 {{ __('order.status.'.$active->status) }}
                             </span>
                         </div>
-
-                        <ol class="track__steps">
-                            @foreach (\App\Livewire\Account\Index::TRACK as $i => $name)
-                                <li @class(['track__step', 'is-done' => $i < $step, 'is-now' => $i === $step])>
-                                    <span class="track__dot" aria-hidden="true"></span>
-                                    <span class="track__label">{{ __('order.status.'.$name) }}</span>
-                                </li>
-                            @endforeach
-                        </ol>
 
                         <div class="track__foot">
                             <span>{{ trans_choice('account.n_items', $active->items->sum('qty'), ['count' => $active->items->sum('qty')]) }}</span>
@@ -168,12 +157,6 @@
                                     <span>{{ $order->is_paid ? __('account.paid') : __('account.unpaid') }}</span>
                                 </div>
 
-                                <div class="ord__acts">
-                                    <button type="button" class="btn-ghost" wire:click="reorder({{ $order->id }})">
-                                        {{ __('account.reorder') }}
-                                    </button>
-
-                                </div>
                             </div>
                         @endif
                     </div>

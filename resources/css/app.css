@@ -1360,32 +1360,6 @@ body.has-cookies .toast{bottom:130px}
 .track__eyebrow{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-4)}
 .track__num{display:block;margin-top:2px;font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink)}
 
-.track__steps{
-  display:grid;grid-template-columns:repeat(5,1fr);gap:0;
-  list-style:none;margin:0;padding:0;position:relative
-}
-.track__step{position:relative;text-align:center;padding-top:22px}
-/* the line lives on the step, so it never outruns the last dot */
-.track__step::before{
-  content:'';position:absolute;top:6px;left:-50%;width:100%;height:2px;
-  background:var(--line);z-index:0
-}
-.track__step:first-child::before{display:none}
-.track__step.is-done::before,.track__step.is-now::before{background:var(--red-bright)}
-
-.track__dot{
-  position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:14px;height:14px;border-radius:50%;
-  background:#fff;border:2px solid var(--line);z-index:1
-}
-.track__step.is-done .track__dot{background:var(--red-bright);border-color:var(--red-bright)}
-.track__step.is-now .track__dot{
-  background:#fff;border-color:var(--red-bright);
-  box-shadow:0 0 0 4px rgba(255,105,0,.18)
-}
-.track__label{font-size:11px;color:var(--muted-3);line-height:1.3;display:block;padding:0 4px}
-.track__step.is-now .track__label{color:var(--ink);font-weight:600}
-
 .track__foot{
   display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;padding-top:14px;
   border-top:1px solid var(--line);font-size:12px;color:var(--muted-3)
@@ -1445,14 +1419,12 @@ body.has-cookies .toast{bottom:130px}
   .acc-quick{grid-template-columns:1fr}
   .ord__head{grid-template-columns:1fr auto;row-gap:6px}
   .addr{flex-direction:column}
-  .track__label{font-size:10px}
 }
 
 @media (max-width:520px){
   .acc-stats{grid-template-columns:1fr;gap:8px}
   .acc-head{flex-wrap:wrap}
   /* five labels will not fit, so only the current step keeps its name */
-  .track__step:not(.is-now) .track__label{display:none}
 }
 
 .btn-main.is-pre{

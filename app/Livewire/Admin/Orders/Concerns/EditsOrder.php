@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Orders\Concerns;
 
 use App\Models\DeliveryCity;
 use App\Models\Order;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Facebook\Pixel;
@@ -71,6 +72,56 @@ trait EditsOrder
         }
 
         $this->shippingOverride = (string) $order->shipping;
+    }
+
+    /*
+     | The rest of the editor is a draft until it is saved, but the way an
+     | order is paid is not: the operator picks it and then presses "pay here"
+     | or sends the link, and both of those are the order as it stands. So this
+     | one field is written the moment it is chosen, and the link beneath it is
+     | issued for the method that is now on the order.
+     */
+    public function updatedPayment(string $value): void
+    {
+        if ($value === '' || $value === (string) $this->order->payment) {
+            return;
+        }
+
+        if (! $this->editable()) {
+            $this->payment = (string) $this->order->payment;
+
+            $this->dispatch('toast', type: 'error', message: __('admin.order_closed_for_edit'));
+
+            return;
+        }
+
+        if (! PaymentMethod::active()->where('code', $value)->exists()) {
+            $this->payment = (string) $this->order->payment;
+
+            return;
+        }
+
+        $was = (string) $this->order->payment;
+
+        $this->order->update(['payment' => $value]);
+
+        $this->order->events()->create([
+            'user_id' => auth()->id(),
+            'type' => 'payment',
+            'note' => __('admin.order_payment_changed', [
+                'from' => $this->methodName($was),
+                'to' => $this->methodName($value),
+            ]),
+        ]);
+
+        $this->order = $this->order->fresh(['items.product.images', 'events.user', 'user']);
+
+        $this->dispatch('toast', message: __('admin.saved'));
+    }
+
+    protected function methodName(string $code): string
+    {
+        return (string) (PaymentMethod::withTranslation()->where('code', $code)->value('name') ?: $code);
     }
 
     public function editable(): bool

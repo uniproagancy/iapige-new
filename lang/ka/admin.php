@@ -355,7 +355,7 @@ return [
     'mark_paid_confirm' => 'შეკვეთა გადახდილად მოინიშნოს?',
     'purchase_reported' => 'გაყიდვა გადაეცა Meta-ს (Purchase)',
     'pay_online' => 'ონლაინ გადახდა',
-    'pay_link_after_save' => 'შეინახე, რომ ამ მეთოდის გადახდის ბმული შეიქმნას.',
+    'order_payment_changed' => 'გადახდის მეთოდი შეიცვალა: :from → :to',
     'pay_link_note' => 'ბმული :days დღე მოქმედებს. გაუგზავნე მომხმარებელს ან თავად გახსენი და გადაიხადე.',
     'pay_link_sms' => 'ბმულის გაგზავნა SMS-ით',
     'pay_link_sms_confirm' => 'გადახდის ბმული გაიგზავნოს ნომერზე :phone?',

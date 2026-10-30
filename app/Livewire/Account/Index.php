@@ -4,7 +4,6 @@ namespace App\Livewire\Account;
 
 use App\Models\DeliveryCity;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\UserAddress;
 use App\Support\Catalog;
 use Illuminate\Support\Facades\DB;
@@ -15,8 +14,6 @@ use Livewire\Component;
 
 class Index extends Component
 {
-    public const TRACK = [Order::NEW, Order::VIEWED, Order::COMPLETED];
-
     #[Url(as: 'tab', except: 'overview')]
     public string $tab = 'overview';
 
@@ -167,41 +164,9 @@ class Index extends Component
         ];
     }
 
-    public function trackStep(Order $order): int
-    {
-        $position = array_search($order->status, self::TRACK, true);
-
-        return $position === false ? -1 : $position;
-    }
-
     public function toggleOrder(int $id): void
     {
         $this->openOrder = $this->openOrder === $id ? null : $id;
-    }
-
-    public function reorder(int $id): void
-    {
-        $order = Order::where('user_id', auth()->id())->with('items')->findOrFail($id);
-
-        $added = 0;
-        $skipped = 0;
-
-        foreach ($order->items as $item) {
-            $product = Product::active()->whereKey($item->product_id)->first();
-
-            if (! $product || $product->stock < 1) {
-                $skipped++;
-
-                continue;
-            }
-
-            $this->dispatch('cart-add', id: $product->id, qty: (int) $item->qty);
-            $added++;
-        }
-
-        $this->dispatch('toast', message: $skipped
-            ? __('account.reordered_partly', ['added' => $added, 'skipped' => $skipped])
-            : __('account.reordered', ['count' => $added]));
     }
 
     public function newAddress(): void
