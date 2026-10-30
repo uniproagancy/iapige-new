@@ -368,15 +368,30 @@
                 </div>
             </div>
 
-            @if ($payLink)
-                <div class="card border-primary">
-                    <div class="card-header">
-                        <h4 class="card-title mb-0 d-flex align-items-center gap-50">
-                            {!! $icon('link') !!}{{ __('admin.pay_online') }}
-                        </h4>
-                    </div>
+            <div @class(['card', 'border-primary' => $payLink])>
+                <div class="card-header">
+                    <h4 class="card-title mb-0 d-flex align-items-center gap-50">
+                        @if ($payLink) {!! $icon('link') !!} @endif
+                        {{ $payLink ? __('admin.pay_online') : __('admin.payment') }}
+                    </h4>
+                </div>
 
-                    <div class="card-body">
+                <div class="card-body">
+                    <label class="form-label" for="orderPayment">{{ __('admin.payment') }}</label>
+                    <select id="orderPayment" class="form-select @error('payment') is-invalid @enderror"
+                            wire:model.live="payment">
+                        @foreach ($methods as $method)
+                            <option value="{{ $method->code }}" @disabled(! ($fits[$method->code] ?? true))>
+                                {{ $method->name }}
+                                @unless ($fits[$method->code] ?? true) — {{ __('admin.order_method_unavailable') }} @endunless
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('payment') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                    @if ($payLink)
+                        <hr class="my-1">
+
                         <p class="text-muted small">
                             {{ __('admin.pay_link_note', ['days' => \App\Livewire\Admin\Orders\Show::LINK_DAYS]) }}
                         </p>
@@ -410,9 +425,9 @@
                         <a class="btn btn-primary w-100" href="{{ $payLink }}" target="_blank" rel="noopener">
                             {!! $icon('money', 'me-25') !!}{{ __('admin.pay_here') }}
                         </a>
-                    </div>
+                    @endif
                 </div>
-            @endif
+            </div>
 
             <div class="card">
                 <div class="card-header">
@@ -496,23 +511,6 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title mb-0">{{ __('admin.payment') }}</h4>
-                </div>
-
-                <div class="card-body">
-                    <select class="form-select @error('payment') is-invalid @enderror" wire:model.live="payment">
-                        @foreach ($methods as $method)
-                            <option value="{{ $method->code }}" @disabled(! ($fits[$method->code] ?? true))>
-                                {{ $method->name }}
-                                @unless ($fits[$method->code] ?? true) — {{ __('admin.order_method_unavailable') }} @endunless
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('payment') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
 
             @if ($this->editable())
                 <div class="card">
