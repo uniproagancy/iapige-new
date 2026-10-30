@@ -64,7 +64,6 @@ class Create extends Component
             $this->qty[$this->productId] = 1;
         }
 
-        $this->cityId ??= DeliveryCity::active()->value('id');
         $this->payment = $this->payment ?: (string) (PaymentMethod::active()->value('code') ?? 'cash');
     }
 
@@ -122,7 +121,9 @@ class Create extends Component
                 'comment' => ['nullable', 'string', 'max:1000'],
                 'shippingOverride' => ['nullable', 'numeric', 'min:0', 'max:9999'],
             ], $this->delivery === 'courier' ? [
-                'cityId' => ['required', 'exists:delivery_cities,id'],
+                /* Nobody picks a city any more; one only arrives with a
+                   customer's saved address. */
+                'cityId' => ['nullable', 'exists:delivery_cities,id'],
                 'address' => ['required', 'string', 'min:5', 'max:160'],
             ] : []),
 

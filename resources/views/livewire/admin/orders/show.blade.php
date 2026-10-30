@@ -479,16 +479,7 @@
                     </select>
 
                     @if ($delivery === 'courier')
-                        <label class="form-label mt-1" for="orderCity">{{ __('checkout.city') }}</label>
-                        <select id="orderCity" class="form-select @error('cityId') is-invalid @enderror"
-                                wire:model.live="cityId">
-                            <option value="">—</option>
-                            @foreach ($cities as $city)
-                                <option value="{{ $city->id }}">{{ $city->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('cityId') <div class="invalid-feedback">{{ $message }}</div> @enderror
-
+                        {{-- no city to pick: the address says where it goes --}}
                         <label class="form-label mt-1" for="orderAddress">{{ __('checkout.address') }}</label>
                         <input type="text" id="orderAddress" class="form-control" wire:model="address">
                     @endif

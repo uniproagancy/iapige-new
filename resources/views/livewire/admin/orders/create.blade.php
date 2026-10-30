@@ -213,18 +213,10 @@
 
                         @if ($delivery === 'courier')
                             <div class="row">
-                                <div class="col-md-5 mb-1">
-                                    <label class="form-label" for="o-city">{{ __('admin.order_city') }} *</label>
-                                    <select id="o-city" class="form-select @error('cityId') is-invalid @enderror"
-                                            wire:model.live="cityId">
-                                        <option value="">—</option>
-                                        @foreach ($cities as $city)
-                                            <option value="{{ $city->id }}">{{ $city->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('cityId') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-md-7 mb-1">
+                                {{-- The city is not asked for: the address says where it
+                                     goes, and the fee is the one the operator writes in
+                                     below. --}}
+                                <div class="col-12 mb-1">
                                     <label class="form-label" for="o-address">{{ __('admin.order_address') }} *</label>
                                     <input id="o-address" type="text"
                                            class="form-control @error('address') is-invalid @enderror"

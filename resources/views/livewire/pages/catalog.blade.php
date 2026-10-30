@@ -165,7 +165,7 @@
                         @endif
                     </div>
 
-                    <div class="toolbar">
+                    <div class="toolbar" id="listingTop">
                         <button type="button" class="btn-filter" data-open="filters">
                             <x-icon name="sliders-horizontal" size="16" />
                             {{ __('catalog.filters') }}

@@ -329,6 +329,21 @@ document.addEventListener('livewire:init', () => {
     /* any component can ask for a notification: $this->dispatch('toast', message: '…') */
     window.Livewire.on('toast', ({ message, type }) => toast(message, type ?? 'success'));
 
+    /* A filter picked half way down a long column leaves the products off the
+       top of the screen; this brings them back. Not while the filters are a
+       sheet over the page, where there is nothing behind them to look at. */
+    window.Livewire.on('listing-changed', () => {
+        const top = document.getElementById('listingTop');
+
+        if (!top || currentPanel() === 'filters') return;
+
+        const header = document.getElementById('header');
+        const above = header && getComputedStyle(header).position === 'sticky' ? header.offsetHeight : 0;
+        const y = top.getBoundingClientRect().top + window.scrollY - above - 12;
+
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    });
+
     /* a guest tried to use the wishlist */
     window.Livewire.on('open-auth', () => openPanel('auth'));
 });

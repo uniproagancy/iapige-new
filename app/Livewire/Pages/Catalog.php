@@ -65,6 +65,12 @@ class Catalog extends Component
         }
 
         $this->resetPaging();
+
+        /* The filters run down the side of a long page, so picking one half
+           way down leaves somebody looking at the empty space where the old
+           products were. The page says it has changed; the browser brings the
+           products back into view. */
+        $this->dispatch('listing-changed');
     }
 
     public function chooseSub(?int $id): void

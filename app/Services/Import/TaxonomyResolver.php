@@ -127,7 +127,7 @@ class TaxonomyResolver
             return null;
         }
 
-        $code = $this->fit(Slug::make($raw) ?: Str::slug($raw));
+        $code = self::valueCode($raw);
 
         if ($code === '') {
             return null;
@@ -162,6 +162,30 @@ class TaxonomyResolver
         $code = Slug::make($name) ?: Str::slug($name);
 
         return $code !== '' ? $this->fit($code) : 'spec-'.substr(md5($name), 0, 8);
+    }
+
+    /*
+     | What an answer is filed under. Said out loud so anything that wants to
+     | look an answer up without creating it reads it the same way.
+     */
+    public static function valueCode(string $raw): string
+    {
+        $raw = trim($raw);
+
+        if ($raw === '' || in_array($raw, self::EMPTY_VALUES, true)) {
+            return '';
+        }
+
+        return self::fitTo(Slug::make($raw) ?: Str::slug($raw));
+    }
+
+    public static function fitTo(string $slug, int $max = 64): string
+    {
+        if (mb_strlen($slug) <= $max) {
+            return $slug;
+        }
+
+        return rtrim(mb_substr($slug, 0, $max - 9), '-').'-'.substr(md5($slug), 0, 8);
     }
 
     protected function fit(string $slug, int $max = 64): string
