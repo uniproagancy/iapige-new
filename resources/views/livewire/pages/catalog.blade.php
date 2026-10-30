@@ -124,7 +124,7 @@
 										$n  = $facets[$group['key']][$item['code']] ?? 0;
 										$on = in_array($item['code'], $picked[$group['key']] ?? [], true);
 									@endphp
-									<button type="button" @class(['fopt', 'is-on' => $on, 'is-empty' => $n === 0 && ! $on])
+									<button type="button" @class(['fopt', 'is-on' => $on])
 											wire:click="toggle('{{ $group['key'] }}', '{{ $item['code'] }}')"
 											wire:key="opt-{{ $group['key'] }}-{{ $item['code'] }}"
 											role="checkbox" aria-checked="{{ $on ? 'true' : 'false' }}">

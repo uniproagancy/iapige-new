@@ -55,6 +55,7 @@ const panels = {
     catalog: { selector: '#catalog' },
     cart:    { selector: '#cart' },
     auth:    { selector: '#authModal' },
+    search:  { selector: '#searchSheet' },
 };
 let current = null;
 let lastFocus = null;

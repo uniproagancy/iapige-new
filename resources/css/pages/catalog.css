@@ -87,7 +87,6 @@
 .fopt__name{flex:1;font-size:13px;color:var(--ink-2)}
 .fopt.is-on .fopt__name{color:var(--ink);font-weight:500}
 .fopt__count{font-family:var(--mono);font-size:11px;color:var(--muted-4)}
-.fopt.is-empty{opacity:.4}
 .fchips{display:flex;flex-wrap:wrap;gap:8px}
 .fchip{
   padding:11px 16px;border-radius:var(--r-pill);background:#fff;border:1.5px solid var(--line-2);

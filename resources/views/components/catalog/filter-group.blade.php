@@ -1,5 +1,7 @@
 @props(['group', 'facets', 'picked'])
 
+{{-- the groups arrive already trimmed to what is still worth offering --}}
+@if (count($group['items']))
 <div @class(['fgroup', 'is-open' => $group['open']]) style="margin-top:12px">
     <button type="button" class="fgroup__head" data-fgroup aria-expanded="{{ $group['open'] ? 'true' : 'false' }}">
         <span class="fgroup__name">{{ $group['name'] }}</span>
@@ -12,7 +14,7 @@
                     $n  = $facets[$group['key']][$item['code']] ?? 0;
                     $on = in_array($item['code'], (array) ($picked[$group['key']] ?? []), true);
                 @endphp
-                <button type="button" @class(['fopt', 'is-on' => $on, 'is-empty' => $n === 0 && ! $on])
+                <button type="button" @class(['fopt', 'is-on' => $on])
                         wire:click="toggleFilter('{{ $group['key'] }}', '{{ $item['code'] }}')"
                         role="checkbox" aria-checked="{{ $on ? 'true' : 'false' }}">
                     <span class="fopt__box" aria-hidden="true"><x-icon name="check" size="12" /></span>
@@ -23,3 +25,4 @@
         </div>
     </div>
 </div>
+@endif

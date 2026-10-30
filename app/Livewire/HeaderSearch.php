@@ -10,6 +10,10 @@ class HeaderSearch extends Component
 {
     public string $q = '';
 
+    /* Drawn in the header and again in the sheet the phone opens, so the two
+       cannot share one id. */
+    public string $inputId = 'searchInput';
+
     #[Computed]
     public function results(): array
     {

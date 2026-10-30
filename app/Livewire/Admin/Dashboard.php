@@ -48,11 +48,6 @@ class Dashboard extends Component
             'revenue' => (float) ($taken[$today] ?? 0),
             'orders_yesterday' => (int) ($placed[$yesterday] ?? 0),
             'revenue_yesterday' => (float) ($taken[$yesterday] ?? 0),
-
-            /* What has been ordered and not yet paid for. */
-            'owed' => (float) Order::where('is_paid', false)
-                ->whereIn('status', Order::OPEN)
-                ->sum('total'),
         ];
     }
 

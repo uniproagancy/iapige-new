@@ -239,13 +239,45 @@ class Catalog extends Component
         $total = (clone $query)->reorder()->count();
         $products = CatalogData::cards($query->with(['brand', 'images'])->limit($this->perPage)->get());
 
+        $facets = $this->facets($listing['groups']);
+        $listing['groups'] = $this->offered($listing['groups'], $facets);
+
         return [
             'listing' => $listing,
             'products' => $products,
             'total' => $total,
             'left' => max(0, $total - count($products)),
-            'facets' => $this->facets($listing['groups']),
+            'facets' => $facets,
             'active' => $this->activeFilters(),
         ];
+    }
+
+    /*
+     | What is left to choose from. A shelf offers every answer any of its
+     | products ever gave, but once something else has been narrowed down most
+     | of them lead nowhere -- and an answer that leads nowhere is not a choice,
+     | so it goes rather than sitting there greyed out.
+     |
+     | A group is kept while there is still something to decide: two answers to
+     | pick between, or one already picked and waiting to be let go.
+     */
+    protected function offered(array $groups, array $facets): array
+    {
+        foreach ($groups as $at => $group) {
+            $key = $group['key'];
+            $picked = (array) ($this->picked[$key] ?? []);
+
+            $groups[$at]['items'] = array_values(array_filter(
+                $group['items'],
+                fn (array $item) => ($facets[$key][$item['code']] ?? 0) > 0
+                    || in_array($item['code'], $picked, true),
+            ));
+        }
+
+        return array_values(array_filter(
+            $groups,
+            fn (array $group) => count($group['items']) > 1
+                || ($this->picked[$group['key']] ?? []) !== [],
+        ));
     }
 }

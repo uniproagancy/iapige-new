@@ -772,14 +772,47 @@ class Catalog
 
     public static function matching(Builder $query, string $term): Builder
     {
-        return $query->where(function ($q) use ($term) {
-            $q->whereHas('translations', fn ($t) => $t
-                ->where('locale', app()->getLocale())
-                ->where(fn ($w) => $w->where('name', 'like', "%{$term}%")
-                    ->orWhere('summary', 'like', "%{$term}%")))
-                ->orWhere('sku', 'like', "%{$term}%")
-                ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', "%{$term}%"));
+        $spellings = self::spellings($term);
+
+        return $query->where(function ($q) use ($spellings) {
+            foreach ($spellings as $at => $spelling) {
+                $q->{$at === 0 ? 'where' : 'orWhere'}(fn ($s) => $s
+                    ->whereHas('translations', fn ($t) => $t
+                        ->where('locale', app()->getLocale())
+                        ->where(fn ($w) => $w->where('name', 'like', "%{$spelling}%")
+                            ->orWhere('summary', 'like', "%{$spelling}%")))
+                    ->orWhere('sku', 'like', "%{$spelling}%")
+                    ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', "%{$spelling}%")));
+            }
         });
+    }
+
+    /*
+     | The same word, as somebody might type it. A brand reaches the shop in
+     | latin letters -- ALNEO, Samsung -- and is typed in Georgian ones, so the
+     | Georgian spelling is carried across before anything is looked for.
+     |
+     | @return array<int, string>
+     */
+    protected static function spellings(string $term): array
+    {
+        $spellings = [$term];
+
+        if (preg_match('/\p{Georgian}/u', $term)) {
+            $latin = str_replace('-', ' ', Slug::make($term));
+
+            if ($latin !== '') {
+                $spellings[] = $latin;
+
+                /* Georgian gives a borrowed name an ending of its own --
+                   "samsungi" for Samsung -- so the bare stem is tried too. */
+                if (mb_strlen($latin) > 3 && str_ends_with($latin, 'i')) {
+                    $spellings[] = mb_substr($latin, 0, -1);
+                }
+            }
+        }
+
+        return array_values(array_unique(array_filter($spellings)));
     }
 
     public static function search(string $term, int $limit = 5): array

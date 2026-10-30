@@ -3,124 +3,213 @@
 namespace App\Console\Commands;
 
 use App\Models\Attribute;
+use App\Models\Language;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /*
- | Two suppliers call the same thing by different names and the shop ends up
- | with "დიაგონალი" and "ეკრანის ზომა" side by side, each filtering a share of
- | the products. attributes:doctor finds them; this one joins them up.
+ | One filter, two records. Each supplier's own word for a specification makes
+ | an attribute of its own, so the shop ends up offering "ფერი" twice over --
+ | once from a list that called it Color and once from a list that called it
+ | ფერი. Whoever translated them gave both the same Georgian name, and that is
+ | the signal this follows: same name, same filter.
+ |
+ | Deliberately literal. Two names match only when they read the same word for
+ | word once the suppliers' mark-up litter is gone, so "ხმაურის დონე (დბა)"
+ | and "ხმაურის დონე (რეცხვა)" are left apart, because they are two things.
  */
 class MergeAttributes extends Command
 {
-    protected $signature = 'attributes:merge
-        {from : the attribute code to fold away}
-        {into : the attribute code to keep}
-        {--dry : show what would move and stop}';
+    /* Litter the suppliers' pages left behind: a non-breaking space, a bullet,
+       an em space -- written as an entity and then carried into the name. */
+    public const LITTER = ['nbsp', 'bull', 'emsp', 'ensp', 'ndash', 'mdash', 'middot', 'amp', 'laquo', 'raquo'];
 
-    protected $description = 'Fold one attribute into another, with its values, products and supplier keys';
+    protected $signature = 'attributes:merge
+        {--apply : merge them, which only reporting does not}
+        {--show=25 : how many groups to print}';
+
+    protected $description = 'Join filters that are the same filter written twice';
 
     public function handle(): int
     {
-        $from = Attribute::where('code', $this->argument('from'))->withTranslation()->first();
-        $into = Attribute::where('code', $this->argument('into'))->withTranslation()->first();
+        DB::connection()->disableQueryLog();
 
-        if (! $from || ! $into) {
-            $this->error('Both codes have to name an attribute that exists.');
+        $locale = Language::defaultCode();
 
-            return self::FAILURE;
-        }
+        $attributes = DB::table('attributes')
+            ->leftJoin('attribute_translations', function ($join) use ($locale) {
+                $join->on('attribute_translations.attribute_id', '=', 'attributes.id')
+                    ->where('attribute_translations.locale', '=', $locale);
+            })
+            ->leftJoin('product_specs', 'product_specs.attribute_id', '=', 'attributes.id')
+            ->selectRaw('attributes.id, attributes.code, attributes.is_filterable, attributes.is_variant,
+                attribute_translations.name, count(distinct product_specs.product_id) as products')
+            ->groupBy('attributes.id', 'attributes.code', 'attributes.is_filterable', 'attributes.is_variant', 'attribute_translations.name')
+            ->get();
 
-        if ($from->is($into)) {
-            $this->error('They are the same attribute.');
+        $groups = $attributes
+            ->groupBy(fn ($row) => self::plain($row->name))
+            ->forget('')
+            ->filter(fn (Collection $group) => $group->count() > 1)
+            ->sortByDesc(fn (Collection $group) => $group->sum('products'));
 
-            return self::FAILURE;
-        }
-
-        $values = DB::table('attribute_values')->where('attribute_id', $from->id)->count();
-        $specs = DB::table('product_specs')->where('attribute_id', $from->id)->count();
-        $keys = DB::table('supplier_attribute_map')->where('attribute_id', $from->id)->count();
-
-        $this->table(['', 'from '.$from->code, 'into '.$into->code], [
-            ['name', $from->name, $into->name],
-            ['values', $values, DB::table('attribute_values')->where('attribute_id', $into->id)->count()],
-            ['products', $specs, DB::table('product_specs')->where('attribute_id', $into->id)->count()],
-            ['supplier keys', $keys, DB::table('supplier_attribute_map')->where('attribute_id', $into->id)->count()],
-        ]);
-
-        if ($this->option('dry')) {
-            $this->newLine();
-            $this->info('Nothing was changed. Run it without --dry to apply.');
+        if ($groups->isEmpty()) {
+            $this->line('Every filter is written only once.');
 
             return self::SUCCESS;
         }
 
-        DB::transaction(function () use ($from, $into) {
-            $this->moveValues($from, $into);
-            $this->moveSpecs($from, $into);
+        $apply = (bool) $this->option('apply');
+        $shown = (int) $this->option('show');
+        $printed = $joined = 0;
 
-            DB::table('supplier_attribute_map')
-                ->where('attribute_id', $from->id)
-                ->update(['attribute_id' => $into->id]);
+        $this->line($attributes->count().' filters, '.$groups->count().' of them written more than once');
+        $this->line('');
 
-            $from->delete();
-        });
+        foreach ($groups as $name => $group) {
+            /* The one most products are already filed under keeps its place;
+               the others are folded into it. */
+            $group = $group->sortByDesc('products')->values();
+            $keeper = $group->first();
+            $losers = $group->slice(1);
 
-        $this->newLine();
-        $this->info("{$from->code} was folded into {$into->code}.");
-        $this->line('  Run attributes:tidy next, to fold the spellings of its values together.');
+            if ($printed < $shown) {
+                $this->line('  '.$name.'  → '.$keeper->code.' ('.$keeper->products.' products)');
+
+                foreach ($losers as $loser) {
+                    $this->line('       + '.$loser->code.'  '.$loser->products.' products');
+                }
+
+                $printed++;
+            }
+
+            $joined += $losers->count();
+
+            if ($apply) {
+                $this->fold($keeper, $losers);
+            }
+        }
+
+        $this->line('');
+        $this->line($apply
+            ? $joined.' filters folded into another, leaving '.($attributes->count() - $joined)
+            : $joined.' filters would be folded in, leaving '.($attributes->count() - $joined).' (pass --apply to do it)');
 
         return self::SUCCESS;
     }
 
-    /* A value whose code is already taken on the other side hands its products
-       over and goes; the rest simply change sides. */
-    protected function moveValues(Attribute $from, Attribute $into): void
+    /**
+     * @param  Collection<int, object>  $losers
+     */
+    protected function fold(object $keeper, Collection $losers): void
     {
-        $taken = DB::table('attribute_values')
-            ->where('attribute_id', $into->id)
-            ->pluck('id', 'code');
+        foreach ($losers as $loser) {
+            DB::transaction(function () use ($keeper, $loser) {
+                $this->moveValues((int) $keeper->id, (int) $loser->id);
+                $this->moveSpecs((int) $keeper->id, (int) $loser->id);
+                $this->moveShelves((int) $keeper->id, (int) $loser->id);
 
-        $moving = DB::table('attribute_values')->where('attribute_id', $from->id)->get(['id', 'code']);
+                DB::table('supplier_attribute_map')->where('attribute_id', $loser->id)
+                    ->update(['attribute_id' => $keeper->id]);
 
-        foreach ($moving as $value) {
-            if (! $keepId = $taken[$value->code] ?? null) {
-                DB::table('attribute_values')->where('id', $value->id)->update(['attribute_id' => $into->id]);
+                DB::table('attribute_translations')->where('attribute_id', $loser->id)->delete();
+                DB::table('attributes')->where('id', $loser->id)->delete();
+            });
+
+            /* Whatever either of them was allowed to do, the survivor does:
+               a filter folded into a variant stays both. */
+            Attribute::whereKey($keeper->id)->update([
+                'is_filterable' => (bool) ($keeper->is_filterable || $loser->is_filterable),
+                'is_variant' => (bool) ($keeper->is_variant || $loser->is_variant),
+            ]);
+
+            $keeper->is_filterable = $keeper->is_filterable || $loser->is_filterable;
+            $keeper->is_variant = $keeper->is_variant || $loser->is_variant;
+        }
+    }
+
+    /*
+     | Both sides can hold the same answer -- "შავი" under Color and under
+     | ფერი -- and a product may be filed under both. The survivor's own value
+     | is the one kept, and the other is pointed at it before it goes.
+     */
+    protected function moveValues(int $keeper, int $loser): void
+    {
+        $theirs = DB::table('attribute_values')->where('attribute_id', $keeper)->pluck('id', 'code');
+
+        foreach (DB::table('attribute_values')->where('attribute_id', $loser)->get(['id', 'code']) as $value) {
+            $same = $theirs[$value->code] ?? null;
+
+            if (! $same) {
+                DB::table('attribute_values')->where('id', $value->id)->update(['attribute_id' => $keeper]);
 
                 continue;
             }
 
-            $products = DB::table('attribute_value_product')
-                ->where('attribute_value_id', $value->id)
-                ->pluck('product_id');
+            $already = DB::table('attribute_value_product')->where('attribute_value_id', $same)->pluck('product_id');
 
-            foreach ($products as $productId) {
-                DB::table('attribute_value_product')->updateOrInsert([
-                    'attribute_value_id' => $keepId,
-                    'product_id' => $productId,
-                ]);
-            }
+            DB::table('attribute_value_product')->where('attribute_value_id', $value->id)
+                ->whereIn('product_id', $already)->delete();
 
-            DB::table('attribute_value_product')->where('attribute_value_id', $value->id)->delete();
+            DB::table('attribute_value_product')->where('attribute_value_id', $value->id)
+                ->update(['attribute_value_id' => $same]);
+
+            DB::table('attribute_value_translations')->where('attribute_value_id', $value->id)->delete();
             DB::table('attribute_values')->where('id', $value->id)->delete();
         }
     }
 
-    /* A product cannot carry the same attribute twice, so where it already has
-       the one we keep, the spare row is dropped rather than moved. */
-    protected function moveSpecs(Attribute $from, Attribute $into): void
+    /* A product can have a line for both, and only one line may remain. */
+    protected function moveSpecs(int $keeper, int $loser): void
     {
-        $already = DB::table('product_specs')
-            ->where('attribute_id', $into->id)
-            ->pluck('product_id')
-            ->flip();
+        $already = DB::table('product_specs')->where('attribute_id', $keeper)->pluck('product_id');
 
-        $rows = DB::table('product_specs')->where('attribute_id', $from->id)->get(['id', 'product_id']);
+        DB::table('product_specs')->where('attribute_id', $loser)
+            ->whereIn('product_id', $already)->delete();
 
-        foreach ($rows as $row) {
-            isset($already[$row->product_id])
-                ? DB::table('product_specs')->where('id', $row->id)->delete()
-                : DB::table('product_specs')->where('id', $row->id)->update(['attribute_id' => $into->id]);
+        DB::table('product_specs')->where('attribute_id', $loser)
+            ->update(['attribute_id' => $keeper]);
+    }
+
+    /*
+     | A filter can be kept to certain shelves. One of the two being offered
+     | everywhere means the filter belongs everywhere, so the survivor's own
+     | shelves are dropped rather than narrowed.
+     */
+    protected function moveShelves(int $keeper, int $loser): void
+    {
+        $open = DB::table('attribute_category')->where('attribute_id', $keeper)->doesntExist()
+            || DB::table('attribute_category')->where('attribute_id', $loser)->doesntExist();
+
+        if ($open) {
+            DB::table('attribute_category')->whereIn('attribute_id', [$keeper, $loser])->delete();
+
+            return;
         }
+
+        $already = DB::table('attribute_category')->where('attribute_id', $keeper)->pluck('category_id');
+
+        DB::table('attribute_category')->where('attribute_id', $loser)
+            ->whereIn('category_id', $already)->delete();
+
+        DB::table('attribute_category')->where('attribute_id', $loser)
+            ->update(['attribute_id' => $keeper]);
+    }
+
+    public static function plain(?string $name): string
+    {
+        $name = html_entity_decode((string) $name, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $name = str_replace(["\u{00a0}", "\u{2022}", "\u{2003}", "\u{2002}"], ' ', $name);
+        $name = mb_strtolower(trim($name));
+        $name = (string) preg_replace('/[^\p{L}\p{N}]+/u', ' ', $name);
+        $name = trim((string) preg_replace('/\s+/u', ' ', $name));
+
+        $words = array_values(array_filter(
+            explode(' ', $name),
+            fn (string $word) => $word !== '' && ! in_array($word, self::LITTER, true),
+        ));
+
+        return implode(' ', $words);
     }
 }

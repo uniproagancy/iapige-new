@@ -1,17 +1,17 @@
 <div class="search">
     <div class="search__box">
-        <label class="sr-only" for="searchInput">{{ __('layout.search_label') }}</label>
-        <input class="search__input" id="searchInput" type="search" autocomplete="off"
+        <label class="sr-only" for="{{ $inputId }}">{{ __('layout.search_label') }}</label>
+        <input class="search__input" id="{{ $inputId }}" type="search" autocomplete="off"
                placeholder="{{ __('layout.search_placeholder') }}"
                wire:model.live.debounce.300ms="q"
                wire:keydown.enter="showAll"
-               role="combobox" aria-controls="searchResults">
+               role="combobox" aria-controls="{{ $inputId }}Results">
         <button type="button" class="search__go" wire:click="clear" aria-label="{{ __('layout.search') }}">
             <x-icon name="magnifying-glass" size="16" />
         </button>
     </div>
 
-    <div class="results" id="searchResults" role="listbox"
+    <div class="results" id="{{ $inputId }}Results" role="listbox"
          @if (mb_strlen(trim($q)) < 2) hidden @endif>
         <div class="results__head">
             <span class="results__count">{{ __('catalog.found_count', ['count' => count($this->results)]) }}</span>

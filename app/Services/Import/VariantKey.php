@@ -25,6 +25,12 @@ class VariantKey
         'color', 'colour', 'ფერი',
         'internal memory', 'memory', 'ram', 'ram memory', 'built-in memory',
         'storage', 'capacity', 'volume', 'size',
+
+        /* The same shelves named in Georgian. An attribute's code is the name
+           run through Slug::make, which carries Georgian across into latin
+           letters, so these are the codes as they are actually stored. */
+        'feri', 'shida mekhsiereba', 'mekhsiereba', 'operatiuli mekhsiereba',
+        'ram motsuloba', 'motsuloba', 'zoma',
     ];
 
     /* Memory is the one figure a name carries that the specifications spell
@@ -33,6 +39,32 @@ class VariantKey
        "SHM 5206WH" are two kettles, not one kettle twice. Everything else that
        tells variants apart arrives as a specification instead. */
     protected const UNITS = 'gb|tb|mb';
+
+    /*
+     | The same product is often listed by one supplier and specified by
+     | another, so a telephone called "HONOR 600 Dual Black" can carry its
+     | colour as "შავი" -- and then the name has to be read on its own. These
+     | are colours and the words that only ever stand beside one; anything that
+     | could name a product instead ("steel", "ice", "stone") is left out, and
+     | a word is only taken out whole.
+     */
+    public const COLOURS = [
+        'black', 'white', 'grey', 'gray', 'silver', 'gold', 'golden',
+        'blue', 'green', 'red', 'pink', 'purple', 'violet', 'yellow',
+        'orange', 'brown', 'beige', 'ivory', 'bronze', 'copper', 'navy',
+        'teal', 'cyan', 'magenta', 'burgundy', 'olive', 'khaki', 'jade',
+        'amber', 'rose', 'lilac', 'peach', 'turquoise', 'coral', 'mint',
+        'lavender', 'charcoal', 'graphite', 'obsidian', 'onyx', 'slate',
+        'titanium', 'titan', 'midnight', 'starlight', 'moonlight', 'phantom',
+        'forest', 'aurora', 'velvet', 'sand', 'sky', 'mocha', 'taupe',
+        'platinum', 'sapphire', 'emerald', 'lime', 'aqua', 'indigo',
+        'ultramarine', 'cosmic', 'nebula', 'mystic',
+
+        'shavi', 'tetri', 'nacrisperi', 'vertskhlisperi', 'okrosperi',
+        'lurji', 'mtsvane', 'tsiteli', 'vardisperi', 'vardisferi',
+        'iisperi', 'iisferi', 'qviteli', 'narinjisperi', 'kavisperi',
+        'tsisperi', 'bezhi', 'shindisperi',
+    ];
 
     /**
      * The name with everything that only tells variants apart removed.
@@ -56,6 +88,9 @@ class VariantKey
         }
 
         $base = (string) preg_replace('/(?<=^|\s)\d+(?:[.,]\d+)?\s?(?:'.self::UNITS.')(?=\s|$)/u', ' ', $base);
+
+        $base = (string) preg_replace(
+            '/(?<=^|\s)(?:'.implode('|', self::COLOURS).')(?=\s|$)/u', ' ', $base);
 
         return trim((string) preg_replace('/\s+/u', ' ', $base));
     }

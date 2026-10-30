@@ -52,6 +52,15 @@ function focusSearch() {
         return;
     }
 
+    /* The catalogue and the information pages hide the header on a phone and
+       put their own bar there, so the search is opened as a sheet rather than
+       sending somebody to the front page to find it. */
+    if (document.getElementById('searchSheet')) {
+        openPanel('search');
+        setTimeout(() => document.getElementById('searchSheetInput')?.focus(), 120);
+        return;
+    }
+
     window.location.href = `${window.IAPI?.homeUrl ?? '/'}#search`;
 }
 

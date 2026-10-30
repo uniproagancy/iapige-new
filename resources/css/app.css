@@ -620,6 +620,17 @@ button,
 .drawer{position:fixed;top:0;bottom:0;z-index:60;display:flex;max-width:100%}
 .drawer[hidden]{display:none}
 
+/* search sheet -- the way in on the pages that hide the header on a phone */
+.search-sheet{left:0;right:0;top:0;bottom:auto;flex-direction:column}
+.search-sheet__inner{
+  width:100%;background:#fff;border-radius:0 0 var(--r-lg) var(--r-lg);
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px 18px;
+  box-shadow:0 18px 40px rgba(16,20,26,.16);max-height:92vh;overflow:auto
+}
+.search-sheet__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.search-sheet .search{width:100%}
+.search-sheet .results{position:static;margin-top:12px;box-shadow:none;border:1px solid var(--line)}
+
 /* catalog */
 .catalog{left:0}
 .catalog__l1{

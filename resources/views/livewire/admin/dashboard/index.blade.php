@@ -33,14 +33,8 @@
             'note' => __('admin.orders_n', ['count' => $paidThisMonth['orders']]),
         ],
         [
-            'value' => money($today['owed']),
-            'label' => __('admin.owed'),
-            'url' => $orders.'?paid=no',
-            'alarm' => $today['owed'] > 0,
-        ],
-        [
             'value' => $waiting['new_orders'],
-            'label' => __('admin.awaiting_call'),
+            'label' => __('admin.new_order'),
             'url' => $orders.'?status=new',
             'alarm' => $waiting['new_orders'] > 0,
         ],
@@ -143,7 +137,7 @@
                 <div class="card-header pb-0"><h4 class="card-title mb-0">{{ __('admin.waiting') }}</h4></div>
                 <div class="card-body">
                     @foreach ([
-                        ['label' => __('admin.awaiting_call'), 'n' => $waiting['new_orders'], 'url' => route('admin.orders').'?status=new'],
+                        ['label' => __('admin.new_order'), 'n' => $waiting['new_orders'], 'url' => route('admin.orders').'?status=new'],
                         ['label' => __('admin.packing'),       'n' => $waiting['packing'],    'url' => route('admin.orders').'?status=confirmed'],
                         ['label' => __('admin.unpaid'),        'n' => $waiting['unpaid'],     'url' => route('admin.orders')],
                     ] as $item)

@@ -27,6 +27,7 @@ class ProductVariants extends Command
     protected $signature = 'products:variants
         {--supplier=alta : whose products to look at, by code}
         {--apply : file the families, which only reporting does not}
+        {--regroup : re-file products this command itself grouped before, for when the rule has improved}
         {--show=30 : how many of each to print}';
 
     protected $description = 'Find a supplier\'s products that are one product in several colours or sizes, and the ones sent twice';
@@ -54,7 +55,7 @@ class ProductVariants extends Command
         $this->line($rows->count().' products from '.$supplier->code);
 
         $this->reportDoubles($rows);
-        $this->fileFamilies($rows);
+        $this->fileFamilies($rows, $supplier->code);
 
         return self::SUCCESS;
     }
@@ -117,8 +118,11 @@ class ProductVariants extends Command
         );
     }
 
-    protected function fileFamilies(Collection $rows): void
+    protected function fileFamilies(Collection $rows, string $supplierCode): void
     {
+        $regroup = (bool) $this->option('regroup');
+        $prefix = $supplierCode.'-';
+
         $families = $rows
             ->filter(fn (array $row) => $row['key'] !== null)
             ->groupBy('key')
@@ -144,7 +148,11 @@ class ProductVariants extends Command
         foreach ($families as $key => $group) {
             $already = $group->filter(fn (array $row) => $row['group']
                 && $row['group'] !== $key
-                && $established->has($row['group']));
+                && $established->has($row['group'])
+                /* Groups under this supplier's own name are this command's
+                   work, and are re-filed on request when the rule that made
+                   them has since improved. Anybody else's are left alone. */
+                && ! ($regroup && str_starts_with($row['group'], $prefix)));
 
             $kept += $already->count();
 

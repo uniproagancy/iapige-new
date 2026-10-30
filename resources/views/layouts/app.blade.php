@@ -85,6 +85,7 @@
 <div class="scrim" id="scrim" hidden></div>
 <x-drawers.catalog />
 <x-drawers.cart />
+<x-drawers.search />
 <div class="modal" id="authModal" hidden role="dialog" aria-modal="true" aria-labelledby="authHeroTitle">
     <div class="modal__scrim" data-close></div>
     <livewire:auth-modal />
