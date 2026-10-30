@@ -693,8 +693,17 @@ class Catalog
             return [];
         }
 
-        $here = self::variantValues($product);
+        /* Only the choices actually on offer here count towards whether a
+           sibling keeps the rest of the choice; a specification nobody is
+           picking between is neither kept nor lost. */
+        $here = array_intersect_key(self::variantValues($product), $offered->all());
         $switchers = [];
+
+        /* Which of them is the colour, taken from the attribute itself. Some
+           colours were saved without a swatch, and reading it off the swatch
+           would then mistake the colour for an ordinary choice and narrow it
+           away. */
+        $colours = [];
 
         foreach ($siblings as $sibling) {
             $isCurrent = $sibling->is($product);
@@ -709,6 +718,10 @@ class Catalog
 
                 if (! $offered->has($code)) {
                     continue;
+                }
+
+                if ($value->attribute->type === 'color') {
+                    $colours[$code] = true;
                 }
 
                 $kept = self::keptBesides($here, $theirs, $code);
@@ -737,8 +750,43 @@ class Catalog
                 fn (array $option) => Arr::except($option, 'kept'),
                 $options,
             )),
-            $switchers,
+            self::onlyWhatIsMade($switchers, $here, $colours),
         );
+    }
+
+    /*
+     | A memory the chosen colour is not made in is not a choice, so it goes
+     | rather than sitting there waiting to disappoint.
+     |
+     | The colour itself is left whole. Narrowing it as well would strand the
+     | colours that come in one memory only: nobody looking at the 256GB could
+     | ever reach the one made in 1TB.
+     |
+     | @param  array<string, array<string, array<string, mixed>>>  $switchers
+     | @param  array<string, string>  $here
+     | @param  array<string, bool>  $colours
+     | @return array<string, array<string, array<string, mixed>>>
+     */
+    protected static function onlyWhatIsMade(array $switchers, array $here, array $colours): array
+    {
+        foreach ($switchers as $code => $options) {
+            $isColour = isset($colours[$code])
+                || collect($options)->contains(fn (array $option) => filled($option['hex'] ?? null));
+
+            if ($isColour) {
+                continue;
+            }
+
+            /* Everything else being chosen at the moment, this one aside. */
+            $besides = count($here) - (isset($here[$code]) ? 1 : 0);
+
+            $switchers[$code] = array_filter(
+                $options,
+                fn (array $option) => $option['current'] || $option['kept'] >= $besides,
+            );
+        }
+
+        return array_filter($switchers);
     }
 
     /* attribute code => chosen value code, for the variant attributes only */

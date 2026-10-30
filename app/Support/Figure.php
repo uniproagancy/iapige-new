@@ -13,7 +13,17 @@ namespace App\Support;
  */
 class Figure
 {
-    public static function money(mixed $value): ?float
+    /*
+     | Some price lists quote three decimals -- INGCO writes 82.116 and means
+     | eighty-two lari -- and the guess below would read that as eighty-two
+     | thousand. A supplier that is known to write it one way says so, and is
+     | then taken at its word.
+     */
+    public const DOT = 'dot';
+
+    public const COMMA = 'comma';
+
+    public static function money(mixed $value, ?string $decimal = null): ?float
     {
         $text = trim((string) $value);
 
@@ -25,7 +35,7 @@ class Figure
            figures after the point, because no price is quoted to a thousandth
            of a lari and "2.599" is far likelier to be two and a half thousand
            written the European way. */
-        if (is_numeric($text) && ! preg_match('/[.,]\d{3}$/', $text)) {
+        if (is_numeric($text) && ($decimal === self::DOT || ! preg_match('/[.,]\d{3}$/', $text))) {
             return (float) $text;
         }
 
@@ -59,8 +69,18 @@ class Figure
         /* One separator with exactly three digits behind it is grouping:
            "2.599" is two and a half thousand, not two and a half. Nobody
            groups a leading nought, so that one is a decimal point. */
-        $grouping = substr_count($text, $separator) > 1
-            || (strlen($part) === 3 && $whole !== '' && $whole !== '0');
+        /* Told which mark this supplier uses, there is nothing to guess:
+           that mark is the decimal point and the other is grouping. */
+        $told = match ($decimal) {
+            self::DOT => $separator === '.',
+            self::COMMA => $separator === ',',
+            default => null,
+        };
+
+        $grouping = $told === null
+            ? substr_count($text, $separator) > 1
+                || (strlen($part) === 3 && $whole !== '' && $whole !== '0')
+            : ! $told;
 
         return $grouping
             ? (float) preg_replace('/\D+/', '', $text)
@@ -71,9 +91,9 @@ class Figure
      | The same reading, for a caller that would rather have nothing than a
      | null to carry about.
      */
-    public static function amount(mixed $value): float
+    public static function amount(mixed $value, ?string $decimal = null): float
     {
-        return self::money($value) ?? 0.0;
+        return self::money($value, $decimal) ?? 0.0;
     }
 
     protected static function split(string $text, int $at): float

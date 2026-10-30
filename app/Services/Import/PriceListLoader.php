@@ -60,7 +60,7 @@ class PriceListLoader
                 'supplier_id' => $supplier->id,
                 'external_id' => $key,
                 'quantity' => $this->quantity($cells, $map),
-                'cost_price' => $this->money($cells[$map['cost'] ?? ''] ?? null),
+                'cost_price' => $this->money($cells[$map['cost'] ?? ''] ?? null, $supplier),
 
                 'data' => json_encode($this->pick($cells, $map), JSON_UNESCAPED_UNICODE),
                 'synced_at' => $now,
@@ -252,8 +252,10 @@ class PriceListLoader
     }
 
     /* Read in one place, so there is only ever one thing to put right. */
-    protected function money(?string $text): ?float
+    /* A supplier that writes its decimals in a way nobody could guess says
+       so in its own configuration, and is read on those terms. */
+    protected function money(?string $text, ?Supplier $supplier = null): ?float
     {
-        return Figure::money($text);
+        return Figure::money($text, $supplier?->config['decimal'] ?? null);
     }
 }
