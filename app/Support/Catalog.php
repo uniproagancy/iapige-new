@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class Catalog
 {
@@ -381,6 +382,19 @@ class Catalog
         return Category::active()->withTranslation()->whereTranslation('slug', $slug, false)->firstOrFail();
     }
 
+    /* A filter is worth offering when it knows about this much of the shelf.
+       Below it, picking anything hides almost everything. */
+    public const FILTER_COVERAGE = 0.15;
+
+    protected static function worthOffering(string $code, $covered, int $total): bool
+    {
+        if ($total < 1) {
+            return true;
+        }
+
+        return ((int) ($covered[$code] ?? 0)) / $total >= self::FILTER_COVERAGE;
+    }
+
     public static function listing(?Category $category = null): array
     {
         $ids = null;
@@ -395,6 +409,18 @@ class Catalog
             ->when($ids, fn (Builder $w) => $w->whereIn('category_id', $ids));
 
         $total = $inListing(Product::query())->count();
+
+        /* How much of the shelf each filter can speak for at all. A filter
+           only a handful of products carry throws the rest of the shelf away
+           the moment somebody picks something in it, which reads as the shop
+           losing products rather than as the shop not knowing. */
+        $covered = DB::table('attribute_value_product as avp')
+            ->join('attribute_values as av', 'av.id', '=', 'avp.attribute_value_id')
+            ->join('attributes as a', 'a.id', '=', 'av.attribute_id')
+            ->whereIn('avp.product_id', $inListing(Product::query())->select('products.id')->toBase())
+            ->selectRaw('a.code as code, count(distinct avp.product_id) as covers')
+            ->groupBy('a.code')
+            ->pluck('covers', 'code');
 
         $range = $inListing(Product::query())
             ->selectRaw('min(price) as low, max(price) as high')
@@ -425,6 +451,7 @@ class Catalog
                     ->values()->all(),
             ])
             ->filter(fn ($g) => count($g['items']) > 1)
+            ->filter(fn ($g) => self::worthOffering($g['key'], $covered, $total))
             ->values()
             ->all();
 

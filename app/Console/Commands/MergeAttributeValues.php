@@ -2,150 +2,130 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Attribute;
-use App\Models\AttributeValue;
+use App\Models\Language;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /*
- | Suppliers write the same thing in their own way: 55", 55 inch, 55 ინჩი. Each
- | spelling became a filter of its own, so choosing one found a tenth of the
- | products it should have. This folds the spellings of a value into one.
+ | One answer, offered twice. Suppliers write the same thing differently --
+ | "4GB" and "4 GB", "1300 W" and "1300W", "50-60 Hz" and "50/60Hz" -- and a
+ | customer who picks one of them is shown half the products that answer to it.
+ |
+ | Two answers are the same when only the spacing and the punctuation differ.
+ | Nothing is judged by meaning: "1 TB" and "1024 GB" stay apart, because
+ | deciding they are the same is a person's job.
  */
 class MergeAttributeValues extends Command
 {
-    protected $signature = 'attributes:tidy
-        {--attribute= : only this attribute code}
-        {--dry : show what would be folded together and stop}
-        {--limit=40 : how many groups to print}';
+    protected $signature = 'attributes:values
+        {--apply : join them, which only reporting does not}
+        {--show=20 : how many to print}';
 
-    protected $description = 'Fold differently spelled values of the same attribute into one';
+    protected $description = 'Join answers that are the same answer spelt differently';
 
     public function handle(): int
     {
-        $attributes = Attribute::query()
-            ->when($this->option('attribute'), fn ($q) => $q->where('code', $this->option('attribute')))
+        DB::connection()->disableQueryLog();
+
+        $locale = Language::defaultCode();
+
+        $values = DB::table('attribute_values as v')
+            ->join('attribute_value_translations as t', function ($join) use ($locale) {
+                $join->on('t.attribute_value_id', '=', 'v.id')
+                    ->where('t.locale', '=', $locale);
+            })
+            ->leftJoin('attribute_value_product as p', 'p.attribute_value_id', '=', 'v.id')
+            ->selectRaw('v.id, v.attribute_id, v.color_hex, t.label, count(p.product_id) as products')
+            ->groupBy('v.id', 'v.attribute_id', 'v.color_hex', 't.label')
             ->get();
 
-        if ($attributes->isEmpty()) {
-            $this->error('No such attribute.');
+        $families = $values
+            ->groupBy(fn ($value) => $value->attribute_id.':'.self::plain($value->label))
+            ->reject(fn (Collection $group, string $key) => str_ends_with($key, ':'))
+            ->filter(fn (Collection $group) => $group->count() > 1);
 
-            return self::FAILURE;
-        }
-
-        $dry = (bool) $this->option('dry');
-        $rows = [];
-        $folded = 0;
-        $groups = 0;
-
-        foreach ($attributes as $attribute) {
-            foreach ($this->twins($attribute) as $spelling => $values) {
-                $keep = $this->mostUsed($values);
-                $rest = $values->reject(fn (AttributeValue $v) => $v->is($keep));
-
-                if ($rest->isEmpty()) {
-                    continue;
-                }
-
-                $groups++;
-                $folded += $rest->count();
-
-                if (count($rows) < (int) $this->option('limit')) {
-                    $rows[] = [
-                        $attribute->code,
-                        $keep->label.' ('.$this->uses($keep).')',
-                        $rest->map(fn ($v) => $v->label.' ('.$this->uses($v).')')->implode(' · '),
-                    ];
-                }
-
-                if (! $dry) {
-                    $this->fold($rest, $keep);
-                }
-            }
-        }
-
-        if (! $groups) {
-            $this->info('Every value is spelled one way already.');
+        if ($families->isEmpty()) {
+            $this->line('Every answer is written only one way.');
 
             return self::SUCCESS;
         }
 
-        $this->table(['attribute', 'kept', 'folded into it'], $rows);
+        $apply = (bool) $this->option('apply');
+        $shown = (int) $this->option('show');
+        $printed = $joined = 0;
 
-        $this->newLine();
-        $this->line("  groups: {$groups}");
-        $this->line(($dry ? '  would be folded: ' : '  folded: ')."{$folded}");
+        $names = DB::table('attribute_translations')->where('locale', $locale)
+            ->pluck('name', 'attribute_id');
 
-        if ($dry) {
-            $this->newLine();
-            $this->info('Nothing was changed. Run it without --dry to apply.');
+        foreach ($families as $group) {
+            /* The spelling most products already carry is the one that stays;
+               a tie keeps the older. */
+            $group = $group->sortByDesc('products')->values();
+            $keeper = $group->first();
+            $losers = $group->slice(1);
+
+            if ($printed < $shown) {
+                $this->line('  '.str_pad(mb_substr((string) ($names[$keeper->attribute_id] ?? '?'), 0, 24), 26)
+                    .'"'.$keeper->label.'" ('.$keeper->products.')  <- '
+                    .$losers->map(fn ($loser) => '"'.$loser->label.'" ('.$loser->products.')')->implode(', '));
+
+                $printed++;
+            }
+
+            $joined += $losers->count();
+
+            if ($apply) {
+                $this->fold($keeper, $losers);
+            }
         }
+
+        $this->line('');
+        $this->line($apply
+            ? $joined.' spellings folded into another'
+            : $joined.' spellings would be folded in (pass --apply to do it)');
 
         return self::SUCCESS;
     }
 
-    /* Values of one attribute, grouped by how they read once the punctuation
-       and the unit are taken off. */
-    protected function twins(Attribute $attribute)
+    /**
+     * @param  Collection<int, object>  $losers
+     */
+    protected function fold(object $keeper, Collection $losers): void
     {
-        return AttributeValue::where('attribute_id', $attribute->id)
-            ->withTranslation()
-            ->get()
-            ->groupBy(fn (AttributeValue $value) => self::spelling((string) $value->label))
-            ->reject(fn ($values, $spelling) => $spelling === '' || $values->count() < 2);
-    }
+        DB::transaction(function () use ($keeper, $losers) {
+            $already = DB::table('attribute_value_product')
+                ->where('attribute_value_id', $keeper->id)->pluck('product_id');
 
-    /* 55", 55 inch and 55 ინჩი all read as "55". */
-    public static function spelling(string $label): string
-    {
-        $label = mb_strtolower(trim($label));
+            foreach ($losers as $loser) {
+                /* A product filed under both spellings keeps the one that
+                   stays, rather than being filed twice. */
+                DB::table('attribute_value_product')->where('attribute_value_id', $loser->id)
+                    ->whereIn('product_id', $already)->delete();
 
-        $label = str_replace(['"', '”', '“', '″', "'", '’'], ' ', $label);
-        $label = preg_replace('~\b(inch|inches|ინჩი|დუიმი)\b~u', ' ', $label);
-        $label = str_replace(',', '.', $label);
+                DB::table('attribute_value_product')->where('attribute_value_id', $loser->id)
+                    ->update(['attribute_value_id' => $keeper->id]);
 
-        /* 55.0 and 55 are the same size */
-        $label = preg_replace('~(\d)\.0+\b~u', '$1', (string) $label);
+                DB::table('attribute_value_translations')->where('attribute_value_id', $loser->id)->delete();
+                DB::table('attribute_values')->where('id', $loser->id)->delete();
+            }
 
-        return trim((string) preg_replace('~[\s\x{00A0}_-]+~u', ' ', (string) $label));
-    }
+            /* A swatch is worth keeping wherever it was written down. */
+            if (! $keeper->color_hex) {
+                $hex = $losers->pluck('color_hex')->filter()->first();
 
-    protected function mostUsed($values): AttributeValue
-    {
-        return $values->sortByDesc(fn (AttributeValue $v) => $this->uses($v))->first();
-    }
-
-    protected function uses(AttributeValue $value): int
-    {
-        return $this->counts[$value->id] ??= DB::table('attribute_value_product')
-            ->where('attribute_value_id', $value->id)
-            ->count();
-    }
-
-    protected array $counts = [];
-
-    protected function fold($rest, AttributeValue $keep): void
-    {
-        DB::transaction(function () use ($rest, $keep) {
-            foreach ($rest as $value) {
-                $products = DB::table('attribute_value_product')
-                    ->where('attribute_value_id', $value->id)
-                    ->pluck('product_id');
-
-                foreach ($products as $productId) {
-                    /* The product may already carry the kept spelling. */
-                    DB::table('attribute_value_product')->updateOrInsert([
-                        'attribute_value_id' => $keep->id,
-                        'product_id' => $productId,
-                    ]);
+                if ($hex) {
+                    DB::table('attribute_values')->where('id', $keeper->id)->update(['color_hex' => $hex]);
                 }
-
-                DB::table('attribute_value_product')->where('attribute_value_id', $value->id)->delete();
-
-                $value->delete();
             }
         });
+    }
 
-        unset($this->counts[$keep->id]);
+    /* Letters and figures only, so "4GB", "4 GB" and "4-gb" are one answer. */
+    public static function plain(?string $label): string
+    {
+        $label = html_entity_decode((string) $label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return mb_strtolower((string) preg_replace('/[^\p{L}\p{N}]+/u', '', $label));
     }
 }

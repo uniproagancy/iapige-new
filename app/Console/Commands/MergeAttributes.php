@@ -27,6 +27,7 @@ class MergeAttributes extends Command
 
     protected $signature = 'attributes:merge
         {--apply : merge them, which only reporting does not}
+        {--pair=* : two filters to join by hand, as code=code; the one more products are filed under keeps its place}
         {--show=25 : how many groups to print}';
 
     protected $description = 'Join filters that are the same filter written twice';
@@ -48,11 +49,16 @@ class MergeAttributes extends Command
             ->groupBy('attributes.id', 'attributes.code', 'attributes.is_filterable', 'attributes.is_variant', 'attribute_translations.name')
             ->get();
 
-        $groups = $attributes
-            ->groupBy(fn ($row) => self::plain($row->name))
-            ->forget('')
-            ->filter(fn (Collection $group) => $group->count() > 1)
-            ->sortByDesc(fn (Collection $group) => $group->sum('products'));
+        /* Named outright, the filters are joined whatever they are called:
+           "მეხსიერება" and "შიდა მეხსიერება" are the same shelf of a
+           telephone, and only a person can say so. */
+        $groups = $this->option('pair')
+            ? $this->pairs($attributes)
+            : $attributes
+                ->groupBy(fn ($row) => self::plain($row->name))
+                ->forget('')
+                ->filter(fn (Collection $group) => $group->count() > 1)
+                ->sortByDesc(fn (Collection $group) => $group->sum('products'));
 
         if ($groups->isEmpty()) {
             $this->line('Every filter is written only once.');
@@ -97,6 +103,43 @@ class MergeAttributes extends Command
             : $joined.' filters would be folded in, leaving '.($attributes->count() - $joined).' (pass --apply to do it)');
 
         return self::SUCCESS;
+    }
+
+    /**
+     | The filters somebody named, each pair gathered under the name of the one
+     | that stays.
+     |
+     * @param  Collection<int, object>  $attributes
+     * @return Collection<string, Collection<int, object>>
+     */
+    protected function pairs(Collection $attributes): Collection
+    {
+        $byCode = $attributes->keyBy('code');
+        $groups = collect();
+
+        foreach ($this->option('pair') as $pair) {
+            $codes = array_values(array_filter(array_map('trim', explode('=', (string) $pair))));
+
+            if (count($codes) < 2) {
+                $this->error('A pair reads as code=code, not '.$pair);
+
+                continue;
+            }
+
+            $found = collect($codes)->map(fn (string $code) => $byCode[$code] ?? null);
+
+            if ($found->contains(null)) {
+                $this->error('No filter called '.$found->filter()->isEmpty()
+                    ? $pair
+                    : collect($codes)->first(fn (string $code) => ! $byCode->has($code)));
+
+                continue;
+            }
+
+            $groups[$pair] = $found->values();
+        }
+
+        return $groups;
     }
 
     /**
