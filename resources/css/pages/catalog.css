@@ -72,21 +72,18 @@
 }
 .catlist__all:hover{background:var(--line-2)}
 
-/* ---- checkbox filter rows ---- */
-.fopts{display:flex;flex-direction:column;gap:1px}
-.fopt{display:flex;width:100%;align-items:center;gap:11px;padding:9px 6px;text-align:start;border-radius:10px;transition:background .15s}
-.fopt:hover{background:var(--soft-2)}
-.fopt__box{
-  width:20px;height:20px;border-radius:6px;border:1.5px solid #CDD2D7;flex:none;
-  display:flex;align-items:center;justify-content:center;color:#fff;
-  transition:background .16s,border-color .16s
+/* ---- filter options, as boxes to pick from ---- */
+.fopts{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px}
+.fopt{
+  display:flex;width:100%;min-height:42px;align-items:center;justify-content:center;
+  padding:9px 10px;text-align:center;border-radius:12px;
+  background:#fff;border:1.5px solid var(--line-2);
+  transition:border-color .16s,background .16s,color .16s
 }
-.fopt__box .ic{opacity:0;transition:opacity .14s}
-.fopt.is-on .fopt__box{background:var(--red-bright);border-color:var(--red-bright)}
-.fopt.is-on .fopt__box .ic{opacity:1}
-.fopt__name{flex:1;font-size:13px;color:var(--ink-2)}
-.fopt.is-on .fopt__name{color:var(--ink);font-weight:500}
-.fopt__count{font-family:var(--mono);font-size:11px;color:var(--muted-4)}
+.fopt:hover{border-color:var(--ink-3,#9aa2ab)}
+.fopt.is-on{background:var(--red-bright);border-color:var(--red-bright)}
+.fopt__name{font-size:13px;font-weight:600;color:var(--ink-2);line-height:1.25;overflow-wrap:anywhere}
+.fopt.is-on .fopt__name{color:#fff}
 .fchips{display:flex;flex-wrap:wrap;gap:8px}
 .fchip{
   padding:11px 16px;border-radius:var(--r-pill);background:#fff;border:1.5px solid var(--line-2);
@@ -397,9 +394,6 @@
 /* every group stays open; the option list scrolls when it gets long */
 .fgroup__body{display:block}
 .fgroup__head{cursor:default}
-.fgroup__n{
-  margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted-4)
-}
 .fopts{max-height:230px;overflow-y:auto;scrollbar-width:thin}
 .fopts::-webkit-scrollbar{width:4px}
 .fopts::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:999px}

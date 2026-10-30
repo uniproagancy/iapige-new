@@ -115,22 +115,16 @@
 					<div class="fgroup is-open" style="margin-top:12px" wire:key="grp-{{ $group['key'] }}">
 						<div class="fgroup__head">
 							<span class="fgroup__name">{{ $group['name'] }}</span>
-							<span class="fgroup__n">{{ count($group['items']) }}</span>
 						</div>
 						<div class="fgroup__body">
 							<div class="fopts">
 								@foreach ($group['items'] as $item)
-									@php
-										$n  = $facets[$group['key']][$item['code']] ?? 0;
-										$on = in_array($item['code'], $picked[$group['key']] ?? [], true);
-									@endphp
+									@php($on = in_array($item['code'], $picked[$group['key']] ?? [], true))
 									<button type="button" @class(['fopt', 'is-on' => $on])
 											wire:click="toggle('{{ $group['key'] }}', '{{ $item['code'] }}')"
 											wire:key="opt-{{ $group['key'] }}-{{ $item['code'] }}"
 											role="checkbox" aria-checked="{{ $on ? 'true' : 'false' }}">
-										<span class="fopt__box" aria-hidden="true"><x-icon name="check" size="12" /></span>
 										<span class="fopt__name">{{ $item['label'] }}</span>
-										<span class="fopt__count">{{ $n }}</span>
 									</button>
 								@endforeach
 							</div>
