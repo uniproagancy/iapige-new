@@ -109,7 +109,7 @@ class FacebookFeed extends ProductFeed
 
         $monthly = (int) ceil($price / $this->config['instalment_months']);
 
-        return "თვეში {$monthly}₾ დან";
+        return __('product.quick_monthly_from', ['amount' => money($monthly)]);
     }
 
     protected function supplier(Product $product): ?string

@@ -132,7 +132,9 @@ class Palette
      */
     public static function baseOf(?string $shade): ?string
     {
-        $shade = self::plain($shade);
+        /* Letters only, so that everything separating two colours --
+           slashes, commas, dashes -- leaves each of them readable. */
+        $shade = Text::words($shade, '\p{L}');
 
         if ($shade === '') {
             return null;
@@ -201,15 +203,5 @@ class Palette
         uksort($index, fn ($a, $b) => mb_strlen((string) $b) <=> mb_strlen((string) $a));
 
         return $index;
-    }
-
-    /* Letters only, with everything that separates two colours -- slashes,
-       commas, dashes -- turned into a space so each can be read. */
-    protected static function plain(?string $shade): string
-    {
-        $shade = html_entity_decode((string) $shade, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $shade = (string) preg_replace('/[^\p{L}]+/u', ' ', mb_strtolower($shade));
-
-        return trim((string) preg_replace('/\s+/u', ' ', $shade));
     }
 }

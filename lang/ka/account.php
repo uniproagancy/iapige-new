@@ -9,7 +9,6 @@ return [
     'password' => 'პაროლის შეცვლა',
     'current_password' => 'მიმდინარე პაროლი',
     'save_password' => 'პაროლის შეცვლა',
-    'password_saved' => 'პაროლი განახლდა.',
 
     'overview' => 'მიმოხილვა',
     'orders' => 'შეკვეთები',
@@ -32,11 +31,6 @@ return [
     'in_progress' => 'მიმდინარე',
     'no_orders' => 'შეკვეთები ჯერ არ გაქვს',
     'start_shopping' => 'კატალოგში გადასვლა',
-    'cancel_order' => 'გაუქმება',
-    'cancel_confirm' => 'შეკვეთა გაუქმდეს?',
-    'cancel_too_late' => 'შეკვეთა უკვე აწყობილია — დაგვიკავშირდი',
-    'order_cancelled' => 'შეკვეთა გაუქმდა',
-    'cancelled_by_customer' => 'გააუქმა მყიდველმა',
     'paid' => 'გადახდილი',
     'unpaid' => 'გადასახდელი მიღებისას',
 

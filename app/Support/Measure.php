@@ -82,6 +82,13 @@ class Measure
        lands this near one: 81 სმ is 31.89 inches, which is a 32" screen. */
     protected const SNAP = 0.15;
 
+    /* How much of a shelf's answers must already be readings before a bare
+       figure is taken to be one, and how far outside their sizes it may
+       fall and still be read as the same kind of thing. */
+    protected const CONTEXT = 0.5;
+
+    protected const LEEWAY = 3;
+
     /* Band widths worth offering, narrowest first. Every one of them is a
        figure somebody would name on their own. */
     protected const LADDER = [
@@ -99,7 +106,7 @@ class Measure
      */
     public static function read(?string $label): ?array
     {
-        $label = self::plain($label);
+        $label = Text::tidy($label);
 
         if ($label === '') {
             return null;
@@ -244,6 +251,67 @@ class Measure
     }
 
     /*
+     | A bare figure among readings. One supplier writes "411 ლ", the next
+     | writes "515" in the same place, and both mean litres -- but "515" alone
+     | could be anything, so it is read as the shelf's unit only when the
+     | shelf leaves no doubt: most answers are readings, all of one quantity,
+     | and the bare figure is the size those readings are. A plate written
+     | "28.8" beside plates of 255-345 მმ stays as written, because it is
+     | the wrong size to be millimetres.
+     |
+     | @param  array<string, array<string, mixed>|null>  $readings  answer code => reading
+     | @param  array<string, string>  $units  quantity => the unit the shelf speaks
+     | @param  array<string, string|null>  $labels  answer code => as written
+     | @return array<string, array<string, mixed>|null>
+     */
+    public static function understood(array $readings, array $units, array $labels): array
+    {
+        $known = array_filter($readings);
+
+        if (count($known) < max(2, count($labels) * self::CONTEXT)) {
+            return $readings;
+        }
+
+        $quantities = array_unique(array_column($known, 'dimension'));
+
+        if (count($quantities) !== 1) {
+            return $readings;
+        }
+
+        $dimension = (string) reset($quantities);
+        $unit = $units[$dimension] ?? null;
+
+        if ($unit === null || ! isset(self::UNITS[$dimension][$unit])) {
+            return $readings;
+        }
+
+        $sizes = array_column($known, 'low');
+        $low = min($sizes) / self::LEEWAY;
+        $high = max($sizes) * self::LEEWAY;
+        $factor = self::factor($dimension, $unit);
+
+        foreach ($readings as $code => $reading) {
+            if ($reading !== null) {
+                continue;
+            }
+
+            $said = Text::tidy($labels[$code] ?? null);
+
+            if (! preg_match('/^(\d+(?:[.,]\d+)?)$/u', $said, $figure)) {
+                continue;
+            }
+
+            $size = self::figure($figure[1]) * $factor;
+
+            if ($size >= $low && $size <= $high) {
+                $readings[$code] = ['dimension' => $dimension, 'unit' => $unit, 'low' => $size, 'high' => null];
+            }
+        }
+
+        return $readings;
+    }
+
+    /*
      | Whether readings of this quantity may be gathered into bands. Memory
      | may not: "0-500 GB" is nobody's idea of a telephone, while the handful
      | of sizes telephones are made in is a choice already.
@@ -329,12 +397,5 @@ class Measure
         self::$index = $index;
 
         return $index;
-    }
-
-    protected static function plain(?string $label): string
-    {
-        $label = html_entity_decode((string) $label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-        return trim(mb_strtolower((string) preg_replace('/\s+/u', ' ', $label)));
     }
 }

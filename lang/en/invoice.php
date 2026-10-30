@@ -9,7 +9,6 @@ return [
     'pay_to' => 'Payment details',
     'beneficiary' => 'Beneficiary',
     'tax_id' => 'Tax ID',
-    'bank' => 'Bank',
     'iban' => 'Account (IBAN)',
     'reference' => 'Reference',
     'amount' => 'Amount due',

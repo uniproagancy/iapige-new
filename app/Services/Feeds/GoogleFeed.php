@@ -103,7 +103,7 @@ class GoogleFeed extends ProductFeed
             $xml->writeElement('g:custom_label_0', 'preorder');
         } elseif ($price > $this->config['instalment_from']) {
             $monthly = (int) ceil($price / $this->config['instalment_months']);
-            $xml->writeElement('g:custom_label_0', "თვეში {$monthly}₾-დან");
+            $xml->writeElement('g:custom_label_0', __('product.quick_monthly_from', ['amount' => money($monthly)]));
         }
 
         if ($was && $was > $price) {

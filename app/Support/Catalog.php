@@ -474,6 +474,7 @@ class Catalog
         }
 
         $units = Measure::prevailing($readings, $held);
+        $readings = Measure::understood($readings, $units, $attribute->values->pluck('label', 'code')->all());
         $items = [];
 
         foreach ($attribute->values as $value) {

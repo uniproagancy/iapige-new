@@ -28,7 +28,7 @@ class Answer
        anything more. */
     public static function yesNo(?string $label): ?bool
     {
-        $label = self::plain($label);
+        $label = Text::words($label);
 
         if ($label === '') {
             return null;
@@ -44,13 +44,5 @@ class Answer
     public static function label(bool $yes): string
     {
         return $yes ? __('catalog.yes') : __('catalog.no');
-    }
-
-    protected static function plain(?string $label): string
-    {
-        $label = html_entity_decode((string) $label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $label = (string) preg_replace('/[^\p{L}\p{N}\s]+/u', ' ', mb_strtolower($label));
-
-        return trim((string) preg_replace('/\s+/u', ' ', $label));
     }
 }

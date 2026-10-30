@@ -8,7 +8,7 @@
         <h1 class="info__title" style="font-size: 18px">{{ $product['name'] }}</h1>
         @if (Auth::user()?->isAdmin())
             <span class="info__supplier">
-                მომწოდებლის SKU:
+                {{ __('product.supplier_sku') }}:
                 <b>{{ $product['sku'] }}</b>
             </span>
         @endif

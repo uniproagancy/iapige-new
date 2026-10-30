@@ -6,8 +6,6 @@ return [
     'empty' => 'Your cart is empty',
     'empty_text' => 'Add a product and it will show up here.',
     'to_catalog' => 'Browse the catalogue',
-    'free_delivery' => 'Free delivery from 300 ₾',
-    'free' => 'Free',
     'items' => 'Items (:count)',
     'total' => 'Total',
     'checkout' => 'Checkout',

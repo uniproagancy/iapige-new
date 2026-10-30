@@ -9,7 +9,6 @@ return [
     'password' => 'Change password',
     'current_password' => 'Current password',
     'save_password' => 'Change password',
-    'password_saved' => 'Your password has been updated.',
 
     'overview' => 'Overview',
     'orders' => 'Orders',
@@ -32,11 +31,6 @@ return [
     'in_progress' => 'In progress',
     'no_orders' => 'No orders yet',
     'start_shopping' => 'Browse the catalogue',
-    'cancel_order' => 'Cancel',
-    'cancel_confirm' => 'Cancel this order?',
-    'cancel_too_late' => 'It is already packed — please call us',
-    'order_cancelled' => 'Order cancelled',
-    'cancelled_by_customer' => 'Cancelled by the customer',
     'paid' => 'Paid',
     'unpaid' => 'Pay on delivery',
 

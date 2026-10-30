@@ -1,31 +1,17 @@
 @php
     use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
+    /* The texts the scripts ask for by name, and only those: every other
+       message a page shows now comes from the Livewire component that caused
+       it. "cartAdded" is spelt as app.js spells it -- under its old name the
+       toast printed the key itself. */
     $i18n = [
-        'results'      => __('layout.results'),
-        'allResults'   => __('layout.all_results'),
-        'noResults'    => __('layout.no_results'),
-        'added'        => __('cart.added'),
-        'checkout'     => __('cart.checkout').' — '.__('common.demo'),
-        'emailInvalid' => __('common.email_invalid'),
-        'phoneInvalid' => __('common.phone_invalid'),
-        'nameInvalid'  => __('common.name_invalid'),
-        'subscribed'   => __('footer.subscribed'),
-        'cookiesAll'   => __('cookies.accepted_all'),
-        'cookiesNeed'  => __('cookies.accepted_necessary'),
-        'loggedIn'     => __('auth.logged_in'),
-        'registered'   => __('auth.registered'),
-        'show'         => __('auth.show'),
-        'hide'         => __('auth.hide'),
-        'more'         => __('catalog.more'),
-        'productAdded' => __('product.added'),
-        'productAdd'   => __('product.add'),
-        'bundleAdded'  => __('product.bundle_added'),
-        'buyNow'       => __('product.buy_now_demo'),
-        'callSent'     => __('product.call_sent'),
-        'callMe'       => __('product.call_me'),
-        'sent'         => __('info.sent'),
-        'send'         => __('info.send'),
+        'cartAdded'   => __('cart.added'),
+        'cookiesAll'  => __('cookies.accepted_all'),
+        'cookiesNeed' => __('cookies.accepted_necessary'),
+        'show'        => __('auth.show'),
+        'hide'        => __('auth.hide'),
+        'more'        => __('catalog.more'),
     ];
 
     $seo = \App\Support\Seo::meta(array_merge(
