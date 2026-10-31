@@ -89,6 +89,10 @@ class Measure
 
     protected const LEEWAY = 3;
 
+    /* Units a product name uses for something other than a measure: "5G"
+       is a network and "2 in 1" a kind of product. */
+    protected const NOT_IN_NAMES = ['g', 'in'];
+
     /* Band widths worth offering, narrowest first. Every one of them is a
        figure somebody would name on their own. */
     protected const LADDER = [
@@ -248,6 +252,41 @@ class Measure
         return str_starts_with($written, '"') || $written === '"'
             ? $figure.$written
             : $figure.' '.$written;
+    }
+
+    /*
+     | Readings written somewhere in a sentence -- a product's name, mostly:
+     | "Samsung RB34 340L", "LG 55\" OLED". Unlike read(), which takes a label
+     | only when it is nothing but a reading, this looks between the words.
+     |
+     | A one-letter unit that a name uses for something else is not looked
+     | for: "Redmi 12 5G" is a telephone on the fifth generation of network,
+     | not five grams of one.
+     |
+     | @return array<int, array{dimension: string, unit: string, low: float, high: ?float}>
+     */
+    public static function mentioned(?string $text): array
+    {
+        preg_match_all(
+            '/(?<![\p{L}\p{N}.,])(\d+(?:[.,]\d+)?)\s*('.self::pattern().')(?![\p{L}\p{N}])/u',
+            Text::tidy($text),
+            $found,
+            PREG_SET_ORDER,
+        );
+
+        $readings = [];
+
+        foreach ($found as [, $figure, $word]) {
+            if (in_array($word, self::NOT_IN_NAMES, true)) {
+                continue;
+            }
+
+            if ($reading = self::reading($word, $figure, '')) {
+                $readings[] = $reading;
+            }
+        }
+
+        return $readings;
     }
 
     /*

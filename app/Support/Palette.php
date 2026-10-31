@@ -118,6 +118,12 @@ class Palette
         'peach blue' => 'blue',
     ];
 
+    /* The colour words a name can be trusted with. */
+    protected const PLAIN = [
+        'black', 'white', 'grey', 'gray', 'silver', 'gold', 'blue', 'green',
+        'red', 'pink', 'purple', 'violet', 'yellow', 'orange', 'brown', 'beige',
+    ];
+
     /* The longer Georgian words are matched by their stem, because Georgian
        gives a colour an ending of its own -- "ფოლადისგან" for steel. A latin
        word is matched whole: "red" must not answer for "Redmi". */
@@ -153,6 +159,45 @@ class Palette
         }
 
         return null;
+    }
+
+    /*
+     | The one colour a product's name says it is, or null when it says none
+     | or several. A name is full of words that are colours on a swatch and
+     | something else in a catalogue -- Samsung's "Crystal UHD", Bosch's
+     | "Jet", VIDAA's "Titan" -- so from a name only the plain colour words
+     | are read, and "Black/White" is left for the specifications to settle.
+     */
+    public static function named(?string $name): ?string
+    {
+        $text = Text::words($name, '\p{L}');
+
+        if ($text === '') {
+            return null;
+        }
+
+        $found = [];
+
+        foreach (self::COMPOUNDS as $pair => $base) {
+            if (preg_match('/(?<=^|\s)'.preg_quote($pair, '/').'(?=\s|$)/u', $text)) {
+                $found[$base] = true;
+                $text = (string) preg_replace('/(?<=^|\s)'.preg_quote($pair, '/').'(?=\s|$)/u', ' ', $text);
+            }
+        }
+
+        foreach (preg_split('/\s+/u', trim($text)) ?: [] as $word) {
+            $georgian = (bool) preg_match('/\p{Georgian}/u', $word);
+
+            if (! $georgian && ! in_array($word, self::PLAIN, true)) {
+                continue;
+            }
+
+            if ($base = self::wordFor($word)) {
+                $found[$base] = true;
+            }
+        }
+
+        return count($found) === 1 ? (string) array_key_first($found) : null;
     }
 
     public static function label(string $base): string
