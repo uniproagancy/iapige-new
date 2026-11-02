@@ -4,7 +4,6 @@
     <nav class="topbar__links" aria-label="{{ __('layout.services') }}">
         <a href="{{ route('contact') }}">{{ __('nav.contact') }}</a>
         <a href="{{ route('info', 'installments') }}">{{ __('layout.installments') }}</a>
-        <a href="{{ route('info', 'warranty') }}">{{ __('layout.warranty') }}</a>
     </nav>
     <div class="topbar__right">
         <a class="topbar__phone" href="tel:+995322121028">0322 12 10 28</a>

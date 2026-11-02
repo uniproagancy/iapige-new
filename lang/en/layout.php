@@ -14,6 +14,5 @@ return [
     'search' => 'Search',
     'wishlist' => 'Wishlist',
     'cart' => 'Cart',
-    'warranty' => 'Warranty',
 
 ];

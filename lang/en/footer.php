@@ -6,7 +6,6 @@ return [
     'help' => 'Help',
     'delivery' => 'Delivery',
     'returns' => 'Returns',
-    'warranty' => 'Warranty',
     'contact' => 'Contact',
     'deals' => 'Deals',
     'payment' => 'Payment methods',

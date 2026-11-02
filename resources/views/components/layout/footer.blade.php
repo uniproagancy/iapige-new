@@ -32,7 +32,6 @@
             <h3>{{ __('footer.help') }}</h3>
             <a href="{{ route('info', 'delivery') }}">{{ __('footer.delivery') }}</a>
             <a href="{{ route('info', 'returns') }}">{{ __('footer.returns') }}</a>
-            <a href="{{ route('info', 'warranty') }}">{{ __('footer.warranty') }}</a>
             <a href="{{ route('contact') }}">{{ __('footer.contact') }}</a>
         </nav>
         <div class="foot__pay">

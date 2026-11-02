@@ -31,10 +31,10 @@
 
         @switch($view)
             @case('contact')
-                <x-info.contact :cards="$contactCards" :topics="$topics" />
+                <x-info.contact :cards="$contactCards" />
                 @break
             @case('about')
-                <x-info.about :values="$values" />
+                <x-info.about />
                 @break
             @default
                 <x-info.document :docs="$docs" :active="$doc" />
