@@ -145,8 +145,7 @@ class Store
                     ['initial' => 'ს', 'name' => 'სალომე თაბაგარი', 'date' => '2 აგვისტო', 'score' => '5.0', 'text' => 'კომპაქტური და მსუბუქია — 14 ინჩი ზუსტად ის ზომაა, რაც მჭირდებოდა. განვადება ონლაინ 5 წუთში დამიმტკიცეს.'],
                 ],
                 'services' => [
-                    ['უფასო მიწოდება 24 საათში', 'თბილისში უფასოდ, რეგიონებში 2–3 დღეში კურიერით.'],
-                    ['30 დღიანი დაბრუნება', 'შეკვეთა არ მოგერგო? დააბრუნე ყოველგვარი კითხვის გარეშე.'],
+					[],
                 ],
             ],
             'en' => [
@@ -157,8 +156,7 @@ class Store
                     ['initial' => 'S', 'name' => 'Salome Tabagari', 'date' => '2 August', 'score' => '5.0', 'text' => 'Compact and light — 14 inches is exactly the size I wanted. Instalments were approved online in five minutes.'],
                 ],
                 'services' => [
-                    ['Free delivery within 24 hours', 'Free in Tbilisi, 2–3 days by courier in the regions.'],
-                    ['30-day returns', 'Not the right fit? Send it back, no questions asked.'],
+					[],
                 ],
             ],
         ]);
@@ -201,9 +199,9 @@ class Store
                         ['h' => 'ტარიფი', 'p' => 'საკურიერო მომსახურება იწყება 5 ₾-დან; საკურიერო მომსახურების ღირებულება დამოკიდებულია ნივთის ზომაზე. რეგიონებში ხელმისაწვდომია მხოლოდ სტანდარტული მიწოდების სერვისი.'],
                     ]],
                 'returns' => ['name' => 'დაბრუნება', 'title' => 'დაბრუნება და გაცვლა', 'updated' => '12 აგვისტო, 2026',
-                    'intro' => 'ნებისმიერი პროდუქტი შეგიძლია დააბრუნო 30 დღის განმავლობაში მიზეზის მითითების გარეშე.',
+                    'intro' => '',
                     'sections' => [
-                        ['h' => 'პირობები', 'p' => 'პროდუქტი უნდა იყოს სრულ კომპლექტაციაში და დაზიანების გარეშე.', 'list' => ['30 დღე — დაბრუნება', '14 დღე — გაცვლა', 'თანხა 5 დღეში']],
+                        ['h' => 'პირობები', 'p' => 'პროდუქტი უნდა იყოს სრულ კომპლექტაციაში და დაზიანების გარეშე.', 'list' => ['14 დღე — გაცვლა', 'თანხა 5 დღეში']],
                         ['h' => 'პროცესი', 'p' => 'შეავსე განაცხადი პროფილში — კურიერი ჩამოვა ნივთის ასაღებად უფასოდ.'],
                     ]],
                 'warranty' => ['name' => 'გარანტია', 'title' => 'გარანტია და სერვისი', 'updated' => '5 აგვისტო, 2026',
@@ -226,9 +224,8 @@ class Store
                         ['h' => 'Rates', 'p' => 'Courier delivery starts at 10 ₾; every city has a free-delivery threshold.'],
                     ]],
                 'returns' => ['name' => 'Returns', 'title' => 'Returns and exchanges', 'updated' => '12 August 2026',
-                    'intro' => 'You can return any product within 30 days without giving a reason.',
                     'sections' => [
-                        ['h' => 'Conditions', 'p' => 'The product must be complete and undamaged.', 'list' => ['30 days — return', '14 days — exchange', 'Refund within 5 days']],
+                        ['h' => 'Conditions', 'p' => 'The product must be complete and undamaged.', 'list' => ['14 days — exchange', 'Refund within 5 days']],
                         ['h' => 'How it works', 'p' => 'Fill in a request in your profile — a courier collects the item for free.'],
                     ]],
                 'warranty' => ['name' => 'Warranty', 'title' => 'Warranty and service', 'updated' => '5 August 2026',
