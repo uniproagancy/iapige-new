@@ -267,8 +267,12 @@ class Measure
      */
     public static function mentioned(?string $text): array
     {
+        /* "80-100 m²" is a range and read as one. "21/16 kg" is a washing
+           machine that washes 21 and dries 16: two readings written as one,
+           and taking either of them would be a guess -- so a figure standing
+           after a slash is not read at all. */
         preg_match_all(
-            '/(?<![\p{L}\p{N}.,])(\d+(?:[.,]\d+)?)\s*('.self::pattern().')(?![\p{L}\p{N}])/u',
+            '/(?<![\p{L}\p{N}.,\/])(\d+(?:[.,]\d+)?)(?:\s*[-–]\s*(\d+(?:[.,]\d+)?))?\s*('.self::pattern().')(?![\p{L}\p{N}])/u',
             Text::tidy($text),
             $found,
             PREG_SET_ORDER,
@@ -276,12 +280,12 @@ class Measure
 
         $readings = [];
 
-        foreach ($found as [, $figure, $word]) {
+        foreach ($found as [, $low, $high, $word]) {
             if (in_array($word, self::NOT_IN_NAMES, true)) {
                 continue;
             }
 
-            if ($reading = self::reading($word, $figure, '')) {
+            if ($reading = self::reading($word, $low, $high)) {
                 $readings[] = $reading;
             }
         }
@@ -396,7 +400,10 @@ class Measure
 
     protected static function write(float $value): string
     {
-        $value = $value < 1 ? round($value, 2) : ($value < 10 ? round($value, 1) : round($value));
+        /* A tenth is kept below a hundred: 15.6" and 16" are two laptops, and
+           22.5 W two chargers. Above it a tenth is noise -- nobody tells a
+           184.5 სმ refrigerator from a 185 სმ one. */
+        $value = $value < 1 ? round($value, 2) : ($value < 100 ? round($value, 1) : round($value));
 
         $whole = round($value);
 

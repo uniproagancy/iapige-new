@@ -118,6 +118,12 @@ class Palette
         'peach blue' => 'blue',
     ];
 
+    /* Names made of colour words that name something else. */
+    protected const NOT_COLOURS = [
+        'black shark', 'red magic', 'blue yeti', 'green lion', 'red bull',
+        'e blue', 'red dragon', 'black decker', 'blue ocean',
+    ];
+
     /* The colour words a name can be trusted with. */
     protected const PLAIN = [
         'black', 'white', 'grey', 'gray', 'silver', 'gold', 'blue', 'green',
@@ -168,9 +174,15 @@ class Palette
      | "Jet", VIDAA's "Titan" -- so from a name only the plain colour words
      | are read, and "Black/White" is left for the specifications to settle.
      */
-    public static function named(?string $name): ?string
+    public static function named(?string $name, ?string $brand = null): ?string
     {
         $text = Text::words($name, '\p{L}');
+
+        /* Brands and product lines whose own names are colours: "Green Lion"
+           makes glass, and a protector for a Xiaomi "Black Shark" is clear. */
+        foreach (array_merge(self::NOT_COLOURS, array_filter([Text::words($brand, '\p{L}')])) as $phrase) {
+            $text = (string) preg_replace('/(?<=^|\s)'.preg_quote($phrase, '/').'(?=\s|$)/u', ' ', $text);
+        }
 
         if ($text === '') {
             return null;

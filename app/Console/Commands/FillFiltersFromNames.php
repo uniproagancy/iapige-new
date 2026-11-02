@@ -43,8 +43,65 @@ class FillFiltersFromNames extends Command
        it is treated as a measurement. */
     protected const MEASURED = 0.6;
 
-    /* Two readings closer than this are the same answer: 340 ლ and 0.34 m³. */
-    protected const SAME = 0.005;
+    /* Two readings closer than this are the same answer written in two
+       units -- 340 ლ and 340000 მლ -- and no closer: a 249 ლ refrigerator
+       is not the 250 ლ one beside it. */
+    protected const SAME = 0.0001;
+
+    /*
+     | When a shelf asks for one quantity in more than one filter, the figure
+     | in a name is the headline one: a refrigerator's litres are its whole
+     | volume and not its freezer's, an air conditioner's BTU its cooling, a
+     | washing machine's kilograms what it holds and not what it weighs, a
+     | charger's watts the most it gives. A shelf with several such filters
+     | and none of these among them is left alone -- its name cannot say
+     | which of them it means.
+     */
+    protected const HEADLINE = [
+        'volume' => ['mtliani-motsuloba', 'motsuloba'],
+        'heat' => ['gagrilebis-simdzlavre-btu'],
+        'weight' => ['maksimaluri-chatvirtva', 'maksimaluri-datvirtva'],
+        'power' => ['max-vati', 'max-simdzlavre', 'simdzlavre'],
+        'length' => ['ekranis-zoma', 'screen'],
+    ];
+
+    /*
+     | Memory is two questions a name answers at once. "12/256GB", or "8GB,
+     | 128GB" in a laptop's list, is the working memory and the storage; the
+     | smaller is the first, the larger the second, and nobody makes a
+     | telephone with 64GB of working memory. A name giving one figure gives
+     | the storage, when it is that large -- Apple names its storage and
+     | never its working memory, and "16GB" alone could be either.
+     */
+    protected const MEMORY = [
+        'operatiuli-mekhsiereba' => 'ram',
+        'shida-mekhsiereba' => 'storage',
+    ];
+
+    protected const MOST_RAM_GB = 64;
+
+    protected const LEAST_STORAGE_GB = 64;
+
+    /*
+     | Filters a name is never the answer to. A product's own weight is almost
+     | never in its name; the kilograms that are -- "Sencor SBL 131GR", a
+     | washing machine's "9 Kg", coffee's "1Kg" -- are a model, a load or the
+     | contents.
+     */
+    protected const NOT_FROM_NAMES = ['tsona'];
+
+    /*
+     | A figure is believed only when it is the size the shelf's own answers
+     | are, this far beyond the spread of the middle of them at most. A drill
+     | sold as "198V" beside drills of 12 to 40 volts is a slogan, not a
+     | voltage.
+     */
+    protected const PLAUSIBLE = 1.5;
+
+    /* How many readings a filter must already hold for its spread to mean
+       anything: two are enough to say what size the shelf's things are,
+       and a washing machine shelf often offers no more than 6, 7 and 8 კგ. */
+    protected const SPREAD = 2;
 
     protected $signature = 'products:fill-from-names
         {--apply : file them, which only reporting does not}
@@ -73,23 +130,14 @@ class FillFiltersFromNames extends Command
             }
 
             $products = Product::listable()->where('category_id', $shelf->id)->withTranslation()
-                ->get(['id', 'variant_group']);
+                ->with('brand:id,name')
+                ->get(['id', 'variant_group', 'brand_id']);
 
             if ($products->count() < self::MIN_SHELF) {
                 continue;
             }
 
-            foreach (Catalog::listing($shelf)['groups'] as $group) {
-                if ($group['key'] === 'brand') {
-                    continue;
-                }
-
-                $attribute = Attribute::where('code', $group['key'])->first();
-                $kind = $attribute ? $this->kindOf($attribute, $group) : null;
-
-                if (! $kind) {
-                    continue;
-                }
+            foreach ($this->fillable(Catalog::listing($shelf)['groups']) as [$group, $attribute, $kind, $range]) {
 
                 $answered = DB::table('attribute_value_product as avp')
                     ->join('attribute_values as av', 'av.id', '=', 'avp.attribute_value_id')
@@ -104,7 +152,9 @@ class FillFiltersFromNames extends Command
 
                     $label = $kind === 'colour'
                         ? $this->colourFor($attribute, $product)
-                        : $this->readingFor($attribute, $kind, (string) $product->name);
+                        : ($kind === 'memory'
+                            ? $this->memoryFor($attribute, $range, (string) $product->name)
+                            : $this->readingFor($kind, $range, (string) $product->name));
 
                     if ($label === null) {
                         continue;
@@ -159,6 +209,10 @@ class FillFiltersFromNames extends Command
      */
     protected function kindOf(Attribute $attribute, array $group): ?string
     {
+        if (in_array($attribute->code, self::NOT_FROM_NAMES, true)) {
+            return null;
+        }
+
         if ($attribute->type === Attribute::TYPE_COLOR) {
             return 'colour';
         }
@@ -177,7 +231,7 @@ class FillFiltersFromNames extends Command
 
         $dimension = (string) $dimensions->first();
 
-        if ($dimension === 'memory') {
+        if ($dimension === 'memory' && ! isset(self::MEMORY[$attribute->code])) {
             return null;
         }
 
@@ -190,17 +244,145 @@ class FillFiltersFromNames extends Command
         return $dimension;
     }
 
-    protected function readingFor(Attribute $attribute, string $dimension, string $name): ?string
+    /**
+     * The filters on a shelf a name can answer, each with what it asks for and
+     * the sizes its answers come in.
+     *
+     * @param  array<int, array<string, mixed>>  $groups
+     * @return array<int, array{0: array<string, mixed>, 1: Attribute, 2: string, 3: ?array{0: float, 1: float}}>
+     */
+    protected function fillable(array $groups): array
+    {
+        $found = [];
+
+        foreach ($groups as $group) {
+            if ($group['key'] === 'brand') {
+                continue;
+            }
+
+            $attribute = Attribute::where('code', $group['key'])->first();
+            $kind = $attribute ? $this->kindOf($attribute, $group) : null;
+
+            if ($kind) {
+                $found[] = [$group, $attribute, $kind, $kind === 'colour' ? null : $this->rangeOf($group)];
+            }
+        }
+
+        return collect($found)
+            ->groupBy(fn (array $one) => $one[2])
+            ->flatMap(function (Collection $same, string $kind) {
+                /* A colour is a colour, and the two memories are told apart by
+                   their size rather than by a headline. */
+                if ($same->count() === 1 || $kind === 'colour' || $kind === 'memory') {
+                    return $same->all();
+                }
+
+                foreach (self::HEADLINE[$kind] ?? [] as $code) {
+                    $headline = $same->first(fn (array $one) => $one[1]->code === $code);
+
+                    if ($headline) {
+                        return [$headline];
+                    }
+                }
+
+                return [];
+            })
+            /* A filter holding too few readings to show their spread is not
+               one a name's figure can be checked against. */
+            ->filter(fn (array $one) => $one[2] === 'colour' || $one[3] !== null)
+            ->values()->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $group
+     * @return array{0: float, 1: float}|null
+     */
+    protected function rangeOf(array $group): ?array
+    {
+        $sizes = collect($group['items'])
+            ->map(fn (array $item) => Measure::read($item['label']))
+            ->filter()
+            ->flatMap(fn (array $reading) => array_values(array_filter([$reading['low'], $reading['high']], fn ($size) => $size !== null)))
+            ->sort()->values();
+
+        if ($sizes->count() < self::SPREAD) {
+            return null;
+        }
+
+        /* The low end rounded down and the high end up, so a shelf of two
+           sizes spans both of them rather than the smaller twice. */
+        $last = $sizes->count() - 1;
+        $low = (float) $sizes[(int) floor($last * 0.1)];
+        $high = (float) $sizes[(int) ceil($last * 0.9)];
+
+        return [$low / self::PLAUSIBLE, $high * self::PLAUSIBLE];
+    }
+
+    /**
+     * @param  array{0: float, 1: float}|null  $range
+     */
+    protected function readingFor(string $dimension, ?array $range, string $name): ?string
     {
         $found = collect(Measure::mentioned($name))
             ->filter(fn (array $reading) => $reading['dimension'] === $dimension)
-            ->unique(fn (array $reading) => round($reading['low'], 3));
+            ->unique(fn (array $reading) => round($reading['low'], 3).'-'.round((float) $reading['high'], 3));
 
         if ($dimension === 'length') {
             $found = $found->filter(fn (array $reading) => $reading['unit'] === 'inch');
         }
 
-        return $found->count() === 1 ? Measure::canonical($found->first()) : null;
+        if ($found->count() !== 1) {
+            return null;
+        }
+
+        $reading = $found->first();
+
+        if ($range && ($reading['low'] < $range[0] || ($reading['high'] ?? $reading['low']) > $range[1])) {
+            return null;
+        }
+
+        return Measure::canonical($reading);
+    }
+
+    /**
+     * @param  array{0: float, 1: float}|null  $range
+     */
+    protected function memoryFor(Attribute $attribute, ?array $range, string $name): ?string
+    {
+        $role = self::MEMORY[$attribute->code];
+        $gigabyte = Measure::factor('memory', 'gb');
+        $said = mb_strtolower($name);
+        $found = [];
+
+        /* "12/256GB": the unit is written once, after the second figure. */
+        if (preg_match('/(?<![\d.])(\d+)\s*(?:gb)?\s*[\/+]\s*(\d+)\s*(gb|tb)(?![\p{L}\d])/u', $said, $pair)) {
+            $found[] = (float) $pair[1] * $gigabyte;
+            $found[] = (float) $pair[2] * Measure::factor('memory', $pair[3]);
+            $said = str_replace($pair[0], ' ', $said);
+        }
+
+        foreach (Measure::mentioned($said) as $reading) {
+            if ($reading['dimension'] === 'memory') {
+                $found[] = $reading['low'];
+            }
+        }
+
+        $found = array_values(array_unique($found));
+        sort($found);
+
+        $size = match (true) {
+            count($found) === 1 => $role === 'storage' && $found[0] >= self::LEAST_STORAGE_GB * $gigabyte ? $found[0] : null,
+            count($found) === 2 && $found[0] <= self::MOST_RAM_GB * $gigabyte && $found[1] >= 4 * $found[0] => $role === 'ram' ? $found[0] : $found[1],
+            default => null,
+        };
+
+        if ($size === null || ($range && ($size < $range[0] || $size > $range[1]))) {
+            return null;
+        }
+
+        $unit = $size >= Measure::factor('memory', 'tb') ? 'tb' : 'gb';
+
+        return Measure::canonical(['dimension' => 'memory', 'unit' => $unit, 'low' => $size, 'high' => null]);
     }
 
     /*
@@ -210,7 +392,7 @@ class FillFiltersFromNames extends Command
      */
     protected function colourFor(Attribute $attribute, Product $product): ?string
     {
-        $base = Palette::named((string) $product->name);
+        $base = Palette::named((string) $product->name, $product->brand?->name);
 
         if (! $base) {
             return null;
@@ -254,7 +436,8 @@ class FillFiltersFromNames extends Command
             ->filter(fn ($answer) => $answer->reading
                 && $answer->reading['dimension'] === $wanted['dimension']
                 && abs($answer->reading['low'] - $wanted['low']) <= $wanted['low'] * self::SAME
-                && $answer->reading['high'] === null)
+                && ($answer->reading['high'] === null) === ($wanted['high'] === null)
+                && ($wanted['high'] === null || abs($answer->reading['high'] - $wanted['high']) <= $wanted['high'] * self::SAME))
             ->sortByDesc('held')
             ->first();
     }
