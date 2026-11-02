@@ -38,6 +38,13 @@
             'external_id' => hash('sha256', (string) $pixelUser->id),
             'country'     => 'ge',
         ]);
+    } elseif ($pixelVisitor = app(\App\Services\Facebook\Pixel::class)->visitorKey()) {
+        /* The same key the server sends for this visitor, hashed the same
+           way, so the browser's events and the server's are one person. */
+        $pixelMatch = [
+            'external_id' => hash('sha256', $pixelVisitor),
+            'country'     => 'ge',
+        ];
     }
 @endphp
 

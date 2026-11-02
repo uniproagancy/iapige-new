@@ -123,7 +123,7 @@ class CallbackForm extends Component
             'comment' => $this->comment, 'paymentCategory' => $this->paymentCategory,
             'paymentMethod' => $this->paymentMethod,
         ], $pixel->browserData() + [
-            'owner' => $owner, 'user_id' => Auth::id(),
+            'owner' => $owner, 'user_id' => Auth::id(), 'visitor' => $pixel->visitorKey(),
             'source_url' => mb_substr(url()->previous(), 0, 500), 'consented' => $pixel->consented(),
         ]);
         $this->track(fn () => $pixel->savedLead($lead));

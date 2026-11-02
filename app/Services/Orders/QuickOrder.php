@@ -144,7 +144,9 @@ class QuickOrder
                     'payment_category' => $canonical['payment_category'] ?: null,
                     'payment_method' => $canonical['payment_method'] ?: null,
                     'lead_event_id' => Pixel::eventId('ld'),
-                    'external_id' => isset($context['user_id']) ? (string) $context['user_id'] : 'lead:'.$key,
+                    /* The visitor's own key when there is one, so the lead and the
+                       browsing before it are one person to Meta. */
+                    'external_id' => isset($context['user_id']) ? (string) $context['user_id'] : (($context['visitor'] ?? null) ?: 'lead:'.$key),
                     'fbp' => $context['fbp'] ?? null, 'fbc' => $context['fbc'] ?? null,
                     'ip' => $context['client_ip_address'] ?? null, 'user_agent' => $context['client_user_agent'] ?? null,
                     'consented' => (bool) ($context['consented'] ?? false),

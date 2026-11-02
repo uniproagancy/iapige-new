@@ -506,6 +506,14 @@ class Pixel
             $identity = ['email' => $user->email, 'phone' => $user->phone, 'name' => $user->name, 'id' => $user->id];
         }
 
+        /* A visitor who has told us nothing is still the same visitor from
+           one page to the next. Without this, a browsing event carried only
+           an address and a browser, and Meta matched almost none of them --
+           three out of ten on the events most of the traffic is made of. */
+        if (empty($identity['id']) && ! $snapshot && ($visitor = $this->visitorKey())) {
+            $identity['id'] = $visitor;
+        }
+
         return array_merge($data, $this->hashedIdentity($identity));
     }
 
@@ -519,6 +527,23 @@ class Pixel
         ]);
 
         return $data;
+    }
+
+    /*
+     | The shop's own name for an anonymous visitor: a random key kept in a
+     | first-party cookie and never anything that identifies a person. It is
+     | sent hashed as external_id from the server and from the browser alike,
+     | so the two sides describe one visitor -- and when that visitor later
+     | leaves a phone number with a quick order, the order carries the same
+     | key, and the browsing that led to it is counted as theirs.
+     */
+    public const VISITOR_COOKIE = 'iapi_vid';
+
+    public function visitorKey(): ?string
+    {
+        $visitor = request()->cookie(self::VISITOR_COOKIE);
+
+        return is_string($visitor) && preg_match('/\A[a-f0-9]{32}\z/', $visitor) ? 'v:'.$visitor : null;
     }
 
     protected function fbcFromClick(): ?string
