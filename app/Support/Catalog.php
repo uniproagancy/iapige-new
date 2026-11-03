@@ -1137,19 +1137,33 @@ class Catalog
         return $kept;
     }
 
+    /* A word this short is part of too many category names to say anything. */
+    protected const CATEGORY_TERM = 3;
+
     public static function matching(Builder $query, string $term): Builder
     {
         $spellings = self::spellings($term);
 
-        return $query->where(function ($q) use ($spellings) {
+        /* Most products are named in Georgian only, and the English shop shows
+           that name in their place; looking in English alone found none of
+           them. The category is looked in too, because a product's name is
+           mostly a model -- "Samsung RB34" -- and "refrigerator" is only ever
+           said by the shelf it is on. */
+        $locales = array_values(array_unique([app()->getLocale(), Language::defaultCode()]));
+
+        return $query->where(function ($q) use ($spellings, $locales) {
             foreach ($spellings as $at => $spelling) {
                 $q->{$at === 0 ? 'where' : 'orWhere'}(fn ($s) => $s
                     ->whereHas('translations', fn ($t) => $t
-                        ->where('locale', app()->getLocale())
+                        ->whereIn('locale', $locales)
                         ->where(fn ($w) => $w->where('name', 'like', "%{$spelling}%")
                             ->orWhere('summary', 'like', "%{$spelling}%")))
                     ->orWhere('sku', 'like', "%{$spelling}%")
-                    ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', "%{$spelling}%")));
+                    ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', "%{$spelling}%"))
+                    ->when(mb_strlen($spelling) >= self::CATEGORY_TERM, fn ($c) => $c
+                        ->orWhereHas('category.translations', fn ($t) => $t
+                            ->whereIn('locale', $locales)
+                            ->where('name', 'like', "%{$spelling}%"))));
             }
         });
     }
