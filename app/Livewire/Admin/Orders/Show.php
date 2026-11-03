@@ -201,8 +201,18 @@ class Show extends Component
         ]);
     }
 
+    /* "Pay here": the fee typed on the form first, then the page that pays. */
+    public function payHere(): ?string
+    {
+        $this->carryShipping();
+
+        return $this->payLink();
+    }
+
     public function sendPayLink(): void
     {
+        $this->carryShipping();
+
         $link = $this->payLink();
 
         if (! $link) {

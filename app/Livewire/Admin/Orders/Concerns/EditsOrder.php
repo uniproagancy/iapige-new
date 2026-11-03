@@ -258,6 +258,44 @@ trait EditsOrder
         return $this->subtotal() + $this->shipping();
     }
 
+    /*
+     | A delivery fee typed in but not yet saved goes with the payment all the
+     | same. The pay page reads the order from the database, so an operator who
+     | typed the fee and pressed "pay here" sent the customer to the old total.
+     | Only the fee is carried: the rest of the form waits for "save".
+     */
+    public function carryShipping(): void
+    {
+        if (! $this->editable() || $this->order->is_paid
+            || $this->shippingOverride === null || trim((string) $this->shippingOverride) === '') {
+            return;
+        }
+
+        $this->shippingOverride = Figure::typed($this->shippingOverride);
+
+        $this->validate(['shippingOverride' => ['nullable', 'numeric', 'min:0']]);
+
+        $shipping = round((float) $this->shippingOverride, 2);
+        $was = (float) $this->order->shipping;
+
+        if (abs($shipping - $was) < 0.005) {
+            return;
+        }
+
+        $this->order->update([
+            'shipping' => $shipping,
+            'total' => round((float) $this->order->subtotal + $shipping, 2),
+        ]);
+
+        $this->order->events()->create([
+            'user_id' => auth()->id(),
+            'type' => 'note',
+            'note' => __('admin.order_shipping_carried', ['was' => money($was), 'now' => money($shipping)]),
+        ]);
+
+        app(Pixel::class)->refreshAfterEdit($this->order);
+    }
+
     public function recalculateShipping(): void
     {
         $this->shippingOverride = null;

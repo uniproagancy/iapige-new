@@ -412,9 +412,11 @@
                             <input type="text" class="form-control" readonly
                                    value="{{ $payLink }}"
                                    onfocus="this.select()">
+                            {{-- copying the link sends whatever fee is typed with it --}}
                             <button type="button" class="btn btn-outline-secondary"
-                                    onclick="
-                                        const field = this.previousElementSibling;
+                                    x-on:click="
+                                        $wire.carryShipping();
+                                        const field = $el.previousElementSibling;
                                         field.select();
                                         field.setSelectionRange(0, 99999);
                                         if (navigator.clipboard) {
@@ -422,7 +424,7 @@
                                         } else {
                                             document.execCommand('copy');
                                         }
-                                        this.textContent = @js(__('admin.copied'));
+                                        $el.textContent = @js(__('admin.copied'));
                                     ">
                                 {{ __('admin.copy') }}
                             </button>
@@ -434,7 +436,16 @@
                             {!! $icon('phone', 'me-25') !!}{{ __('admin.pay_link_sms') }}
                         </button>
 
-                        <a class="btn btn-primary w-100" href="{{ $payLink }}" target="_blank" rel="noopener">
+                        {{-- the tab is opened at once, while the click still counts as the
+                             operator's, and pointed at the pay page once the fee is in --}}
+                        <a class="btn btn-primary w-100" href="{{ $payLink }}" target="_blank" rel="noopener"
+                           x-on:click.prevent="
+                               const tab = window.open('', '_blank');
+                               $wire.payHere().then(url => {
+                                   if (! tab) { if (url) location.href = url; return; }
+                                   if (url) { tab.opener = null; tab.location = url; } else { tab.close(); }
+                               });
+                           ">
                             {!! $icon('money', 'me-25') !!}{{ __('admin.pay_here') }}
                         </a>
                     @endif
