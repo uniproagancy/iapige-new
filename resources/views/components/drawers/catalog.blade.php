@@ -13,7 +13,7 @@
             @foreach ($tree as $i => $cat)
                 <div class="cat-node" data-cat-node="{{ $i }}">
                     <button type="button" @class(['cat', 'is-active' => $i === 0]) data-cat="{{ $i }}" aria-expanded="false">
-                        <img class="cat__img" src="{{ $cat['image'] }}" alt="" loading="lazy">
+                        <span class="cat__img"><x-category-media :category="$cat" /></span>
                         <span class="cat__body">
                             <span class="cat__name">{{ $cat['name'] }}</span>
                             <span class="cat__count">{{ $cat['count'] }}</span>

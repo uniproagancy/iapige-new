@@ -204,6 +204,40 @@ class Catalog
 
     protected static array $dealMemo = [];
 
+    /*
+     | A shelf without a photograph of its own shows a solid icon in its place.
+     | It used to get a stock photograph -- a harbour, a city street -- that had
+     | nothing to do with what was on it.
+     */
+    public const DEFAULT_ICON = 'squares-four';
+
+    protected static ?string $iconSprite = null;
+
+    public static function iconHref(string $name): string
+    {
+        static::$iconSprite ??= asset('img/category-icons.svg').'?v='.@filemtime(public_path('img/category-icons.svg'));
+
+        return static::$iconSprite.'#'.$name;
+    }
+
+    /* The icons there are to choose from: whatever the sprite holds. */
+    public static function iconNames(): array
+    {
+        static $names = null;
+
+        if ($names === null) {
+            preg_match_all('/<symbol id="([a-z0-9-]+)"/', (string) @file_get_contents(public_path('img/category-icons.svg')), $m);
+            $names = $m[1];
+        }
+
+        return $names;
+    }
+
+    protected static function iconFor(Category $category): ?string
+    {
+        return $category->image ? null : ($category->icon ?: self::DEFAULT_ICON);
+    }
+
     public static function tree(): array
     {
         return static::$treeMemo[app()->getLocale()] ??= static::buildTree();
@@ -237,9 +271,8 @@ class Catalog
                     'name' => $category->name,
                     'url' => route('catalog', $category->slug),
 
-                    'image' => $depth === 1
-                        ? ($category->imageUrl() ?? Store::img('iapi-cat-'.$category->id, 0, 76, 76))
-                        : null,
+                    'image' => $depth === 1 ? $category->imageUrl() : null,
+                    'icon' => $depth === 1 ? self::iconFor($category) : null,
                     'total' => ($counts[$category->id] ?? 0) + array_sum(array_column($children, 'total')),
                     'children' => $children,
                 ];
@@ -359,7 +392,8 @@ class Catalog
                 'id' => $root->id,
                 'name' => $root->name,
                 'url' => route('catalog', $root->slug),
-                'image' => $root->imageUrl() ?? Store::img('iapi-cat-'.$root->id, 0, 320, 240),
+                'image' => $root->imageUrl(),
+                'icon' => self::iconFor($root),
                 'total' => $stocked[$root->id],
                 'subs' => $root->children
                     ->filter(fn (Category $sub) => isset($stocked[$sub->id]))
@@ -769,7 +803,8 @@ class Catalog
                     'id' => $c->id,
                     'name' => $c->name,
                     'url' => route('catalog', $c->slug),
-                    'image' => $c->imageUrl() ?? Store::img('iapi-cat-'.$c->id, 0, 320, 240),
+                    'image' => $c->imageUrl(),
+                    'icon' => self::iconFor($c),
                     'total' => collect($c->descendantAndSelfIds())->sum(fn ($id) => $childCounts[$id] ?? 0),
                 ])
                     ->filter(fn ($sub) => $sub['total'] > 0)

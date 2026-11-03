@@ -20,7 +20,7 @@
                 @foreach ($categories as $category)
                     <a class="cattile" href="{{ $category['url'] }}" wire:key="cat-{{ $category['id'] }}">
                         <span class="cattile__media">
-                            <img src="{{ $category['image'] }}" alt="" loading="lazy">
+                            <x-category-media :category="$category" />
                         </span>
                         <span class="cattile__name">{{ $category['name'] }}</span>
                     </a>
@@ -144,7 +144,7 @@
                             @foreach ($listing['subs'] as $item)
                                 <a class="subcard" href="{{ $item['url'] }}" wire:key="subcard-{{ $item['id'] }}">
                                     <span class="subcard__media">
-                                        <img src="{{ $item['image'] }}" alt="" loading="lazy">
+                                        <x-category-media :category="$item" />
                                     </span>
                                     <span class="subcard__name">{{ $item['name'] }}</span>
                                     <span class="subcard__count">{{ $item['total'] }}</span>

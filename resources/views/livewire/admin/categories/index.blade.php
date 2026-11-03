@@ -128,6 +128,10 @@
 
                                     @if ($row['image'])
                                         <img src="{{ $row['image'] }}" alt="" class="cat-thumb me-1">
+                                    @elseif ($row['icon'])
+                                        <span class="cat-thumb cat-thumb--empty me-1">
+                                            <svg width="18" height="18" fill="#FF6900" aria-hidden="true"><use href="{{ \App\Support\Catalog::iconHref($row['icon']) }}"/></svg>
+                                        </span>
                                     @else
                                         <span class="cat-thumb cat-thumb--empty me-1">
                                             {!! $icon($row['depth'] ? 'child' : 'folder') !!}
@@ -294,6 +298,23 @@
                                     <label class="form-label">{{ __('admin.image') }}</label>
                                     <input type="file" class="form-control" wire:model="image" accept="image/*">
                                     <div wire:loading wire:target="image" class="small text-muted mt-25">{{ __('admin.upload') }}…</div>
+                                </div>
+
+                                <div class="col-md-4 mb-1">
+                                    <label class="form-label" for="f-icon">{{ __('admin.category_icon') }}</label>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="cat-thumb cat-thumb--empty flex-shrink-0">
+                                            <svg width="18" height="18" fill="#FF6900" aria-hidden="true"><use href="{{ \App\Support\Catalog::iconHref($iconName ?: \App\Support\Catalog::DEFAULT_ICON) }}"/></svg>
+                                        </span>
+                                        <select id="f-icon" @class(['form-select', 'is-invalid' => $errors->has('iconName')]) wire:model.live="iconName">
+                                            <option value="">{{ __('admin.category_icon_default') }}</option>
+                                            @foreach (\App\Support\Catalog::iconNames() as $name)
+                                                <option value="{{ $name }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @error('iconName') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                    <small class="text-muted">{{ __('admin.category_icon_hint') }}</small>
                                 </div>
                             </div>
 

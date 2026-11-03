@@ -5,8 +5,10 @@ namespace App\Livewire\Admin\Categories;
 use App\Models\Category;
 use App\Models\Language;
 use App\Models\Product;
+use App\Support\Catalog;
 use App\Support\Slug;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -47,6 +49,8 @@ class Index extends Component
     public $image = null;
 
     public ?string $currentImage = null;
+
+    public string $iconName = '';
 
     public array $translations = [];
 
@@ -109,6 +113,7 @@ class Index extends Component
                     'depth' => $depth,
                     'parent' => $category->parent_id,
                     'image' => $category->imageUrl(),
+                    'icon' => $category->icon,
                     'active' => (bool) $category->is_active,
                     'system' => (bool) ($category->is_system ?? false),
                     'home' => (bool) $category->show_on_home,
@@ -229,6 +234,7 @@ class Index extends Component
         $this->sort_order = $category->sort_order;
         $this->currentImage = $category->imageUrl();
         $this->image = null;
+        $this->iconName = (string) $category->icon;
         $this->resetValidation();
 
         $this->translations = Language::active()->mapWithKeys(fn (Language $l) => [
@@ -250,6 +256,7 @@ class Index extends Component
             "translations.{$default}.name" => ['required', 'string', 'max:120'],
             'parent_id' => ['nullable', 'exists:categories,id'],
             'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'iconName' => ['nullable', 'string', Rule::in(Catalog::iconNames())],
         ]);
 
         if ($this->editingId && $this->parent_id) {
@@ -270,6 +277,7 @@ class Index extends Component
                 'is_active' => $this->is_active,
                 'show_on_home' => $this->show_on_home,
                 'show_in_menu' => $this->show_in_menu,
+                'icon' => $this->iconName ?: null,
             ]);
 
             if (! $category->exists) {
@@ -391,6 +399,7 @@ class Index extends Component
         $this->sort_order = 0;
         $this->image = null;
         $this->currentImage = null;
+        $this->iconName = '';
         $this->resetValidation();
 
         $this->translations = Language::active()
