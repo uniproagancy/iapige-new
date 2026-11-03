@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Support\Figure;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -99,8 +100,8 @@ class Index extends Component
             ->when($this->brandId, fn ($q) => $q->where('brand_id', $this->brandId))
             ->when($this->supplierId, fn ($q) => $q->whereHas('offers', fn ($o) => $o->where('supplier_id', $this->supplierId)))
 
-            ->when(is_numeric($this->priceFrom), fn ($q) => $q->where('price', '>=', (float) $this->priceFrom))
-            ->when(is_numeric($this->priceTo), fn ($q) => $q->where('price', '<=', (float) $this->priceTo))
+            ->when(Figure::money($this->priceFrom) !== null, fn ($q) => $q->where('price', '>=', Figure::money($this->priceFrom)))
+            ->when(Figure::money($this->priceTo) !== null, fn ($q) => $q->where('price', '<=', Figure::money($this->priceTo)))
 
             ->when($this->issue === 'live', fn ($q) => $q->listable())
             ->when($this->issue === 'hidden', fn ($q) => $q->where(fn ($w) => $w
@@ -287,13 +288,11 @@ class Index extends Component
 
     protected function asDecimal(string $value): ?float
     {
-        $value = str_replace(',', '.', trim($value));
+        /* The shop's one reading of a figure. Swapping the comma for a dot
+           turned "1,200" into one lari and twenty. */
+        $read = Figure::typed($value);
 
-        if ($value === '' || ! is_numeric($value) || (float) $value < 0) {
-            return null;
-        }
-
-        return (float) $value;
+        return is_numeric($read) && (float) $read >= 0 ? (float) $read : null;
     }
 
     public function resetFilters(): void

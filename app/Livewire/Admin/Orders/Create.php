@@ -11,6 +11,7 @@ use App\Models\UserAddress;
 use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Orders\OrderLines;
 use App\Support\Catalog;
+use App\Support\Figure;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -102,6 +103,8 @@ class Create extends Component
     protected function check(string $step): void
     {
         $rules = $this->rulesFor($step);
+
+        $this->shippingOverride = Figure::typed($this->shippingOverride);
 
         if ($rules) {
             $this->validate($rules);
@@ -282,7 +285,7 @@ class Create extends Component
     public function shipping(): float
     {
         if ($this->shippingOverride !== null && $this->shippingOverride !== '') {
-            return round((float) $this->shippingOverride, 2);
+            return round(Figure::amount($this->shippingOverride), 2);
         }
 
         if ($this->delivery === 'pickup') {

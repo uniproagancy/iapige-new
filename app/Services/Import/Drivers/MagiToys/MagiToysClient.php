@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\MagiToys;
 
+use App\Support\Figure;
 use App\Support\Redact;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -125,7 +126,7 @@ class MagiToysClient
     {
         $price = $data['offers']['price'] ?? null;
 
-        return is_numeric($price) ? (float) $price : null;
+        return Figure::money($price, Figure::DOT);
     }
 
     protected function inStock(array $data): bool

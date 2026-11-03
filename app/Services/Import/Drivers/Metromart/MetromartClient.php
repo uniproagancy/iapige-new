@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Metromart;
 
+use App\Support\Figure;
 use DOMDocument;
 use DOMXPath;
 use GuzzleHttp\Cookie\CookieJar;
@@ -82,8 +83,8 @@ class MetromartClient
             'name' => $name,
             'brand' => $this->attr($xpath, '//meta[@itemprop="brand"]', 'content'),
             'category' => $this->category($html, $xpath),
-            'price' => (float) ($this->meta($xpath, 'product:price:amount') ?? 0),
-            'sale' => (float) ($this->meta($xpath, 'product:sale_price:amount') ?? 0),
+            'price' => Figure::amount($this->meta($xpath, 'product:price:amount'), Figure::DOT),
+            'sale' => Figure::amount($this->meta($xpath, 'product:sale_price:amount'), Figure::DOT),
             'in_stock' => $this->availableToday($xpath),
             'images' => $this->images($xpath, $url),
             'specs' => $this->specs($xpath),

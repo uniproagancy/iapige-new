@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Comfo;
 
+use App\Support\Figure;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
@@ -41,7 +42,7 @@ class ComfoClient
             'images' => $this->images($json),
             'specs' => $this->specs($json),
             'in_stock' => str_contains((string) ($offer['availability'] ?? ''), 'InStock'),
-            'price' => (float) ($offer['price'] ?? 0),
+            'price' => Figure::amount($offer['price'] ?? null, Figure::DOT),
         ];
     }
 

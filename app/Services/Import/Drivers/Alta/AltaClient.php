@@ -3,6 +3,7 @@
 namespace App\Services\Import\Drivers\Alta;
 
 use App\Services\Import\TaxonomyResolver;
+use App\Support\Figure;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -202,9 +203,9 @@ class AltaClient
 
     protected function validateRetailPrice(array $product, string $source): void
     {
-        $price = $product['price'] ?? null;
+        $price = Figure::money($product['price'] ?? null, Figure::DOT);
 
-        if (! is_numeric($price) || ! is_finite((float) $price) || (float) $price <= 0) {
+        if ($price === null || $price <= 0) {
             throw $this->unavailable('returned an invalid current retail price', $source);
         }
     }
@@ -273,8 +274,8 @@ class AltaClient
      */
     protected function take(array $product, string $item): array
     {
-        $price = (float) ($product['price'] ?? 0);
-        $previous = (float) ($product['previousPrice'] ?? 0);
+        $price = Figure::amount($product['price'] ?? null, Figure::DOT);
+        $previous = Figure::amount($product['previousPrice'] ?? null, Figure::DOT);
         $route = trim((string) ($product['route'] ?? ''));
 
         return [

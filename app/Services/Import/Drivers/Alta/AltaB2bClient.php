@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Alta;
 
+use App\Support\Figure;
 use App\Support\Redact;
 use Illuminate\Support\Facades\Log;
 use SoapClient;
@@ -109,7 +110,7 @@ class AltaB2bClient
             'model' => trim((string) ($item->item_model ?? '')) ?: null,
             'name' => $this->name((string) ($item->item_full_name ?? '')),
             'quantity' => $this->quantity($item->qty_text ?? null),
-            'price' => (float) ($item->price_unit ?? 0),
+            'price' => Figure::amount($item->price_unit ?? null, Figure::DOT),
             'brand' => trim((string) ($item->brand ?? '')) ?: null,
             'category' => trim((string) ($item->category ?? '')) ?: null,
 

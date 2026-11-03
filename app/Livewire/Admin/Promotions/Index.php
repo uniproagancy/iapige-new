@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Promotions;
 
 use App\Models\Product;
 use App\Models\Promotion;
+use App\Support\Figure;
 use App\Support\Slug;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -210,7 +211,9 @@ class Index extends Component
 
         $product = $promotion->products()->findOrFail($productId);
 
-        $price = (float) ($this->price[$productId] ?? 0);
+        /* Read as money: "1,099" cast to 1, which is lower than any price
+           and so passed as a promotion at one lari. */
+        $price = Figure::amount($this->price[$productId] ?? null);
         $percent = (int) ($this->percent[$productId] ?? 0);
 
         if ($price > 0 && $percent > 0) {

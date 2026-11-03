@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductSpec;
 use App\Services\Images\Thumbnailer;
+use App\Support\Figure;
 use App\Support\Slug;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -163,6 +164,12 @@ class Form extends Component
     {
         $default = Language::defaultCode();
 
+        /* "1 299,90" is a price as people write it; read it as one before the
+           checks below see it. */
+        $this->price = Figure::typed($this->price);
+        $this->old_price = Figure::typed($this->old_price);
+        $this->cost_price = Figure::typed($this->cost_price);
+
         $this->validate(array_merge([
             'sku' => ['required', 'string', 'max:64'],
             "translations.{$default}.name" => ['required', 'string', 'max:255'],
@@ -187,7 +194,7 @@ class Form extends Component
                 'category_id' => $this->category_id,
                 'brand_id' => $this->brand_id,
                 'taxonomy_lock' => $this->taxonomy_lock,
-                'price' => (float) $this->price,
+                'price' => Figure::amount($this->price),
                 'old_price' => $this->old_price !== null && $this->old_price !== '' ? (float) $this->old_price : null,
                 'cost_price' => $this->cost_price !== null && $this->cost_price !== '' ? (float) $this->cost_price : null,
                 'price_lock' => $this->price_lock,
@@ -262,7 +269,7 @@ class Form extends Component
             $problems[] = __('admin.no_category');
         }
 
-        if ((float) $this->price <= 0) {
+        if (Figure::amount($this->price) <= 0) {
             $problems[] = __('admin.no_price');
         }
 

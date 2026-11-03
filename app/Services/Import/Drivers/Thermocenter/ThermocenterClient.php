@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Thermocenter;
 
+use App\Support\Figure;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +26,7 @@ class ThermocenterClient
         }
 
         $offer = isset($json['offers'][0]) ? $json['offers'][0] : ($json['offers'] ?? []);
-        $price = (float) ($offer['price'] ?? 0);
+        $price = Figure::amount($offer['price'] ?? null, Figure::DOT);
 
         return [
             'name' => $this->clean((string) ($json['name'] ?? '')) ?: null,

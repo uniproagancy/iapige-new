@@ -10,6 +10,7 @@ use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Facebook\Pixel;
 use App\Services\Orders\OrderLines;
 use App\Support\Catalog;
+use App\Support\Figure;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -236,7 +237,7 @@ trait EditsOrder
     public function shipping(): float
     {
         if ($this->shippingOverride !== null && $this->shippingOverride !== '') {
-            return round((float) $this->shippingOverride, 2);
+            return round(Figure::amount($this->shippingOverride), 2);
         }
 
         if ($this->delivery === 'pickup') {
@@ -274,6 +275,8 @@ trait EditsOrder
 
             return;
         }
+
+        $this->shippingOverride = Figure::typed($this->shippingOverride);
 
         $this->validate([
             'name' => ['required', 'string', 'max:120'],

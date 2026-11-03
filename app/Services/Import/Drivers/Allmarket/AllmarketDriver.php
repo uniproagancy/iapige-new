@@ -5,6 +5,7 @@ namespace App\Services\Import\Drivers\Allmarket;
 use App\Models\Supplier;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Support\Figure;
 use DOMDocument;
 use DOMXPath;
 
@@ -43,8 +44,8 @@ class AllmarketDriver implements SupplierDriver
             return null;
         }
 
-        $retail = (float) ($data['rrp']['original'] ?? 0);
-        $sale = (float) ($data['rrp']['discounted'] ?? 0);
+        $retail = Figure::amount($data['rrp']['original'] ?? null, Figure::DOT);
+        $sale = Figure::amount($data['rrp']['discounted'] ?? null, Figure::DOT);
 
         [$price, $old] = $sale > 0 && $sale < $retail ? [$sale, $retail] : [$retail, null];
 

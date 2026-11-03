@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Support\Figure;
 use Illuminate\Support\Facades\Log;
 
 class AlneoDriver implements SupplierDriver
@@ -169,7 +170,9 @@ class AlneoDriver implements SupplierDriver
         $cost = (float) $row->cost_price;
 
         if ($cost > 0) {
-            $sale = isset($data['sale']) ? (float) $data['sale'] : 0.0;
+            /* Read as money, not cast: a sheet loaded before the loader knew
+               this column is still text, and "1,079.00" casts to 1. */
+            $sale = Figure::money($data['sale'] ?? null, $this->supplier->config['decimal'] ?? null) ?? 0.0;
 
             return $sale > 0 && $sale < $cost ? [$sale, $cost] : [$cost, 0.0];
         }

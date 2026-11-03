@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Support\Figure;
 
 class KontaktDriver implements SupplierDriver
 {
@@ -57,7 +58,8 @@ class KontaktDriver implements SupplierDriver
             return null;
         }
 
-        $sale = isset($data['sale']) ? (float) $data['sale'] : 0.0;
+        /* Read as money, not cast: "1,079.00" casts to 1. */
+        $sale = Figure::money($data['sale'] ?? null, $this->supplier->config['decimal'] ?? null) ?? 0.0;
         [$price, $old] = $sale > 0 && $sale < $cost ? [$sale, $cost] : [$cost, null];
 
         $specs = array_map(fn ($spec) => [

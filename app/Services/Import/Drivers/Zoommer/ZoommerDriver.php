@@ -7,6 +7,7 @@ use App\Services\Import\Concerns\ScansIdRange;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 use App\Services\Import\TaxonomyResolver;
+use App\Support\Figure;
 
 class ZoommerDriver implements SupplierDriver
 {
@@ -107,8 +108,8 @@ class ZoommerDriver implements SupplierDriver
 
     protected function prices(array $product): array
     {
-        $current = (float) ($product['price'] ?? 0);
-        $previous = (float) ($product['previousPrice'] ?? 0);
+        $current = Figure::amount($product['price'] ?? null, Figure::DOT);
+        $previous = Figure::amount($product['previousPrice'] ?? null, Figure::DOT);
 
         if ($previous > 0 && $current > 0) {
             return [min($current, $previous), max($current, $previous)];

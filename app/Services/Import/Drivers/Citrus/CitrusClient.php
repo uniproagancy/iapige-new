@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Citrus;
 
+use App\Support\Figure;
 use Illuminate\Support\Facades\Http;
 
 class CitrusClient
@@ -68,8 +69,8 @@ class CitrusClient
 
     protected function take(array $data, string $slug): array
     {
-        $price = (float) ($data['price'] ?? 0);
-        $old = (float) ($data['old_price'] ?? 0);
+        $price = Figure::amount($data['price'] ?? null, Figure::DOT);
+        $old = Figure::amount($data['old_price'] ?? null, Figure::DOT);
 
         return [
             'id' => (string) $data['id'],

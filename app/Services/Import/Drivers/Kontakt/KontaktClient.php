@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Kontakt;
 
+use App\Support\Figure;
 use Illuminate\Support\Facades\Http;
 
 class KontaktClient
@@ -34,7 +35,7 @@ class KontaktClient
             'category' => $this->category($html),
             'specs' => $this->specs($html),
             'in_stock' => str_contains((string) ($json['offers']['availability'] ?? ''), 'InStock'),
-            'price' => (float) ($json['offers']['price'] ?? 0),
+            'price' => Figure::amount($json['offers']['price'] ?? null, Figure::DOT),
         ];
     }
 

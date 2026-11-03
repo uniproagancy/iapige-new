@@ -14,7 +14,11 @@ class PriceListLoader
 
     /* The roles that hold money, and so are read rather than kept as
        whatever the cell happened to say. */
-    protected const FIGURES = ['cost', 'discount_price', 'old_price'];
+    /* Columns that hold money. "sale" was missing, so the sale price was
+       kept as the cell's text -- "1,079.00" -- and read by its drivers with
+       a plain cast, which stops at the comma: a 2,499 ₾ item came out at
+       2 ₾, cheaper than its cost, and was offered at that. */
+    protected const FIGURES = ['cost', 'discount_price', 'old_price', 'sale'];
 
     public const MODE_MERGE = 'merge';
 
@@ -62,7 +66,7 @@ class PriceListLoader
                 'quantity' => $this->quantity($cells, $map),
                 'cost_price' => $this->money($cells[$map['cost'] ?? ''] ?? null, $supplier),
 
-                'data' => json_encode($this->pick($cells, $map), JSON_UNESCAPED_UNICODE),
+                'data' => json_encode($this->pick($cells, $map, $supplier), JSON_UNESCAPED_UNICODE),
                 'synced_at' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -201,7 +205,7 @@ class PriceListLoader
         return substr(sha1(rtrim(strtolower($raw), '/')), 0, 32);
     }
 
-    protected function pick(array $cells, array $map): array
+    protected function pick(array $cells, array $map, ?Supplier $supplier = null): array
     {
         $picked = [];
         $links = $cells['_links'] ?? [];
@@ -221,9 +225,12 @@ class PriceListLoader
 
             /* A figure is stored as a figure. The struck-through price used
                to be kept as whatever the cell said and read much later, which
-               is how "2,899.00" survived long enough to be misread. */
+               is how "2,899.00" survived long enough to be misread. It is read
+               on the supplier's own terms, as the cost beside it is: "1.250"
+               is a thousand and a quarter or one and a quarter depending on
+               who wrote it. */
             $picked[$role] = in_array($role, self::FIGURES, true)
-                ? Figure::money($value)
+                ? $this->money($value, $supplier)
                 : $value;
         }
 

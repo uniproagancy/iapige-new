@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Support\Figure;
 
 class IngcoDriver implements SupplierDriver
 {
@@ -57,7 +58,8 @@ class IngcoDriver implements SupplierDriver
     protected function prices(SupplierStock $row): array
     {
         $list = (float) $row->cost_price;
-        $sale = (float) ($row->data['sale'] ?? 0);
+        /* Read as money, not cast: "1,079.00" casts to 1. */
+        $sale = Figure::money($row->data['sale'] ?? null, $this->supplier->config['decimal'] ?? null) ?? 0.0;
 
         return $sale > 0 && $sale < $list ? [$sale, $list] : [$list, null];
     }

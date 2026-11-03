@@ -12,6 +12,7 @@ use App\Services\Import\JsonImportSource;
 use App\Services\Import\JsonImportSourceException;
 use App\Services\Import\ProductImporter;
 use App\Services\Import\ProductPayload;
+use App\Support\Figure;
 use App\Support\Redact;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -241,6 +242,7 @@ class Json extends Component
     public function save(ProductImporter $importer): array
     {
         Gate::authorize('admin');
+        $this->price = Figure::typed($this->price);
         $this->validate([
             'stock' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'price' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
@@ -624,7 +626,7 @@ class Json extends Component
     protected function corrected(ProductPayload $payload): ProductPayload
     {
         $stock = $this->stock === null || $this->stock === '' ? $payload->stock : (int) $this->stock;
-        $price = $this->price === null || $this->price === '' ? $payload->costPrice : (float) $this->price;
+        $price = $this->price === null || $this->price === '' ? $payload->costPrice : Figure::amount($this->price);
 
         return new ProductPayload(
             externalId: $payload->externalId,
@@ -658,7 +660,7 @@ class Json extends Component
 
             /* What the markup would make of the price being shown. */
             'selling' => $supplier && $this->alone() && $this->price !== null && $this->price !== ''
-                ? $supplier->markup((float) $this->price)
+                ? $supplier->markup(Figure::amount($this->price))
                 : null,
 
             /* Which of the pasted answers the shop already holds. */

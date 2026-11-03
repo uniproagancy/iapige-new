@@ -25,6 +25,13 @@ class Figure
 
     public static function money(mixed $value, ?string $decimal = null): ?float
     {
+        /* A number that arrives as a number -- from JSON, from the database --
+           is already read. Turning it back into text to guess at would make
+           1.079 from an API into a thousand and seventy-nine. */
+        if (is_int($value) || is_float($value)) {
+            return is_finite((float) $value) ? (float) $value : null;
+        }
+
         $text = trim((string) $value);
 
         if ($text === '') {
@@ -94,6 +101,31 @@ class Figure
     public static function amount(mixed $value, ?string $decimal = null): float
     {
         return self::money($value, $decimal) ?? 0.0;
+    }
+
+    /*
+     | An amount somebody typed into a form, read the same way and handed
+     | back as text for the form's own checks: "12,5" becomes "12.5" and
+     | "1 200" becomes "1200". Text that holds no figure is returned as it was
+     | typed, so the form says it is wrong instead of taking a guess.
+     */
+    public static function typed(?string $value): ?string
+    {
+        if ($value === null || trim($value) === '') {
+            return $value;
+        }
+
+        /* A supplier's "1 079 ლარი" is read past its words, but a person who
+           typed "12abc" made a mistake, and saving 12 would hide it. */
+        if (! preg_match('/^[\s\x{00A0}\x{202F}]*-?[\d\s\x{00A0}\x{202F}.,]+₾?[\s\x{00A0}\x{202F}]*$/u', $value)) {
+            return $value;
+        }
+
+        $read = self::money($value);
+
+        return $read === null
+            ? $value
+            : rtrim(rtrim(number_format($read, 2, '.', ''), '0'), '.');
     }
 
     protected static function split(string $text, int $at): float

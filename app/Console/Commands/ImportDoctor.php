@@ -7,6 +7,7 @@ use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ImportManager;
+use App\Support\Figure;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -311,8 +312,8 @@ class ImportDoctor extends Command
         SupplierStock::where('supplier_id', $supplier->id)
             ->select(['id', 'quantity', 'cost_price', 'data'])
             ->lazyById(1000)
-            ->each(function (SupplierStock $row) use ($minPrice, $minStock, &$clearPrice, &$clearBoth) {
-                $paid = (float) ($row->data['sale'] ?? 0) ?: (float) $row->cost_price;
+            ->each(function (SupplierStock $row) use ($supplier, $minPrice, $minStock, &$clearPrice, &$clearBoth) {
+                $paid = Figure::amount($row->data['sale'] ?? null, $supplier->config['decimal'] ?? null) ?: (float) $row->cost_price;
 
                 if ($paid < $minPrice) {
                     return;

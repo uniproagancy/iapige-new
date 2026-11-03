@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\TaxonomyResolver;
 use App\Services\Import\VariantKey;
+use App\Support\Figure;
 
 /*
  | Turns one answer from alta.ge's details endpoint into a product.
@@ -50,7 +51,7 @@ class AltaJson
         }
 
         $name = trim((string) ($product['name'] ?? ''));
-        $price = is_numeric($product['price'] ?? null) ? (float) $product['price'] : 0.0;
+        $price = Figure::amount($product['price'] ?? null, Figure::DOT);
 
         if ($name === '') {
             $errors[] = __('admin.json_no_name');
@@ -67,7 +68,7 @@ class AltaJson
         }
 
         $locale = $this->supplier->config['locale'] ?? 'ka';
-        $previous = is_numeric($product['previousPrice'] ?? null) ? (float) $product['previousPrice'] : 0.0;
+        $previous = Figure::amount($product['previousPrice'] ?? null, Figure::DOT);
         $specs = $this->specs($product, $locale);
 
         $payload = new ProductPayload(
@@ -122,7 +123,7 @@ class AltaJson
             'code' => $code,
             'name' => trim((string) ($product['name'] ?? '')),
             'price' => $price,
-            'previous' => (float) ($product['previousPrice'] ?? 0),
+            'previous' => Figure::amount($product['previousPrice'] ?? null, Figure::DOT),
             'brand' => trim((string) ($product['brandName'] ?? '')) ?: null,
             'category' => trim((string) ($product['categoryName'] ?? '')) ?: null,
             'parent_category' => trim((string) ($product['parentCategoryName'] ?? '')) ?: null,

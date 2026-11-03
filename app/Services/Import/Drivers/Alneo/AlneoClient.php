@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Alneo;
 
+use App\Support\Figure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -155,7 +156,7 @@ class AlneoClient
         $unit = 0.0;
 
         foreach ($offer['priceSpecification'] ?? [] as $spec) {
-            $value = (float) ($spec['price'] ?? 0);
+            $value = Figure::amount($spec['price'] ?? null, Figure::DOT);
 
             if (str_contains((string) ($spec['priceType'] ?? ''), 'ListPrice')) {
                 $list = $value;
@@ -164,7 +165,7 @@ class AlneoClient
             }
         }
 
-        $main = (float) ($offer['price'] ?? 0);
+        $main = Figure::amount($offer['price'] ?? null, Figure::DOT);
 
         if ($list > 0 && $unit > 0 && $list > $unit) {
             return [$unit, $list];

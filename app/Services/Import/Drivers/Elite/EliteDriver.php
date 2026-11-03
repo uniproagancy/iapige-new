@@ -8,6 +8,7 @@ use App\Services\Import\Concerns\ScansIdRange;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 use App\Services\Import\TaxonomyResolver;
+use App\Support\Figure;
 use RuntimeException;
 
 class EliteDriver implements SupplierDriver
@@ -41,11 +42,11 @@ class EliteDriver implements SupplierDriver
 
         return $data ? $this->toPayload($externalId, $data) : null;
     }
-	
-	protected function prices(array $product): array
+
+    protected function prices(array $product): array
     {
-        $current = (float) ($product['price'] ?? 0);
-        $previous = (float) ($product['previousPrice'] ?? 0);
+        $current = Figure::amount($product['price'] ?? null, Figure::DOT);
+        $previous = Figure::amount($product['previousPrice'] ?? null, Figure::DOT);
 
         if ($previous > 0 && $current > 0) {
             return [min($current, $previous), max($current, $previous)];
@@ -59,8 +60,8 @@ class EliteDriver implements SupplierDriver
         $p = $data['product'];
         $locale = $this->supplier->config['locale'] ?? 'ka';
         $barcode = trim((string) ($p['barCode'] ?? ''));
-		
-		[$costPrice, $oldCostPrice] = $this->prices($p);
+
+        [$costPrice, $oldCostPrice] = $this->prices($p);
 
         if ($barcode === '') {
             return null;

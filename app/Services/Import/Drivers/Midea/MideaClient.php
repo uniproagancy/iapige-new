@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Midea;
 
+use App\Support\Figure;
 use Illuminate\Support\Facades\Http;
 
 class MideaClient
@@ -82,8 +83,8 @@ class MideaClient
 
     protected function take(array $product): array
     {
-        $price = (float) ($product['price'] ?? 0);
-        $sale = (float) ($product['sale_price'] ?? 0);
+        $price = Figure::amount($product['price'] ?? null, Figure::DOT);
+        $sale = Figure::amount($product['sale_price'] ?? null, Figure::DOT);
 
         return [
             'sku' => trim((string) ($product['model_number'] ?? $product['id'] ?? '')),

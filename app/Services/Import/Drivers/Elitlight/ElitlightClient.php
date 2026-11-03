@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Elitlight;
 
+use App\Support\Figure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -102,7 +103,7 @@ class ElitlightClient
                     'code' => $code,
                     'model_id' => $model['id'] ?? null,
                     'height' => isset($size['h']) ? (int) $size['h'] : null,
-                    'price' => isset($size['p']) ? (float) $size['p'] : null,
+                    'price' => Figure::money($size['p'] ?? null, Figure::DOT),
                     'names' => $model['n'] ?? [],
                     'descriptions' => $model['d'] ?? [],
                     'image' => $model['img'] ?? null,
