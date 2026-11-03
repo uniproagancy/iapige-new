@@ -1239,16 +1239,20 @@ class Catalog
      */
     public static function forOrder(string $term, int $limit = 12)
     {
-        return self::matching(
-            Product::query()
-                ->active()
-                ->where('is_preorder', false)
-                ->withTranslation()
-                ->with(self::CARD_RELATIONS),
-            $term,
-        )
-            /* The exact code first, then what can be sent today. */
-            ->orderByRaw('case when sku = ? then 0 else 1 end', [$term])
+        /* Our own number answers as well as the supplier's code: "1234" or
+           "#1234", as the admin writes it. */
+        $id = preg_match('/^#?(\d{1,10})$/', trim($term), $m) ? (int) $m[1] : 0;
+
+        return Product::query()
+            ->active()
+            ->where('is_preorder', false)
+            ->withTranslation()
+            ->with(self::CARD_RELATIONS)
+            ->where(fn ($q) => $q
+                ->where(fn ($m) => self::matching($m, $term))
+                ->when($id, fn ($q) => $q->orWhere('id', $id)))
+            /* The exact number or code first, then what can be sent today. */
+            ->orderByRaw('case when id = ? then 0 when sku = ? then 1 else 2 end', [$id, $term])
             ->orderByRaw('case when stock > 0 then 0 else 1 end')
             ->orderByDesc('sales_count')
             ->limit($limit)

@@ -186,7 +186,7 @@ class Create extends Component
     {
         $term = trim($this->productSearch);
 
-        if (mb_strlen($term) < 2) {
+        if (mb_strlen($term) < 2 && ! ctype_digit($term)) {
             return collect();
         }
 

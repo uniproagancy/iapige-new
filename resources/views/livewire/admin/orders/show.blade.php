@@ -125,7 +125,7 @@
                                         wire:click="add({{ $product->id }})">
                                     <span>
                                         <b>{{ trim(($product->brand?->name ?? '').' '.$product->name) }}</b>
-                                        <small class="text-muted ms-50">{{ $product->sku }}</small>
+                                        <small class="text-muted ms-50">#{{ $product->id }} · {{ $product->sku }}</small>
                                     </span>
                                     <span class="text-nowrap">
                                         {{ money($product->sellingPrice()) }}
