@@ -24,7 +24,7 @@ class BogInstallmentController extends Controller
 
         $order = Order::where('number', $number)->firstOrFail();
 
-        abort_unless($this->mayPay($order), 403);
+        abort_unless($request->hasValidSignature() || $this->mayPay($order), 403);
 
         if ($order->is_paid) {
             return response()->json(['error' => __('checkout.already_paid')], 409);

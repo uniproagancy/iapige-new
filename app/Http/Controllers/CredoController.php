@@ -22,7 +22,7 @@ class CredoController extends Controller
     {
         $order = Order::with('items')->where('number', $number)->firstOrFail();
 
-        abort_unless($this->mayPay($order), 404);
+        abort_unless(request()->hasValidSignature() || $this->mayPay($order), 404);
 
         if ($order->is_paid) {
             return redirect()->route('order', $order->number);
@@ -37,6 +37,8 @@ class CredoController extends Controller
         ]);
     }
 
+    /* The signed address the payment was started with lets anybody holding it
+       through; without one, only the person who placed the order. */
     protected function mayPay(Order $order): bool
     {
         if (auth()->check() && $order->user_id === auth()->id()) {

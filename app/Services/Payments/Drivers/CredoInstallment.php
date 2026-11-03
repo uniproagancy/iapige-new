@@ -9,6 +9,7 @@ use App\Services\Payments\PaymentLines;
 use App\Support\Redact;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 class CredoInstallment implements PaymentDriver
 {
@@ -65,7 +66,10 @@ class CredoInstallment implements PaymentDriver
             'status' => PaymentTransaction::PENDING,
             'request' => $this->payload($order),
 
-            'redirect_url' => route($this->formRoute(), $order->number),
+            /* Signed, because whoever pays may not be whoever ordered: the
+               customer opening the pay link on another phone, or an operator
+               pressing "pay here". Both were turned away at the form. */
+            'redirect_url' => URL::temporarySignedRoute($this->formRoute(), now()->addHours(6), ['number' => $order->number]),
         ]);
     }
 

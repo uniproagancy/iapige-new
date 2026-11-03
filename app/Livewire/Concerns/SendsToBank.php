@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Services\Payments\Drivers\BogInstallment;
 use App\Services\Payments\PaymentManager;
+use Illuminate\Support\Facades\URL;
 
 trait SendsToBank
 {
@@ -58,7 +59,9 @@ trait SendsToBank
 
         $this->dispatch($zero ? 'bog:installment-part' : 'bog:installment',
             amount: round((float) $order->total * (1 + $fee), 2),
-            url: route('payment.bog.installment', $order->number),
+            /* Signed for the same reason as Credo's form: the one paying may
+               be on the pay link, not in the session that ordered. */
+            url: URL::temporarySignedRoute('payment.bog.installment', now()->addHours(6), ['number' => $order->number]),
         );
 
         return null;
