@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\PaymentCallback;
 use App\Services\Payments\PaymentCheck;
 use App\Services\Payments\PaymentManager;
 use App\Support\Redact;
@@ -15,29 +16,52 @@ class PaymentController extends Controller
 
     public function callback(Request $request, string $driver)
     {
+        $started = microtime(true);
+        $record = PaymentCallback::receive($request, $driver);
+
         Log::channel('payments')->info('callback received', [
             'driver' => $driver,
+            'record' => $record?->id,
             'payload' => Redact::secrets(json_encode($request->all(), JSON_UNESCAPED_UNICODE)),
         ]);
 
-        if (! $this->payments->has($driver)) {
-            return response()->json(['ok' => true]);
-        }
+        $outcome = ['outcome' => PaymentCallback::UNKNOWN_DRIVER];
 
-        try {
-            $provider = $this->payments->driver($driver);
-            $transaction = $provider->handleCallback($request->all());
+        if ($this->payments->has($driver)) {
+            $outcome = ['outcome' => PaymentCallback::UNMATCHED];
 
-            if ($transaction) {
+            try {
+                $provider = $this->payments->driver($driver);
+                $transaction = $provider->handleCallback($request->all());
 
-                $this->payments->settle($transaction, $provider->confirm($transaction));
+                if ($transaction) {
+                    $outcome += [
+                        'payment_transaction_id' => $transaction->id,
+                        'order_id' => $transaction->order_id,
+                        'status_before' => $transaction->status,
+                    ];
+
+                    /* The bank is asked; the callback only says it is time to. */
+                    $paid = $provider->confirm($transaction);
+                    $this->payments->settle($transaction, $paid);
+
+                    $outcome['outcome'] = $paid ? PaymentCallback::PAID : PaymentCallback::NOT_PAID;
+                    $outcome['confirmed'] = $paid;
+                    $outcome['status_after'] = $transaction->fresh()?->status;
+                }
+            } catch (\Throwable $e) {
+                $outcome['outcome'] = PaymentCallback::FAILED;
+                $outcome['error'] = mb_substr($e->getMessage(), 0, 2000);
+
+                Log::channel('payments')->error('callback failed', [
+                    'driver' => $driver,
+                    'record' => $record?->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
-        } catch (\Throwable $e) {
-            Log::channel('payments')->error('callback failed', [
-                'driver' => $driver,
-                'error' => $e->getMessage(),
-            ]);
         }
+
+        $record?->finish($outcome + ['duration_ms' => (int) round((microtime(true) - $started) * 1000)]);
 
         return response()->json(['ok' => true]);
     }

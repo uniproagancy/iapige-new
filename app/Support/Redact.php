@@ -39,6 +39,37 @@ class Redact
         return $text;
     }
 
+    /* The same secrets, found by name anywhere in a decoded message. */
+    public static function fields(array $data): array
+    {
+        $names = array_map('strtolower', self::SECRET_PARAMS);
+
+        foreach ($data as $name => $value) {
+            if (is_string($name) && in_array(strtolower($name), $names, true)) {
+                $data[$name] = '[redacted]';
+            } elseif (is_array($value)) {
+                $data[$name] = self::fields($value);
+            }
+        }
+
+        return $data;
+    }
+
+    /* A message kept as text: JSON fields by name, and anything written as
+       name=value. */
+    public static function json(string $text): string
+    {
+        foreach (self::SECRET_PARAMS as $param) {
+            $text = (string) preg_replace(
+                '/("'.preg_quote($param, '/').'"\s*:\s*)"(?:[^"\\\\]|\\\\.)*"/i',
+                '$1"[redacted]"',
+                $text,
+            );
+        }
+
+        return self::secrets($text);
+    }
+
     public static function phone(?string $number): string
     {
         $number = trim((string) $number);

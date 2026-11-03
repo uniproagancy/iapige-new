@@ -100,7 +100,11 @@ Route::get('/cron/payments', [CronController::class, 'payments'])
     ->middleware('throttle:12,1')
     ->name('cron.payments');
 
-Route::post('/payment/callback/{driver}', [PaymentController::class, 'callback'])
+/* Any method, so that a bank calling the way we did not expect is still
+   heard and written down instead of being turned away with a 405. Nothing
+   it says is taken on trust: the driver asks the bank itself. */
+Route::match(['get', 'post', 'put'], '/payment/callback/{driver}', [PaymentController::class, 'callback'])
+    ->middleware('throttle:120,1')
     ->name('payment.callback')
     ->withoutMiddleware([VerifyCsrfToken::class]);
 Route::get('/payment/return/{number}', [PaymentController::class, 'return'])
