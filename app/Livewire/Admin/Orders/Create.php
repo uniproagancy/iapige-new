@@ -190,14 +190,9 @@ class Create extends Component
             return collect();
         }
 
-        /* The same search the shop itself uses: a name, a code, a brand, and a
-           brand typed in Georgian letters. What stood here looked for a name
-           that was never searched -- whereTranslation takes a column and a
-           value, not an operator -- so only a product code ever matched. */
-        return Catalog::matching(Catalog::productQuery(), $term)
-            ->orderByDesc('sales_count')
-            ->limit(12)
-            ->get();
+        /* The shop's own matching -- a name, a code, a brand, a brand typed in
+           Georgian letters -- over everything that can go on an order. */
+        return Catalog::forOrder($term);
     }
 
     public function add(int $id): void

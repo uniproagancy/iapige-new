@@ -1231,6 +1231,30 @@ class Catalog
         return array_values(array_unique(array_filter($spellings)));
     }
 
+    /*
+     | What an operator can put on an order: anything for sale, in stock or
+     | not -- the list says which -- where the shop's own search shows only
+     | what a shopper can buy today. Searching that way, a code typed for an
+     | item with nothing on the shelf found nothing at all.
+     */
+    public static function forOrder(string $term, int $limit = 12)
+    {
+        return self::matching(
+            Product::query()
+                ->active()
+                ->where('is_preorder', false)
+                ->withTranslation()
+                ->with(self::CARD_RELATIONS),
+            $term,
+        )
+            /* The exact code first, then what can be sent today. */
+            ->orderByRaw('case when sku = ? then 0 else 1 end', [$term])
+            ->orderByRaw('case when stock > 0 then 0 else 1 end')
+            ->orderByDesc('sales_count')
+            ->limit($limit)
+            ->get();
+    }
+
     public static function search(string $term, int $limit = 5): array
     {
         $products = self::matching(self::productQuery(), $term)

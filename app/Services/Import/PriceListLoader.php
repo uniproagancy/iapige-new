@@ -175,12 +175,24 @@ class PriceListLoader
        is taken where the address carries one, and a digest where it does not. */
     protected function keyFor(array $cells, array $map): string
     {
-        $column = $map['key'] ?? '';
+        $key = $this->keyFrom($cells, (string) ($map['key'] ?? ''), $map['key_as'] ?? null);
 
+        /* A sheet keyed by its own codes still leaves the odd code out. That
+           row is known by its link instead, as every row was before the codes
+           were trusted -- skipping it would drop it from the shop. */
+        if ($key === '' && ! empty($map['key_else'])) {
+            $key = $this->keyFrom($cells, (string) $map['key_else'], 'url');
+        }
+
+        return $key;
+    }
+
+    protected function keyFrom(array $cells, string $column, ?string $as): string
+    {
         /* The text in the cell is the code. A cell may also carry a hyperlink,
            but that is the product's address, not its name — reading it here
            once turned half a price list's codes into web addresses. */
-        if (($map['key_as'] ?? null) !== 'url') {
+        if ($as !== 'url') {
             return trim((string) ($cells[$column] ?? ''));
         }
 
@@ -211,7 +223,7 @@ class PriceListLoader
         $links = $cells['_links'] ?? [];
 
         foreach ($map as $role => $column) {
-            if ($role === 'key' || ! is_string($column)) {
+            if (in_array($role, ['key', 'key_as', 'key_else'], true) || ! is_string($column)) {
                 continue;
             }
 

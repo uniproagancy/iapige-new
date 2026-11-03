@@ -4,8 +4,8 @@ namespace App\Services\Import\Drivers\MagiToys;
 
 use App\Models\Supplier;
 use App\Models\SupplierStock;
-use App\Services\Import\ProductPayload;
 use App\Services\Import\Concerns\RecordsSkips;
+use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 use Illuminate\Support\Facades\Log;
 
@@ -79,7 +79,7 @@ class MagiToysDriver implements SupplierDriver
 
         return new ProductPayload(
             externalId: $externalId,
-            sku: $this->sku($externalId, $page),
+            sku: $this->sku($externalId, $data, $page),
             costPrice: $cost,
             oldCostPrice: null,
             stock: $this->stockFor($row, $page),
@@ -118,11 +118,16 @@ class MagiToysDriver implements SupplierDriver
         $row->forceFill(['data' => array_merge($data, $found)])->saveQuietly();
     }
 
-    /* The same product reaches us under two spellings of its address, so the
-       shop keys it by the number the source itself gives it. */
-    protected function sku(string $externalId, array $page): string
+    /*
+     | The code on the price list is the product. b2m files one page under
+     | several addresses, and different codes -- a compressor at 790 and one
+     | at 28 -- were linked to the same page, so keying by the page's number
+     | made them one product at the lower price. A row with no code falls back
+     | to that number, which still joins two spellings of one address.
+     */
+    protected function sku(string $externalId, array $data, array $page): string
     {
-        $id = $page['id'] ?: $externalId;
+        $id = $this->fromSheet($data, 'code') ?: ($page['id'] ?: $externalId);
 
         return strtoupper($this->supplier->code).'-'.$id;
     }
