@@ -166,7 +166,15 @@ class Pixel
             return [];
         }
 
-        $identity = ['name' => $lead->name, 'phone' => $lead->phone, 'id' => $lead->external_id ?: $lead->user_id];
+        /* A signed-in customer's address goes too: the form asks only for a
+           name and a phone, but the browser half of the same event already
+           carries the email, and the server half matched worse without it. */
+        $identity = [
+            'name' => $lead->name,
+            'phone' => $lead->phone,
+            'email' => $lead->user_id ? $lead->user?->email : null,
+            'id' => $lead->external_id ?: $lead->user_id,
+        ];
         $visitor = array_filter([
             'fbp' => $lead->fbp,
             'fbc' => $lead->fbc,
