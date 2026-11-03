@@ -5,6 +5,7 @@ namespace App\Services\Payments\Drivers;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
+use App\Services\Payments\PaymentLines;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -144,11 +145,11 @@ class BogCard implements PaymentDriver
 
     protected function payload(Order $order): array
     {
-        $basket = $order->items->map(fn ($item) => [
-            'product_id' => (string) $item->product_id,
-            'quantity' => (int) $item->qty,
-            'unit_price' => round((float) $item->price, 2),
-        ])->values()->all();
+        $basket = array_map(fn (array $line) => [
+            'product_id' => (string) $line['item']->product_id,
+            'quantity' => $line['qty'],
+            'unit_price' => round($line['price'], 2),
+        ], app(PaymentLines::class)->of($order));
 
         return [
             'callback_url' => config('bog.payment.callback_url')

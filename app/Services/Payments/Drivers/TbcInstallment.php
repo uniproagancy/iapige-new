@@ -5,6 +5,7 @@ namespace App\Services\Payments\Drivers;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
+use App\Services\Payments\PaymentLines;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -20,11 +21,11 @@ class TbcInstallment implements PaymentDriver
     {
         $fee = (float) config('tbc.installment.handling_fee', 0.05);
 
-        $products = $order->items->map(fn ($item) => [
-            'name' => mb_substr($item->name, 0, 100),
-            'price' => round((float) $item->price * (1 + $fee), 2),
-            'quantity' => (int) $item->qty,
-        ])->values()->all();
+        $products = array_map(fn (array $line) => [
+            'name' => mb_substr($line['item']->name, 0, 100),
+            'price' => round($line['price'] * (1 + $fee), 2),
+            'quantity' => $line['qty'],
+        ], app(PaymentLines::class)->of($order));
 
         $total = round(array_sum(array_map(
             fn ($product) => $product['price'] * $product['quantity'],

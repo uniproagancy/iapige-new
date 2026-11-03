@@ -5,6 +5,7 @@ namespace App\Services\Payments\Drivers;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
+use App\Services\Payments\PaymentLines;
 use App\Support\Redact;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -207,13 +208,13 @@ class CredoInstallment implements PaymentDriver
     {
         $fee = $this->fee();
 
-        $products = $order->items->map(fn ($item) => [
-            'id' => (string) $item->product_id,
-            'title' => mb_substr($item->name, 0, 100),
-            'amount' => (int) $item->qty,
-            'price' => (int) round(((float) $item->price * (1 + $fee)) * 100),
+        $products = array_map(fn (array $line) => [
+            'id' => (string) $line['item']->product_id,
+            'title' => mb_substr($line['item']->name, 0, 100),
+            'amount' => $line['qty'],
+            'price' => (int) round(($line['price'] * (1 + $fee)) * 100),
             'type' => '0',
-        ])->values()->all();
+        ], app(PaymentLines::class)->of($order));
 
         return [
             'merchantId' => $this->shopId(),

@@ -5,6 +5,7 @@ namespace App\Services\Payments\Drivers;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentDriver;
+use App\Services\Payments\PaymentLines;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -175,18 +176,19 @@ class BogInstallment implements PaymentDriver
 
     protected function payload(Order $order, int $months, string $type, float $fee, float $amount): array
     {
-        $items = $order->items->map(function ($item) use ($fee) {
+        $items = array_map(function (array $line) use ($fee) {
+            $item = $line['item'];
             $product = $item->product;
 
             return array_filter([
-                'total_item_amount' => round(((float) $item->price * (1 + $fee)) * $item->qty, 2),
+                'total_item_amount' => round(($line['price'] * (1 + $fee)) * $line['qty'], 2),
                 'item_description' => mb_substr($item->name, 0, 100),
-                'total_item_qty' => (int) $item->qty,
+                'total_item_qty' => $line['qty'],
                 'item_vendor_code' => $item->sku ?: (string) $item->product_id,
                 'product_image_url' => $product?->images->first()?->url(),
                 'item_site_detail_url' => $product?->slug ? route('product', $product->slug) : null,
             ], fn ($v) => $v !== null);
-        })->values()->all();
+        }, app(PaymentLines::class)->of($order));
 
         return [
             'intent' => 'LOAN',
