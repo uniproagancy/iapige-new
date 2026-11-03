@@ -234,6 +234,12 @@ class PriceListLoader
                 : $value;
         }
 
+        /* A driver that has to tell 09003 from 9003 needs to know the code
+           reached us as a bare number, with its noughts already gone. */
+        if (isset($cells['_numbers'][$map['key'] ?? ''])) {
+            $picked['key_as_number'] = true;
+        }
+
         return array_filter($picked, fn ($value) => $value !== null);
     }
 

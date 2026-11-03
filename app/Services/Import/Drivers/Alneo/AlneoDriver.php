@@ -2,6 +2,7 @@
 
 namespace App\Services\Import\Drivers\Alneo;
 
+use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
@@ -40,7 +41,7 @@ class AlneoDriver implements SupplierDriver
             return null;
         }
 
-        $url = $this->urlFor($externalId);
+        $url = $this->urlFor($externalId, (bool) ($row->data['key_as_number'] ?? false));
 
         if (! $url) {
             return null;
@@ -71,16 +72,14 @@ class AlneoDriver implements SupplierDriver
             return null;
         }
 
+        $this->adoptSpelling($externalId);
+
         return $this->toPayload($externalId, $row, $page);
     }
 
-    protected function urlFor(string $code): ?string
+    protected function urlFor(string $code, bool $bare = false): ?string
     {
         $index = $this->client->index();
-
-        if (isset($index[$code])) {
-            return $index[$code];
-        }
 
         /* The sheet and the shop pad their codes differently -- 01396 against
            1396 -- so one may be found by the other. Only when exactly one
@@ -91,6 +90,13 @@ class AlneoDriver implements SupplierDriver
             fn ($url, $sku) => $this->same($code, (string) $sku),
             ARRAY_FILTER_USE_BOTH,
         ));
+
+        /* Alneo has hoods at 09003 and Philips monitors at 9003. A code that
+           reached us as a bare number may have been either, so matching it
+           exactly would sell the monitor at the hood's price. */
+        if (isset($index[$code]) && (! $bare || count($found) === 1)) {
+            return $index[$code];
+        }
 
         if (count($found) === 1) {
             return $index[$found[0]];
@@ -105,6 +111,38 @@ class AlneoDriver implements SupplierDriver
         }
 
         return null;
+    }
+
+    /*
+     | A product written 01396 on one sheet and 1396 on the next would come in
+     | twice, once under each. When the shop has only one product answering to
+     | the code either way, the offer already held takes the new spelling.
+     */
+    protected function adoptSpelling(string $code): void
+    {
+        $answering = array_filter(
+            array_keys($this->client->index()),
+            fn ($sku) => $this->same($code, (string) $sku),
+        );
+
+        if (count($answering) !== 1) {
+            return;
+        }
+
+        $offers = ProductOffer::where('supplier_id', $this->supplier->id);
+
+        if ((clone $offers)->where('external_id', $code)->exists()) {
+            return;
+        }
+
+        $held = (clone $offers)
+            ->where('external_id', 'like', '%'.ltrim($code, '0'))
+            ->get()
+            ->filter(fn (ProductOffer $offer) => $this->same($code, (string) $offer->external_id));
+
+        if ($held->count() === 1) {
+            $held->first()->update(['external_id' => $code]);
+        }
     }
 
     /* Two codes are the same when only the padding differs. */

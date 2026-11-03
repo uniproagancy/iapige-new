@@ -13,6 +13,9 @@ class XlsxReader
 
     protected array $shared = [];
 
+    /* Style index => the width its number format pads to with noughts. */
+    protected array $padding = [];
+
     public function __construct(protected string $path)
     {
         if (! is_file($path)) {
@@ -31,6 +34,7 @@ class XlsxReader
         $entries = $this->entries($archive);
 
         $this->shared = $this->sharedStrings($archive, $entries);
+        $this->padding = $this->padding($archive, $entries);
 
         $name = "xl/worksheets/sheet{$sheet}.xml";
 
@@ -46,12 +50,17 @@ class XlsxReader
         foreach ($document->sheetData->row as $row) {
             $cells = [];
             $rowLinks = [];
+            $numbers = [];
 
             foreach ($row->c as $cell) {
                 $reference = (string) $cell['r'];
                 $column = rtrim($reference, '0123456789');
 
                 $cells[$column] = $this->value($cell);
+
+                if ($this->bareNumber($cell)) {
+                    $numbers[$column] = true;
+                }
 
                 if (isset($links[$reference])) {
                     $rowLinks[$column] = $links[$reference];
@@ -60,6 +69,10 @@ class XlsxReader
 
             if ($rowLinks) {
                 $cells['_links'] = $rowLinks;
+            }
+
+            if ($numbers) {
+                $cells['_numbers'] = $numbers;
             }
 
             if (array_filter($cells, fn ($v) => $v !== '' && $v !== [])) {
@@ -90,7 +103,62 @@ class XlsxReader
             return $this->spellOut((float) $raw) ?? trim($raw);
         }
 
+        /* A code column formatted "00000" keeps the number 1516 and shows
+           01516. What the sheet shows is the code -- 01516 and 1516 can be
+           two different products. */
+        $width = $this->padding[(int) $cell['s']] ?? 0;
+
+        if ($width && ctype_digit($raw)) {
+            return str_pad($raw, $width, '0', STR_PAD_LEFT);
+        }
+
         return trim($raw);
+    }
+
+    /* A number kept as a number with nothing to say how it was shown: any
+       noughts it was typed with are gone and cannot be told back. */
+    protected function bareNumber(SimpleXMLElement $cell): bool
+    {
+        $type = (string) $cell['t'];
+
+        return ($type === '' || $type === 'n')
+            && (string) $cell->v !== ''
+            && ! isset($this->padding[(int) $cell['s']]);
+    }
+
+    protected function padding(string $archive, array $entries): array
+    {
+        if (! isset($entries['xl/styles.xml'])) {
+            return [];
+        }
+
+        $styles = new SimpleXMLElement($this->extract($archive, $entries['xl/styles.xml']));
+        $widths = [];
+
+        foreach ($styles->numFmts?->numFmt ?? [] as $format) {
+            $code = trim((string) $format['formatCode'], '"');
+
+            if (preg_match('/^0+$/', $code)) {
+                $widths[(int) $format['numFmtId']] = strlen($code);
+            }
+        }
+
+        if (! $widths) {
+            return [];
+        }
+
+        $padding = [];
+        $index = 0;
+
+        foreach ($styles->cellXfs?->xf ?? [] as $xf) {
+            if (isset($widths[(int) $xf['numFmtId']])) {
+                $padding[$index] = $widths[(int) $xf['numFmtId']];
+            }
+
+            $index++;
+        }
+
+        return $padding;
     }
 
     protected function spellOut(float $number): ?string
