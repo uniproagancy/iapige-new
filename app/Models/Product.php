@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTranslations;
+use App\Services\Import\RoomArea;
 use App\Support\Catalog;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -178,9 +179,21 @@ class Product extends Model
 
     public function scopeWithAttributeValue(Builder $query, string $attribute, string|array $codes): Builder
     {
+        $attributes = [$attribute];
+        $codes = (array) $codes;
+
+        if (in_array($attribute, RoomArea::attributeCodes(), true)) {
+            $attributes = RoomArea::attributeCodes();
+            // Existing links can still carry the sidebar's folded measurement code.
+            $codes = array_values(array_unique(array_merge($codes, array_map(
+                fn (string $code) => str_starts_with($code, 'area-') ? substr($code, 5) : $code,
+                $codes,
+            ))));
+        }
+
         return $query->whereHas('attributeValues', fn (Builder $q) => $q
-            ->whereIn('attribute_values.code', (array) $codes)
-            ->whereHas('attribute', fn (Builder $a) => $a->where('code', $attribute)));
+            ->whereIn('attribute_values.code', $codes)
+            ->whereHas('attribute', fn (Builder $a) => $a->whereIn('code', $attributes)));
     }
 
     public function discountPercent(): ?int

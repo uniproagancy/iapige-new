@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Feeds\FacebookFeed;
+use App\Services\Feeds\FacebookVideoFeed;
 use App\Services\Feeds\GoogleFeed;
 use App\Services\Feeds\ProductFeed;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +14,21 @@ class FeedController extends Controller
     public function facebook(FacebookFeed $feed): BinaryFileResponse
     {
         return $this->serve($feed, 'facebook');
+    }
+
+    public function facebookVideos(FacebookVideoFeed $feed): BinaryFileResponse
+    {
+        $path = Storage::disk('local')->path(FacebookVideoFeed::PATH);
+
+        if (! is_file($path)) {
+            $path = $feed->generate();
+        }
+
+        return response()->file($path, [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Cache-Control' => 'public, max-age=300',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function google(GoogleFeed $feed): BinaryFileResponse

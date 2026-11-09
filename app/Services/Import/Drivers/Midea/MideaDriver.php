@@ -5,6 +5,7 @@ namespace App\Services\Import\Drivers\Midea;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
+use App\Services\Import\RoomArea;
 use App\Services\Import\SupplierDriver;
 use App\Support\Figure;
 
@@ -78,6 +79,33 @@ class MideaDriver implements SupplierDriver
                 'filterable' => false,
                 'color' => null,
             ];
+        }
+
+        if ($area = RoomArea::normalize((string) ($found['room_area'] ?? ''))) {
+            $specs[] = [
+                'name' => 'რეკომენდირებული ფართი',
+                'value' => $area,
+                'locale' => $locale,
+                'key' => false,
+                'filterable' => true,
+                'color' => null,
+            ];
+        }
+
+        foreach ([
+            ['wash_load', 'kg', 'მაქსიმალური ჩატვირთვა'],
+            ['total_volume', 'l', 'მთლიანი მოცულობა'],
+        ] as [$field, $unit, $name]) {
+            if ($value = MideaClient::normalizeCapacity((string) ($found[$field] ?? ''), $unit)) {
+                $specs[] = [
+                    'name' => $name,
+                    'value' => $value,
+                    'locale' => $locale,
+                    'key' => false,
+                    'filterable' => true,
+                    'color' => null,
+                ];
+            }
         }
 
         $stock = $found['in_stock'] ? max(0, (int) $row->quantity) : 0;

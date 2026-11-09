@@ -21,6 +21,7 @@
         <x-product.buy-card :product="$product" :services="$services"
                             :model="$model" />
     </main>
+    <x-product.model-videos :model="$model" />
     <x-product.tabs :specs="$specs" :description="$product['description']"
                     :highlights="$highlights" :rating="$rating" :reviews="$reviews" />
     @if (count($related))

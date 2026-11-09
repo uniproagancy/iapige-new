@@ -87,6 +87,9 @@ Route::get('/social-feed-image/{publication}/{key}', SocialFeedImageController::
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 Route::get('/feed/facebook.xml', [FeedController::class, 'facebook'])->name('feed.facebook');
+Route::get('/feed/facebook-videos.csv', [FeedController::class, 'facebookVideos'])
+    ->withoutMiddleware([TrackPageView::class])
+    ->name('feed.facebook-videos');
 Route::get('/feed/google.xml', [FeedController::class, 'google'])->name('feed.google');
 
 Route::get('/feeds/alta-stock.json', AltaStockFeedController::class)

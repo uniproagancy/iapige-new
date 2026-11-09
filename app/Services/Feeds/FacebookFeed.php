@@ -7,6 +7,21 @@ use XMLWriter;
 
 class FacebookFeed extends ProductFeed
 {
+    protected ?PrimaryFeature $primaryFeature = null;
+
+    public function generate(): string
+    {
+        $path = parent::generate();
+        app(FacebookVideoFeed::class)->generate();
+
+        return $path;
+    }
+
+    protected function query()
+    {
+        return parent::query()->with(($this->primaryFeature ??= app(PrimaryFeature::class))->eagerRelations());
+    }
+
     protected function key(): string
     {
         return 'facebook';
@@ -16,6 +31,8 @@ class FacebookFeed extends ProductFeed
     {
         $name = trim((string) $product->name);
         [$price, $was] = $this->prices($product);
+        // Compare the amounts actually exported: whole-lari rounding must not invent a discount.
+        $was = $was !== null && round($was) > round($price) ? $was : null;
         $image = $this->image($product);
 
         if ($this->skip($product, $name, $price, $image)) {
@@ -24,6 +41,7 @@ class FacebookFeed extends ProductFeed
 
         $brand = $product->brand?->name ?: '—';
         $category = $product->category;
+        $feature = ($this->primaryFeature ??= app(PrimaryFeature::class))->label($product);
 
         $xml->startElement('item');
 
@@ -31,6 +49,8 @@ class FacebookFeed extends ProductFeed
         $xml->writeElement('g:item_group_id', $this->groupId($product));
         $xml->writeElement('g:title', $this->title($brand, $name));
         $xml->writeElement('g:description', $this->description($product, $name));
+        // This feed owns this feature field; empty output requests clearing stale overlays.
+        $xml->writeElement('g:short_description', $feature);
         $xml->writeElement('g:link', $this->link($product));
         $xml->writeElement('g:image_link', $image);
 
@@ -60,7 +80,8 @@ class FacebookFeed extends ProductFeed
         $xml->writeElement('g:shipping_weight', $this->weight($product));
 
         $xml->writeElement('g:custom_label_0', $this->instalmentLabel($product, $price));
-        $xml->writeElement('g:custom_label_1', (string) (int) round($price));
+        // Label 1 is the user-selected main feature field; empty clears an unproven value.
+        $xml->writeElement('g:custom_label_1', $feature);
 
         if ($parent = $category?->parent?->name ?? $category?->name) {
             $xml->writeElement('g:custom_label_2', $this->clean($parent, 100));
@@ -69,6 +90,9 @@ class FacebookFeed extends ProductFeed
         if ($supplier = $this->supplier($product)) {
             $xml->writeElement('g:custom_label_3', $this->clean($supplier, 100));
         }
+
+        // An explicit empty value clears the overlay after a discount ends.
+        $xml->writeElement('g:custom_label_4', $was !== null ? money($was) : '');
 
         $xml->endElement();
         $xml->flush();

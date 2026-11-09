@@ -9,6 +9,10 @@ use App\Models\Language;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Promotion;
+use App\Services\Feeds\PrimaryFeature;
+use App\Services\Feeds\PrimaryFeatureFormatter;
+use App\Services\Import\LaptopSsd;
+use App\Services\Import\RoomArea;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -420,9 +424,9 @@ class Catalog
     public const FILTER_COVERAGE = 0.15;
 
     /*
-     | An answer only one product on the shelf gives is not a choice to make:
-     | picking it is a longer way of opening that product. Whole groups are
-     | nothing but such answers -- a model code, a depth in millimetres -- and
+     | An unmeasured answer only one product on the shelf gives is not a choice
+     | to make: picking it is a longer way of opening that product. Whole groups
+     | are nothing but such answers -- model codes or supplier labels -- and
      | that is how a specification ends up in the sidebar dressed as a filter.
      */
     public const MIN_PER_ANSWER = 2;
@@ -447,7 +451,7 @@ class Catalog
             return true;
         }
 
-        $reach = array_sum(array_column($group['items'], 'held'));
+        $reach = $group['reach'] ?? array_sum(array_column($group['items'], 'held'));
 
         return $reach / $total >= self::FILTER_COVERAGE;
     }
@@ -462,6 +466,9 @@ class Catalog
      */
     protected static function stillAChoice(array $group, array $picked): bool
     {
+        if ($group['is_main'] ?? false) {
+            return $group['items'] !== [];
+        }
         if ($picked !== []) {
             return $group['items'] !== [];
         }
@@ -476,17 +483,42 @@ class Catalog
      * @param  array<int, string>  $picked
      * @return array<int, array<string, mixed>>
      */
-    protected static function answers(Attribute $attribute, array $held, array $picked): array
+    protected static function answers(Attribute $attribute, array $held, array $picked, array $categoryIds = []): array
     {
         $items = $attribute->type === Attribute::TYPE_COLOR
             ? self::shades($attribute, $held)
-            : self::readings($attribute, $held);
+            : self::readings($attribute, $held, $picked, $categoryIds);
 
         return array_values(array_filter(
             $items,
             fn (array $item) => $item['held'] >= self::MIN_PER_ANSWER
+                || self::measuredAnswer($item)
                 || in_array($item['code'], $picked, true),
         ));
+    }
+
+    protected static function measuredAnswer(array $item): bool
+    {
+        $dimension = $item['reading']['dimension'] ?? $item['dimension'] ?? null;
+
+        // A rare measured value is still a choice; memory stays unbanded below.
+        return $item['held'] > 0 && $dimension !== null && isset(Measure::UNITS[$dimension]);
+    }
+
+    protected static function pairedLoad(Attribute $attribute, string $label): ?string
+    {
+        if (! in_array($attribute->code, [
+            'maksimaluri-chatvirtva', 'washing-capacity', 'wash-capacity',
+            'retskhvis-tevadoba', 'retskhvis-motsuloba',
+        ], true) || ! preg_match('/\A\s*(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)\s*(?:kg|კგ|კილოგრამი)\s*\z/iu', $label, $parts)) {
+            return null;
+        }
+
+        $wash = (float) str_replace(',', '.', $parts[1]);
+        $dry = (float) str_replace(',', '.', $parts[2]);
+
+        // Washing and drying capacities are a pair, never the ends of a range.
+        return $wash > 0 && $dry > 0 ? $wash.'/'.$dry.' '.__('unit.kg') : null;
     }
 
     /**
@@ -497,30 +529,40 @@ class Catalog
      * @param  array<string, int>  $held
      * @return array<int, array<string, mixed>>
      */
-    protected static function readings(Attribute $attribute, array $held): array
+    protected static function readings(Attribute $attribute, array $held, array $picked = [], array $categoryIds = [], string $policy = FilterMeasure::class): array
     {
         $readings = [];
+        $pairs = [];
+        $inspections = [];
+        $ssd = $attribute->code === LaptopSsd::ATTRIBUTE_CODE;
 
         foreach ($attribute->values as $value) {
             if (filled($value->label)) {
-                $readings[$value->code] = Measure::read($value->label);
+                $pairs[$value->code] = self::pairedLoad($attribute, (string) $value->label);
+                $label = $ssd ? SsdCapacity::normalize((string) $value->label, $attribute->unit) : (string) $value->label;
+                $inspections[$value->code] = $policy::inspect($attribute, $label, $categoryIds);
+                $readings[$value->code] = $pairs[$value->code] === null ? $inspections[$value->code]['reading'] : null;
             }
         }
 
         $units = Measure::prevailing($readings, $held);
-        $readings = Measure::understood($readings, $units, $attribute->values->pluck('label', 'code')->all());
         $items = [];
 
         foreach ($attribute->values as $value) {
             if (! filled($value->label)) {
                 continue;
             }
+            if ($inspections[$value->code]['reject'] ?? false) {
+                continue;
+            }
 
             $reading = $readings[$value->code] ?? null;
-            $yesNo = $reading ? null : Answer::yesNo($value->label);
+            $pair = $pairs[$value->code] ?? null;
+            $yesNo = $reading || $pair !== null ? null : Answer::yesNo($value->label);
 
             $label = match (true) {
-                (bool) $reading => Measure::canonical($reading, $units[$reading['dimension']] ?? null),
+                $pair !== null => $pair,
+                (bool) $reading => $policy::canonical($reading, $units[$reading['dimension']] ?? null),
                 $yesNo !== null => Answer::label($yesNo),
                 default => $value->label,
             };
@@ -532,7 +574,8 @@ class Catalog
             /* Two spellings of one answer share one box, which has to be named
                after the answer rather than after either spelling. */
             $code = match (true) {
-                (bool) $reading => $reading['dimension'].'-'.Slug::make($label),
+                $pair !== null => 'weight-'.Slug::make(str_replace('/', '-', $pair)),
+                (bool) $reading => ($policy === PreviousFilterMeasure::class ? '' : 'quality-').$policy::quantityKey($reading, $units[$reading['dimension']] ?? null),
                 $yesNo !== null => $yesNo ? 'yes' : 'no',
                 default => $value->code,
             };
@@ -541,6 +584,9 @@ class Catalog
                 'code' => $code, 'label' => $label, 'codes' => [], 'held' => 0,
                 'reading' => $reading,
             ];
+            if ($pair !== null) {
+                $items[$code]['dimension'] = 'weight';
+            }
             $items[$code]['codes'][] = $value->code;
             $items[$code]['held'] += (int) ($held[$value->code] ?? 0);
         }
@@ -555,7 +601,204 @@ class Catalog
             ? $a['reading']['low'] <=> $b['reading']['low']
             : ($a['reading'] ? 0 : 1) <=> ($b['reading'] ? 0 : 1));
 
-        return self::bandedIfLong($items, $units);
+        $originalItems = $items;
+        $items = match (true) {
+            self::roomArea($attribute) => self::areaCapacityBands($items),
+            $policy !== PreviousFilterMeasure::class && self::btuCapacity($attribute, $categoryIds) => self::btuCapacityBands($items),
+            default => self::bandedIfLong($items, $units, false, $policy),
+        };
+        $presentCodes = array_column($items, 'code');
+        foreach ($originalItems as $item) {
+            if (in_array($item['code'], $picked, true) && ! in_array($item['code'], $presentCodes, true)) {
+                $items[] = $item;
+            }
+        }
+
+        return $policy === PreviousFilterMeasure::class
+            ? $items
+            : self::withSelectedLegacyAnswers($attribute, $held, $picked, $items, $categoryIds);
+    }
+
+    protected static function roomArea(Attribute $attribute): bool
+    {
+        return in_array($attribute->code, RoomArea::attributeCodes(), true);
+    }
+
+    protected static function btuCapacity(Attribute $attribute, array $categoryContext): bool
+    {
+        return array_intersect([98, 104], $categoryContext) !== []
+            && ([3895 => 'gagrilebis-simdzlavre-btu', 3896 => 'gatbobis-simdzlavre-btu'][(int) $attribute->id] ?? null) === $attribute->code;
+    }
+
+    /** These are display intervals of supplied BTU capacity, never rounded source specifications. */
+    protected static function btuCapacityBands(array $items): array
+    {
+        $thresholds = [7000, 9000, 12000, 18000, 24000, 30000, 36000, 48000, 60000];
+        $bands = [];
+        $rest = [];
+        $number = fn (int $value) => number_format($value, 0, '.', ' ');
+        foreach ($items as $item) {
+            $reading = $item['reading'];
+            if (($reading['dimension'] ?? null) !== 'heat' || isset($reading['parts'])) {
+                $rest[] = $item;
+
+                continue;
+            }
+            $capacity = $reading['high'] ?? $reading['low'];
+            $lower = 0;
+            $upper = null;
+            foreach ($thresholds as $threshold) {
+                if ($capacity <= $threshold) {
+                    $upper = $threshold;
+                    break;
+                }
+                $lower = $threshold;
+            }
+            $code = match (true) {
+                $upper === null => 'btu-class-over-60000',
+                $lower === 0 => 'btu-class-up-to-'.$upper,
+                default => 'btu-class-'.$lower.'-'.$upper,
+            };
+            $label = match (true) {
+                $upper === null => app()->getLocale() === 'en' ? 'Over '.$number($lower).' BTU' : $number($lower).' BTU-ზე მეტი',
+                $lower === 0 => app()->getLocale() === 'en' ? 'Up to '.$number($upper).' BTU' : $number($upper).' BTU-მდე',
+                default => $number($lower).'–'.$number($upper).' BTU',
+            };
+            $bands[$code] ??= [
+                'code' => $code, 'label' => $label, 'codes' => [], 'held' => 0,
+                'reading' => null, 'dimension' => 'heat', 'from' => $lower,
+            ];
+            $bands[$code]['codes'] = array_values(array_unique([...$bands[$code]['codes'], ...$item['codes']]));
+            $bands[$code]['held'] += $item['held'];
+            if (isset($item['product_ids'])) {
+                $bands[$code]['product_ids'] = array_values(array_unique([...($bands[$code]['product_ids'] ?? []), ...$item['product_ids']]));
+                $bands[$code]['held'] = count($bands[$code]['product_ids']);
+            }
+        }
+        $bands = array_values($bands);
+        usort($bands, fn (array $a, array $b) => $a['from'] <=> $b['from']);
+
+        return [...$bands, ...$rest];
+    }
+
+    /** The sidebar groups coverage by its supplied maximum; product data keeps the full range. */
+    protected static function areaCapacityBands(array $items): array
+    {
+        $bands = [];
+        $rest = [];
+        foreach ($items as $item) {
+            $reading = $item['reading'];
+            if (($reading['dimension'] ?? null) !== 'area') {
+                $rest[] = $item;
+
+                continue;
+            }
+
+            $upper = ceil(($reading['high'] ?? $reading['low']) / 10) * 10;
+            $lower = max(0, $upper - 10);
+            $code = 'area-max-'.(int) $lower.'-'.(int) $upper.'-m2';
+            $bands[$code] ??= [
+                'code' => $code,
+                'label' => Measure::span($lower, $upper, 'area', 'sqm'),
+                'codes' => [], 'held' => 0,
+                'reading' => ['dimension' => 'area', 'unit' => 'sqm', 'low' => (float) $lower, 'high' => (float) $upper],
+            ];
+            $bands[$code]['codes'] = array_values(array_unique([...$bands[$code]['codes'], ...$item['codes']]));
+            $bands[$code]['held'] += $item['held'];
+            if (isset($item['product_ids'])) {
+                $bands[$code]['product_ids'] = array_values(array_unique([...($bands[$code]['product_ids'] ?? []), ...$item['product_ids']]));
+                $bands[$code]['held'] = count($bands[$code]['product_ids']);
+            }
+        }
+
+        $bands = array_values($bands);
+        usort($bands, fn (array $a, array $b) => $a['reading']['low'] <=> $b['reading']['low']);
+
+        return [...$bands, ...$rest];
+    }
+
+    /**
+     * Old URLs named a reading after the former rounded label. Keep only an
+     * already selected old name, with exactly the source answers it used to
+     * represent. New quantity and maximum-area choices have separate names.
+     */
+    protected static function withSelectedLegacyAnswers(Attribute $attribute, array $held, array $picked, array $items, array $categoryIds = []): array
+    {
+        if ($picked === []) {
+            return $items;
+        }
+
+        $readings = [];
+        $pairs = [];
+        foreach ($attribute->values as $value) {
+            if (! filled($value->label)) {
+                continue;
+            }
+            $pairs[$value->code] = self::pairedLoad($attribute, (string) $value->label);
+            $label = $attribute->code === LaptopSsd::ATTRIBUTE_CODE
+                ? SsdCapacity::normalize((string) $value->label, $attribute->unit)
+                : (string) $value->label;
+            $readings[$value->code] = $pairs[$value->code] === null && $label !== null ? Measure::read($label) : null;
+        }
+        $units = Measure::prevailing($readings, $held);
+        if ($attribute->code !== LaptopSsd::ATTRIBUTE_CODE) {
+            $readings = Measure::understood($readings, $units, $attribute->values->pluck('label', 'code')->all());
+        }
+
+        $existing = array_column($items, null, 'code');
+        $previousTyped = array_filter($picked, fn (string $code) => str_starts_with($code, 'quantity-')) !== []
+            ? array_values(array_filter(
+                self::readings($attribute, $held, [], $categoryIds, PreviousFilterMeasure::class),
+                fn (array $item) => in_array($item['code'], $picked, true) && ! isset($existing[$item['code']]),
+            ))
+            : [];
+        $oldItems = [];
+        $rawItems = [];
+        foreach ($attribute->values as $value) {
+            if (! filled($value->label)) {
+                continue;
+            }
+            $reading = $readings[$value->code] ?? null;
+            $pair = $pairs[$value->code] ?? null;
+            $yesNo = $reading || $pair !== null ? null : Answer::yesNo($value->label);
+            $label = match (true) {
+                $pair !== null => $pair,
+                (bool) $reading => Measure::canonical($reading, $units[$reading['dimension']] ?? null),
+                $yesNo !== null => Answer::label($yesNo),
+                default => $value->label,
+            };
+            $oldCode = match (true) {
+                $pair !== null => 'weight-'.Slug::make(str_replace('/', '-', $pair)),
+                (bool) $reading => $reading['dimension'].'-'.Slug::make($label),
+                $yesNo !== null => $yesNo ? 'yes' : 'no',
+                default => $value->code,
+            };
+            if (in_array($value->code, $picked, true) && ! isset($existing[$value->code])) {
+                $rawItems[$value->code] = [
+                    'code' => $value->code, 'label' => $label, 'codes' => [$value->code],
+                    'held' => (int) ($held[$value->code] ?? 0), 'reading' => null,
+                ];
+            }
+            if (mb_strlen($label) > self::MAX_OPTION_LENGTH) {
+                continue;
+            }
+            $oldItems[$oldCode] ??= ['code' => $oldCode, 'label' => $label, 'codes' => [], 'held' => 0, 'reading' => $reading];
+            if ($pair !== null) {
+                $oldItems[$oldCode]['dimension'] = 'weight';
+            }
+            $oldItems[$oldCode]['codes'][] = $value->code;
+            $oldItems[$oldCode]['held'] += (int) ($held[$value->code] ?? 0);
+        }
+
+        // Old AC and capacity URLs may name an automatic band rather than one source reading.
+        $legacy = array_values(array_filter(
+            self::bandedIfLong(array_values($oldItems), $units, true),
+            fn (array $item) => in_array($item['code'], $picked, true) && ! isset($existing[$item['code']]),
+        ));
+        $legacyCodes = array_column($legacy, 'code');
+        $rawItems = array_values(array_filter($rawItems, fn (array $item) => ! in_array($item['code'], $legacyCodes, true)));
+
+        return [...$items, ...$previousTyped, ...$legacy, ...$rawItems];
     }
 
     /*
@@ -584,7 +827,7 @@ class Catalog
      | @param  array<string, string>  $units  the unit each quantity is banded in
      | @return array<int, array<string, mixed>>
      */
-    protected static function bandedIfLong(array $items, array $units): array
+    protected static function bandedIfLong(array $items, array $units, bool $legacy = false, string $policy = FilterMeasure::class): array
     {
         if (count($items) <= self::MAX_ANSWERS) {
             return $items;
@@ -612,40 +855,59 @@ class Catalog
             return $items;
         }
 
-        return self::bands($items, $dimension, (string) ($units[$dimension] ?? reset($readings)['unit']));
+        return self::bands($items, $dimension, (string) ($units[$dimension] ?? reset($readings)['unit']), $legacy, $policy);
     }
 
     /**
      * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>
      */
-    protected static function bands(array $items, string $dimension, string $unit): array
+    protected static function bands(array $items, string $dimension, string $unit, bool $legacy = false, string $policy = FilterMeasure::class): array
     {
         $factor = Measure::factor($dimension, $unit);
-        $figures = array_map(fn (array $i) => $i['reading']['low'] / $factor, array_filter($items, fn ($i) => $i['reading']));
+        $figures = array_map(fn (array $i) => $i['reading']['low'] / $factor, array_filter($items, fn ($i) => $i['reading'] && ! isset($i['reading']['parts'])));
+        if ($figures === []) {
+            return $items;
+        }
 
         $step = Measure::step(min($figures), max($figures), self::MAX_BANDS);
         $bands = [];
         $rest = [];
 
         foreach ($items as $item) {
-            if (! $item['reading']) {
+            if (! $item['reading'] || isset($item['reading']['parts'])) {
                 $rest[] = $item;
 
                 continue;
             }
 
             $from = floor(($item['reading']['low'] / $factor) / $step) * $step;
-            $label = Measure::span($from, $from + $step, $dimension, $unit);
-            $code = $dimension.'-'.Slug::make($label);
+            $reading = ['dimension' => $dimension, 'unit' => $unit, 'low' => $from * $factor, 'high' => ($from + $step) * $factor];
+            $label = $legacy ? Measure::span($from, $from + $step, $dimension, $unit) : $policy::canonical($reading, $unit);
+            $code = $legacy ? $dimension.'-'.Slug::make($label) : ($policy === PreviousFilterMeasure::class ? 'quantity-band-' : 'quality-band-').$policy::quantityKey($reading, $unit);
 
             $bands[$code] ??= [
                 'code' => $code, 'label' => $label, 'codes' => [], 'held' => 0,
                 'reading' => null, 'from' => $from,
+                'dimension' => $dimension,
             ];
 
             $bands[$code]['codes'] = array_merge($bands[$code]['codes'], $item['codes']);
-            $bands[$code]['held'] += $item['held'];
+            if (isset($item['sources'])) {
+                foreach ($item['sources'] as $attribute => $answers) {
+                    $bands[$code]['sources'][$attribute] = array_values(array_unique([
+                        ...($bands[$code]['sources'][$attribute] ?? []), ...$answers,
+                    ]));
+                }
+                $bands[$code]['_products'] = ($bands[$code]['_products'] ?? []) + $item['_products'];
+                $bands[$code]['held'] = count($bands[$code]['_products']);
+            } else {
+                $bands[$code]['held'] += $item['held'];
+            }
+            if (isset($item['product_ids'])) {
+                $bands[$code]['product_ids'] = array_values(array_unique([...($bands[$code]['product_ids'] ?? []), ...$item['product_ids']]));
+                $bands[$code]['held'] = count($bands[$code]['product_ids']);
+            }
         }
 
         $bands = array_values($bands);
@@ -707,6 +969,337 @@ class Catalog
         return $ordered;
     }
 
+    /** Proven aliases share a choice while retaining each exact attribute/value source. */
+    protected static function logicalGroups(EloquentCollection $attributes, array $held, array $categoryContext, callable $inListing, array $picked = [], string $policy = FilterMeasure::class): array
+    {
+        $definitions = FilterAliases::definitions($categoryContext);
+        if ($definitions === []) {
+            return ['groups' => [], 'consumed' => [], 'diagnostics' => []];
+        }
+        $candidateCodes = [];
+        foreach ($definitions as $definition) {
+            array_push($candidateCodes, ...array_column($definition['attributes'], 'code'));
+        }
+        $inspections = [];
+        $dto = [];
+        foreach ($attributes as $attribute) {
+            if (! in_array($attribute->code, $candidateCodes, true)) {
+                continue;
+            }
+            $values = [];
+            foreach ($attribute->values as $value) {
+                $inspection = $policy::inspect($attribute, $value->label, $categoryContext);
+                $inspections[$attribute->code][$value->code] = $inspection;
+                $values[] = $inspection;
+            }
+            $dto[] = ['id' => (int) $attribute->id, 'code' => $attribute->code, 'values' => $values];
+        }
+        $plans = FilterAliases::plans($categoryContext, $dto);
+        $presentCodes = array_column($dto, 'code');
+        $diagnostics = array_values(array_filter(
+            FilterAliases::diagnostics($categoryContext, $dto),
+            fn (array $diagnostic) => array_intersect($diagnostic['attribute_codes'], $presentCodes) !== [],
+        ));
+        $result = ['groups' => [], 'consumed' => [], 'diagnostics' => $diagnostics];
+        if ($plans === []) {
+            return self::withPreviousLogicalGroups($result, $attributes, $held, $categoryContext, $inListing, $picked, $policy);
+        }
+
+        $codes = array_values(array_unique(array_merge(...array_column($plans, 'attribute_codes'))));
+        $rows = DB::table('attribute_value_product as avp')
+            ->join('attribute_values as av', 'av.id', '=', 'avp.attribute_value_id')
+            ->join('attributes as a', 'a.id', '=', 'av.attribute_id')
+            ->whereIn('avp.product_id', $inListing(Product::query())->select('products.id')->toBase())
+            ->whereIn('a.code', $codes)
+            ->select(['avp.product_id', 'a.code as attribute', 'av.code as answer'])
+            ->distinct()->get();
+        $products = [];
+        foreach ($rows as $row) {
+            $products[$row->attribute][$row->answer][(int) $row->product_id] = true;
+        }
+
+        foreach ($plans as $plan) {
+            $members = [];
+            $readings = [];
+            $weights = [];
+            foreach ($attributes as $attribute) {
+                if (! in_array($attribute->code, $plan['attribute_codes'], true)) {
+                    continue;
+                }
+                foreach ($attribute->values as $value) {
+                    $reading = $inspections[$attribute->code][$value->code]['reading'];
+                    if ($reading === null || ($inspections[$attribute->code][$value->code]['reject'] ?? false)) {
+                        continue;
+                    }
+                    $index = count($members);
+                    $members[] = ['attribute' => $attribute->code, 'code' => $value->code, 'reading' => $reading];
+                    $readings[$index] = $reading;
+                    $weights[$index] = (int) ($held[$attribute->code][$value->code] ?? 0);
+                }
+            }
+            $units = Measure::prevailing($readings, $weights);
+            if (isset(Measure::UNITS[$plan['dimension']][$plan['preferred_unit']])) {
+                $units[$plan['dimension']] = $plan['preferred_unit'];
+            }
+            $items = [];
+            $claims = [];
+            $reached = [];
+            foreach ($members as $member) {
+                $reading = $member['reading'];
+                $unit = $units[$reading['dimension']] ?? null;
+                $quantityKey = $policy::quantityKey($reading, $unit);
+                $code = ($policy === PreviousFilterMeasure::class ? '' : 'quality-').$quantityKey;
+                $ids = $products[$member['attribute']][$member['code']] ?? [];
+                foreach ($ids as $id => $_) {
+                    $claims[$id][$quantityKey] = $reading;
+                }
+                $items[$code] ??= [
+                    'code' => $code, 'label' => $policy::canonical($reading, $unit),
+                    'codes' => [], 'sources' => [], 'held' => 0, 'reading' => $reading, '_products' => [],
+                ];
+                $items[$code]['sources'][$member['attribute']][] = $member['code'];
+                $items[$code]['codes'][] = $member['code'];
+                $items[$code]['_products'] += $ids;
+                $items[$code]['held'] = count($items[$code]['_products']);
+                $reached += $ids;
+            }
+            $conflicts = array_keys(array_filter($claims, fn (array $values) => ! self::compatibleAliasClaims($values, $units[$plan['dimension']] ?? null)));
+            if ($conflicts !== []) {
+                $result['diagnostics'][] = [
+                    'key' => $plan['key'], 'reason' => 'conflicting_alias_values',
+                    'products' => count($conflicts), 'example_product_ids' => array_slice($conflicts, 0, 10),
+                ];
+
+                continue;
+            }
+            $items = array_values($items);
+            usort($items, fn (array $a, array $b) => $a['reading']['low'] <=> $b['reading']['low']);
+            $items = self::bandedIfLong($items, $units, false, $policy);
+            foreach ($items as &$item) {
+                unset($item['_products']);
+            }
+            unset($item);
+            $result['groups'][] = [
+                'key' => $plan['key'], 'name' => app()->getLocale() === 'en' ? $plan['name_en'] : $plan['name_ka'],
+                'open' => true, 'items' => $items, 'attribute_codes' => $plan['attribute_codes'], 'reach' => count($reached),
+            ];
+            $result['consumed'] = array_values(array_unique([...$result['consumed'], ...$plan['attribute_codes']]));
+        }
+
+        return self::withPreviousLogicalGroups($result, $attributes, $held, $categoryContext, $inListing, $picked, $policy);
+    }
+
+    protected static function withPreviousLogicalGroups(array $result, EloquentCollection $attributes, array $held, array $categoryContext, callable $inListing, array $picked, string $policy): array
+    {
+        if ($policy !== PreviousFilterMeasure::class && array_filter($picked, fn (array $codes, string $key) => str_starts_with($key, 'spec-')
+            && array_filter($codes, fn (string $code) => str_starts_with($code, 'quantity-')) !== [], ARRAY_FILTER_USE_BOTH) !== []) {
+            $previous = self::logicalGroups($attributes, $held, $categoryContext, $inListing, [], PreviousFilterMeasure::class);
+            foreach ($previous['groups'] as $oldGroup) {
+                $oldGroup['items'] = array_values(array_filter($oldGroup['items'], fn (array $item) => in_array($item['code'], $picked[$oldGroup['key']] ?? [], true)));
+                if ($oldGroup['items'] === []) {
+                    continue;
+                }
+                $index = array_search($oldGroup['key'], array_column($result['groups'], 'key'), true);
+                if ($index === false) {
+                    $result['groups'][] = $oldGroup;
+                } else {
+                    $result['groups'][$index]['items'] = [...$result['groups'][$index]['items'], ...$oldGroup['items']];
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /** A proved foldable pair can coexist with its separately recorded main screen, never another pair. */
+    protected static function compatibleAliasClaims(array $claims, ?string $unit): bool
+    {
+        if (count($claims) < 2) {
+            return true;
+        }
+        $pairs = array_filter($claims, fn (array $reading) => isset($reading['parts']));
+        if (count($pairs) !== 1) {
+            return false;
+        }
+        $pair = reset($pairs);
+        $partKeys = array_map(fn (array $part) => FilterMeasure::quantityKey($part, $unit), $pair['parts']);
+        foreach ($claims as $code => $reading) {
+            if (! isset($reading['parts']) && ! in_array($code, $partKeys, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Only selections already proved by the export provider become main filter answers. */
+    protected static function mainCharacteristicGroup(?Category $category, array $categoryIds, CategoryMainCharacteristicRules $rules, ?array $profile, callable $inListing, ?PrimaryFeature $selector = null, bool $currentPivotsOnly = false, bool $decimalSsdDisplay = true): ?array
+    {
+        if ($category === null || $profile === null) {
+            return null;
+        }
+        $profileKey = $profile['profile_key'];
+        $decimalSsdDisplay = $decimalSsdDisplay && $profileKey === 'laptop_ssd' && $profile['kind'] === 'ssd_storage'
+            && LaptopSsd::supports((int) $category->id);
+        $eligibleCategories = array_values(array_filter($categoryIds, fn (int $id) => ($rules->profile($id)['profile_key'] ?? null) === $profileKey));
+        $attributeIds = [];
+        foreach ($eligibleCategories as $id) {
+            $evidence = $rules->candidateAttributeIds($id);
+            if ($evidence === null) {
+                $attributeIds = null;
+                break;
+            }
+            $attributeIds = array_values(array_unique([...$attributeIds, ...$evidence]));
+        }
+        if ($eligibleCategories === []) {
+            return null;
+        }
+        $products = $inListing(Product::query())
+            ->whereIn('category_id', $eligibleCategories)
+            ->select(['products.id', 'products.category_id'])
+            ->with($rules->eagerRelations())
+            ->with(['attributeValues' => fn ($q) => $q->when($attributeIds !== null, fn ($w) => $w->whereIn('attribute_values.attribute_id', $attributeIds))])
+            ->get();
+        $selector ??= app(PrimaryFeature::class);
+        $items = [];
+        $metricCodes = [];
+        foreach ($products as $product) {
+            $selection = $selector->selection($product);
+            if ($selection === null || ($selection['profile_key'] ?? null) !== $profileKey || trim($selection['label'] ?? '') === ''
+                || ($currentPivotsOnly && ($selection['source_type'] ?? null) === 'description')) {
+                continue;
+            }
+            if ($decimalSsdDisplay) {
+                $selection = self::decimalSsdDisplaySelection($selection);
+            }
+            $code = 'main-choice-'.substr(hash('sha256', $profileKey."\0".$selection['kind']."\0".$selection['label']), 0, 24);
+            $reading = self::mainReading($selection['kind'], $selection['measurement']);
+            $items[$code] ??= [
+                'code' => $code, 'label' => $selection['label'], 'codes' => [], 'held' => 0,
+                'reading' => $reading, 'product_ids' => [],
+            ];
+            $items[$code]['product_ids'][] = (int) $product->id;
+            $items[$code]['held'] = count($items[$code]['product_ids']);
+            foreach ($product->attributeValues as $value) {
+                if (in_array((int) $value->id, $selection['source_ids'] ?? [], true)) {
+                    $metricCodes[] = $value->attribute->code;
+                }
+            }
+        }
+        if ($items === []) {
+            return null;
+        }
+        $items = array_values($items);
+        usort($items, fn (array $a, array $b) => $a['reading'] && $b['reading']
+            ? $a['reading']['low'] <=> $b['reading']['low']
+            : strnatcasecmp($a['label'], $b['label']));
+        $units = Measure::prevailing(array_column($items, 'reading'));
+        $items = $profile['kind'] === 'area'
+            ? self::areaCapacityBands($items)
+            : self::bandedIfLong($items, $units);
+
+        return [
+            'key' => 'main-'.$profileKey.($decimalSsdDisplay ? '-decimal' : ''), 'name' => $rules->caption((int) $category->id, app()->getLocale()),
+            'open' => true, 'items' => $items, 'is_main' => true, 'metric_attribute_codes' => array_values(array_unique($metricCodes)),
+        ];
+    }
+
+    /** Decimal drive labels are display equivalents; the export provider and source evidence stay untouched. */
+    protected static function decimalSsdDisplaySelection(array $selection): array
+    {
+        $measurement = $selection['measurement'];
+        if (($measurement['unit'] ?? null) === 'GB' && ($measurement['high'] ?? null) === null
+            && ($measurement['low'] ?? 0) >= 1000 && fmod((float) $measurement['low'], 1000.0) === 0.0) {
+            $terabytes = (int) ($measurement['low'] / 1000);
+            $selection['label'] = 'SSD '.$terabytes.' TB';
+            $selection['measurement'] = array_replace($measurement, ['unit' => 'TB', 'low' => (float) $terabytes]);
+        }
+
+        return $selection;
+    }
+
+    /** Replaced main roles retain only explicitly selected former, current-pivot-proved answers. */
+    protected static function selectedLegacyMainGroups(?Category $category, array $categoryIds, array $picked, callable $inListing): array
+    {
+        if ($category === null) {
+            return [];
+        }
+        $groups = [];
+        foreach (config('catalog_features.profiles', []) as $key => $definition) {
+            $selected = (array) ($picked['main-'.$key] ?? []);
+            $oldSsdDisplay = $key === 'laptop_ssd' && ($definition['kind'] ?? null) === 'ssd_storage'
+                && LaptopSsd::supports((int) $category->id)
+                && (app(CategoryMainCharacteristicRules::class)->profile((int) $category->id)['profile_key'] ?? null) === $key;
+            if ($selected === [] || (! $oldSsdDisplay && ! in_array((int) $category->id, $definition['legacy_main_categories'] ?? [], true))) {
+                continue;
+            }
+            // Replay the former complete role on this exact shelf, not the new category role.
+            $definition['categories'] = [(int) $category->id];
+            $definition['inherit'] = false;
+            $rules = new CategoryMainCharacteristicRules([$key => $definition]);
+            $selector = new PrimaryFeature(app(PrimaryFeatureFormatter::class), $rules);
+            $group = self::mainCharacteristicGroup($category, $categoryIds, $rules, $rules->profile((int) $category->id), $inListing, $selector, true, false);
+            if ($group === null) {
+                continue;
+            }
+            $group['items'] = array_values(array_filter($group['items'], fn (array $item) => in_array($item['code'], $selected, true)));
+            if ($group['items'] === []) {
+                continue;
+            }
+            unset($group['is_main']);
+            $group['is_main_legacy'] = true;
+            $groups[] = $group;
+        }
+
+        return $groups;
+    }
+
+    /** Adapt proved canonical measurements to the existing physical display bands, never infer units. */
+    protected static function mainReading(string $kind, array $measurement): ?array
+    {
+        $qualifier = $measurement['qualifier'] ?? '';
+        if (! isset($measurement['low']) || isset($measurement['text']) || ($qualifier !== '' && ! ($kind === 'area' && $qualifier === 'max'))
+            || str_contains($measurement['display_unit'] ?? '', 'RMS')
+            || (($measurement['high'] ?? null) !== null && $kind !== 'area' && ($measurement['separator'] ?? null) !== '/')) {
+            return null;
+        }
+        $unit = $measurement['unit'];
+        $dimension = match ($kind) {
+            'screen_cm', 'screen_inch', 'compatible_screen', 'height', 'diameter', 'cookware_diameter', 'cable_length' => 'length',
+            'area' => 'area',
+            'volume', 'cavity_volume', 'fluid_capacity' => 'volume',
+            'load', 'drying_load', 'product_mass' => 'weight',
+            'storage', 'ssd_storage', 'rom_storage' => 'memory',
+            'power', 'audio_power' => 'power',
+            default => null,
+        };
+        $canonicalUnit = match ($unit) {
+            'mm' => 'mm', 'cm' => 'cm', 'm' => 'm', 'inch' => 'inch', 'm2' => 'sqm', 'L' => 'l', 'kg' => 'kg', 'W' => 'w',
+            'MB' => 'mb', 'GB' => 'gb', 'TB' => 'tb',
+            default => null,
+        };
+        if ($dimension === null || $canonicalUnit === null || ! isset(Measure::UNITS[$dimension][$canonicalUnit])) {
+            return null;
+        }
+        $factor = Measure::factor($dimension, $canonicalUnit);
+        $displayUnit = ['მმ' => 'mm', 'სმ' => 'cm', 'მ' => 'm', 'ინჩი' => 'inch', 'ლ' => 'l', 'კგ' => 'kg', 'ვტ' => 'w'][$measurement['display_unit'] ?? ''] ?? $canonicalUnit;
+        if (! isset(Measure::UNITS[$dimension][$displayUnit])
+            || abs(($measurement['display_factor'] ?? 1) * Measure::factor($dimension, $displayUnit) - $factor) > 0.000001) {
+            $displayUnit = $canonicalUnit;
+        }
+        $reading = [
+            'dimension' => $dimension, 'unit' => $displayUnit,
+            'low' => $measurement['low'] * $factor,
+            'high' => $measurement['high'] !== null ? $measurement['high'] * $factor : null,
+        ];
+        if (($measurement['separator'] ?? null) === '/' && $reading['high'] !== null) {
+            $reading['parts'] = [array_replace($reading, ['high' => null]), array_replace($reading, ['low' => $reading['high'], 'high' => null])];
+            $reading['high'] = null;
+        }
+
+        return $reading;
+    }
+
     /**
      * @param  array<string, array<int, string>>  $picked  what is already chosen, so a
      *                                                     filter being used is never withdrawn
@@ -715,6 +1308,11 @@ class Catalog
     public static function listing(?Category $category = null, array $picked = []): array
     {
         $ids = null;
+        $categoryContext = $category
+            ? array_map(fn (Category $ancestor) => (int) $ancestor->id, $category->ancestorsAndSelf())
+            : [];
+        $mainRules = app(CategoryMainCharacteristicRules::class);
+        $mainProfile = $category ? $mainRules->profile((int) $category->id) : null;
 
         if ($category) {
             $category->loadMissing(['children' => fn ($q) => $q->active()->withTranslation()]);
@@ -755,14 +1353,41 @@ class Catalog
             ->map(fn (Brand $b) => ['code' => $b->slug, 'label' => $b->name, 'codes' => [$b->slug]])
             ->values()->all();
 
-        $attributeGroups = Attribute::filterable()->withTranslation()
-
+        $attributes = Attribute::query()->withTranslation()
+            ->where(fn (Builder $q) => $q->where('is_filterable', true)
+                ->when($mainProfile !== null, fn (Builder $w) => $w->orWhereIn('code', array_keys($held))))
+            ->when($category && LaptopSsd::supports((int) $category->id) && (array) ($picked['shida-mekhsiereba'] ?? []) === [],
+                fn (Builder $q) => $q->where('attributes.id', '!=', 189))
             ->whereNotIn('code', self::RESERVED_FILTERS)
-            ->with(['values' => fn ($q) => $q->withTranslation()
-                ->whereHas('products', $inListing)
-                ->orderBy('sort_order')])
             ->orderBy('sort_order')
-            ->get()
+            ->get();
+
+        $mainAttributes = $mainProfile === null
+            ? new EloquentCollection
+            : $attributes->filter(fn (Attribute $a) => $mainRules->attributePriority($a, (int) $category->id) !== null);
+        $mainIds = $mainAttributes->modelKeys();
+        $attributes = $attributes->filter(fn (Attribute $a) => $a->is_filterable || in_array($a->id, $mainIds, true));
+        $attributes->load(['values' => fn ($q) => $q->withTranslation()
+            ->whereHas('products', $inListing)
+            ->orderBy('sort_order')]);
+        $main = self::mainCharacteristicGroup($category, $ids ?? [], $mainRules, $mainProfile, $inListing);
+        $legacyMain = self::selectedLegacyMainGroups($category, $ids ?? [], $picked, $inListing);
+        // A name alias can also hold another property (TV "screen" can mean LCD).
+        // Only the provider's proved metric sources identify duplicate main questions.
+        $mainCodes = $main['metric_attribute_codes'] ?? [];
+        foreach ($legacyMain as $legacy) {
+            $mainCodes = array_values(array_unique([...$mainCodes, ...$legacy['metric_attribute_codes']]));
+        }
+        foreach (FilterAliases::definitions($categoryContext) as $definition) {
+            $aliases = array_column($definition['attributes'], 'code');
+            if (array_intersect($aliases, $mainCodes) !== []) {
+                $mainCodes = array_values(array_unique([...$mainCodes, ...$aliases]));
+            }
+        }
+        $normalAttributes = $attributes->filter(fn (Attribute $a) => $a->is_filterable || ($picked[$a->code] ?? []) !== []);
+
+        $logical = self::logicalGroups($normalAttributes, $held, $categoryContext, $inListing, $picked);
+        $attributeGroups = $normalAttributes
             /* Deliberately not kept to the shelves an attribute is listed
                under. That listing is what offers colour as a picker on a
                telephone and not on a kettle, and reading it here as well took
@@ -770,12 +1395,20 @@ class Catalog
                was listed under was the only one that kept it. A filter is
                offered wherever the products on the shelf answer it, and the
                rules below decide whether it is worth offering. */
+            ->filter(fn (Attribute $a) => ! in_array($a->code, $logical['consumed'], true) || ($picked[$a->code] ?? []) !== [])
             ->map(fn (Attribute $a) => [
-                'name' => $a->name,
+                'name' => self::roomArea($a)
+                    ? (app()->getLocale() === 'en' ? 'Maximum coverage' : 'მაქსიმალური ფართობი')
+                    : $a->name,
                 'key' => $a->code,
                 'open' => true,
-                'items' => self::answers($a, $held[$a->code] ?? [], (array) ($picked[$a->code] ?? [])),
+                'items' => self::answers($a, $held[$a->code] ?? [], (array) ($picked[$a->code] ?? []), $categoryContext),
             ])
+            ->all();
+
+        $attributeGroups = collect([...$logical['groups'], ...$attributeGroups])
+            ->filter(fn ($g) => ($picked[$g['key']] ?? []) !== []
+                || array_intersect($g['attribute_codes'] ?? [$g['key']], $mainCodes) === [])
             ->filter(fn ($g) => self::stillAChoice($g, (array) ($picked[$g['key']] ?? [])))
             ->filter(fn ($g) => ($picked[$g['key']] ?? []) !== [] || self::worthOffering($g, $total))
             ->values()
@@ -787,9 +1420,11 @@ class Catalog
             ? self::categoryCounts()
             : collect();
 
-        $groups = count($brands) > 1
-            ? array_merge([['name' => __('catalog.brand'), 'key' => 'brand', 'open' => true, 'items' => $brands]], $attributeGroups)
-            : $attributeGroups;
+        $groups = $main === null ? [...$legacyMain, ...$attributeGroups] : [$main, ...$legacyMain, ...$attributeGroups];
+        $brands = array_values(array_filter($brands, fn (array $brand) => trim((string) $brand['code']) !== '' && trim((string) $brand['label']) !== ''));
+        if ($brands !== []) {
+            $groups = [['name' => __('catalog.brand'), 'key' => 'brand', 'open' => true, 'items' => $brands], ...$groups];
+        }
 
         return [
             'category' => $category,
@@ -817,6 +1452,7 @@ class Catalog
                 'new' => __('catalog.sort.new'),
             ],
             'groups' => $groups,
+            'filterDiagnostics' => $logical['diagnostics'],
             'priceMin' => (int) (floor(((float) ($range->low ?? 0)) / 100) * 100),
             'priceMax' => $max,
             'perPage' => 20,

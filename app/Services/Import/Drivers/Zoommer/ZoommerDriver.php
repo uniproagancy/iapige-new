@@ -77,6 +77,7 @@ class ZoommerDriver implements SupplierDriver
             $specs,
             fn ($s) => $s['name'] !== '' && $s['value'] !== '' && $s['value'] !== '-',
         ));
+        $specs = $this->storageCapacitySpecs($specs, $translations);
 
         return new ProductPayload(
             externalId: $externalId,
@@ -97,6 +98,77 @@ class ZoommerDriver implements SupplierDriver
             releaseDate: $product['releaseDate'] ?? null,
             variantGroup: $this->variantGroup($externalId, $product),
         );
+    }
+
+    /**
+     * Zoommer sometimes puts a storage technology (UFS/eMMC) in its capacity
+     * field. A single explicit RAM/storage pair in every translated SKU name,
+     * corroborated by every separate RAM field, can restore that capacity.
+     * Any missing, conflicting or already meaningful storage row is left alone.
+     */
+    protected function storageCapacitySpecs(array $specs, array $translations): array
+    {
+        $storageNames = ['შიდამეხსიერება', 'ჩაშენებულიმეხსიერება', 'internalstorage', 'internalmemory', 'builtinmemory'];
+        $ramNames = ['ოპერატიულიმეხსიერება', 'ram', 'rammemory', 'operativememory'];
+        $nameKey = fn ($name) => preg_replace('/[^\p{L}\p{N}]+/u', '', mb_strtolower(trim((string) $name)));
+        $pair = null;
+        $storageRows = [];
+        $technology = null;
+
+        if ($translations === []) {
+            return $specs;
+        }
+
+        foreach ($translations as $locale => $translation) {
+            $title = trim((string) ($translation['name'] ?? ''));
+            $matches = [];
+            preg_match_all('/(?<![\p{L}\p{N}.,])(?<ram>\d+)\s*(?:GB\s*)?\/\s*(?<storage>\d+)\s*GB(?![\p{L}\p{N}])/iu', $title, $matches, PREG_SET_ORDER);
+            if (count($matches) !== 1 || (int) $matches[0]['ram'] <= 0 || (int) $matches[0]['storage'] <= 0) {
+                return $specs;
+            }
+            $said = [(int) $matches[0]['ram'], (int) $matches[0]['storage']];
+            if ($pair !== null && $pair !== $said) {
+                return $specs;
+            }
+            $pair = $said;
+            $hasRam = false;
+            $hasStorage = false;
+            foreach ($specs as $index => $spec) {
+                if (($spec['locale'] ?? null) !== $locale) {
+                    continue;
+                }
+                $name = $nameKey($spec['name'] ?? '');
+                $value = trim((string) ($spec['value'] ?? ''));
+                if (in_array($name, $ramNames, true)) {
+                    if (! preg_match('/\A(?<ram>\d+)\s*(?:GB|გბ)\z/iu', $value, $ram) || (int) $ram['ram'] !== $pair[0]) {
+                        return $specs;
+                    }
+                    $hasRam = true;
+                }
+                if (! in_array($name, $storageNames, true)) {
+                    continue;
+                }
+                if (! preg_match('/\A(?:UFS|eMMC)\s+\d+(?:\.\d+)?\z/iu', $value)) {
+                    return $specs;
+                }
+                $saidTechnology = mb_strtolower(preg_replace('/\s+/u', ' ', $value));
+                if ($technology !== null && $technology !== $saidTechnology) {
+                    return $specs;
+                }
+                $technology = $saidTechnology;
+                $hasStorage = true;
+                $storageRows[] = $index;
+            }
+            if (! $hasRam || ! $hasStorage) {
+                return $specs;
+            }
+        }
+
+        foreach ($storageRows as $index) {
+            $specs[$index]['value'] = $pair[1].' GB';
+        }
+
+        return $specs;
     }
 
     protected function sku(string $externalId, array $product): string

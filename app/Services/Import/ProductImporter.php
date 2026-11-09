@@ -2,13 +2,19 @@
 
 namespace App\Services\Import;
 
+use App\Models\Attribute;
+use App\Models\AttributeValue;
+use App\Models\Language;
 use App\Models\Product;
 use App\Models\ProductOffer;
 use App\Models\ProductSpec;
 use App\Models\ProductSpecTranslation;
 use App\Models\Supplier;
+use App\Services\Feeds\PrimaryFeatureFormatter;
 use App\Services\Import\Drivers\Alta\AltaDriver;
+use App\Support\CategoryTree;
 use App\Support\Slug;
+use App\Support\SsdCapacity;
 use App\Support\Text;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -344,7 +350,11 @@ class ProductImporter
 
     protected function syncSpecs(Product $product, Supplier $supplier, ProductPayload $payload): void
     {
-        if (! $payload->specs) {
+        [$incoming, $derived] = $this->descriptionSpecs($product, $supplier, $payload);
+
+        if (! $incoming) {
+            $this->syncLaptopSsd($product, $supplier, $payload);
+
             return;
         }
 
@@ -354,17 +364,58 @@ class ProductImporter
         $byAttribute = [];
         $now = now();
 
-        foreach (collect($payload->specs)->groupBy('name') as $name => $rows) {
+        foreach (collect($incoming)->groupBy('name') as $name => $rows) {
             $filterable = (bool) ($rows->first()['filterable'] ?? false);
-            $attribute = $this->taxonomy->attribute($supplier, (string) $name, $filterable);
+            $description = $derived[(string) $name] ?? null;
+            $attribute = $description['attribute'] ?? $this->taxonomy->productAttribute($supplier, $product, (string) $name, $rows->all(), $filterable);
 
             if (! $attribute) {
                 continue;
             }
 
+            $normalized = $this->taxonomy->normalizeProductRows($attribute, $rows->all(), $product);
+
+            if ($normalized === []) {
+                continue;
+            }
+
+            $rows = collect($normalized);
+            $laptopSsd = (int) $attribute->id === LaptopSsd::ATTRIBUTE_ID
+                && $attribute->code === LaptopSsd::ATTRIBUTE_CODE
+                && LaptopSsd::supports($product->category_id !== null ? (int) $product->category_id : null);
+            $filterRows = $rows->all();
+
+            if ($laptopSsd) {
+                $filterRows = $this->ssdFilterRows($filterRows, $attribute->unit);
+                if ($filterRows === []) {
+                    // A partial/unsupported SSD payload must not erase a
+                    // previously valid filter or its raw operator/supplier spec.
+                    $this->log('ssd filter skipped', $supplier, $payload, ['product' => $product->id, 'reason' => 'unsupported_incoming_capacity']);
+
+                    continue;
+                }
+            }
+
             /* Two supplier keys can be mapped onto the same attribute. Keep the
                first one rather than letting the later one silently win. */
             if (isset($byAttribute[$attribute->id])) {
+                continue;
+            }
+
+            $value = $this->taxonomy->attributeValue($attribute, $filterRows);
+            $measured = $attribute->code === RoomArea::ATTRIBUTE_CODE
+                || ($attribute->code === ScreenSize::ATTRIBUTE_CODE
+                    && in_array((int) $product->category_id, ScreenSize::CATEGORY_IDS, true));
+
+            if (($measured && $value === null)
+                || ($laptopSsd && ($value === null || ! $this->ssdValueMatches($value, $filterRows[0]['value'], $attribute->unit)))
+                || ($description !== null && ($value === null || ! $this->descriptionValueMatches($attribute, $value, $description)))) {
+                $this->log('import: measurement skipped', $supplier, $payload, [
+                    'product_id' => $product->id,
+                    'attribute' => $attribute->code,
+                    'reason' => 'value_code_conflict',
+                ]);
+
                 continue;
             }
 
@@ -379,7 +430,7 @@ class ProductImporter
 
             $byAttribute[$attribute->id] = $rows;
 
-            if ($value = $this->taxonomy->attributeValue($attribute, $rows->all())) {
+            if ($value !== null) {
                 $valueIds[] = $value->id;
             }
         }
@@ -416,7 +467,211 @@ class ProductImporter
             }
         }
 
-        $product->attributeValues()->sync(array_unique($valueIds));
+        // Omitted specs are retained above, so a partial import must retain their filters too.
+        $keep = $product->attributeValues()
+            ->whereNotIn('attribute_values.attribute_id', array_keys($byAttribute))
+            ->pluck('attribute_values.id');
+
+        $product->attributeValues()->sync($keep->merge($valueIds)->unique()->all());
+        $this->syncLaptopSsd($product, $supplier, $payload);
+    }
+
+    protected function ssdFilterRows(array $rows, ?string $unit): array
+    {
+        $normalized = [];
+        $quantity = null;
+        $defaultFound = false;
+        foreach ($rows as $row) {
+            $value = SsdCapacity::normalize($row['value'] ?? null, $unit);
+            if ($value === null || ($quantity !== null && $quantity !== $value)) {
+                return [];
+            }
+            $quantity = $value;
+            $defaultFound = $defaultFound || ($row['locale'] ?? null) === Language::defaultCode();
+            $normalized[] = array_replace($row, ['value' => $value]);
+        }
+
+        return $defaultFound ? $normalized : [];
+    }
+
+    protected function ssdValueMatches(AttributeValue $value, string $expected, ?string $unit = null): bool
+    {
+        $defaultFound = false;
+        foreach ($value->translations()->lockForUpdate()->get() as $translation) {
+            if (SsdCapacity::normalize($translation->label, $unit) !== $expected) {
+                return false;
+            }
+            $defaultFound = $defaultFound || $translation->locale === Language::defaultCode();
+        }
+
+        return $defaultFound;
+    }
+
+    /** Add the dedicated SSD field from current proven filters, without moving their raw data. */
+    protected function syncLaptopSsd(Product $product, Supplier $supplier, ProductPayload $payload): void
+    {
+        if (! LaptopSsd::supports($product->category_id !== null ? (int) $product->category_id : null)) {
+            return;
+        }
+        if ($product->attributeValues()->where('attribute_id', LaptopSsd::ATTRIBUTE_ID)->lockForUpdate()->exists()
+            || $product->specs()->where('attribute_id', LaptopSsd::ATTRIBUTE_ID)->lockForUpdate()->exists()) {
+            return;
+        }
+        $proof = LaptopSsd::forProduct($product, true);
+        if ($proof === null) {
+            return;
+        }
+        $attribute = Attribute::whereKey(LaptopSsd::ATTRIBUTE_ID)->where('code', LaptopSsd::ATTRIBUTE_CODE)
+            ->where('is_filterable', true)->lockForUpdate()->first();
+        if ($attribute === null) {
+            return;
+        }
+        $rows = [];
+        foreach ($proof['translations'] as $locale => $quantity) {
+            $rows[] = ['name' => 'SSD მოცულობა', 'value' => $quantity, 'locale' => $locale, 'filterable' => true, 'key' => true];
+        }
+        $value = $this->taxonomy->attributeValue($attribute, $rows);
+        if ($value === null || ! $this->ssdValueMatches($value, $proof['value'], $attribute->unit)) {
+            $this->log('ssd filter skipped', $supplier, $payload, ['product' => $product->id, 'reason' => 'value_code_conflict']);
+
+            return;
+        }
+        $product->attributeValues()->syncWithoutDetaching([$value->id]);
+        $spec = ProductSpec::create(['product_id' => $product->id, 'attribute_id' => $attribute->id, 'is_key' => true,
+            'sort_order' => (int) $product->specs()->max('sort_order') + 1]);
+        $spec->saveTranslations(array_map(fn ($quantity) => ['value' => $quantity], $proof['translations']));
+    }
+
+    /** Add only a genuinely absent primary filter; supplier/operator claims win. */
+    protected function descriptionSpecs(Product $product, Supplier $supplier, ProductPayload $payload): array
+    {
+        $family = $this->descriptionFamily((int) $product->category_id);
+
+        if ($family === null) {
+            return [$payload->specs, []];
+        }
+
+        $parser = new DescriptionSpecs;
+        $incoming = $parser->sanitizeIncomingSpecs($family, $payload->specs);
+        $kind = match ($family) {
+            'phones' => 'storage', 'televisions' => 'screen_cm', 'refrigerators' => 'volume',
+            'washing_machines' => 'load', 'christmas_trees' => 'height', default => 'area',
+        };
+        $canonicalId = ['storage' => 189, 'screen_cm' => 31, 'volume' => 3707, 'load' => 3805, 'height' => 14, 'area' => 3873][$kind];
+        $aliases = [];
+
+        // Different product families can measure the same physical quantity.
+        // A kettle's generic volume must not become a fridge-total claim.
+        $profileKey = in_array($family, ['air_conditioners', 'heaters', 'boilers'], true)
+            ? 'climate_equipment' : $family;
+        $profile = config('catalog_features.profiles.'.$profileKey, []);
+        if (($profile['kind'] ?? null) === $kind) {
+            foreach ($profile['attributes'] ?? [] as $alias) {
+                $aliases[$this->descriptionKey($alias)] = true;
+            }
+        }
+
+        // No profile means no safe identification of legacy aliases.
+        if ($aliases === []) {
+            return [$incoming, []];
+        }
+
+        $claim = function (Attribute $attribute) use ($canonicalId, $aliases): bool {
+            if ((int) $attribute->id === $canonicalId || isset($aliases[$this->descriptionKey($attribute->code)])) {
+                return true;
+            }
+
+            foreach ($attribute->translations as $translation) {
+                if (isset($aliases[$this->descriptionKey($translation->name)])) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        foreach ([$product->attributeValues()->with('attribute.translations')->lockForUpdate()->get(), $product->specs()->with('attribute.translations')->lockForUpdate()->get()] as $records) {
+            foreach ($records as $record) {
+                if ($record->attribute !== null && $claim($record->attribute)) {
+                    return [$incoming, []];
+                }
+            }
+        }
+
+        $names = array_values(array_unique(array_map(fn ($row) => (string) ($row['name'] ?? ''), $incoming)));
+        foreach ($names as $name) {
+            if (isset($aliases[$this->descriptionKey($name)])) {
+                return [$incoming, []];
+            }
+        }
+
+        // Existing supplier aliases may use a nonsemantic external name. Read the
+        // map without calling the resolver, which could create/change mappings.
+        $mapped = DB::table('supplier_attribute_map')->where('supplier_id', $supplier->id)->whereIn('external_name', $names)->pluck('attribute_id')->filter()->all();
+        foreach (Attribute::whereIn('id', $mapped)->with('translations')->get() as $attribute) {
+            if ($claim($attribute)) {
+                return [$incoming, []];
+            }
+        }
+
+        $candidate = $parser->extractTranslations($family, $payload->translations);
+
+        if ($candidate === null) {
+            return [$incoming, []];
+        }
+
+        $attribute = Attribute::whereKey($canonicalId)->where('code', $candidate['attribute_code'])->where('is_filterable', true)->first();
+
+        if ($attribute === null) {
+            $this->log('description filter skipped', $supplier, $payload, ['product' => $product->id, 'reason' => 'canonical_attribute_unavailable']);
+
+            return [$incoming, []];
+        }
+
+        foreach (array_keys($candidate['locale_evidence']) as $locale) {
+            $incoming[] = ['name' => $candidate['attribute_name'], 'value' => $candidate['value'],
+                'locale' => $locale, 'filterable' => true, 'key' => true];
+        }
+
+        return [$incoming, [$candidate['attribute_name'] => ['attribute' => $attribute, 'kind' => $kind, 'value' => $candidate['value']]]];
+    }
+
+    protected function descriptionValueMatches(Attribute $attribute, AttributeValue $value, array $description): bool
+    {
+        $formatter = new PrimaryFeatureFormatter;
+        $expected = $formatter->format($description['kind'], $description['value'], $attribute->unit);
+        $defaultFound = false;
+
+        foreach ($value->translations()->lockForUpdate()->get() as $translation) {
+            if (trim((string) $translation->label) === ''
+                || $formatter->format($description['kind'], $translation->label, $attribute->unit) !== $expected) {
+                return false;
+            }
+
+            $defaultFound = $defaultFound || $translation->locale === Language::defaultCode();
+        }
+
+        return $expected !== '' && $defaultFound;
+    }
+
+    protected function descriptionFamily(int $categoryId): ?string
+    {
+        $families = [2 => 'phones', 72 => 'televisions', 83 => 'refrigerators', 390 => 'refrigerators',
+            84 => 'washing_machines', 410 => 'christmas_trees', 98 => 'air_conditioners',
+            99 => 'heaters', 100 => 'heaters', 103 => 'heaters', 104 => 'heaters', 405 => 'boilers', 90 => 'heaters'];
+
+        foreach ([$categoryId, ...array_reverse(CategoryTree::ancestorIds($categoryId))] as $id) {
+            if (isset($families[$id])) {
+                return $families[$id];
+            }
+        }
+
+        return null;
+    }
+
+    protected function descriptionKey(string $value): string
+    {
+        return preg_replace('/[^\p{L}\p{N}]+/u', '', mb_strtolower($value));
     }
 
     protected function log(string $message, ?Supplier $supplier, ?ProductPayload $payload, array $extra = []): void

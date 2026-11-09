@@ -142,9 +142,34 @@ class Catalog extends Component
                 continue;
             }
 
-            $key === 'brand'
-                ? $query->whereHas('brand', fn (Builder $b) => $b->whereIn('slug', $codes))
-                : $query->withAttributeValue($key, $this->expanded($key, $codes));
+            if ($key === 'brand') {
+                $query->whereHas('brand', fn (Builder $b) => $b->whereIn('slug', $codes));
+            } elseif (isset($this->mainProducts[$key])) {
+                $ids = [];
+                foreach ($codes as $code) {
+                    foreach ($this->mainProducts[$key][$code] ?? [] as $id) {
+                        $ids[(int) $id] = true;
+                    }
+                }
+                $query->whereIn('products.id', array_keys($ids));
+            } elseif (isset($this->logicalSources[$key])) {
+                $sources = $this->selectedSources($key, $codes);
+                if ($sources === []) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->whereHas('attributeValues', function (Builder $values) use ($sources) {
+                        $values->where(function (Builder $alternatives) use ($sources) {
+                            foreach ($sources as $attribute => $answers) {
+                                $alternatives->orWhere(fn (Builder $pair) => $pair
+                                    ->whereIn('attribute_values.code', $answers)
+                                    ->whereHas('attribute', fn (Builder $a) => $a->where('code', $attribute)));
+                            }
+                        });
+                    });
+                }
+            } else {
+                $query->withAttributeValue($key, $this->expanded($key, $codes));
+            }
         }
 
         return $query;
@@ -157,15 +182,41 @@ class Catalog extends Component
      */
     protected array $expands = [];
 
+    /** Virtual choices retain the exact attribute/value pairs, not their cross-product. */
+    protected array $logicalSources = [];
+
+    /** Main answers are proved for each product by the same selector as the export. */
+    protected array $mainProducts = [];
+
     protected function remember(array $groups): void
     {
         $this->expands = [];
+        $this->logicalSources = [];
+        $this->mainProducts = [];
 
         foreach ($groups as $group) {
             foreach ($group['items'] as $item) {
                 $this->expands[$group['key']][$item['code']] = $item['codes'] ?? [$item['code']];
+                if (isset($item['sources'])) {
+                    $this->logicalSources[$group['key']][$item['code']] = $item['sources'];
+                }
+                if (isset($item['product_ids'])) {
+                    $this->mainProducts[$group['key']][$item['code']] = $item['product_ids'];
+                }
             }
         }
+    }
+
+    protected function selectedSources(string $key, array $codes): array
+    {
+        $sources = [];
+        foreach ($codes as $code) {
+            foreach ($this->logicalSources[$key][$code] ?? [] as $attribute => $answers) {
+                $sources[$attribute] = array_values(array_unique([...($sources[$attribute] ?? []), ...$answers]));
+            }
+        }
+
+        return $sources;
     }
 
     protected function expanded(string $key, array $codes): array
@@ -203,6 +254,16 @@ class Catalog extends Component
             $key = $group['key'];
             $matching = $this->query($key)->reorder()->select('products.id')->toBase();
 
+            if (($group['is_main'] ?? false) || ($group['is_main_legacy'] ?? false)) {
+                $counts[$key] = $this->mainFacetCounts($group, $matching);
+
+                continue;
+            }
+            if (isset($group['attribute_codes'])) {
+                $counts[$key] = $this->logicalFacetCounts($group, $matching);
+
+                continue;
+            }
             $counts[$key] = $key === 'brand'
                 ? Product::query()->whereIn('products.id', $matching)
                     ->join('brands', 'brands.id', '=', 'products.brand_id')
@@ -215,6 +276,58 @@ class Catalog extends Component
                     ->where('a.code', $key)
                     ->groupBy('av.code')
                     ->pluck(DB::raw('count(*)'), 'av.code')->all());
+        }
+
+        return $counts;
+    }
+
+    protected function logicalFacetCounts(array $group, $matching): array
+    {
+        $rows = DB::table('attribute_value_product as avp')
+            ->join('attribute_values as av', 'av.id', '=', 'avp.attribute_value_id')
+            ->join('attributes as a', 'a.id', '=', 'av.attribute_id')
+            ->whereIn('avp.product_id', $matching)
+            ->whereIn('a.code', $group['attribute_codes'])
+            ->select(['avp.product_id', 'a.code as attribute', 'av.code as answer'])
+            ->distinct()->get();
+        $products = [];
+        foreach ($rows as $row) {
+            $products[$row->attribute][$row->answer][(int) $row->product_id] = true;
+        }
+        $counts = [];
+        foreach ($group['items'] as $item) {
+            $reached = [];
+            foreach ($item['sources'] ?? [] as $attribute => $answers) {
+                foreach ($answers as $answer) {
+                    $reached += $products[$attribute][$answer] ?? [];
+                }
+            }
+            if ($reached !== []) {
+                $counts[$item['code']] = count($reached);
+            }
+        }
+
+        return $counts;
+    }
+
+    protected function mainFacetCounts(array $group, $matching): array
+    {
+        $eligible = [];
+        foreach ($group['items'] as $item) {
+            foreach ($item['product_ids'] as $id) {
+                $eligible[(int) $id] = true;
+            }
+        }
+        $matchingIds = DB::table('products')->whereIn('products.id', $matching)
+            ->whereIn('products.id', array_keys($eligible))->pluck('products.id')->all();
+        $matchingSet = array_fill_keys($matchingIds, true);
+        $counts = [];
+        foreach ($group['items'] as $item) {
+            $ids = array_fill_keys($item['product_ids'], true);
+            $count = count(array_intersect_key($ids, $matchingSet));
+            if ($count > 0) {
+                $counts[$item['code']] = $count;
+            }
         }
 
         return $counts;
@@ -352,6 +465,8 @@ class Catalog extends Component
         return array_values(array_filter(
             $groups,
             fn (array $group) => count($group['items']) > 1
+                || (($group['is_main'] ?? false) && $group['items'] !== [])
+                || ($group['key'] === 'brand' && $group['items'] !== [])
                 || ($this->picked[$group['key']] ?? []) !== [],
         ));
     }

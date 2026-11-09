@@ -7,6 +7,7 @@ use App\Models\AttributeValue;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Language;
+use App\Models\Product;
 use App\Models\Supplier;
 use App\Support\Slug;
 use App\Support\Text;
@@ -117,6 +118,8 @@ class TaxonomyResolver
 
     public function attributeValue(Attribute $attribute, array $rows): ?AttributeValue
     {
+        $rows = $this->normalizeProductRows($attribute, $rows);
+
         $default = Language::defaultCode();
 
         $raw = trim((string) (collect($rows)->firstWhere('locale', $default)['value']
@@ -133,8 +136,13 @@ class TaxonomyResolver
             return null;
         }
 
-        if (isset($this->memo["av:{$attribute->id}:{$code}"])) {
-            return $this->memo["av:{$attribute->id}:{$code}"];
+        $typed = $this->typedValue($attribute, $raw);
+        $key = "av:{$attribute->id}:{$code}";
+
+        if (isset($this->memo[$key])) {
+            $value = $this->memo[$key];
+
+            return $typed === null || $this->matchesTypedValue($attribute, $value, $typed) ? $value : null;
         }
 
         $value = AttributeValue::firstOrCreate(
@@ -154,7 +162,96 @@ class TaxonomyResolver
             );
         }
 
-        return $this->memo["av:{$attribute->id}:{$code}"] = $value;
+        if ($typed !== null && ! $this->matchesTypedValue($attribute, $value, $typed)) {
+            return null;
+        }
+
+        return $this->memo[$key] = $value;
+    }
+
+    protected function typedValue(Attribute $attribute, string $raw): ?string
+    {
+        return match ($attribute->code) {
+            RoomArea::ATTRIBUTE_CODE => RoomArea::normalize($raw, $attribute->unit),
+            ScreenSize::ATTRIBUTE_CODE => ScreenSize::normalize($raw),
+            default => null,
+        };
+    }
+
+    protected function matchesTypedValue(Attribute $attribute, AttributeValue $value, string $expected): bool
+    {
+        $default = Language::defaultCode();
+        $found = false;
+
+        // Slugging removes decimal points, so distinct quantities can share an index.
+        // Query fresh labels even for memo hits so a later edit cannot reuse stale quantity.
+        foreach ($value->translations()->get(['locale', 'label']) as $translation) {
+            $label = trim((string) $translation->label);
+
+            if ($label === '') {
+                continue;
+            }
+
+            if ($this->typedValue($attribute, $label) !== $expected) {
+                return false;
+            }
+
+            $found = $found || $translation->locale === $default;
+        }
+
+        return $found;
+    }
+
+    public function normalizeProductRows(Attribute $attribute, array $rows, ?Product $product = null): array
+    {
+        if ($attribute->code === ScreenSize::ATTRIBUTE_CODE
+            && $product !== null && in_array((int) $product->category_id, ScreenSize::CATEGORY_IDS, true)) {
+            return ScreenSize::normalizeRows($rows);
+        }
+
+        return $attribute->code === RoomArea::ATTRIBUTE_CODE
+            ? RoomArea::normalizeRows($rows, $attribute->unit)
+            : $rows;
+    }
+
+    public function normalizeValue(Attribute $attribute, string $value): ?string
+    {
+        return $attribute->code === RoomArea::ATTRIBUTE_CODE
+            ? RoomArea::normalize($value, $attribute->unit)
+            : $value;
+    }
+
+    public function productAttribute(Supplier $supplier, Product $product, string $name, array $rows, bool $filterable = false): ?Attribute
+    {
+        $name = trim((string) Text::utf8($name));
+        $categoryId = $product->category_id !== null ? (int) $product->category_id : null;
+
+        if (ScreenSize::matches($categoryId, $name, $rows)) {
+            $key = 'attr:television-diagonal';
+
+            if (isset($this->memo[$key])) {
+                return $this->memo[$key];
+            }
+
+            if ($attribute = Attribute::where('code', ScreenSize::ATTRIBUTE_CODE)->first()) {
+                return $this->memo[$key] = $attribute;
+            }
+        }
+
+        if (RoomArea::matches($categoryId, $name, $rows)) {
+            $key = 'attr:room-area';
+
+            if (isset($this->memo[$key])) {
+                return $this->memo[$key];
+            }
+
+            if ($attribute = Attribute::where('code', RoomArea::ATTRIBUTE_CODE)->first()) {
+                // Context decides this pairing; the supplier's global volume mapping stays intact.
+                return $this->memo[$key] = $attribute;
+            }
+        }
+
+        return $this->attribute($supplier, $name, $filterable);
     }
 
     protected function attributeCode(string $name): string
