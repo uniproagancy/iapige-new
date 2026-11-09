@@ -32,6 +32,13 @@ class Upload extends Component
 
     public ?string $batch = null;
 
+    /* The supplier a file is loaded into is asked for once more before it
+       is, by name: the buttons sit side by side, and a price list loaded into
+       the wrong one replaced that supplier's prices and stock with another's. */
+    public bool $confirming = false;
+
+    public ?string $confirmingCode = null;
+
     public function mount(): void
     {
         $this->code = $this->code ?: (string) ($this->suppliers()->first()?->code ?? '');
@@ -42,6 +49,7 @@ class Upload extends Component
         $supplier = $this->supplier();
 
         return view('livewire.admin.import.upload', [
+            'otherSupplier' => $this->confirming && $supplier ? $this->otherSupplierNamed($supplier) : null,
             'suppliers' => $this->suppliers(),
             'supplier' => $supplier,
             'columns' => $supplier->config['columns'] ?? [],
@@ -58,19 +66,41 @@ class Upload extends Component
     public function updatedCode(): void
     {
 
-        $this->reset(['file', 'result', 'mode', 'batch']);
+        $this->reset(['file', 'result', 'mode', 'batch', 'confirming', 'confirmingCode']);
+    }
+
+    /* The file is checked first, so the question is only put about a load
+       that can actually happen. */
+    public function confirmLoad(): void
+    {
+        $this->validate(self::loadRules());
+
+        if (! $this->supplier()) {
+            return;
+        }
+
+        $this->confirmingCode = $this->code;
+        $this->confirming = true;
+    }
+
+    public function cancelLoad(): void
+    {
+        $this->reset(['confirming', 'confirmingCode']);
     }
 
     public function load(PriceListLoader $loader): void
     {
+        /* Only a load that was confirmed, and only into the supplier it was
+           confirmed for. */
+        $confirmed = $this->confirming && $this->confirmingCode === $this->code;
 
-        $this->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:20480'],
-            'sheet' => ['integer', 'min:1'],
-            'skipRows' => ['integer', 'min:0', 'max:20'],
+        $this->reset(['confirming', 'confirmingCode']);
 
-            'mode' => ['required', 'in:'.implode(',', PriceListLoader::MODES)],
-        ]);
+        if (! $confirmed) {
+            return;
+        }
+
+        $this->validate(self::loadRules());
 
         if (! $supplier = $this->supplier()) {
             return;
@@ -126,6 +156,45 @@ class Upload extends Component
     protected static function batchKey(string $batch): string
     {
         return 'import:merged:'.$batch;
+    }
+
+    protected static function loadRules(): array
+    {
+        return [
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:20480'],
+            'sheet' => ['integer', 'min:1'],
+            'skipRows' => ['integer', 'min:0', 'max:20'],
+
+            'mode' => ['required', 'in:'.implode(',', PriceListLoader::MODES)],
+        ];
+    }
+
+    /*
+     | Another supplier the file's own name speaks of -- "kontakt_10-11.xlsx"
+     | about to go into MagiToys -- when it does not name the one chosen.
+     */
+    protected function otherSupplierNamed(Supplier $chosen): ?string
+    {
+        $file = $this->file && method_exists($this->file, 'getClientOriginalName')
+            ? mb_strtolower(pathinfo($this->file->getClientOriginalName(), PATHINFO_FILENAME))
+            : '';
+
+        if ($file === '') {
+            return null;
+        }
+
+        $names = fn (Supplier $s) => array_filter(
+            [mb_strtolower($s->code), mb_strtolower((string) $s->name)],
+            fn (string $word) => mb_strlen($word) >= 3,
+        );
+
+        $mentions = fn (Supplier $s) => (bool) array_filter($names($s), fn (string $word) => str_contains($file, $word));
+
+        if ($mentions($chosen)) {
+            return null;
+        }
+
+        return Supplier::where('id', '!=', $chosen->id)->get()->first($mentions)?->name;
     }
 
     protected function supplier(): ?Supplier

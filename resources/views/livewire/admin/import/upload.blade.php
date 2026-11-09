@@ -103,11 +103,11 @@
 
                         <div class="col-md-2">
                             <button type="button" class="btn btn-primary w-100"
-                                    wire:click="load"
+                                    wire:click="confirmLoad"
                                     wire:loading.attr="disabled"
                                     @disabled(! $file)>
-                                <span wire:loading.remove wire:target="load">{{ __('admin.import_load') }}</span>
-                                <span wire:loading wire:target="load">{{ __('admin.import_loading') }}</span>
+                                <span wire:loading.remove wire:target="confirmLoad, load">{{ __('admin.import_load') }}</span>
+                                <span wire:loading wire:target="confirmLoad, load">{{ __('admin.import_loading') }}</span>
                             </button>
                         </div>
                     </div>
@@ -158,6 +158,69 @@
                         @else
                             <p class="text-warning mb-0">{{ __('admin.import_nothing_read') }}</p>
                         @endif
+                    </div>
+                </div>
+            @endif
+
+            @if ($confirming)
+                <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+                     aria-labelledby="loadConfirmTitle" style="background:rgba(34,41,47,.5)">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="loadConfirmTitle">{{ __('admin.import_confirm_title') }}</h5>
+                                <button type="button" class="btn-close" wire:click="cancelLoad"
+                                        aria-label="{{ __('admin.cancel') }}"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <p class="text-muted mb-50">{{ __('admin.import_confirm_into') }}</p>
+                                <div class="border border-primary rounded p-1 mb-1 text-center">
+                                    <h2 class="fw-bolder text-primary mb-0">{{ $supplier->name }}</h2>
+                                    <small class="text-muted">{{ $supplier->code }}</small>
+                                </div>
+
+                                @if ($otherSupplier)
+                                    <div class="alert alert-warning p-1 mb-1" role="alert">
+                                        {{ __('admin.import_confirm_other', ['name' => $otherSupplier]) }}
+                                    </div>
+                                @endif
+
+                                <dl class="row mb-0 small">
+                                    <dt class="col-4">{{ __('admin.import_file') }}</dt>
+                                    <dd class="col-8 text-break">{{ $file?->getClientOriginalName() }}</dd>
+
+                                    <dt class="col-4">{{ __('admin.import_confirm_mode') }}</dt>
+                                    <dd class="col-8">
+                                        {{ $mode === 'merge' ? __('admin.import_mode_merge') : __('admin.import_mode_replace') }}
+                                        <small class="d-block text-muted">
+                                            {{ $mode === 'merge' ? __('admin.import_mode_merge_hint') : __('admin.import_mode_replace_hint') }}
+                                        </small>
+                                    </dd>
+
+                                    <dt class="col-4">{{ __('admin.import_sheet') }}</dt>
+                                    <dd class="col-8">{{ $sheet }} · {{ __('admin.import_skip_rows') }}: {{ $skipRows }}</dd>
+
+                                    <dt class="col-4">{{ __('admin.import_confirm_now') }}</dt>
+                                    <dd class="col-8 mb-0">
+                                        {{ __('admin.import_confirm_held', [
+                                            'rows' => number_format($loaded),
+                                            'when' => $lastLoad ? \Illuminate\Support\Carbon::parse($lastLoad)->diffForHumans() : '—',
+                                        ]) }}
+                                    </dd>
+                                </dl>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" wire:click="cancelLoad">
+                                    {{ __('admin.cancel') }}
+                                </button>
+                                <button type="button" class="btn btn-primary" wire:click="load"
+                                        wire:loading.attr="disabled" wire:target="load">
+                                    {{ __('admin.import_confirm_yes', ['name' => $supplier->name]) }}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endif

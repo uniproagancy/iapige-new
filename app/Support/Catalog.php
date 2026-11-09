@@ -1463,7 +1463,9 @@ class Catalog
     {
         return Promotion::live()
             ->withTranslation()
-            ->withCount('products')
+            /* Counted as the page shows them: a campaign whose every item has
+               sold out has nothing to offer and is left off the list. */
+            ->withCount(['products' => fn ($q) => $q->listable()])
             ->orderBy('sort_order')
             ->get()
             ->map(fn (Promotion $p) => [
@@ -1494,8 +1496,10 @@ class Catalog
 
     public static function campaignPage(Promotion $promotion): array
     {
+        /* What can be bought, as on every other shelf: a promotion page full
+           of sold-out items offered a discount on nothing. */
         $products = $promotion->products()
-            ->active()
+            ->listable()
             ->withTranslation()
             ->with(self::CARD_RELATIONS)
             ->orderBy('promotion_product.sort_order')
