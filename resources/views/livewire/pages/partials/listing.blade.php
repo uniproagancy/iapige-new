@@ -63,7 +63,7 @@
 
     <div class="listing">
 
-        @if ($listing['subs'] && ! $sub)
+        @if (($subcards ?? true) && $listing['subs'] && ! $sub)
             <div class="subcards">
                 @foreach ($listing['subs'] as $item)
                     @if ($subsInPlace ?? false)

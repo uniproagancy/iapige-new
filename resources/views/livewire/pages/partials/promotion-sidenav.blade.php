@@ -20,6 +20,18 @@
                 <span class="catnav__name">{{ $department['name'] }}</span>
                 <span class="catnav__count">{{ $department['total'] }}</span>
             </button>
+
+            {{-- the chosen department's own shelves, in place of cards over the products --}}
+            @if ($categoryId === $department['id'])
+                @foreach ($listing['subs'] as $item)
+                    <button type="button" @class(['catnav', 'catnav--sub', 'is-on' => $sub === $item['id']])
+                            wire:click="chooseSub({{ $item['id'] }})"
+                            wire:key="nav-s-{{ $item['id'] }}">
+                        <span class="catnav__name">{{ $item['name'] }}</span>
+                        <span class="catnav__count">{{ $item['total'] }}</span>
+                    </button>
+                @endforeach
+            @endif
         @endforeach
     </div>
 </nav>

@@ -56,6 +56,7 @@
             @include('livewire.pages.partials.listing', [
                 'sidenav' => 'livewire.pages.partials.promotion-sidenav',
                 'subsInPlace' => true,
+                'subcards' => false,
             ])
         @endif
     </main>
