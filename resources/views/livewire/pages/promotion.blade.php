@@ -1,5 +1,18 @@
 <div>
-    <x-page-bar :back="route('promotions')" :title="$campaign['title']" heart />
+    <x-page-bar :back="route('promotions')" :title="$campaign['title']"
+                :count="new \Illuminate\Support\HtmlString($total.' / '.$onOffer.' '.__('common.products'))" heart>
+        @if (count($departments) > 1)
+            <div class="chips-row">
+                <button type="button" @class(['chip-sub', 'is-on' => ! $categoryId])
+                        wire:click="chooseCategory(null)">{{ __('promo.every_department') }}</button>
+                @foreach ($departments as $department)
+                    <button type="button" @class(['chip-sub', 'is-on' => $categoryId === $department['id']])
+                            wire:click="chooseCategory({{ $department['id'] }})"
+                            wire:key="chip-d-{{ $department['id'] }}">{{ $department['name'] }}</button>
+                @endforeach
+            </div>
+        @endif
+    </x-page-bar>
 
     <main class="page">
         <nav class="crumbs" aria-label="{{ __('catalog.breadcrumbs') }}">
@@ -7,7 +20,13 @@
             <x-icon name="caret-right" size="12" />
             <a href="{{ route('promotions') }}">{{ __('promo.all') }}</a>
             <x-icon name="caret-right" size="12" />
-            <b>{{ $campaign['title'] }}</b>
+            @if ($categoryId)
+                <a href="{{ route('promotion', $campaign['slug']) }}" wire:click.prevent="chooseCategory(null)">{{ $campaign['title'] }}</a>
+                <x-icon name="caret-right" size="12" />
+                <b>{{ $listing['title'] }}</b>
+            @else
+                <b>{{ $campaign['title'] }}</b>
+            @endif
         </nav>
 
         <div class="page__head">
@@ -22,24 +41,38 @@
         </div>
 
         @if ($campaign['ends_at'])
-
             <p class="promo-page__until">
                 {{ __('promo.until', ['date' => \Illuminate\Support\Carbon::parse($campaign['ends_at'])->translatedFormat('j F')]) }}
             </p>
         @endif
 
-        <div class="cat-grid">
-            @foreach ($campaign['products'] as $p)
-                <x-product-card :product="$p" wire:key="promo-{{ $p['id'] }}" />
-            @endforeach
-        </div>
-
-        @if (! count($campaign['products']))
+        @if (! $onOffer)
             <div class="empty">
                 <b>{{ __('promo.empty') }}</b>
                 <span>{{ __('promo.empty_text') }}</span>
                 <a class="load-more" href="{{ route('catalog') }}">{{ __('promo.to_catalog') }}</a>
             </div>
+        @else
+            {{-- the way in: one card per department, until one is chosen --}}
+            @if (! $categoryId && count($departments) > 1)
+                <div class="subcards promo-departments">
+                    @foreach ($departments as $department)
+                        <button type="button" class="subcard" wire:click="chooseCategory({{ $department['id'] }})"
+                                wire:key="dept-{{ $department['id'] }}">
+                            <span class="subcard__media">
+                                <x-category-media :category="$department" />
+                            </span>
+                            <span class="subcard__name">{{ $department['name'] }}</span>
+                            <span class="subcard__count">{{ $department['total'] }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            @endif
+
+            @include('livewire.pages.partials.listing', [
+                'sidenav' => 'livewire.pages.partials.promotion-sidenav',
+                'subsInPlace' => true,
+            ])
         @endif
     </main>
 </div>

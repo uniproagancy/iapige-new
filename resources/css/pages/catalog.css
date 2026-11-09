@@ -65,6 +65,12 @@
 .catnav__name{flex:1}
 .catnav__chev{color:var(--muted-4);flex:none}
 .catnav.is-on .catnav__chev{color:var(--red-bright)}
+.catnav__count{font-family:var(--mono);font-size:11px;color:var(--muted-4);flex:none}
+.catnav.is-on .catnav__count{color:var(--red-bright)}
+/* A promotion chooses its departments in place, so its cards are buttons;
+   they should not look like any other button on the page. */
+button.subcard{font:inherit;color:inherit;cursor:pointer;width:100%}
+.promo-departments{margin-top:4px}
 .catlist__all{
   height:44px;border-radius:14px;background:var(--soft);
   display:flex;align-items:center;justify-content:center;

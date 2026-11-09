@@ -7,6 +7,8 @@ return [
     'until' => 'Valid until :date',
     'meta' => 'Promotional prices — :name',
 
+    'every_department' => 'All departments',
+
     'empty' => 'Nothing in this promotion yet',
     'empty_text' => 'Products are on their way — have a look at the catalogue meanwhile.',
 
