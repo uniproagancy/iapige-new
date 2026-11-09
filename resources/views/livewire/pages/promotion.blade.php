@@ -53,22 +53,6 @@
                 <a class="load-more" href="{{ route('catalog') }}">{{ __('promo.to_catalog') }}</a>
             </div>
         @else
-            {{-- the way in: one card per department, until one is chosen --}}
-            @if (! $categoryId && count($departments) > 1)
-                <div class="subcards promo-departments">
-                    @foreach ($departments as $department)
-                        <button type="button" class="subcard" wire:click="chooseCategory({{ $department['id'] }})"
-                                wire:key="dept-{{ $department['id'] }}">
-                            <span class="subcard__media">
-                                <x-category-media :category="$department" />
-                            </span>
-                            <span class="subcard__name">{{ $department['name'] }}</span>
-                            <span class="subcard__count">{{ $department['total'] }}</span>
-                        </button>
-                    @endforeach
-                </div>
-            @endif
-
             @include('livewire.pages.partials.listing', [
                 'sidenav' => 'livewire.pages.partials.promotion-sidenav',
                 'subsInPlace' => true,
