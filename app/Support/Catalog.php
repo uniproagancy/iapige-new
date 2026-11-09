@@ -1494,28 +1494,6 @@ class Catalog
             ->firstOrFail();
     }
 
-    public static function campaignPage(Promotion $promotion): array
-    {
-        /* What can be bought, as on every other shelf: a promotion page full
-           of sold-out items offered a discount on nothing. */
-        $products = $promotion->products()
-            ->listable()
-            ->withTranslation()
-            ->with(self::CARD_RELATIONS)
-            ->orderBy('promotion_product.sort_order')
-            ->orderByDesc('products.id')
-            ->get();
-
-        return [
-            'slug' => $promotion->urlKey(),
-            'title' => $promotion->title ?: $promotion->code,
-            'subtitle' => $promotion->subtitle,
-            'badge' => $promotion->badge,
-            'ends_at' => $promotion->ends_at?->toIso8601String(),
-            'products' => self::cards($products),
-        ];
-    }
-
     public static function product(string $slug): Product
     {
         return Product::active()->withTranslation()->whereTranslation('slug', $slug, false)

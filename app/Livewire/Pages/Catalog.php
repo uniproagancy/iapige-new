@@ -402,9 +402,15 @@ class Catalog extends Component
         ];
     }
 
+    /* What the shelf offers to filter by. A promotion asks for less. */
+    protected function shelf(): array
+    {
+        return CatalogData::listing($this->categoryId ? $this->category() : null, $this->picked);
+    }
+
     protected function listingData(): array
     {
-        $listing = CatalogData::listing($this->categoryId ? $this->category() : null, $this->picked);
+        $listing = $this->shelf();
 
         if ($term = trim($this->q)) {
             $listing['title'] = __('catalog.search_title', ['term' => $term]);
