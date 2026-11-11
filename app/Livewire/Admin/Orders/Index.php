@@ -8,6 +8,7 @@ use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentCheck;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -232,6 +233,7 @@ class Index extends Component
 
     public function advance(int $id): void
     {
+        Gate::authorize('admin');
         $order = Order::findOrFail($id);
         $position = array_search($order->status, self::FLOW, true);
 
@@ -244,40 +246,72 @@ class Index extends Component
 
     public function bulkAdvance(): void
     {
-        foreach (Order::whereKey($this->selected)->get() as $order) {
-            $position = array_search($order->status, self::FLOW, true);
-
-            if ($position !== false && $position < count(self::FLOW) - 1) {
-                $this->setStatus($order, self::FLOW[$position + 1], silent: true);
+        Gate::authorize('admin');
+        $count = DB::transaction(function () {
+            $orders = Order::whereKey($this->selected)->lockForUpdate()->get();
+            foreach ($orders as $order) {
+                $position = array_search($order->status, self::FLOW, true);
+                if ($position !== false && $position < count(self::FLOW) - 1) {
+                    $this->assertTransferCompletion($order, self::FLOW[$position + 1]);
+                }
             }
-        }
+            $changed = 0;
+            foreach ($orders as $order) {
+                $position = array_search($order->status, self::FLOW, true);
+                if ($position !== false && $position < count(self::FLOW) - 1) {
+                    $changed += (int) $this->setStatus($order, self::FLOW[$position + 1], silent: true);
+                }
+            }
 
-        $count = count($this->selected);
+            return $changed;
+        });
         $this->selected = [];
 
         $this->dispatch('toast', message: __('admin.orders_advanced', ['count' => $count]));
     }
 
-    protected function setStatus(Order $order, string $status, bool $silent = false): void
+    protected function assertTransferCompletion(Order $order, string $status): void
     {
-        $from = $order->status;
+        if ($status !== Order::COMPLETED || $order->payment !== 'transfer') {
+            return;
+        }
+        if (trim((string) $order->payment_bank) === '') {
+            throw ValidationException::withMessages(['paymentBank' => __('delivery.transfer_bank_required_order', ['number' => $order->number])]);
+        }
+        if (! $order->is_paid) {
+            throw ValidationException::withMessages(['transferPayment' => __('delivery.transfer_payment_required_order', ['number' => $order->number])]);
+        }
+    }
 
-        DB::transaction(function () use ($order, $status, $from) {
-            $order->update(['status' => $status]);
+    protected function setStatus(Order $order, string $status, bool $silent = false): bool
+    {
+        Gate::authorize('admin');
+        $changed = DB::transaction(function () use ($order, $status) {
+            $current = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if ($current->status === $status) {
+                return false;
+            }
+            $this->assertTransferCompletion($current, $status);
+            $from = $current->status;
+            $current->update(['status' => $status]);
 
-            $order->events()->create([
+            $current->events()->create([
                 'user_id' => auth()->id(),
                 'type' => 'status',
                 'from' => $from,
                 'to' => $status,
             ]);
+
+            return true;
         });
 
-        if (! $silent) {
+        if ($changed && ! $silent) {
             $this->dispatch('toast', message: __('admin.order_status_changed', [
                 'number' => $order->number,
                 'status' => $this->statuses()[$status] ?? $status,
             ]));
         }
+
+        return $changed;
     }
 }

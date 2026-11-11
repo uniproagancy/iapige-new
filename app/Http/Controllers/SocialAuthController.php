@@ -47,6 +47,10 @@ class SocialAuthController extends Controller
 
         Auth::login($this->user($provider, $account), remember: true);
 
+        if (Auth::user()->isCourier()) {
+            return redirect()->route('courier.deliveries');
+        }
+
         return redirect()->intended(route('account'));
     }
 

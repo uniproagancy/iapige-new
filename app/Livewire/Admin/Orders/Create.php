@@ -49,6 +49,8 @@ class Create extends Component
 
     public string $payment = '';
 
+    public string $paymentBank = '';
+
     #[Url(as: 'product', except: null)]
     public ?int $productId = null;
 
@@ -130,7 +132,10 @@ class Create extends Component
                 'address' => ['required', 'string', 'min:5', 'max:160'],
             ] : []),
 
-            'payment' => ['payment' => ['required', 'string', 'exists:payment_methods,code']],
+            'payment' => [
+                'payment' => ['required', 'string', 'exists:payment_methods,code'],
+                'paymentBank' => ['nullable', 'string', 'max:120'],
+            ],
             default => [],
         };
     }
@@ -375,6 +380,7 @@ class Create extends Component
             'address' => $this->delivery === 'courier' ? $this->address : null,
             'comment' => $this->comment ?: null,
             'payment' => $this->payment,
+            'payment_bank' => $this->payment === 'transfer' ? (trim($this->paymentBank) ?: null) : null,
 
             'payment_status' => 'pending',
             'is_paid' => false,

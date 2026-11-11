@@ -76,6 +76,7 @@ class Index extends Component
                 'total' => User::count(),
                 'admins' => User::withRole(User::ADMIN)->count(),
                 'operators' => User::withRole(User::OPERATOR)->count(),
+                'couriers' => User::withRole(User::COURIER)->count(),
                 'customers' => User::withRole(User::CUSTOMER)->count(),
                 'subscribed' => User::where('accepts_marketing', true)->count(),
             ],
@@ -108,6 +109,7 @@ class Index extends Component
             })
             ->when($this->filter === 'admins', fn ($q) => $q->withRole(User::ADMIN))
             ->when($this->filter === 'operators', fn ($q) => $q->withRole(User::OPERATOR))
+            ->when($this->filter === 'couriers', fn ($q) => $q->withRole(User::COURIER))
             ->when($this->filter === 'customers', fn ($q) => $q->withRole(User::CUSTOMER))
             ->when($this->filter === 'subscribed', fn ($q) => $q->where('users.accepts_marketing', true))
             ->when($this->hasOrders === 'yes', fn ($q) => $q->whereNotNull('stats.user_id'))

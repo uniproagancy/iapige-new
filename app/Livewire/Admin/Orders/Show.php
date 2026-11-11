@@ -6,14 +6,18 @@ use App\Jobs\SendSmsJob;
 use App\Livewire\Admin\Orders\Concerns\EditsOrder;
 use App\Models\DeliveryCity;
 use App\Models\Order;
+use App\Models\OrderDelivery;
 use App\Models\PaymentMethod;
 use App\Models\PaymentTransaction;
+use App\Services\Delivery\OrderDeliveryManager;
 use App\Services\Facebook\Pixel;
 use App\Services\Payments\PaymentCheck;
 use App\Services\Payments\PaymentManager;
 use App\Support\Phone;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class Show extends Component
@@ -21,6 +25,8 @@ class Show extends Component
     use EditsOrder;
 
     public const COMPLETED = 'completed';
+
+    public const LINK_DAYS = 3;
 
     public Order $order;
 
@@ -61,12 +67,18 @@ class Show extends Component
     public function render()
     {
         $total = $this->total();
+        $deliveryManager = app(OrderDeliveryManager::class);
+        $deliveryInstalled = $deliveryManager->isInstalled();
 
         return view('livewire.admin.orders.show', [
             'statuses' => (new Index)->statuses(),
             'events' => $this->order->events()->with('user')->latest()->get(),
             'payLink' => $this->payLink(),
             'transaction' => $this->order->transactions()->latest('id')->first(),
+            'fulfillment' => $deliveryInstalled
+                ? OrderDelivery::where('order_id', $this->order->id)->first()
+                : null,
+            'canSendToDelivery' => $deliveryInstalled && $deliveryManager->eligible($this->order),
             'locked' => $this->lockedBy(),
             'lines' => $this->lines(),
             'subtotal' => $this->subtotal(),
@@ -83,26 +95,62 @@ class Show extends Component
         ]);
     }
 
-    public function changeStatus(): void
+    public function sendToDelivery(): void
     {
-        if ($this->status === $this->order->status) {
+        Gate::authorize('admin');
+
+        $manager = app(OrderDeliveryManager::class);
+        $order = $this->order->fresh('items');
+
+        if (! $order || ! $manager->isInstalled() || ! $manager->eligible($order)) {
+            $this->dispatch('toast', type: 'error', message: __('delivery.order_ineligible'));
+
             return;
         }
 
-        $from = $this->order->status;
+        $manager->sync($order);
+        $this->redirect(route('admin.deliveries', ['q' => $order->number]), navigate: false);
+    }
 
-        DB::transaction(function () use ($from) {
-            $this->order->update(['status' => $this->status]);
-
-            $this->order->events()->create([
+    public function changeStatus(): void
+    {
+        Gate::authorize('admin');
+        $this->validate(['status' => ['required', 'in:'.implode(',', Order::STATUSES)], 'note' => ['nullable', 'string', 'max:2000']]);
+        $changed = DB::transaction(function () {
+            $order = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
+            if ($this->status === $order->status) {
+                return false;
+            }
+            $from = $order->status;
+            $beforeBank = $order->payment_bank;
+            if ($this->status === self::COMPLETED && $order->payment === 'transfer') {
+                $this->paymentBank = trim($this->paymentBank);
+                $this->validate(['paymentBank' => ['required', 'string', 'max:120']], [
+                    'paymentBank.required' => __('delivery.transfer_bank_required'),
+                ]);
+                if (! $order->is_paid) {
+                    throw ValidationException::withMessages(['transferPayment' => __('delivery.transfer_payment_required')]);
+                }
+                $order->payment_bank = $this->paymentBank;
+            }
+            $order->status = $this->status;
+            $order->save();
+            $this->auditPaymentBankChange($order, $beforeBank);
+            $order->events()->create([
                 'user_id' => auth()->id(),
                 'type' => 'status',
                 'from' => $from,
                 'to' => $this->status,
                 'note' => $this->note ?: null,
             ]);
+            $this->order = $order;
 
+            return true;
         });
+
+        if (! $changed) {
+            return;
+        }
 
         if ($this->status === self::COMPLETED) {
             $this->reportSale();
@@ -194,11 +242,7 @@ class Show extends Component
             return null;
         }
 
-        /* No end date: a customer paying a week later, from the text message
-           still on their phone, was turned away. The signature still keeps
-           anyone from making one up, and the page itself refuses an order
-           that is paid or cancelled by then. */
-        return URL::signedRoute('order.pay', [
+        return URL::temporarySignedRoute('order.pay', now()->addDays(self::LINK_DAYS), [
             'number' => $this->order->number,
         ]);
     }
@@ -260,17 +304,35 @@ class Show extends Component
 
     public function markPaid(): void
     {
-        if ($this->order->is_paid) {
+        Gate::authorize('admin');
+        $changed = DB::transaction(function () {
+            $order = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
+            abort_if($order->payment === 'cash', 403);
+            if ($order->is_paid) {
+                return false;
+            }
+            $beforeBank = $order->payment_bank;
+            if ($order->payment === 'transfer') {
+                $this->paymentBank = trim($this->paymentBank);
+                $this->validate(['paymentBank' => ['required', 'string', 'max:120']], [
+                    'paymentBank.required' => __('delivery.transfer_bank_required'),
+                ]);
+                $order->payment_bank = $this->paymentBank;
+            }
+            $order->forceFill(['is_paid' => true, 'paid_at' => now()])->save();
+            $this->auditPaymentBankChange($order, $beforeBank);
+            $order->events()->create([
+                'user_id' => auth()->id(),
+                'type' => 'payment',
+                'note' => __('admin.marked_paid'),
+            ]);
+            $this->order = $order;
+
+            return true;
+        });
+        if (! $changed) {
             return;
         }
-
-        $this->order->update(['is_paid' => true, 'paid_at' => now()]);
-
-        $this->order->events()->create([
-            'user_id' => auth()->id(),
-            'type' => 'payment',
-            'note' => __('admin.marked_paid'),
-        ]);
 
         $this->reportSale();
 

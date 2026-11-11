@@ -40,6 +40,8 @@ class User extends Authenticatable
 
     public const OPERATOR = 'operator';
 
+    public const COURIER = 'courier';
+
     public const CUSTOMER = 'customer';
 
     /* Read through getAttributeValue, not $this->role: the method shares its
@@ -60,6 +62,11 @@ class User extends Authenticatable
         return $this->role() === self::OPERATOR;
     }
 
+    public function isCourier(): bool
+    {
+        return $this->role() === self::COURIER;
+    }
+
     /* Both roles reach the admin; what they may do there differs. */
     public function isStaff(): bool
     {
@@ -70,8 +77,8 @@ class User extends Authenticatable
        is whatever its is_admin flag says, so the list and the gate agree. */
     public function scopeWithRole($query, string $role)
     {
-        if ($role === self::OPERATOR) {
-            return $query->where('role', self::OPERATOR);
+        if (! in_array($role, [self::ADMIN, self::CUSTOMER], true)) {
+            return $query->where('role', $role);
         }
 
         return $query->where(fn ($q) => $q
@@ -83,7 +90,7 @@ class User extends Authenticatable
 
     public static function roles(): array
     {
-        return [self::ADMIN, self::OPERATOR, self::CUSTOMER];
+        return [self::ADMIN, self::OPERATOR, self::COURIER, self::CUSTOMER];
     }
 
     public static function normalisePhone(string $phone): string

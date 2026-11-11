@@ -84,7 +84,7 @@ class Show extends Component
 
     public function anonymise(): void
     {
-        if ($this->user->isStaff()) {
+        if ($this->user->isStaff() || $this->user->isCourier()) {
             $this->dispatch('toast', message: __('admin.cannot_delete_admin'), type: 'error');
 
             return;

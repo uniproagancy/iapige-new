@@ -39,6 +39,8 @@
 @endphp
 
 <div>
+    @error('paymentBank') <div class="alert alert-danger p-1" role="alert">{{ $message }}</div> @enderror
+    @error('transferPayment') <div class="alert alert-danger p-1" role="alert">{{ $message }}</div> @enderror
     <div class="d-flex flex-wrap gap-1 mb-2">
         {{-- the day's list: everything not yet finished --}}
         <button type="button"

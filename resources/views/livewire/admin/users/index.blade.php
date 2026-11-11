@@ -24,17 +24,20 @@
         '' => ['label' => __('admin.all'), 'count' => $counts['total'], 'tone' => 'secondary'],
         'customers' => ['label' => __('admin.customers'), 'count' => $counts['customers'], 'tone' => 'primary'],
         'operators' => ['label' => __('admin.operators'), 'count' => $counts['operators'], 'tone' => 'warning'],
+        'couriers' => ['label' => __('admin.couriers'), 'count' => $counts['couriers'], 'tone' => 'success'],
         'admins' => ['label' => __('admin.admins'), 'count' => $counts['admins'], 'tone' => 'info'],
         'subscribed' => ['label' => __('admin.subscribed'), 'count' => $counts['subscribed'], 'tone' => 'success'],
     ];
     $roleTone = [
         'admin'    => 'info',
         'operator' => 'warning',
+        'courier'  => 'success',
     ];
 
     $roleLabel = [
         'admin'    => __('admin.admin'),
         'operator' => __('admin.operator'),
+        'courier'  => __('admin.courier'),
         'customer' => __('admin.customer_role'),
     ];
 @endphp

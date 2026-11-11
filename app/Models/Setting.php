@@ -19,6 +19,7 @@ class Setting extends Model
         'shop.instalment_months' => 'int',
         'shop.invoice_valid_days' => 'int',
         'shop.min_order' => 'float',
+        'delivery.weekdays' => 'string',
 
         'shop.company.name' => 'string',
         'shop.company.tax_id' => 'string',

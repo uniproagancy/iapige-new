@@ -128,7 +128,19 @@
                     </a>
                 </li>
 
+                <li class="nav-item {{ $on('admin.deliveries') }}">
+                    <a class="nav-link d-flex align-items-center" href="{{ route('admin.deliveries') }}">
+                        {!! $icon('truck') !!}<span>{{ __('delivery.title') }}</span>
+                    </a>
+                </li>
+
                 @can('owner')
+
+                <li class="nav-item {{ $on('admin.operator-sales') }}">
+                    <a class="nav-link d-flex align-items-center" href="{{ route('admin.operator-sales') }}">
+                        {!! $icon('users') !!}<span>{{ __('operator_sales.title') }}</span>
+                    </a>
+                </li>
 
                 <li class="dropdown nav-item {{ $on('admin.mapping', 'admin.attributes', 'admin.import.*') }}"
                     data-menu="dropdown">

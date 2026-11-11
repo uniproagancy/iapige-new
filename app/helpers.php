@@ -2,9 +2,9 @@
 
 if (! function_exists('money')) {
 
-    function money(int|float $amount): string
+    function money(int|float $amount, int $precision = 0): string
     {
-        return number_format((float) $amount, 0, '.', ' ').' ₾';
+        return number_format((float) $amount, $precision, '.', ' ').' ₾';
     }
 }
 

@@ -57,10 +57,18 @@
                 {{ $method?->name ?: ($order->payment ?: '—') }}
             </span>
 
-            @if ($order->is_paid)
+            @if ($order->payment === 'cash')
+                <span class="badge rounded-pill badge-light-{{ $fulfillment?->hasCashReceipt() ? 'success' : 'warning' }}">{{ $fulfillment?->hasCashReceipt() ? __('delivery.cash_received') : __('delivery.cash_pending') }}</span>
+            @elseif ($order->is_paid)
                 <span class="badge rounded-pill badge-light-success">{{ __('admin.paid') }}</span>
             @else
                 <span class="badge rounded-pill badge-light-danger">{{ __('admin.unpaid') }}</span>
+            @endif
+
+            @if ($order->completedBy)
+                <span class="badge rounded-pill badge-light-info">
+                    {{ __('delivery.operator') }}: {{ $order->completedBy->user?->name ?? __('delivery.unassigned') }}
+                </span>
             @endif
         </div>
 
@@ -68,6 +76,16 @@
             <small class="text-muted d-flex align-items-center gap-25">
                 {!! $icon('clock') !!}{{ $order->created_at->format('d.m.Y H:i') }}
             </small>
+
+            @if ($fulfillment)
+                <a class="btn btn-sm btn-outline-success" href="{{ route('admin.deliveries', ['q' => $order->number]) }}" wire:navigate>
+                    {{ __('delivery.open_delivery') }}
+                </a>
+            @elseif ($canSendToDelivery)
+                <button type="button" class="btn btn-sm btn-outline-success" wire:click="sendToDelivery" wire:loading.attr="disabled">
+                    {{ __('delivery.send_to_delivery') }}
+                </button>
+            @endif
 
             <a class="btn btn-sm btn-outline-secondary"
                href="{{ route('admin.orders.invoice.preview', $order) }}" target="_blank" rel="noopener">
@@ -334,6 +352,8 @@
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
+                    @error('paymentBank') <div class="alert alert-danger p-1">{{ $message }}</div> @enderror
+                    @error('transferPayment') <div class="alert alert-danger p-1">{{ $message }}</div> @enderror
 
                     <button type="button" class="btn btn-primary w-100"
                             wire:click="changeStatus" @disabled($status === $order->status)>
@@ -359,11 +379,15 @@
                             </small>
                         @endif
 
+                        @if($order->payment !== 'cash')
                         <button type="button" class="btn btn-outline-success w-100 mt-1"
                                 wire:click="markPaid"
                                 wire:confirm="{{ __('admin.mark_paid_confirm') }}">
                             {!! $icon('money', 'me-25') !!}{{ __('admin.mark_paid') }}
                         </button>
+                        @else
+                            <small class="d-block text-muted mt-1">{{ __('delivery.cash_operator_help') }}</small>
+                        @endif
                     @endunless
                 </div>
             </div>
@@ -388,6 +412,12 @@
                         @endforeach
                     </select>
                     @error('payment') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    @if($payment === 'transfer')
+                        <label class="form-label mt-1" for="orderPaymentBank">{{ __('delivery.payment_bank') }}</label>
+                        <input id="orderPaymentBank" class="form-control @error('paymentBank') is-invalid @enderror" wire:model="paymentBank" maxlength="120">
+                        @error('paymentBank') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <small class="d-block text-muted mt-50">{{ __('delivery.transfer_bank_completion_help') }}</small>
+                    @endif
 
                     {{-- A payment already sitting at the bank holds the order: a
                          second one is never started while the first has not been
@@ -405,7 +435,7 @@
                         <hr class="my-1">
 
                         <p class="text-muted small">
-                            {{ __('admin.pay_link_note') }}
+                            {{ __('admin.pay_link_note', ['days' => \App\Livewire\Admin\Orders\Show::LINK_DAYS]) }}
                         </p>
 
                         <div class="input-group mb-1">

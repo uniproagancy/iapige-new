@@ -12,6 +12,7 @@ use App\Services\Orders\OrderLines;
 use App\Support\Catalog;
 use App\Support\Figure;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 /*
  | An order is read and corrected in the same place, so the page that shows it
@@ -36,6 +37,8 @@ trait EditsOrder
 
     public string $payment = '';
 
+    public string $paymentBank = '';
+
     public ?string $shippingOverride = null;
 
     public array $qty = [];
@@ -59,6 +62,7 @@ trait EditsOrder
         $this->address = (string) $order->address;
         $this->comment = (string) $order->comment;
         $this->payment = (string) $order->payment;
+        $this->paymentBank = (string) $order->payment_bank;
 
         $this->qty = [];
         $this->agreed = [];
@@ -84,6 +88,7 @@ trait EditsOrder
      */
     public function updatedPayment(string $value): void
     {
+        Gate::authorize('admin');
         if ($value === '' || $value === (string) $this->order->payment) {
             return;
         }
@@ -104,7 +109,24 @@ trait EditsOrder
 
         $was = (string) $this->order->payment;
 
-        $this->order->update(['payment' => $value]);
+        DB::transaction(function () use ($value) {
+            $order = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
+            $this->paymentBank = trim($this->paymentBank);
+            $this->validate(['paymentBank' => [
+                $value === 'transfer' && $order->status === Order::COMPLETED ? 'required' : 'nullable',
+                'string', 'max:120',
+            ]], ['paymentBank.required' => __('delivery.transfer_bank_required')]);
+            $before = $order->payment_bank;
+            $order->update([
+                'payment' => $value,
+                'payment_bank' => $value === 'transfer' ? ($this->paymentBank ?: null) : null,
+            ]);
+            $this->auditPaymentBankChange($order, $before);
+            $this->order = $order;
+        });
+        if ($value !== 'transfer') {
+            $this->paymentBank = '';
+        }
 
         $this->order->events()->create([
             'user_id' => auth()->id(),
@@ -127,6 +149,19 @@ trait EditsOrder
         $method = PaymentMethod::withTranslation()->where('code', $code)->first();
 
         return (string) ($method?->name ?: $code);
+    }
+
+    protected function auditPaymentBankChange(Order $order, ?string $before): void
+    {
+        if ($before === $order->payment_bank) {
+            return;
+        }
+        $order->events()->create([
+            'user_id' => auth()->id(), 'type' => 'payment_bank',
+            'note' => __('delivery.events.bank_updated', [
+                'from' => $before ?: '—', 'to' => $order->payment_bank ?: '—',
+            ]),
+        ]);
     }
 
     public function editable(): bool
@@ -303,6 +338,7 @@ trait EditsOrder
 
     public function save(): void
     {
+        Gate::authorize('admin');
         if (! $this->editable()) {
             $this->dispatch('toast', type: 'error', message: __('admin.order_closed_for_edit'));
 
@@ -320,6 +356,7 @@ trait EditsOrder
             'address' => ['nullable', 'string', 'max:255'],
             'comment' => ['nullable', 'string', 'max:1000'],
             'payment' => ['required', 'string', 'exists:payment_methods,code'],
+            'paymentBank' => ['nullable', 'string', 'max:120'],
             'shippingOverride' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -333,6 +370,15 @@ trait EditsOrder
 
         DB::transaction(function () {
             $order = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
+
+            $this->paymentBank = trim($this->paymentBank);
+            if ($this->payment === 'transfer' && $order->status === Order::COMPLETED
+                && ($order->payment !== 'transfer' || filled($order->payment_bank))) {
+                $this->validate(['paymentBank' => ['required', 'string', 'max:120']], [
+                    'paymentBank.required' => __('delivery.transfer_bank_required'),
+                ]);
+            }
+            $beforeBank = $order->payment_bank;
 
             $this->moveSales($order);
 
@@ -368,10 +414,12 @@ trait EditsOrder
                 'address' => $this->delivery === 'courier' ? $this->address : null,
                 'comment' => $this->comment ?: null,
                 'payment' => $this->payment,
+                'payment_bank' => $this->payment === 'transfer' ? ($this->paymentBank ?: null) : null,
                 'subtotal' => $subtotal,
                 'shipping' => $shipping,
                 'total' => $subtotal + $shipping,
             ]);
+            $this->auditPaymentBankChange($order, $beforeBank);
 
             $this->order = $order;
         });

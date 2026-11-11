@@ -5,9 +5,11 @@ namespace App\Providers;
 use App\Jobs\ImportProductJob;
 use App\Models\Language;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Setting;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Observers\OrderFulfillmentObserver;
 use App\Services\Cart;
 use App\Services\Facebook\Pixel;
 use App\Services\Import\ImportManager;
@@ -39,6 +41,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Setting::apply();
+
+        Order::observe(OrderFulfillmentObserver::class);
+        OrderItem::observe(OrderFulfillmentObserver::class);
 
         $this->defineGates();
         $this->useBootstrapPagination();
@@ -81,6 +86,8 @@ class AppServiceProvider extends ServiceProvider
 
         /* 'owner' guards what only the shop owner should touch. */
         Gate::define('owner', fn (User $user) => $user->isAdmin());
+
+        Gate::define('courier-portal', fn (User $user) => $user->isStaff() || $user->isCourier());
 
         Gate::define('view-order', function (?User $user, Order $order) {
             if ($user && ((int) $order->user_id === (int) $user->id || $user->isStaff())) {

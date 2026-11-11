@@ -150,7 +150,9 @@ class AuthModal extends Component
     {
         $this->reset(['login', 'password', 'name', 'email', 'phone', 'terms']);
 
-        $this->redirect(url()->previous() ?: route('home'), navigate: false);
+        $this->redirect(Auth::user()?->isCourier()
+            ? route('courier.deliveries')
+            : (url()->previous() ?: route('home')), navigate: false);
 
         session()->flash('toast', $message);
     }

@@ -39,11 +39,13 @@
     $roleTone = [
         'admin'    => 'info',
         'operator' => 'warning',
+        'courier'  => 'success',
     ];
 
     $roleLabel = [
         'admin'    => __('admin.admin'),
         'operator' => __('admin.operator'),
+        'courier'  => __('admin.courier'),
         'customer' => __('admin.customer_role'),
     ];
 @endphp

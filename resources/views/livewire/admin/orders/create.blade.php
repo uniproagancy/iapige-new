@@ -287,6 +287,12 @@
                             @endforeach
                         </div>
 
+                        @if($payment === 'transfer')
+                            <label class="form-label" for="createPaymentBank">{{ __('delivery.payment_bank') }}</label>
+                            <input id="createPaymentBank" class="form-control @error('paymentBank') is-invalid @enderror" wire:model="paymentBank" maxlength="120">
+                            @error('paymentBank') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <small class="d-block text-muted mt-50 mb-1">{{ __('delivery.payment_bank_optional') }}</small>
+                        @endif
                         <div class="alert alert-warning p-1 mb-0">{{ __('admin.order_not_paid_yet') }}</div>
                     </div>
                 </div>

@@ -59,6 +59,9 @@ Route::group([
 
     Route::middleware('auth')->group(function () {
         Route::get('/account', Index::class)->name('account');
+        Route::get('/courier/deliveries', Admin\Deliveries\Index::class)
+            ->withoutMiddleware([TrackPageView::class])
+            ->middleware('can:courier-portal')->name('courier.deliveries');
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });
 
@@ -130,6 +133,7 @@ Route::middleware(['auth', 'can:admin'])
 
         /* An operator works the orders and nothing else. */
         Route::get('/orders', Admin\Orders\Index::class)->name('orders');
+        Route::get('/deliveries', Admin\Deliveries\Index::class)->name('deliveries');
         Route::get('/orders/create', Admin\Orders\Create::class)->name('orders.create');
         Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])->name('orders.invoice');
         Route::get('/orders/{order}/invoice/preview', [InvoiceController::class, 'preview'])->name('orders.invoice.preview');
@@ -138,6 +142,8 @@ Route::middleware(['auth', 'can:admin'])
         /* The catalogue, the imports, the shop's own settings, its people and
            its suppliers stay with the owner. */
         Route::middleware('can:owner')->group(function () {
+            Route::get('/deliveries/courier-preview', Admin\Deliveries\Index::class)->name('deliveries.courier-preview');
+            Route::get('/operator-sales', Admin\OperatorSales\Index::class)->name('operator-sales');
             Route::get('/categories', Admin\Categories\Index::class)->name('categories');
             Route::get('/brands', Admin\Brands\Index::class)->name('brands');
             Route::get('/products', Admin\Products\Index::class)->name('products');

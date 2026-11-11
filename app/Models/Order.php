@@ -17,7 +17,7 @@ class Order extends Model
         'number', 'user_id', 'cart_id', 'status',
         'name', 'phone', 'email',
         'delivery', 'delivery_city_id', 'city', 'address', 'comment',
-        'payment', 'payment_status', 'is_paid', 'paid_at', 'installment_months',
+        'payment', 'payment_bank', 'payment_status', 'is_paid', 'paid_at', 'installment_months',
         'subtotal', 'shipping', 'total',
     ];
 
@@ -87,6 +87,15 @@ class Order extends Model
         return $this->hasOne(OrderEvent::class)->ofMany(
             ['id' => 'min'],
             fn ($q) => $q->where('type', 'status')->where('from', self::NEW)->whereNotNull('user_id'),
+        );
+    }
+
+    public function completedBy(): HasOne
+    {
+        // A later completion without an actor stays unassigned instead of borrowing an earlier operator.
+        return $this->hasOne(OrderEvent::class)->ofMany(
+            ['id' => 'max'],
+            fn ($q) => $q->where('type', 'status')->where('to', self::COMPLETED),
         );
     }
 
