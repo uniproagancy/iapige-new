@@ -2,9 +2,9 @@
 
 namespace App\Services\Import\Drivers\Alta;
 
-use RuntimeException;
+use App\Services\Import\SourceUnavailable;
 
-class AltaUnavailable extends RuntimeException
+class AltaUnavailable extends SourceUnavailable
 {
     public function __construct(string $message, public readonly ?int $status = null)
     {

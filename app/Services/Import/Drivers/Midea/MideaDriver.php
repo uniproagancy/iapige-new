@@ -2,12 +2,16 @@
 
 namespace App\Services\Import\Drivers\Midea;
 
+use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\RoomArea;
+use App\Services\Import\SourceUnavailable;
 use App\Services\Import\SupplierDriver;
 use App\Support\Figure;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Log;
 
 class MideaDriver implements SupplierDriver
 {
@@ -38,6 +42,7 @@ class MideaDriver implements SupplierDriver
         }
 
         $data = $row->data ?? [];
+        $unanswered = false;
 
         foreach ([$data['site_model'] ?? '', $data['model'] ?? ''] as $model) {
             $model = trim((string) $model);
@@ -46,12 +51,67 @@ class MideaDriver implements SupplierDriver
                 continue;
             }
 
-            if ($found = $this->client->searchByName($model)) {
+            try {
+                $found = $this->client->searchByName($model);
+            } catch (ConnectionException $e) {
+                $unanswered = true;
+
+                continue;
+            }
+
+            if ($found) {
                 return $this->toPayload($externalId, $row, $data, $found);
             }
         }
 
+        /* midea.ge answers slowly and sometimes not at all. A product already
+           in the shop takes its price and stock from the sheet meanwhile; one
+           that is not -- new, or gone since -- needs the site for its name and
+           pictures, so the job is tried again later instead of the row being
+           dropped, which is how eighty products in stock went missing. */
+        if ($payload = $this->fromSheetAlone($externalId, $row, $data)) {
+            return $payload;
+        }
+
+        if ($unanswered) {
+            throw new SourceUnavailable("midea.ge did not answer for {$externalId}");
+        }
+
         return null;
+    }
+
+    protected function fromSheetAlone(string $externalId, SupplierStock $row, array $data): ?ProductPayload
+    {
+        $offer = ProductOffer::where('supplier_id', $this->supplier->id)
+            ->where('external_id', $externalId)
+            ->with('product')
+            ->first();
+
+        if (! $offer?->product) {
+            return null;
+        }
+
+        [$price, $old] = $this->prices([], $data, $row);
+
+        if ($price <= 0) {
+            return null;
+        }
+
+        Log::channel('import')->info('midea site unavailable, price taken from the sheet', [
+            'external' => $externalId,
+            'product' => $offer->product_id,
+        ]);
+
+        return new ProductPayload(
+            externalId: $externalId,
+            sku: $offer->product->sku,
+            costPrice: $price,
+            oldCostPrice: $old,
+            stock: max(0, (int) $row->quantity),
+            brandName: null,
+            categoryName: null,
+            translations: [],
+        );
     }
 
     protected function toPayload(string $barcode, SupplierStock $row, array $data, array $found): ?ProductPayload

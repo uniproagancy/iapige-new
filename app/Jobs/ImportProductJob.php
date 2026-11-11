@@ -3,18 +3,19 @@
 namespace App\Jobs;
 
 use App\Models\Supplier;
-use App\Services\Import\Drivers\Alta\AltaUnavailable;
 use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Services\Import\Drivers\Alta\AltaImageCache;
+use App\Services\Import\Drivers\Alta\AltaUnavailable;
 use App\Services\Import\ImportManager;
 use App\Services\Import\ProductImporter;
+use App\Services\Import\SourceUnavailable;
 use App\Support\Redact;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ImportProductJob implements ShouldQueue
 {
@@ -66,8 +67,8 @@ class ImportProductJob implements ShouldQueue
 
         try {
             $payload = $manager->driver($supplier)->fetch($this->externalId);
-        } catch (AltaUnavailable $e) {
-            // A blocked supplier request is a failed attempt, not a successful import.
+        } catch (SourceUnavailable $e) {
+            // A supplier that did not answer is a failed attempt, tried again later -- not a row to skip.
             throw $e;
         } catch (\Throwable $e) {
 
