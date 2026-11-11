@@ -168,7 +168,11 @@ class MideaDriver implements SupplierDriver
             }
         }
 
-        $stock = $found['in_stock'] ? max(0, (int) $row->quantity) : 0;
+        /* Stock is Midea's own sheet. midea.ge marks things "not in stock"
+           that it still sells -- the NY2513 radiator, a hundred on the sheet,
+           has an add-to-cart button and in_stock "0" -- and taking its word
+           left such products at nothing, so they were never brought back. */
+        $stock = max(0, (int) $row->quantity);
 
         return new ProductPayload(
             externalId: $barcode,
