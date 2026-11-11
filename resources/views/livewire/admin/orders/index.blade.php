@@ -40,9 +40,21 @@
 
 <div>
     <div class="d-flex flex-wrap gap-1 mb-2">
+        {{-- the day's list: everything not yet finished --}}
+        <button type="button"
+                @class(['btn btn-sm',
+                    'btn-dark' => $status === '',
+                    'btn-outline-dark' => $status !== ''])
+                wire:click="$set('status', '')">
+            {{ __('admin.all') }}
+            <span class="badge bg-white text-dark ms-50">{{ $inHand }}</span>
+        </button>
+
         @foreach ($statuses as $key => $label)
             @continue (! ($counts[$key] ?? 0))
             @continue (in_array($key, \App\Livewire\Admin\Orders\Index::ARCHIVED, true) && $status !== $key)
+            {{-- cancelled has a chip of its own below --}}
+            @continue ($key === 'cancelled')
             <button type="button"
                     @class(['btn btn-sm',
                         'btn-'.($tone[$key] ?? 'secondary') => $status === $key,

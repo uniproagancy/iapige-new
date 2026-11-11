@@ -97,9 +97,7 @@ class Index extends Component
                not; the archive is only kept out of the open list. */
             ->when(
                 $this->status === '' && $this->search === '',
-                fn ($q) => $q->where(fn ($open) => $open
-                    ->whereNotIn('status', self::ARCHIVED)
-                    ->orWhere(fn ($unpaid) => $unpaid->where('status', Order::COMPLETED)->where('is_paid', false))),
+                fn ($q) => $this->inHand($q),
             )
             ->when(
                 $this->status !== '' && $this->status !== self::DONE,
@@ -114,6 +112,15 @@ class Index extends Component
             ->when($this->sort === 'total-desc', fn ($q) => $q->orderByDesc('total'))
             ->when($this->sort === 'total-asc', fn ($q) => $q->orderBy('total'))
             ->when($this->sort === 'new', fn ($q) => $q->latest('id'));
+    }
+
+    /* Everything not yet finished: what is still open, and what was sold but
+       not yet paid for. */
+    protected function inHand($query)
+    {
+        return $query->where(fn ($open) => $open
+            ->whereNotIn('status', self::ARCHIVED)
+            ->orWhere(fn ($unpaid) => $unpaid->where('status', Order::COMPLETED)->where('is_paid', false)));
     }
 
     public function render()
@@ -138,6 +145,7 @@ class Index extends Component
                 ->pluck('id')
                 ->flip(),
             'done' => Order::where('status', Order::COMPLETED)->where('is_paid', true)->count(),
+            'inHand' => $this->inHand(Order::query())->count(),
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
     }
 
