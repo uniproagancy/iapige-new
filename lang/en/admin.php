@@ -510,7 +510,7 @@ return [
     'quick_edit_old_low' => 'The old price has to be higher than the current one',
     'price_from' => 'From',
     'price_to' => 'To',
-    'order_archive' => 'Archive',
+    'order_done_paid' => 'Completed — paid',
     'order_delete' => 'Delete order',
     'order_delete_confirm' => 'Order :number will be removed from the list. Continue?',
     'order_deleted' => 'Order :number was deleted',

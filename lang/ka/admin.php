@@ -510,7 +510,7 @@ return [
     'quick_edit_old_low' => 'ძველი ფასი მოქმედ ფასზე მაღალი უნდა იყოს',
     'price_from' => 'დან',
     'price_to' => 'მდე',
-    'order_archive' => 'არქივი',
+    'order_done_paid' => 'დასრულებული — გადახდილი',
     'order_delete' => 'შეკვეთის წაშლა',
     'order_delete_confirm' => 'შეკვეთა :number წაიშლება სიიდან. გავაგრძელო?',
     'order_deleted' => 'შეკვეთა :number წაიშალა',

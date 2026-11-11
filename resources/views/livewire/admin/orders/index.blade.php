@@ -53,14 +53,26 @@
             </button>
         @endforeach
 
-        @if ($archived)
+        {{-- what is finished, each on its own chip and out of the day's list --}}
+        @if ($done)
             <button type="button"
                     @class(['btn btn-sm',
-                        'btn-secondary' => $status === 'archive',
-                        'btn-outline-secondary' => $status !== 'archive'])
-                    wire:click="$set('status', '{{ $status === 'archive' ? '' : 'archive' }}')">
-                {{ __('admin.order_archive') }}
-                <span class="badge bg-white text-dark ms-50">{{ $archived }}</span>
+                        'btn-success' => $status === 'done',
+                        'btn-outline-success' => $status !== 'done'])
+                    wire:click="$set('status', '{{ $status === 'done' ? '' : 'done' }}')">
+                {{ __('admin.order_done_paid') }}
+                <span class="badge bg-white text-dark ms-50">{{ $done }}</span>
+            </button>
+        @endif
+
+        @if ($counts['cancelled'] ?? 0)
+            <button type="button"
+                    @class(['btn btn-sm',
+                        'btn-secondary' => $status === 'cancelled',
+                        'btn-outline-secondary' => $status !== 'cancelled'])
+                    wire:click="$set('status', '{{ $status === 'cancelled' ? '' : 'cancelled' }}')">
+                {{ $statuses['cancelled'] }}
+                <span class="badge bg-white text-dark ms-50">{{ $counts['cancelled'] }}</span>
             </button>
         @endif
     </div>
@@ -109,9 +121,7 @@
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
 
-                    @if ($archived)
-                        <option value="archive">{{ __('admin.order_archive') }}</option>
-                    @endif
+                    <option value="done">{{ __('admin.order_done_paid') }}</option>
                 </select>
             </div>
 

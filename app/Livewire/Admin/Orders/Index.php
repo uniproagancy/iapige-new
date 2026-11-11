@@ -18,9 +18,13 @@ class Index extends Component
 
     public const FLOW = [Order::NEW, Order::VIEWED, Order::COMPLETED];
 
-    /* An order nobody has to touch again. It stays in the shop's records and
-       on its own chip, but it is out of the way of the day's work. */
-    public const ARCHIVE = 'archive';
+    /*
+     | An order nobody has to touch again: sold and paid for. It stays in the
+     | shop's records on a chip of its own, out of the way of the day's work,
+     | as the cancelled ones are on theirs. A completed order still unpaid is
+     | not done -- somebody has the money to chase -- so it stays in the list.
+     */
+    public const DONE = 'done';
 
     public const ARCHIVED = Order::ARCHIVED;
 
@@ -62,24 +66,43 @@ class Index extends Component
     {
         return Order::query()
             ->with(['items', 'pickedUp.user:id,name'])
-            ->when($this->search, function ($q) {
-                $term = trim($this->search);
+            ->when(trim($this->search) !== '', function ($q) {
+                /* "#IAPI-…" is how the list writes a number, so it is how one
+                   gets copied back in. */
+                $term = ltrim(trim($this->search), '#');
+                $digits = (string) preg_replace('/\D/', '', $term);
+
+                /* The same telephone is kept as +995599… and as 599…; the
+                   country code typed in front would miss the second. */
+                if (strlen($digits) >= 12 && str_starts_with($digits, '995')) {
+                    $digits = substr($digits, 3);
+                }
 
                 $q->where(fn ($w) => $w
                     ->where('number', 'like', "%{$term}%")
-                    ->orWhere('phone', 'like', '%'.preg_replace('/\D/', '', $term).'%')
                     ->orWhere('name', 'like', "%{$term}%")
-                    ->orWhere('email', 'like', "%{$term}%"));
+                    ->orWhere('email', 'like', "%{$term}%")
+                    /* Only a search with a telephone's worth of figures in it
+                       looks at telephones. A name has none, and an empty
+                       pattern matched every order there is. */
+                    ->when(strlen($digits) >= 3, fn ($p) => $p->orWhereRaw(
+                        "replace(replace(phone, ' ', ''), '-', '') like ?",
+                        ['%'.$digits.'%'],
+                    )));
             })
-            ->when($this->status === self::ARCHIVE, fn ($q) => $q->whereIn('status', self::ARCHIVED))
+            ->when($this->status === self::DONE, fn ($q) => $q
+                ->where('status', Order::COMPLETED)
+                ->where('is_paid', true))
             /* Somebody searching for a number wants that order, finished or
                not; the archive is only kept out of the open list. */
             ->when(
                 $this->status === '' && $this->search === '',
-                fn ($q) => $q->whereNotIn('status', self::ARCHIVED),
+                fn ($q) => $q->where(fn ($open) => $open
+                    ->whereNotIn('status', self::ARCHIVED)
+                    ->orWhere(fn ($unpaid) => $unpaid->where('status', Order::COMPLETED)->where('is_paid', false))),
             )
             ->when(
-                $this->status !== '' && $this->status !== self::ARCHIVE,
+                $this->status !== '' && $this->status !== self::DONE,
                 fn ($q) => $q->where('status', $this->status),
             )
             ->when($this->payment, fn ($q) => $q->where('payment', $this->payment))
@@ -114,7 +137,7 @@ class Index extends Component
                 ]))
                 ->pluck('id')
                 ->flip(),
-            'archived' => Order::whereIn('status', self::ARCHIVED)->count(),
+            'done' => Order::where('status', Order::COMPLETED)->where('is_paid', true)->count(),
         ])->layout('layouts.admin', ['title' => __('admin.orders')]);
     }
 
