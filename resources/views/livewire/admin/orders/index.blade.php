@@ -188,10 +188,10 @@
                         <th class="text-nowrap" style="width:1%">{{ __('admin.order_number') }}</th>
                         <th class="text-nowrap" style="width:1%">{{ __('admin.customer') }}</th>
                         <th class="text-nowrap">{{ __('admin.payment_method') }}</th>
+                        <th class="text-nowrap" style="width:1%">{{ __('admin.order_picked_up_by') }}</th>
                         <th class="text-end text-nowrap" style="width:1%">{{ __('admin.total') }}</th>
                         <th class="text-center text-nowrap" style="width:1%">{{ __('admin.payment') }}</th>
                         <th class="text-center text-nowrap" style="width:1%">{{ __('admin.status') }}</th>
-                        <th class="text-nowrap" style="width:1%">{{ __('admin.order_picked_up_by') }}</th>
                         <th class="text-end" style="width:1%">{{ __('admin.actions') }}</th>
                     </tr>
                 </thead>
@@ -224,6 +224,16 @@
                                 </span>
                             </td>
 
+                            {{-- who took it off "new" first, and when --}}
+                            <td class="text-nowrap">
+                                @if ($order->pickedUp)
+                                    <span class="d-block">{{ $order->pickedUp->user?->name ?? '—' }}</span>
+                                    <small class="text-muted">{{ $order->pickedUp->created_at->format('d.m H:i') }}</small>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+
                             <td class="text-end fw-bolder text-nowrap">{{ money($order->total) }}</td>
 
                             <td class="text-center">
@@ -238,16 +248,6 @@
                                 <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
                                     {{ $statuses[$order->status] ?? $order->status }}
                                 </span>
-                            </td>
-
-                            {{-- who took it off "new" first, and when --}}
-                            <td class="text-nowrap">
-                                @if ($order->pickedUp)
-                                    <span class="d-block">{{ $order->pickedUp->user?->name ?? '—' }}</span>
-                                    <small class="text-muted">{{ $order->pickedUp->created_at->format('d.m H:i') }}</small>
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
                             </td>
 
                             <td class="text-end text-nowrap">
