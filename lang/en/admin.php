@@ -361,7 +361,7 @@ return [
     'pay_online' => 'Pay online',
     'order_payment_changed' => 'Payment method changed: :from → :to',
     'order_payment_locked' => 'A payment at the bank (:driver) is still open and unanswered, so no other method can start. Ask the bank first.',
-    'pay_link_note' => 'The link is good for :days days. Send it to the customer, or open it and pay here.',
+    'pay_link_note' => 'The link does not expire — it works until the order is paid or cancelled. Send it to the customer, or open it and pay here.',
     'pay_link_sms' => 'Send the link by SMS',
     'pay_link_sms_confirm' => 'Send the payment link to :phone?',
     'pay_link_sent' => 'The payment link was sent by SMS to :phone',

@@ -22,8 +22,6 @@ class Show extends Component
 
     public const COMPLETED = 'completed';
 
-    public const LINK_DAYS = 3;
-
     public Order $order;
 
     public string $status = '';
@@ -196,7 +194,11 @@ class Show extends Component
             return null;
         }
 
-        return URL::temporarySignedRoute('order.pay', now()->addDays(self::LINK_DAYS), [
+        /* No end date: a customer paying a week later, from the text message
+           still on their phone, was turned away. The signature still keeps
+           anyone from making one up, and the page itself refuses an order
+           that is paid or cancelled by then. */
+        return URL::signedRoute('order.pay', [
             'number' => $this->order->number,
         ]);
     }
