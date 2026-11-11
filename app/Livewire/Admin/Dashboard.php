@@ -5,10 +5,19 @@ namespace App\Livewire\Admin;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
+    /* The figures here are the owner's; an operator's day is the orders. */
+    public function mount()
+    {
+        if (! Gate::allows('owner')) {
+            return $this->redirect(route('admin.orders'), navigate: false);
+        }
+    }
+
     public function render()
     {
         return view('livewire.admin.dashboard.index', [

@@ -519,6 +519,7 @@ return [
     'invoice_open' => 'ინვოისის ნახვა',
     'order_closed_for_edit' => 'გაუქმებული ან დაბრუნებული შეკვეთა აღარ რედაქტირდება.',
     'order_paid_edit_warning' => 'შეკვეთა გადახდილია — :amount უკვე ჩაირიცხა. შემადგენლობის შეცვლა ჯამს შეცვლის, ჩარიცხულ თანხას კი არა. სხვაობა ხელით უნდა მოაგვარო.',
+    'order_picked_up_by' => 'გახსნა',
     'order_shipping_carried' => 'მიწოდება შეიცვალა გადახდამდე: :was → :now',
     'order_edited' => 'შეკვეთა დაარედაქტირა: :name. ჯამი :was → :now',
     'order_price_today' => 'დღეს :amount',

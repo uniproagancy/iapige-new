@@ -465,10 +465,15 @@
 
                         <div>
                             @if ($order->user)
-                                <a class="fw-bolder text-body d-block"
-                                   href="{{ route('admin.users.show', $order->user) }}" wire:navigate>
-                                    {{ $order->name }}
-                                </a>
+                                {{-- the customer's page is the owner's; an operator gets the name --}}
+                                @can('owner')
+                                    <a class="fw-bolder text-body d-block"
+                                       href="{{ route('admin.users.show', $order->user) }}" wire:navigate>
+                                        {{ $order->name }}
+                                    </a>
+                                @else
+                                    <span class="fw-bolder d-block">{{ $order->name }}</span>
+                                @endcan
                                 <small class="text-muted">{{ __('admin.registered_customer') }}</small>
                             @else
                                 <span class="fw-bolder d-block">{{ $order->name }}</span>

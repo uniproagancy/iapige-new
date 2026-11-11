@@ -402,10 +402,72 @@ class Catalog extends Component
         ];
     }
 
-    /* What the shelf offers to filter by. A promotion asks for less. */
+    /*
+     | What the shelf offers to filter by.
+     |
+     | Without a shelf -- a search, a brand's link, a promotion before a
+     | department is picked -- there is only brand and price, read off the
+     | products found. Working out the filters for the whole shop instead
+     | took the "all results" page twenty seconds, and offered colour and
+     | weight across televisions and kettles at once; a shelf brings its own
+     | filters the moment it is chosen.
+     */
     protected function shelf(): array
     {
-        return CatalogData::listing($this->categoryId ? $this->category() : null, $this->picked);
+        return $this->categoryId
+            ? CatalogData::listing($this->category(), $this->picked)
+            : $this->unshelved();
+    }
+
+    protected function unshelved(): array
+    {
+        $found = $this->query('brand')->reorder();
+
+        $brands = (clone $found)
+            ->join('brands', 'brands.id', '=', 'products.brand_id')
+            ->select('brands.slug', 'brands.name')
+            ->distinct()
+            ->orderBy('brands.name')
+            /* Plain rows: as products, "name" and "slug" would answer with
+               the product's own translated ones. */
+            ->toBase()
+            ->get()
+            ->filter(fn ($b) => trim((string) $b->slug) !== '' && trim((string) $b->name) !== '')
+            ->map(fn ($b) => ['code' => $b->slug, 'label' => $b->name, 'codes' => [$b->slug]])
+            ->values()
+            ->all();
+
+        /* The slider spans what was found, not what is under the cap already
+           set on it -- or it could only ever be pulled lower. */
+        $cap = $this->max;
+        $this->max = null;
+
+        try {
+            $range = $this->query()->reorder()->toBase()->selectRaw('min(price) as low, max(price) as high')->first();
+        } finally {
+            $this->max = $cap;
+        }
+
+        $low = (int) (floor(((float) ($range->low ?? 0)) / 100) * 100);
+
+        return [
+            'category' => null,
+            'title' => __('catalog.index_title'),
+            'breadcrumbs' => [],
+            'total' => Product::query()->listable()->count(),
+            'subs' => [],
+            'sorts' => [
+                'popular' => __('catalog.sort.popular'),
+                'price-asc' => __('catalog.sort.price_asc'),
+                'price-desc' => __('catalog.sort.price_desc'),
+                'new' => __('catalog.sort.new'),
+            ],
+            'groups' => $brands ? [['name' => __('catalog.brand'), 'key' => 'brand', 'open' => true, 'items' => $brands]] : [],
+            'filterDiagnostics' => [],
+            'priceMin' => $low,
+            'priceMax' => max($low + 100, (int) (ceil(((float) ($range->high ?? 0)) / 100) * 100)),
+            'perPage' => 20,
+        ];
     }
 
     protected function listingData(): array

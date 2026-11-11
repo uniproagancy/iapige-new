@@ -191,6 +191,7 @@
                         <th class="text-end text-nowrap" style="width:1%">{{ __('admin.total') }}</th>
                         <th class="text-center text-nowrap" style="width:1%">{{ __('admin.payment') }}</th>
                         <th class="text-center text-nowrap" style="width:1%">{{ __('admin.status') }}</th>
+                        <th class="text-nowrap" style="width:1%">{{ __('admin.order_picked_up_by') }}</th>
                         <th class="text-end" style="width:1%">{{ __('admin.actions') }}</th>
                     </tr>
                 </thead>
@@ -239,6 +240,16 @@
                                 </span>
                             </td>
 
+                            {{-- who took it off "new" first, and when --}}
+                            <td class="text-nowrap">
+                                @if ($order->pickedUp)
+                                    <span class="d-block">{{ $order->pickedUp->user?->name ?? '—' }}</span>
+                                    <small class="text-muted">{{ $order->pickedUp->created_at->format('d.m H:i') }}</small>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+
                             <td class="text-end text-nowrap">
                                 <a class="btn btn-sm btn-icon btn-outline-secondary"
                                    href="{{ route('admin.orders.show', $order) }}"
@@ -269,7 +280,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
+                            <td colspan="9" class="text-center text-muted py-4">
                                 <span class="d-block mb-25">{!! $icon('cart') !!}</span>
                                 {{ __('admin.nothing_here') }}
                             </td>

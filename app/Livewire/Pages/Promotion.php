@@ -63,54 +63,6 @@ class Promotion extends Catalog
     }
 
     /*
-     | Before a department is chosen, brand and price are all there is to
-     | filter by. The catalog's filters for the whole shop -- colour, weight,
-     | warranty across every kind of product -- cost six seconds to work out
-     | and say little about a television and a kettle at once; each
-     | department brings its own the moment it is chosen.
-     */
-    protected function shelf(): array
-    {
-        if ($this->categoryId) {
-            return parent::shelf();
-        }
-
-        $brands = Product::query()->listable()
-            ->whereIn('products.id', $this->onOffer())
-            ->join('brands', 'brands.id', '=', 'products.brand_id')
-            ->select('brands.slug', 'brands.name')
-            ->distinct()
-            ->orderBy('brands.name')
-            /* Plain rows: as products, "name" and "slug" would answer with
-               the product's own translated ones. */
-            ->toBase()
-            ->get()
-            ->filter(fn ($b) => trim((string) $b->slug) !== '' && trim((string) $b->name) !== '')
-            ->map(fn ($b) => ['code' => $b->slug, 'label' => $b->name, 'codes' => [$b->slug]])
-            ->values()
-            ->all();
-
-        return [
-            'category' => null,
-            'title' => '',
-            'breadcrumbs' => [],
-            'total' => 0,
-            'subs' => [],
-            'sorts' => [
-                'popular' => __('catalog.sort.popular'),
-                'price-asc' => __('catalog.sort.price_asc'),
-                'price-desc' => __('catalog.sort.price_desc'),
-                'new' => __('catalog.sort.new'),
-            ],
-            'groups' => $brands ? [['name' => __('catalog.brand'), 'key' => 'brand', 'open' => true, 'items' => $brands]] : [],
-            'filterDiagnostics' => [],
-            'priceMin' => 0,
-            'priceMax' => 0,
-            'perPage' => 20,
-        ];
-    }
-
-    /*
      | The departments the promotion reaches, each with how much of it is on
      | offer there. Products sit on the deepest shelf, so each is counted
      | under the department at the top of its line.

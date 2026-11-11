@@ -125,37 +125,40 @@ Route::middleware(['auth', 'can:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        /* The dashboard sends an operator on to the orders. */
         Route::get('/', Admin\Dashboard::class)->name('dashboard');
-        Route::get('/categories', Admin\Categories\Index::class)->name('categories');
-        Route::get('/brands', Admin\Brands\Index::class)->name('brands');
-        Route::get('/products', Admin\Products\Index::class)->name('products');
-        Route::get('/products/create', Admin\Products\Form::class)->name('products.create');
-        Route::get('/products/{product}/edit', Admin\Products\Form::class)->name('products.edit');
 
-        Route::get('/import/upload', Admin\Import\Upload::class)->name('import.upload');
-        Route::get('/import/json', Admin\Import\Json::class)->name('import.json');
-        Route::get('/import/json-file/client', [JsonImportFileController::class, 'client'])->name('import.json-file.client');
-        Route::post('/import/json-file/begin', [JsonImportFileController::class, 'begin'])->name('import.json-file.begin');
-        Route::post('/import/json-file/{id}/chunk', [JsonImportFileController::class, 'chunk'])->whereUuid('id')->name('import.json-file.chunk');
-        Route::post('/import/json-file/{id}/finish', [JsonImportFileController::class, 'finish'])->whereUuid('id')->name('import.json-file.finish');
-        Route::get('/import/links', Admin\Import\Links::class)->name('import.links');
-        Route::get('/import/run', Admin\Import\Run::class)->name('import.run');
-
-        Route::get('/mapping', Admin\Mapping\Index::class)->name('mapping');
-        Route::get('/attributes', Admin\Attributes\Index::class)->name('attributes');
-
+        /* An operator works the orders and nothing else. */
         Route::get('/orders', Admin\Orders\Index::class)->name('orders');
         Route::get('/orders/create', Admin\Orders\Create::class)->name('orders.create');
         Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])->name('orders.invoice');
         Route::get('/orders/{order}/invoice/preview', [InvoiceController::class, 'preview'])->name('orders.invoice.preview');
         Route::get('/orders/{order}', Admin\Orders\Show::class)->name('orders.show');
 
-        Route::get('/promotions', Admin\Promotions\Index::class)->name('promotions');
-        Route::get('/slides', Admin\Slides\Index::class)->name('slides');
-
-        /* The shop's own settings, its people and its suppliers stay with
-           the owner; an operator works the orders and the catalogue. */
+        /* The catalogue, the imports, the shop's own settings, its people and
+           its suppliers stay with the owner. */
         Route::middleware('can:owner')->group(function () {
+            Route::get('/categories', Admin\Categories\Index::class)->name('categories');
+            Route::get('/brands', Admin\Brands\Index::class)->name('brands');
+            Route::get('/products', Admin\Products\Index::class)->name('products');
+            Route::get('/products/create', Admin\Products\Form::class)->name('products.create');
+            Route::get('/products/{product}/edit', Admin\Products\Form::class)->name('products.edit');
+
+            Route::get('/import/upload', Admin\Import\Upload::class)->name('import.upload');
+            Route::get('/import/json', Admin\Import\Json::class)->name('import.json');
+            Route::get('/import/json-file/client', [JsonImportFileController::class, 'client'])->name('import.json-file.client');
+            Route::post('/import/json-file/begin', [JsonImportFileController::class, 'begin'])->name('import.json-file.begin');
+            Route::post('/import/json-file/{id}/chunk', [JsonImportFileController::class, 'chunk'])->whereUuid('id')->name('import.json-file.chunk');
+            Route::post('/import/json-file/{id}/finish', [JsonImportFileController::class, 'finish'])->whereUuid('id')->name('import.json-file.finish');
+            Route::get('/import/links', Admin\Import\Links::class)->name('import.links');
+            Route::get('/import/run', Admin\Import\Run::class)->name('import.run');
+
+            Route::get('/mapping', Admin\Mapping\Index::class)->name('mapping');
+            Route::get('/attributes', Admin\Attributes\Index::class)->name('attributes');
+
+            Route::get('/promotions', Admin\Promotions\Index::class)->name('promotions');
+            Route::get('/slides', Admin\Slides\Index::class)->name('slides');
+
             Route::get('/social', Admin\Social\Index::class)->name('social');
             Route::get('/social/facebook/connect', [SocialPublishingController::class, 'connect'])->name('social.connect');
             Route::post('/social/facebook/token', [SocialPublishingController::class, 'connectToken'])->middleware('throttle:6,1')->name('social.token');

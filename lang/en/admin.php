@@ -519,6 +519,7 @@ return [
     'invoice_open' => 'View invoice',
     'order_closed_for_edit' => 'A cancelled or returned order can no longer be edited.',
     'order_paid_edit_warning' => 'This order is paid — :amount has already arrived. Changing what is in it changes the total, not the money received. The difference has to be settled by hand.',
+    'order_picked_up_by' => 'Opened by',
     'order_shipping_carried' => 'Delivery changed before payment: :was → :now',
     'order_edited' => 'Order edited by :name. Total :was → :now',
     'order_price_today' => 'today :amount',

@@ -61,7 +61,7 @@ class Index extends Component
     protected function query()
     {
         return Order::query()
-            ->with('items')
+            ->with(['items', 'pickedUp.user:id,name'])
             ->when($this->search, function ($q) {
                 $term = trim($this->search);
 

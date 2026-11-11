@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -39,10 +40,10 @@ class Order extends Model
     public const COMPLETED = 'completed';
 
     public const CANCELLED = 'cancelled';
-	
-	public const NOANSWER = 'noanswer';
-	
-	public const CALLLATER = 'calllater';
+
+    public const NOANSWER = 'noanswer';
+
+    public const CALLLATER = 'calllater';
 
     /* The four states the shop actually works in. Everything that used to sit
        between them — confirmed, packed, shipped — said the same thing to the
@@ -75,6 +76,18 @@ class Order extends Model
     public function deliveryCity(): BelongsTo
     {
         return $this->belongsTo(DeliveryCity::class, 'delivery_city_id');
+    }
+
+    /*
+     | Whoever first took the order off "new": the operator who opened it, or
+     | moved it on from the list without opening it.
+     */
+    public function pickedUp(): HasOne
+    {
+        return $this->hasOne(OrderEvent::class)->ofMany(
+            ['id' => 'min'],
+            fn ($q) => $q->where('type', 'status')->where('from', self::NEW)->whereNotNull('user_id'),
+        );
     }
 
     public function events(): HasMany
