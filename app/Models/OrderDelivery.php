@@ -85,8 +85,42 @@ class OrderDelivery extends Model
         }
 
         return $user->role() === User::COURIER
-            ? $query->where('courier_id', $user->id)
+            ? $query->where('courier_id', $user->id)->forCourierBoard()
             : $query->whereRaw('1 = 0');
+    }
+
+    public function scopeForCourierBoard(Builder $query): Builder
+    {
+        return $query->where(function (Builder $delivery) {
+            $delivery->whereIn('status', [self::DELIVERED, self::CANCELLED])
+                ->orWhere(function (Builder $active) {
+                    $active->where('status', self::ACTIVE)
+                        ->where('is_eligible', true)
+                        ->whereHas('order', fn (Builder $order) => $order->where('status', Order::COMPLETED));
+                });
+        });
+    }
+
+    public function scopeHeld(Builder $query): Builder
+    {
+        return $query->where('status', self::ACTIVE)
+            ->whereHas('order', fn (Builder $order) => $order->withoutTrashed()->where('status', '!=', Order::CANCELLED))
+            ->where(function (Builder $delivery) {
+                $delivery->where('is_eligible', false)
+                    ->orWhereHas('order', fn (Builder $order) => $order->where('status', '!=', Order::COMPLETED));
+            });
+    }
+
+    public function isHeld(): bool
+    {
+        if ($this->status !== self::ACTIVE) {
+            return false;
+        }
+        $order = $this->order;
+
+        return $order !== null && ! $order->trashed()
+            && $order->status !== Order::CANCELLED
+            && (! $this->is_eligible || $order->status !== Order::COMPLETED);
     }
 
     public function isEditable(): bool
@@ -118,6 +152,12 @@ class OrderDelivery extends Model
     public function canPickUp(): bool
     {
         return $this->canDeliver() && ! $this->isPickedUp();
+    }
+
+    public function canCorrectActions(): bool
+    {
+        return $this->status === self::DELIVERED
+            || ($this->status === self::ACTIVE && $this->isPickedUp());
     }
 
     public function amountDue(): ?string

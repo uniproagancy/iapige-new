@@ -142,6 +142,12 @@
                     </a>
                 </li>
 
+                <li class="nav-item {{ $on('admin.accounting') }}">
+                    <a class="nav-link d-flex align-items-center" href="{{ route('admin.accounting') }}">
+                        {!! $icon('percent') !!}<span>{{ __('accounting.title') }}</span>
+                    </a>
+                </li>
+
                 <li class="dropdown nav-item {{ $on('admin.mapping', 'admin.attributes', 'admin.import.*') }}"
                     data-menu="dropdown">
                     <a class="dropdown-toggle nav-link d-flex align-items-center" href="#" data-bs-toggle="dropdown">

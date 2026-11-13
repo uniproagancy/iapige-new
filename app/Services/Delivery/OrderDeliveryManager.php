@@ -5,6 +5,7 @@ namespace App\Services\Delivery;
 use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryItem;
+use App\Models\OrderEvent;
 use App\Models\OrderItem;
 use App\Models\PaymentMethod;
 use App\Models\Setting;
@@ -274,6 +275,60 @@ class OrderDeliveryManager
             }
             $delivery->forceFill(['picked_up_at' => now(), 'picked_up_by' => $actor->id])->save();
             $this->event($order, 'delivery_picked_up', $actor);
+
+            return $this->fresh($delivery);
+        }, 3);
+    }
+
+    public function actionCorrectionVersion(OrderDelivery $delivery): string
+    {
+        return hash('sha256', json_encode([
+            'delivery' => $delivery->only([
+                'status', 'is_eligible', 'picked_up_at', 'picked_up_by', 'delivered_at', 'delivered_by',
+                'cash_received_at', 'cash_received_by', 'cash_received_amount', 'updated_at',
+            ]),
+            // An undo and repeat action can share the same second and action fields.
+            'event_id' => (int) OrderEvent::where('order_id', $delivery->order_id)
+                ->where('type', 'like', 'delivery_%')->max('id'),
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    public function correctActions(int $id, string $target, string $reason, User $actor, string $expectedVersion): OrderDelivery
+    {
+        if (! $actor->isAdmin()) {
+            throw new AuthorizationException;
+        }
+        $reason = $this->note($reason);
+        if (! in_array($target, ['not_picked_up', 'picked_up'], true)) {
+            $this->invalid('delivery', 'correction_target');
+        }
+
+        return DB::transaction(function () use ($id, $target, $reason, $actor, $expectedVersion) {
+            [$order, $delivery] = $this->lockPair($id);
+            if ($order->trashed() || $order->status === Order::CANCELLED || ! $delivery->canCorrectActions()) {
+                $this->invalid('delivery', 'correction_unavailable');
+            }
+            if (! hash_equals($this->actionCorrectionVersion($delivery), $expectedVersion)) {
+                $this->invalid('delivery', 'correction_changed');
+            }
+            if ($target === 'picked_up'
+                && ($delivery->status !== OrderDelivery::DELIVERED || ! $delivery->isPickedUp())) {
+                $this->invalid('delivery', 'correction_target');
+            }
+
+            $previous = $delivery->status === OrderDelivery::DELIVERED ? 'delivered' : 'picked_up';
+            $attributes = [
+                'status' => OrderDelivery::ACTIVE,
+                'is_eligible' => $this->eligible($order),
+                'delivered_at' => null,
+                'delivered_by' => null,
+            ];
+            if ($target === 'not_picked_up') {
+                $attributes += ['picked_up_at' => null, 'picked_up_by' => null];
+            }
+            // A logistics correction does not reverse a recorded collection or bank payment.
+            $delivery->forceFill($attributes)->save();
+            $this->event($order, 'delivery_actions_corrected', $actor, $previous, $target, $reason);
 
             return $this->fresh($delivery);
         }, 3);

@@ -144,6 +144,7 @@ Route::middleware(['auth', 'can:admin'])
         Route::middleware('can:owner')->group(function () {
             Route::get('/deliveries/courier-preview', Admin\Deliveries\Index::class)->name('deliveries.courier-preview');
             Route::get('/operator-sales', Admin\OperatorSales\Index::class)->name('operator-sales');
+            Route::get('/accounting', Admin\Accounting\Index::class)->name('accounting');
             Route::get('/categories', Admin\Categories\Index::class)->name('categories');
             Route::get('/brands', Admin\Brands\Index::class)->name('brands');
             Route::get('/products', Admin\Products\Index::class)->name('products');

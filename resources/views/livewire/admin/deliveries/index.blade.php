@@ -14,6 +14,8 @@
         .delivery-board .db-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
         .delivery-board .db-tab{border:1px solid var(--delivery-border);border-radius:9px;background:transparent;color:#c9cee0;padding:9px 13px;display:inline-flex;gap:9px;align-items:center;font-size:13px}
         .delivery-board .db-tab.is-selected{background:#ff790019;color:#ffad65;border-color:var(--delivery-orange)}
+        .delivery-board .db-tab-held{border-color:#b369db99;color:#d48bff}
+        .delivery-board .db-tab-held.is-selected{background:#b369db26;border-color:#b369db;color:#e1b4ff}
         .delivery-board .db-tab span{border-radius:6px;min-width:22px;padding:1px 6px;background:#414b65;color:#fff;font-size:11px}
         .delivery-board .db-meta-bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 16px;font-size:12px;color:var(--delivery-muted)}
         .delivery-board .db-live{display:inline-flex;align-items:center;gap:7px}.delivery-board .db-live::before{content:"";width:7px;height:7px;border-radius:50%;background:#28c76f}
@@ -26,7 +28,8 @@
         .delivery-board .db-order.is-picked-up{border-color:#4d9dff66;border-left-color:#4d9dff;background:#24364a}
         .delivery-board .db-order.is-delivered{border-color:#28c76f66;border-left-color:#28c76f;background:#223a36}
         .delivery-board .db-order.is-cancelled{border-color:#ea545566;border-left-color:#ea5455;background:#3f2d37}
-        .delivery-board .db-order.is-held{border-color:#ff9f4388}
+        .delivery-board .db-order.is-held{border-color:#b369db99}
+        .delivery-board .db-order.is-held .db-ordinal{background:#b369db26;color:#e1b4ff}
         .delivery-board .db-order-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;background:#151d311f;border-bottom:1px solid #ffffff0d;flex-wrap:wrap}
         .delivery-board .db-order-ref{display:flex;align-items:center;gap:12px}
         .delivery-board .db-ordinal{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#ff790022;color:#ffad65;font-size:17px;font-weight:700;flex-shrink:0}
@@ -37,7 +40,8 @@
         .delivery-board .db-status-stack{display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right}.delivery-board .db-status-stack small{font-size:11px}
         .delivery-board .db-status-delivered{background:#28c76f22;color:#6ee6a1}
         .delivery-board .db-status-cancelled{background:#ea545522;color:#ff9293}
-        .delivery-board .db-status-held{background:#ff9f4322;color:#ffbc7c}
+        .delivery-board .db-status-held{background:#b369db26;color:#e1b4ff;border:1px solid #b369db66}
+        .delivery-board .db-held-notice{background:#b369db14;border:1px solid #b369db55;color:#dfb4f4;padding:12px;border-radius:9px;font-size:12px}
         .delivery-board .db-order-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(270px,1fr)}
         .delivery-board .db-products{padding:18px;border-right:1px solid #ffffff0d}
         .delivery-board .db-product+.db-product{border-top:1px solid #ffffff12;padding-top:16px;margin-top:16px}
@@ -142,8 +146,8 @@
             </div>
         </div>
         <div class="db-tabs" role="group" aria-label="{{ __('delivery.title') }}">
-            @foreach(['all', 'active', 'delivered', 'cancelled'] as $tab)
-                <button type="button" class="db-tab {{ $status === $tab ? 'is-selected' : '' }}" wire:click="setStatus('{{ $tab }}')" aria-pressed="{{ $status === $tab ? 'true' : 'false' }}">
+            @foreach($isStaff ? ['all', 'active', 'held', 'delivered', 'cancelled'] : ['all', 'active', 'delivered', 'cancelled'] as $tab)
+                <button type="button" class="db-tab {{ $tab === 'held' ? 'db-tab-held' : '' }} {{ $status === $tab ? 'is-selected' : '' }}" wire:click="setStatus('{{ $tab }}')" aria-pressed="{{ $status === $tab ? 'true' : 'false' }}">
                     {{ __('delivery.'.$tab) }}
                     <span>{{ (int) ($tab === 'all' ? $counts->sum() : ($counts[$tab] ?? 0)) }}</span>
                 </button>
@@ -173,7 +177,7 @@
                 @php
                     $delivery = $entry['delivery'];
                     $multipleSuppliers = $delivery->items->groupBy(fn($item) => trim((string) $item->supplier_name))->count() > 1;
-                    $isHeld = $delivery->status === 'active' && !$delivery->is_eligible;
+                    $isHeld = $delivery->isHeld();
                     $isPickedUp = $delivery->status === 'active' && $delivery->isPickedUp();
                     $visibleStatus = $isHeld ? 'held' : ($isPickedUp ? 'picked_up' : $delivery->status);
                     $orderComments = $comments->get($delivery->order_id, collect());
@@ -197,7 +201,7 @@
                         </div>
                     </div>
                     @if($isHeld)
-                        <div class="db-warning m-1 mb-0">{{ __('delivery.held_help') }}</div>
+                        <div class="db-held-notice m-1 mb-0">{{ __('delivery.held_help') }}</div>
                     @endif
                     <div class="db-order-body">
                         <div class="db-products">
@@ -300,10 +304,13 @@
                                     <button type="button" class="btn btn-sm btn-outline-danger" wire:click="openCancel({{ $delivery->id }})">{{ __('delivery.cancel_delivery') }}</button>
                                 @endif
                             @endif
+                            @if($isOwner && $delivery->canCorrectActions() && $delivery->order?->status !== \App\Models\Order::CANCELLED)
+                                <button type="button" class="btn btn-sm btn-outline-warning" wire:click="openCorrection({{ $delivery->id }})">{{ __('delivery.correct_actions') }}</button>
+                            @endif
                         </div>
-                        @if(!$isPreview && $delivery->canPickUp())
+                        @if(!$isPreview && !$isHeld && $delivery->canPickUp())
                             <button type="button" class="btn db-primary" wire:click="openPickedUp({{ $delivery->id }})">{{ __('delivery.mark_picked_up') }}</button>
-                        @elseif(!$isPreview && $delivery->canDeliver() && $delivery->isPickedUp())
+                        @elseif(!$isPreview && !$isHeld && $delivery->canDeliver() && $delivery->isPickedUp())
                             <button type="button" class="btn btn-success" wire:click="openDelivered({{ $delivery->id }})">✓ {{ $delivery->requiresCashReceipt() ? __('delivery.cash_delivery') : __('delivery.mark_delivered') }}</button>
                         @elseif(!$isPreview && $delivery->status === 'delivered' && $delivery->requiresCashReceipt())
                             <button type="button" class="btn db-primary" wire:click="openCashReceipt({{ $delivery->id }})">{{ __('delivery.receive_cash') }}</button>
@@ -327,7 +334,7 @@
 
     @if($modal)
         @php
-            $modalTitles = ['edit' => 'edit_title', 'postpone' => 'postpone_title', 'comment' => 'comment', 'cancel' => 'cancel_title', 'picked-up' => 'confirm_picked_up', 'delivered' => 'confirm_delivered', 'cash-delivered' => 'confirm_cash_delivered', 'cash-received' => 'confirm_cash_received', 'history' => 'history', 'schedule' => 'schedule'];
+            $modalTitles = ['edit' => 'edit_title', 'postpone' => 'postpone_title', 'comment' => 'comment', 'cancel' => 'cancel_title', 'picked-up' => 'confirm_picked_up', 'delivered' => 'confirm_delivered', 'cash-delivered' => 'confirm_cash_delivered', 'cash-received' => 'confirm_cash_received', 'history' => 'history', 'schedule' => 'schedule', 'correction' => 'correct_actions'];
         @endphp
         <div class="modal d-block db-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="delivery-modal-title" wire:key="delivery-modal-{{ $modal }}-{{ $activeId ?? 'settings' }}">
             <div class="modal-dialog modal-dialog-centered">
@@ -341,7 +348,7 @@
                         </div>
                         <button type="button" class="db-close" wire:click="closeModal" aria-label="{{ __('delivery.close') }}">×</button>
                     </div>
-                    <form wire:submit="{{ $modal === 'edit' ? 'saveEdit' : ($modal === 'schedule' ? 'saveSchedule' : 'saveAction') }}">
+                    <form wire:submit="{{ $modal === 'edit' ? 'saveEdit' : ($modal === 'schedule' ? 'saveSchedule' : ($modal === 'correction' ? 'saveCorrection' : 'saveAction')) }}">
                         <div class="modal-body">
                             @if($errors->any())
                                 <div class="alert alert-danger" role="alert">
@@ -393,6 +400,18 @@
                                     </div>
                                 @endforeach
                                 <div class="db-muted mt-2">{{ __('delivery.financial_help') }} <a href="{{ route('admin.orders.show', $selectedDelivery->order_id) }}">{{ __('delivery.edit_order') }} ↗</a></div>
+                            @elseif($modal === 'correction' && $isOwner && $selectedDelivery)
+                                <p class="db-muted">{{ __('delivery.correct_actions_help') }}</p>
+                                <p>{{ __('delivery.current_action') }}: <strong>{{ $selectedDelivery->status === 'delivered' ? __('delivery.delivered') : __('delivery.picked_up') }}</strong></p>
+                                <label for="delivery-correction-target">{{ __('delivery.return_to_action') }}</label>
+                                <select id="delivery-correction-target" class="form-select mb-2" wire:model="correctionTarget" required>
+                                    <option value="not_picked_up">{{ __('delivery.not_picked_up') }}</option>
+                                    @if($selectedDelivery->status === 'delivered' && $selectedDelivery->isPickedUp())
+                                        <option value="picked_up">{{ __('delivery.picked_up') }}</option>
+                                    @endif
+                                </select>
+                                <label for="delivery-correction-reason">{{ __('delivery.reason') }}</label>
+                                <textarea id="delivery-correction-reason" class="form-control" rows="3" wire:model="reason" required minlength="2" maxlength="2000"></textarea>
                             @elseif($modal === 'schedule' && $isOwner)
                                 <p class="db-muted">{{ __('delivery.schedule_help') }}</p>
                                 <div class="db-days">
@@ -410,7 +429,7 @@
                                         <div class="db-muted mt-1">{{ $event->created_at->timezone('Asia/Tbilisi')->format('d.m.Y H:i') }} · {{ $event->user?->name ?? __('delivery.system') }}</div>
                                         @if(($event->from || $event->to) && $event->type !== 'delivery_assigned')
                                             @php
-                                                $eventValues = ['active' => __('delivery.active'), 'delivered' => __('delivery.delivered'), 'cancelled' => __('delivery.cancelled'), 'ready' => __('delivery.active'), 'held' => __('delivery.held'), 'picked_up' => __('delivery.picked_up'), 'paid' => __('delivery.paid'), 'unpaid' => __('delivery.unpaid')];
+                                                $eventValues = ['active' => __('delivery.active'), 'delivered' => __('delivery.delivered'), 'cancelled' => __('delivery.cancelled'), 'ready' => __('delivery.active'), 'held' => __('delivery.held'), 'picked_up' => __('delivery.picked_up'), 'not_picked_up' => __('delivery.not_picked_up'), 'paid' => __('delivery.paid'), 'unpaid' => __('delivery.unpaid')];
                                             @endphp
                                             <div class="db-muted mt-1">{{ $eventValues[$event->from] ?? $event->from }} → {{ $eventValues[$event->to] ?? $event->to }}</div>
                                         @endif
@@ -463,9 +482,9 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-outline-secondary" wire:click="closeModal">{{ __('delivery.close') }}</button>
                             @if($modal !== 'history')
-                                <button type="submit" class="btn {{ $modal === 'cancel' ? 'btn-danger' : (in_array($modal, ['delivered', 'cash-delivered', 'cash-received'], true) ? 'btn-success' : 'db-primary') }}" wire:loading.attr="disabled" wire:target="saveEdit,saveAction,saveSchedule">
-                                    <span wire:loading.remove wire:target="saveEdit,saveAction,saveSchedule">{{ $modal === 'picked-up' ? __('delivery.confirm_all_picked_up') : ($modal === 'cash-received' ? __('delivery.cash_receipt_only_confirm', ['amount' => money(($expectedCashAmount ?? 0) / 100, 2)]) : ($modal === 'cash-delivered' ? __('delivery.cash_received_confirm', ['amount' => money(($expectedCashAmount ?? 0) / 100, 2)]) : ($modal === 'delivered' ? __('delivery.mark_delivered') : ($modal === 'cancel' ? __('delivery.cancel_delivery') : __('delivery.save'))))) }}</span>
-                                    <span wire:loading wire:target="saveEdit,saveAction,saveSchedule">{{ __('delivery.saving') }}</span>
+                                <button type="submit" class="btn {{ $modal === 'cancel' ? 'btn-danger' : (in_array($modal, ['delivered', 'cash-delivered', 'cash-received'], true) ? 'btn-success' : 'db-primary') }}" wire:loading.attr="disabled" wire:target="saveEdit,saveAction,saveSchedule,saveCorrection">
+                                    <span wire:loading.remove wire:target="saveEdit,saveAction,saveSchedule,saveCorrection">{{ $modal === 'picked-up' ? __('delivery.confirm_all_picked_up') : ($modal === 'cash-received' ? __('delivery.cash_receipt_only_confirm', ['amount' => money(($expectedCashAmount ?? 0) / 100, 2)]) : ($modal === 'cash-delivered' ? __('delivery.cash_received_confirm', ['amount' => money(($expectedCashAmount ?? 0) / 100, 2)]) : ($modal === 'delivered' ? __('delivery.mark_delivered') : ($modal === 'cancel' ? __('delivery.cancel_delivery') : __('delivery.save'))))) }}</span>
+                                    <span wire:loading wire:target="saveEdit,saveAction,saveSchedule,saveCorrection">{{ __('delivery.saving') }}</span>
                                 </button>
                             @endif
                         </div>

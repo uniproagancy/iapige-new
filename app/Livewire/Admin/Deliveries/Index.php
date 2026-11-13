@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Deliveries;
 
+use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryItem;
 use App\Models\OrderEvent;
@@ -12,6 +13,7 @@ use App\Models\User;
 use App\Services\Delivery\OrderDeliveryManager;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -49,6 +51,11 @@ class Index extends Component
 
     #[Locked]
     public ?int $expectedCashAmount = null;
+
+    #[Locked]
+    public ?string $correctionVersion = null;
+
+    public string $correctionTarget = 'not_picked_up';
 
     public array $form = [];
 
@@ -123,8 +130,9 @@ class Index extends Component
 
     public function setStatus(string $status): void
     {
-        $this->actor();
-        abort_unless(in_array($status, ['active', 'delivered', 'cancelled', 'all'], true), 422);
+        $user = $this->actor();
+        abort_unless(in_array($status, ['active', 'held', 'delivered', 'cancelled', 'all'], true), 422);
+        abort_if($status === 'held' && (! $user->isStaff() || $this->courierPreview), 403);
         $this->status = $status;
         $this->resetPage();
     }
@@ -154,6 +162,7 @@ class Index extends Component
         $digits = preg_replace('/\D/', '', $term);
 
         return OrderDelivery::query()->visibleTo($this->actor())
+            ->when($this->courierPreview, fn (Builder $query) => $query->forCourierBoard())
             ->when(! $this->allDates && $this->validDate($this->date), fn ($q) => $q->whereDate('delivery_date', $this->date))
             ->when($term !== '', function ($q) use ($term, $digits) {
                 $q->where(function ($search) use ($term, $digits) {
@@ -170,6 +179,7 @@ class Index extends Component
     protected function findDelivery(int $id): OrderDelivery
     {
         return OrderDelivery::query()->visibleTo($this->actor())
+            ->when($this->courierPreview, fn (Builder $query) => $query->forCourierBoard())
             ->with(['items', 'courier', 'order.completedBy.user:id,name'])->findOrFail($id);
     }
 
@@ -181,6 +191,8 @@ class Index extends Component
         $this->modal = $modal;
         $this->reason = '';
         $this->expectedCashAmount = null;
+        $this->correctionVersion = null;
+        $this->correctionTarget = 'not_picked_up';
     }
 
     public function openEdit(int $id): void
@@ -299,6 +311,32 @@ class Index extends Component
         $this->open('picked-up', $delivery);
     }
 
+    public function openCorrection(int $id): void
+    {
+        abort_unless($this->actor()->isAdmin() && ! $this->courierPreview, 403);
+        $delivery = $this->findDelivery($id);
+        abort_unless($delivery->canCorrectActions() && $delivery->order->status !== Order::CANCELLED, 422);
+        $this->open('correction', $delivery);
+        $this->correctionVersion = $this->manager()->actionCorrectionVersion($delivery);
+        $this->correctionTarget = $delivery->status === OrderDelivery::DELIVERED && $delivery->isPickedUp()
+            ? 'picked_up' : 'not_picked_up';
+    }
+
+    public function saveCorrection(): void
+    {
+        $user = $this->actor();
+        abort_unless($user->isAdmin() && ! $this->courierPreview, 403);
+        abort_unless($this->modal === 'correction' && $this->activeId && $this->correctionVersion !== null, 422);
+        $this->findDelivery($this->activeId);
+        $this->validate([
+            'correctionTarget' => 'required|in:not_picked_up,picked_up',
+            'reason' => 'required|string|min:2|max:2000',
+        ]);
+        $this->manager()->correctActions($this->activeId, $this->correctionTarget, $this->reason, $user, $this->correctionVersion);
+        $this->status = 'all';
+        $this->saved();
+    }
+
     public function openCashReceipt(int $id): void
     {
         $user = $this->actor();
@@ -389,8 +427,9 @@ class Index extends Component
         $this->modal = '';
         $this->activeId = null;
         $this->expectedCashAmount = null;
+        $this->correctionVersion = null;
         $this->resetValidation();
-        $this->reset(['form', 'itemForms', 'reason', 'newDate']);
+        $this->reset(['form', 'itemForms', 'reason', 'newDate', 'correctionTarget']);
     }
 
     protected function saved(): void
@@ -403,7 +442,8 @@ class Index extends Component
     {
         $user = $this->actor();
         $isStaff = $user->isStaff() && ! $this->courierPreview;
-        if (! in_array($this->status, ['active', 'delivered', 'cancelled', 'all'], true)) {
+        if (! in_array($this->status, ['active', 'held', 'delivered', 'cancelled', 'all'], true)
+            || ($this->status === 'held' && ! $isStaff)) {
             $this->status = 'all';
         }
         if (! $this->validDate($this->date)) {
@@ -411,7 +451,14 @@ class Index extends Component
         }
         $base = $this->baseQuery();
         $counts = (clone $base)->select('status')->selectRaw('COUNT(*) AS total')->groupBy('status')->pluck('total', 'status');
-        $query = (clone $base)->when($this->status !== 'all', fn ($q) => $q->where('status', $this->status))
+        $heldCount = (clone $base)->held()->count();
+        $counts['active'] = max(0, (int) ($counts['active'] ?? 0) - $heldCount);
+        $counts['held'] = $heldCount;
+        $query = (clone $base)
+            ->when($this->status === 'held', fn (Builder $query) => $query->held())
+            ->when($this->status === 'active', fn (Builder $query) => $query->where('status', OrderDelivery::ACTIVE)
+                ->whereNotIn('id', OrderDelivery::query()->held()->select('id')))
+            ->when(in_array($this->status, ['delivered', 'cancelled'], true), fn (Builder $query) => $query->where('status', $this->status))
             ->with(['items', 'courier:id,name', 'order.completedBy.user:id,name'])
             ->orderBy(OrderDeliveryItem::select('supplier_name')->whereColumn('order_delivery_id', 'order_deliveries.id')->where('is_active', true)->orderBy('supplier_name')->limit(1))
             ->orderBy('delivery_date')
@@ -440,7 +487,14 @@ class Index extends Component
                 $groups[$supplier][$index]['ordinal'] = $ordinals[$id];
             }
         }
-        $selected = $this->activeId ? $this->findDelivery($this->activeId) : null;
+        $selected = null;
+        if ($this->activeId) {
+            try {
+                $selected = $this->findDelivery($this->activeId);
+            } catch (ModelNotFoundException) {
+                $this->closeModal();
+            }
+        }
         $events = $selected && $this->modal === 'history'
             ? OrderEvent::where('order_id', $selected->order_id)->where('type', 'like', 'delivery_%')->with('user:id,name')->latest('id')->limit(100)->get()
             : collect();

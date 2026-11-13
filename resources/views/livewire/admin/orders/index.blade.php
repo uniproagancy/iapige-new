@@ -38,7 +38,13 @@
     ];
 @endphp
 
-<div>
+<div class="orders-board">
+    <style>
+        .orders-board .adm-held-tab{color:#d48bff;border:1px solid #b369db;background:transparent}
+        .orders-board .adm-held-tab:hover,.orders-board .adm-held-tab.is-selected{color:#f2ddff;background:#b369db30}
+        .orders-board .adm-held-badge{color:#d48bff;background:#b369db26;border:1px solid #b369db66}
+        .orders-board .adm-row-held>td:first-child{border-left:3px solid #b369db}
+    </style>
     @error('paymentBank') <div class="alert alert-danger p-1" role="alert">{{ $message }}</div> @enderror
     @error('transferPayment') <div class="alert alert-danger p-1" role="alert">{{ $message }}</div> @enderror
     <div class="d-flex flex-wrap gap-1 mb-2">
@@ -57,6 +63,7 @@
             @continue (in_array($key, \App\Livewire\Admin\Orders\Index::ARCHIVED, true) && $status !== $key)
             {{-- cancelled has a chip of its own below --}}
             @continue ($key === 'cancelled')
+            @continue ($key === 'held')
             <button type="button"
                     @class(['btn btn-sm',
                         'btn-'.($tone[$key] ?? 'secondary') => $status === $key,
@@ -66,6 +73,14 @@
                 <span class="badge bg-white text-dark ms-50">{{ $counts[$key] }}</span>
             </button>
         @endforeach
+
+        <button type="button"
+                @class(['btn btn-sm adm-held-tab', 'is-selected' => $status === 'held'])
+                wire:click="$set('status', '{{ $status === 'held' ? '' : 'held' }}')"
+                aria-pressed="{{ $status === 'held' ? 'true' : 'false' }}">
+            {{ __('delivery.held') }}
+            <span class="badge bg-white text-dark ms-50">{{ $counts['held'] ?? 0 }}</span>
+        </button>
 
         {{-- what is finished, each on its own chip and out of the day's list --}}
         @if ($done)
@@ -221,9 +236,10 @@
                 </thead>
                 <tbody>
                     @forelse ($orders as $order)
+                        @php($isDeliveryHeld = isset($heldIds[$order->id]))
                         <tr wire:key="o-{{ $order->id }}"
                             @class([
-                                $rowTint[$order->status] ?? '',
+                                $isDeliveryHeld ? 'adm-row-held' : ($rowTint[$order->status] ?? ''),
                                 'table-active' => in_array($order->id, $selected),
                             ])>
                             <td>
@@ -269,9 +285,14 @@
                             </td>
 
                             <td class="text-center">
-                                <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
-                                    {{ $statuses[$order->status] ?? $order->status }}
-                                </span>
+                                @if($isDeliveryHeld)
+                                    <span class="badge rounded-pill adm-held-badge">{{ __('delivery.held') }}</span>
+                                    <small class="text-muted d-block mt-50">{{ $statuses[$order->status] ?? $order->status }}</small>
+                                @else
+                                    <span class="badge rounded-pill badge-light-{{ $tone[$order->status] ?? 'secondary' }}">
+                                        {{ $statuses[$order->status] ?? $order->status }}
+                                    </span>
+                                @endif
                             </td>
 
                             <td class="text-end text-nowrap">

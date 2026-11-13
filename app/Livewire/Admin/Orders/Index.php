@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Orders;
 
 use App\Models\Order;
+use App\Models\OrderDelivery;
 use App\Models\PaymentMethod;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentCheck;
@@ -26,6 +27,8 @@ class Index extends Component
      | not done -- somebody has the money to chase -- so it stays in the list.
      */
     public const DONE = 'done';
+
+    public const HELD = 'held';
 
     public const ARCHIVED = Order::ARCHIVED;
 
@@ -94,6 +97,7 @@ class Index extends Component
             ->when($this->status === self::DONE, fn ($q) => $q
                 ->where('status', Order::COMPLETED)
                 ->where('is_paid', true))
+            ->when($this->status === self::HELD, fn ($q) => $this->heldOrders($q))
             /* Somebody searching for a number wants that order, finished or
                not; the archive is only kept out of the open list. */
             ->when(
@@ -101,7 +105,7 @@ class Index extends Component
                 fn ($q) => $this->inHand($q),
             )
             ->when(
-                $this->status !== '' && $this->status !== self::DONE,
+                $this->status !== '' && ! in_array($this->status, [self::DONE, self::HELD], true),
                 fn ($q) => $q->where('status', $this->status),
             )
             ->when($this->payment, fn ($q) => $q->where('payment', $this->payment))
@@ -124,6 +128,11 @@ class Index extends Component
             ->orWhere(fn ($unpaid) => $unpaid->where('status', Order::COMPLETED)->where('is_paid', false)));
     }
 
+    protected function heldOrders($query)
+    {
+        return $query->whereIn('orders.id', OrderDelivery::query()->held()->select('order_id'));
+    }
+
     public function render()
     {
         $orders = $this->query()->paginate($this->perPage);
@@ -135,6 +144,8 @@ class Index extends Component
             'totals' => $this->totals(),
             'methods' => PaymentMethod::orderBy('sort_order')->orderBy('id')->get(),
             'canDelete' => Gate::allows('owner'),
+            'heldIds' => OrderDelivery::query()->held()->whereIn('order_id', $orders->pluck('id'))
+                ->pluck('order_id')->flip(),
 
             /* Which rows have an online payment still waiting on the bank. */
             'awaiting' => Order::whereKey($orders->pluck('id'))
@@ -152,15 +163,19 @@ class Index extends Component
 
     public function statuses(): array
     {
-        return Order::labels();
+        return [...Order::labels(), self::HELD => __('delivery.held')];
     }
 
     protected function statusCounts(): array
     {
-        return Order::selectRaw('status, count(*) as n')
+        $counts = Order::selectRaw('status, count(*) as n')
             ->groupBy('status')
             ->pluck('n', 'status')
             ->all();
+
+        $counts[self::HELD] = $this->heldOrders(Order::query())->count();
+
+        return $counts;
     }
 
     protected function totals(): array
