@@ -57,14 +57,16 @@ class CredoInstallment implements PaymentDriver
 
     public function start(Order $order, array $options = []): PaymentTransaction
     {
+        $code = $this->attemptCode($order);
+
         return PaymentTransaction::create([
             'order_id' => $order->id,
             'driver' => $this->driverName(),
 
-            'external_id' => (string) $order->number,
+            'external_id' => $code,
             'amount' => $this->total($order),
             'status' => PaymentTransaction::PENDING,
-            'request' => $this->payload($order),
+            'request' => $this->payload($order, $code),
 
             /* Signed, because whoever pays may not be whoever ordered: the
                customer opening the pay link on another phone, or an operator
@@ -208,7 +210,42 @@ class CredoInstallment implements PaymentDriver
         return $transaction;
     }
 
-    public function payload(Order $order): array
+    /*
+     | Each application at Credo under a code of its own.
+     |
+     | Credo keeps an application for ten or fifteen minutes and then lets it
+     | lapse, but the code stays taken: a second one sent under the order's
+     | number met a page that was not there. The first attempt keeps the
+     | number itself; each one after it gets -2, -3 and so on behind it.
+     */
+    protected function attemptCode(Order $order): string
+    {
+        $taken = PaymentTransaction::where('driver', $this->driverName())
+            ->where(fn ($q) => $q->where('external_id', $order->number)
+                ->orWhere('external_id', 'like', $order->number.'-%'))
+            ->pluck('external_id')
+            ->flip();
+
+        $code = (string) $order->number;
+
+        for ($n = 2; isset($taken[$code]); $n++) {
+            $code = $order->number.'-'.$n;
+        }
+
+        return $code;
+    }
+
+    /* The code of the attempt now open, which the form hands to Credo. */
+    protected function currentCode(Order $order): string
+    {
+        return (string) ($order->transactions()
+            ->where('driver', $this->driverName())
+            ->where('status', PaymentTransaction::PENDING)
+            ->latest('id')
+            ->value('external_id') ?? $order->number);
+    }
+
+    public function payload(Order $order, ?string $code = null): array
     {
         $fee = $this->fee();
 
@@ -222,7 +259,7 @@ class CredoInstallment implements PaymentDriver
 
         return [
             'merchantId' => $this->shopId(),
-            'orderCode' => (string) $order->number,
+            'orderCode' => $code ?? $this->currentCode($order),
             'check' => $this->checksum($products),
             'products' => $products,
         ];
