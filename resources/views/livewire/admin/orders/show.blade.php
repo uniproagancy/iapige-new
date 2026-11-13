@@ -466,6 +466,14 @@
                             {!! $icon('phone', 'me-25') !!}{{ __('admin.pay_link_sms') }}
                         </button>
 
+                        {{-- Credo lets an application lapse within minutes; this lets go
+                             of the old one so the same link opens a new one --}}
+                        <button type="button" class="btn btn-outline-warning w-100 mb-1"
+                                wire:click="renewPayLink" wire:loading.attr="disabled" wire:target="renewPayLink"
+                                wire:confirm="{{ __('admin.pay_link_renew_confirm') }}">
+                            {!! $icon('sync', 'me-25') !!}{{ __('admin.pay_link_renew') }}
+                        </button>
+
                         {{-- the tab is opened at once, while the click still counts as the
                              operator's, and pointed at the pay page once the fee is in --}}
                         <a class="btn btn-primary w-100" href="{{ $payLink }}" target="_blank" rel="noopener"

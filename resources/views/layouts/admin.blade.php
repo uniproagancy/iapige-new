@@ -16,6 +16,14 @@
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600&display=swap">
 
+    {{-- The template's own scripts, as plain scripts and in the order it
+         ships them: they leave their names on the window, which a bundled
+         module cannot do. Deferred, so they run in this order once the page
+         is read, ahead of the bundle below. --}}
+    @foreach (['vendors.min.js', 'jquery.sticky.js', 'feather-icons.min.js', 'app-menu.js', 'app.js'] as $script)
+        <script defer src="{{ asset('dashboard-assets/js/'.$script) }}?v={{ @filemtime(public_path('dashboard-assets/js/'.$script)) }}"></script>
+    @endforeach
+
     @vite(['resources/dashboard/admin.css', 'resources/dashboard/admin.js'])
 
     @livewireStyles

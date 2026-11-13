@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Models\PaymentMethod;
 use App\Models\PaymentTransaction;
+use App\Models\QuickPaymentStart;
 use App\Services\Delivery\OrderDeliveryManager;
 use App\Services\Facebook\Pixel;
 use App\Services\Payments\PaymentCheck;
@@ -299,6 +300,56 @@ class Show extends Component
         $this->order->refresh()->load(['items.product.images', 'events.user']);
 
         $this->dispatch('toast', message: __('admin.pay_link_sent_toast'));
+    }
+
+    /*
+     | A new application at the bank, from the same link.
+     |
+     | Credo lets an application lapse after ten or fifteen minutes. The shop
+     | still held it as waiting and would not start another while it could not
+     | be sure the first was unpaid, so the customer's link led nowhere. The
+     | bank is asked first: a payment that went through is never let go, and
+     | one confirmed later still settles the order.
+     */
+    public function renewPayLink(): void
+    {
+        if (! $this->payLink()) {
+            $this->dispatch('toast', type: 'error', message: __('admin.pay_link_unavailable'));
+
+            return;
+        }
+
+        $answer = app(PaymentCheck::class)->ask($this->order);
+        $this->order->refresh();
+
+        if ($answer['paid'] || $this->order->is_paid) {
+            $this->order->load(['items.product.images', 'events.user']);
+            $this->dispatch('toast', message: $answer['message'], type: $answer['type']);
+
+            return;
+        }
+
+        DB::transaction(function () {
+            $this->order->transactions()
+                ->where('status', PaymentTransaction::PENDING)
+                ->update(['status' => PaymentTransaction::CANCELLED, 'checked_at' => now()]);
+
+            /* A quick order also keeps a note of the attempt it is waiting on,
+               which would stand in the way of a new one just the same. */
+            QuickPaymentStart::where('order_id', $this->order->id)
+                ->whereIn('status', ['starting', 'pending', 'unknown'])
+                ->update(['status' => 'failed']);
+        });
+
+        $this->order->events()->create([
+            'user_id' => auth()->id(),
+            'type' => 'payment',
+            'note' => __('admin.pay_link_renewed'),
+        ]);
+
+        $this->order->refresh()->load(['items.product.images', 'events.user']);
+
+        $this->dispatch('toast', message: __('admin.pay_link_renewed_toast'));
     }
 
     /* The bank is the one that knows. The callback and the sweeper ask it on

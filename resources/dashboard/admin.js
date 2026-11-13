@@ -1,25 +1,20 @@
 /**
- * IAPI.GE admin — one bundle, built by Vite.
+ * IAPI.GE admin — our own part of it, built by Vite.
  *
- * The Vuexy template is jQuery-based, so the vendor bundle has to run before
- * app.js and app-menu.js and its globals must stay on window: the template's
- * own scripts, and any inline snippet in a Blade view, reach for them there.
+ * The Vuexy template's scripts are not in here. They are written as plain
+ * scripts that leave their names on the window -- "Unison = function(){…}"
+ * with no var in front -- and bundled into a module, which is always strict,
+ * that line throws. vendors.min.js stopped there, app-menu.js never ran, and
+ * on a phone the menu stayed hidden with nothing to open it. They are loaded
+ * the way the template ships them, from public/dashboard-assets/js, before
+ * this bundle; see layouts/admin.blade.php.
  */
 
-import './js/jquery-global.js';              // $ and jQuery on the window, first
-import './js/vendors/vendors.min.js';        // the plugins the template expects
-import './js/vendors/jquery.sticky.js';
-
 // bundled, these export rather than leak a global — so we name what they give
-import feather from './js/vendors/feather-icons.min.js';
 import toastr from './js/vendors/toastr.min.js';
 import Swal from './js/vendors/sweetalert2.all.min.js';
 
-import './js/core/app-menu.js';
-import './js/core/app.js';
-
 /* the template and our Blade views both call these by name */
-window.feather = window.feather ?? feather;
 window.toastr = window.toastr ?? toastr;
 window.Swal = window.Swal ?? Swal;
 
