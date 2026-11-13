@@ -49,7 +49,7 @@
         @endforeach
     </div>
 
-    @if ($selected)
+    @if ($selected && $canManage)
         <div class="card border-primary">
             <div class="card-body py-1">
                 <div class="d-flex flex-wrap align-items-center gap-1">
@@ -138,9 +138,11 @@
 
     <x-admin.list-card :title="__('admin.products')" :count="$products->total()">
         <x-slot:actions>
-            <a class="btn btn-primary" href="{{ route('admin.products.create') }}" wire:navigate>
-                {!! $icon('plus', 'me-25') !!}{{ __('admin.create') }}
-            </a>
+            @if ($canManage)
+                <a class="btn btn-primary" href="{{ route('admin.products.create') }}" wire:navigate>
+                    {!! $icon('plus', 'me-25') !!}{{ __('admin.create') }}
+                </a>
+            @endif
         </x-slot:actions>
 
         <x-slot:filters>
@@ -243,7 +245,9 @@
                 <thead>
                     <tr>
                         <th style="width:40px">
-                            <input type="checkbox" class="form-check-input" wire:model.live="selectPage">
+                            @if ($canManage)
+                                <input type="checkbox" class="form-check-input" wire:model.live="selectPage">
+                            @endif
                         </th>
                         <th style="width:56px"></th>
                         <th>{{ __('admin.name') }}</th>
@@ -268,8 +272,10 @@
 
                         <tr wire:key="p-{{ $product->id }}" @class(['table-active' => in_array($product->id, $selected)])>
                             <td>
-                                <input type="checkbox" class="form-check-input"
-                                       value="{{ $product->id }}" wire:model.live="selected">
+                                @if ($canManage)
+                                    <input type="checkbox" class="form-check-input"
+                                           value="{{ $product->id }}" wire:model.live="selected">
+                                @endif
                             </td>
 
                             <td>
@@ -285,7 +291,7 @@
 
                             <td>
                                 <a class="fw-bolder d-block text-body"
-                                   href="{{ $product->storefrontUrl() ?? route('admin.products.edit', $product) }}"
+                                   href="{{ $product->storefrontUrl() ?? ($canManage ? route('admin.products.edit', $product) : '#') }}"
                                    @if ($product->storefrontUrl()) target="_blank" rel="noopener" @endif>
                                     {{ $product->name ?: '—' }}
                                     @if ($product->taxonomy_lock)
@@ -343,18 +349,22 @@
                             </td>
 
                             <td class="text-center">
-                                <div class="form-check form-switch d-inline-flex align-items-center gap-50 mb-0">
-                                    <input type="checkbox" class="form-check-input mt-0"
-                                           id="live-{{ $product->id }}"
-                                           wire:click="togglePublished({{ $product->id }})"
-                                           wire:loading.attr="disabled"
-                                           wire:target="togglePublished({{ $product->id }})"
-                                           @checked($product->status === \App\Models\Product::STATUS_ACTIVE)>
+                                @if ($canManage)
+                                    <div class="form-check form-switch d-inline-flex align-items-center gap-50 mb-0">
+                                        <input type="checkbox" class="form-check-input mt-0"
+                                               id="live-{{ $product->id }}"
+                                               wire:click="togglePublished({{ $product->id }})"
+                                               wire:loading.attr="disabled"
+                                               wire:target="togglePublished({{ $product->id }})"
+                                               @checked($product->status === \App\Models\Product::STATUS_ACTIVE)>
 
-                                    <label class="form-check-label small" for="live-{{ $product->id }}">
-                                        {{ $statuses[$product->status] ?? $product->status }}
-                                    </label>
-                                </div>
+                                        <label class="form-check-label small" for="live-{{ $product->id }}">
+                                            {{ $statuses[$product->status] ?? $product->status }}
+                                        </label>
+                                    </div>
+                                @else
+                                    <span class="small">{{ $statuses[$product->status] ?? $product->status }}</span>
+                                @endif
                             </td>
 
                             <td class="text-end text-nowrap">
@@ -365,12 +375,14 @@
                                         {!! $icon('external') !!}
                                     </a>
 
-                                    <button type="button" class="btn btn-sm btn-icon btn-outline-secondary"
-                                            wire:click="unpublish({{ $product->id }})"
-                                            title="{{ __('admin.unpublish') }}">
-                                        {!! $icon('eye-off') !!}
-                                    </button>
-                                @else
+                                    @if ($canManage)
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary"
+                                                wire:click="unpublish({{ $product->id }})"
+                                                title="{{ __('admin.unpublish') }}">
+                                            {!! $icon('eye-off') !!}
+                                        </button>
+                                    @endif
+                                @elseif ($canManage)
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-success"
                                             wire:click="publish({{ $product->id }})"
                                             title="{{ __('admin.publish') }}">
@@ -378,18 +390,20 @@
                                     </button>
                                 @endif
 
-                                <a class="btn btn-sm btn-icon btn-outline-primary"
-                                   href="{{ route('admin.products.edit', $product) }}"
-                                   title="{{ __('admin.edit') }}">
-                                    {!! $icon('edit') !!}
-                                </a>
+                                @if ($canManage)
+                                    <a class="btn btn-sm btn-icon btn-outline-primary"
+                                       href="{{ route('admin.products.edit', $product) }}"
+                                       title="{{ __('admin.edit') }}">
+                                        {!! $icon('edit') !!}
+                                    </a>
 
-                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                        wire:click="delete({{ $product->id }})"
-                                        wire:confirm="{{ __('admin.confirm_delete') }}"
-                                        title="{{ __('admin.delete') }}">
-                                    {!! $icon('trash') !!}
-                                </button>
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
+                                            wire:click="delete({{ $product->id }})"
+                                            wire:confirm="{{ __('admin.confirm_delete') }}"
+                                            title="{{ __('admin.delete') }}">
+                                        {!! $icon('trash') !!}
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -448,10 +462,12 @@
                                 </div>
                             </div>
 
-                            <div class="form-check form-switch mt-1">
-                                <input type="checkbox" class="form-check-input" id="q-active" wire:model="quickActive">
-                                <label class="form-check-label" for="q-active">{{ __('admin.status_active') }}</label>
-                            </div>
+                            @if ($canManage)
+                                <div class="form-check form-switch mt-1">
+                                    <input type="checkbox" class="form-check-input" id="q-active" wire:model="quickActive">
+                                    <label class="form-check-label" for="q-active">{{ __('admin.status_active') }}</label>
+                                </div>
+                            @endif
 
                             <div class="form-check mt-1">
                                 <input type="checkbox" class="form-check-input" id="q-lock" wire:model="quickLock">

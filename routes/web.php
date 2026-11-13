@@ -139,6 +139,10 @@ Route::middleware(['auth', 'can:admin'])
         Route::get('/orders/{order}/invoice/preview', [InvoiceController::class, 'preview'])->name('orders.invoice.preview');
         Route::get('/orders/{order}', Admin\Orders\Show::class)->name('orders.show');
 
+        /* The product list, for its quick price and stock edit; everything
+           else on it answers to the owner alone. */
+        Route::get('/products', Admin\Products\Index::class)->name('products');
+
         /* The catalogue, the imports, the shop's own settings, its people and
            its suppliers stay with the owner. */
         Route::middleware('can:owner')->group(function () {
@@ -147,7 +151,6 @@ Route::middleware(['auth', 'can:admin'])
             Route::get('/accounting', Admin\Accounting\Index::class)->name('accounting');
             Route::get('/categories', Admin\Categories\Index::class)->name('categories');
             Route::get('/brands', Admin\Brands\Index::class)->name('brands');
-            Route::get('/products', Admin\Products\Index::class)->name('products');
             Route::get('/products/create', Admin\Products\Form::class)->name('products.create');
             Route::get('/products/{product}/edit', Admin\Products\Form::class)->name('products.edit');
 

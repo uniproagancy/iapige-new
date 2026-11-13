@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Supplier;
 use App\Support\Figure;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -128,6 +129,8 @@ class Index extends Component
     public function render()
     {
         return view('livewire.admin.products.index', [
+            /* An operator sees the list for its quick price and stock edit. */
+            'canManage' => Gate::allows('owner'),
             'products' => $this->query()->paginate($this->perPage),
             'categories' => $this->categoryOptions(),
             'brands' => Brand::orderBy('name')->get(['id', 'name']),
@@ -207,6 +210,8 @@ class Index extends Component
     /* One click in the row, for the state that gets flipped most often. */
     public function togglePublished(int $id): void
     {
+        Gate::authorize('owner');
+
         $product = Product::find($id);
 
         if (! $product) {
@@ -252,6 +257,12 @@ class Index extends Component
 
         $wasActive = $product->status === Product::STATUS_ACTIVE;
         $changedPrice = (float) $product->price !== round($price, 2);
+
+        /* An operator edits the price and the stock; whether the product is
+           on the shop at all stays the owner's call. */
+        if (! Gate::allows('owner')) {
+            $this->quickActive = $wasActive;
+        }
 
         /* Switching it on is the one change that can be refused, so it is
            settled before anything is written. */
@@ -318,6 +329,8 @@ class Index extends Component
 
     public function selectAllFiltered(): void
     {
+        Gate::authorize('owner');
+
         $this->selected = $this->query()->reorder()->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->selectPage = true;
     }
@@ -332,6 +345,8 @@ class Index extends Component
 
     public function publish(int $id): void
     {
+        Gate::authorize('owner');
+
         $product = Product::findOrFail($id);
 
         if (! $this->readyToPublish($product)) {
@@ -348,22 +363,30 @@ class Index extends Component
 
     public function unpublish(int $id): void
     {
+        Gate::authorize('owner');
+
         Product::whereKey($id)->update(['status' => Product::STATUS_DRAFT]);
     }
 
     public function archive(int $id): void
     {
+        Gate::authorize('owner');
+
         Product::whereKey($id)->update(['status' => Product::STATUS_ARCHIVED]);
     }
 
     public function delete(int $id): void
     {
+        Gate::authorize('owner');
+
         Product::findOrFail($id)->delete();
         $this->dispatch('toast', message: __('admin.deleted'));
     }
 
     public function bulkPublish(): void
     {
+        Gate::authorize('owner');
+
         $ready = Product::readyToPublish()->whereKey($this->selected)->pluck('id');
 
         Product::whereKey($ready)->whereNull('published_at')->update(['published_at' => now()]);
@@ -378,6 +401,8 @@ class Index extends Component
 
     public function bulkUnpublish(): void
     {
+        Gate::authorize('owner');
+
         Product::whereKey($this->selected)->update(['status' => Product::STATUS_DRAFT]);
         $this->clearSelection();
         $this->dispatch('toast', message: __('admin.saved'));
@@ -385,6 +410,8 @@ class Index extends Component
 
     public function bulkArchive(): void
     {
+        Gate::authorize('owner');
+
         Product::whereKey($this->selected)->update(['status' => Product::STATUS_ARCHIVED]);
         $this->clearSelection();
         $this->dispatch('toast', message: __('admin.saved'));
@@ -392,6 +419,8 @@ class Index extends Component
 
     public function bulkSetCategory(): void
     {
+        Gate::authorize('owner');
+
         if (! $this->bulkCategory) {
             return;
         }
@@ -410,6 +439,8 @@ class Index extends Component
 
     public function bulkSetBrand(): void
     {
+        Gate::authorize('owner');
+
         if (! $this->bulkBrand) {
             return;
         }
@@ -428,6 +459,8 @@ class Index extends Component
 
     public function bulkLockTaxonomy(bool $locked = true): void
     {
+        Gate::authorize('owner');
+
         Product::whereKey($this->selected)->update(['taxonomy_lock' => $locked]);
 
         $count = count($this->selected);
@@ -440,6 +473,8 @@ class Index extends Component
 
     public function bulkDelete(): void
     {
+        Gate::authorize('owner');
+
         $count = count($this->selected);
 
         Product::whereKey($this->selected)->delete();

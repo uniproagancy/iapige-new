@@ -134,6 +134,15 @@
                     </a>
                 </li>
 
+                {{-- an operator's way to the quick price and stock edit --}}
+                @cannot('owner')
+                    <li class="nav-item {{ $on('admin.products') }}">
+                        <a class="nav-link d-flex align-items-center" href="{{ route('admin.products') }}">
+                            {!! $icon('box') !!}<span>{{ __('admin.products') }}</span>
+                        </a>
+                    </li>
+                @endcannot
+
                 @can('owner')
 
                 <li class="nav-item {{ $on('admin.operator-sales') }}">
