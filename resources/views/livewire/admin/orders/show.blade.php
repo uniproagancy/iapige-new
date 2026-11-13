@@ -435,7 +435,7 @@
                         <hr class="my-1">
 
                         <p class="text-muted small">
-                            {{ __('admin.pay_link_note', ['days' => \App\Livewire\Admin\Orders\Show::LINK_DAYS]) }}
+                            {{ __('admin.pay_link_note') }}
                         </p>
 
                         <div class="input-group mb-1">

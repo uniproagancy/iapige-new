@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Orders;
 
-use App\Jobs\SendSmsJob;
 use App\Livewire\Admin\Orders\Concerns\EditsOrder;
 use App\Models\DeliveryCity;
 use App\Models\Order;
@@ -13,6 +12,7 @@ use App\Services\Delivery\OrderDeliveryManager;
 use App\Services\Facebook\Pixel;
 use App\Services\Payments\PaymentCheck;
 use App\Services\Payments\PaymentManager;
+use App\Services\Sender\SmsOffice;
 use App\Support\Phone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -25,8 +25,6 @@ class Show extends Component
     use EditsOrder;
 
     public const COMPLETED = 'completed';
-
-    public const LINK_DAYS = 3;
 
     public Order $order;
 
@@ -242,7 +240,11 @@ class Show extends Component
             return null;
         }
 
-        return URL::temporarySignedRoute('order.pay', now()->addDays(self::LINK_DAYS), [
+        /* No end date: a customer paying a week later, from the text message
+           still on their phone, was turned away. The signature still keeps
+           anyone from making one up, and the page itself refuses an order
+           that is paid or cancelled by then. */
+        return URL::signedRoute('order.pay', [
             'number' => $this->order->number,
         ]);
     }
@@ -273,11 +275,20 @@ class Show extends Component
             return;
         }
 
-        SendSmsJob::dispatch($this->order->phone, __('sms.pay_link', [
+        /* Sent there and then, not left for a queue: the operator is on the
+           phone with the customer and needs to know it went -- and with no
+           worker running, a queued message never did. */
+        $sent = app(SmsOffice::class)->send($this->order->phone, __('sms.pay_link', [
             'number' => $this->order->number,
             'total' => money($this->order->total),
             'link' => $link,
         ]));
+
+        if (! $sent) {
+            $this->dispatch('toast', type: 'error', message: __('admin.pay_link_sms_failed'));
+
+            return;
+        }
 
         $this->order->events()->create([
             'user_id' => auth()->id(),
