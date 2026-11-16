@@ -32,6 +32,9 @@
         .head { width: 100%; border-bottom: 2px solid #1A1D21; padding-bottom: 12px; }
         .head td { vertical-align: top; }
         .logo { font-size: 18px; font-weight: 700; letter-spacing: .14em; }
+        .brand { border-collapse: collapse; margin-bottom: 6px; }
+        .brand td { padding: 0; vertical-align: middle; }
+        .brand img { width: 40px; height: 40px; margin-right: 10px; }
         .muted { color: #6E747B; }
         .small { font-size: 10px; }
         .right { text-align: right; }
@@ -63,6 +66,7 @@
 
         .sum { width: 46%; margin-left: 54%; margin-top: 10px; border-collapse: collapse; }
         .sum td { padding: 3px 4px; }
+        .sum tr.vat td { padding-top: 6px; }
         .sum tr.total td {
             border-top: 2px solid #1A1D21; font-size: 14px; font-weight: 700; padding-top: 8px;
         }
@@ -85,7 +89,14 @@
 <table class="head">
     <tr>
         <td>
-            <div class="logo">{{ config('app.name') }}</div>
+            {{-- a small copy of the mark: the full one is a quarter of a
+                 megabyte and would ride along in every invoice --}}
+            <table class="brand">
+                <tr>
+                    <td><img src="{{ public_path('img/logo-invoice.png') }}" alt=""></td>
+                    <td><div class="logo">{{ config('app.name') }}</div></td>
+                </tr>
+            </table>
             <div class="muted small">
                 {{ $company['name'] }}<br>
                 @if ($company['tax_id'])
@@ -231,17 +242,28 @@
         </tr>
     @endif
 
-    <tr>
-        <td class="muted">{{ __('checkout.shipping') }}</td>
-        <td class="right nowrap">
-            {{ $order->shipping > 0 ? money($order->shipping) : __('checkout.free') }}
-        </td>
-    </tr>
+    {{-- delivery only when it costs something: "free" was a line that
+         told the reader nothing they would pay for --}}
+    @if ($order->shipping > 0)
+        <tr>
+            <td class="muted">{{ __('checkout.shipping') }}</td>
+            <td class="right nowrap">{{ money($order->shipping) }}</td>
+        </tr>
+    @endif
 
     <tr class="total">
         <td>{{ __('invoice.amount') }}</td>
         <td class="right nowrap">{{ money($order->total) }}</td>
     </tr>
+
+    {{-- the VAT already inside that total: the total less the total / 1.18 --}}
+    @php($vatRate = (float) config('shop.vat_rate', 0.18))
+    @if ($vatRate > 0)
+        <tr class="vat">
+            <td class="muted">{{ __('invoice.vat_included', ['rate' => round($vatRate * 100)]) }}</td>
+            <td class="right nowrap muted">{{ money(round((float) $order->total - (float) $order->total / (1 + $vatRate), 2), 2) }}</td>
+        </tr>
+    @endif
 </table>
 
 @unless ($order->is_paid)

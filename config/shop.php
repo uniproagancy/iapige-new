@@ -48,6 +48,10 @@ return [
 
     'invoice_valid_days' => (int) env('SHOP_INVOICE_DAYS', 3),
 
+    /* VAT is already in every price; an invoice shows how much of the total
+       it is. */
+    'vat_rate' => (float) env('SHOP_VAT_RATE', 0.18),
+
     'import_rate' => (int) env('IMPORT_RATE_PER_MINUTE', 240),
 
     'import_deadline_hours' => (int) env('IMPORT_DEADLINE_HOURS', 24),

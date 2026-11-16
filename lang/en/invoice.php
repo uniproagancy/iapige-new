@@ -12,6 +12,7 @@ return [
     'iban' => 'Account (IBAN)',
     'reference' => 'Reference',
     'amount' => 'Amount due',
+    'vat_included' => 'Including VAT (:rate%)',
     'reference_note' => 'Please include :number in the reference — that is what matches the payment to your order.',
     'reference_note_free' => 'Put the invoice number :number in the payment reference.',
 
