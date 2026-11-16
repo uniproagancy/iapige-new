@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Models\SupplierStock;
 use App\Support\Figure;
 use App\Support\XlsxReader;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class PriceListLoader
@@ -23,6 +24,8 @@ class PriceListLoader
     public const MODE_MERGE = 'merge';
 
     public const MODES = [self::MODE_REPLACE, self::MODE_MERGE];
+
+    public function __construct(protected ImportManager $imports) {}
 
     public function load(
         Supplier $supplier,
@@ -79,6 +82,7 @@ class PriceListLoader
             return [
                 'read' => 0,
                 'zeroed' => 0,
+                'offers' => 0,
                 'missing_url' => 0,
                 'no_stock_column' => empty($map['stock']),
                 'mode' => $mode,
@@ -86,30 +90,55 @@ class PriceListLoader
             ];
         }
 
-        foreach (array_chunk($rows, 500) as $chunk) {
-            SupplierStock::upsert(
-                $chunk,
-                ['supplier_id', 'external_id'],
-                ['quantity', 'cost_price', 'data', 'synced_at', 'updated_at'],
-            );
-        }
+        $gone = $mode === self::MODE_REPLACE ? $this->leaving($supplier, $rows) : [];
 
-        $zeroed = $mode === self::MODE_REPLACE
-            ? SupplierStock::where('supplier_id', $supplier->id)
-                ->whereNotIn('external_id', array_column($rows, 'external_id'))
-                ->where('quantity', '>', 0)
-                ->update(['quantity' => 0, 'synced_at' => $now])
-            : 0;
+        /* A full file is the whole of the supplier's stock: what was loaded
+           before is cleared and the file written in its place, so nothing of
+           an older file is left to be mistaken for this one. In one
+           transaction, so the shop never sees the table empty. */
+        DB::transaction(function () use ($supplier, $rows, $mode) {
+            if ($mode === self::MODE_REPLACE) {
+                SupplierStock::where('supplier_id', $supplier->id)->delete();
+            }
+
+            foreach (array_chunk($rows, 500) as $chunk) {
+                SupplierStock::upsert(
+                    $chunk,
+                    ['supplier_id', 'external_id'],
+                    ['quantity', 'cost_price', 'data', 'synced_at', 'updated_at'],
+                );
+            }
+        });
+
+        /* The site follows the file now rather than at the next import: a
+           product the file dropped was kept in stock until a run came by, and
+           with its row gone a run no longer comes by it at all. */
+        $offers = $mode === self::MODE_REPLACE ? $this->imports->applyStockFile($supplier, $gone) : 0;
 
         return [
             'read' => $read,
-            'zeroed' => $zeroed,
+            'zeroed' => count($gone),
+            'offers' => $offers,
             'missing_url' => $this->withoutLink($supplier, $map, $now),
 
             'no_stock_column' => empty($map['stock']),
             'mode' => $mode,
             'codes' => array_column($rows, 'external_id'),
         ];
+    }
+
+    /* The codes that were in stock under the last file and are not in this one. */
+    protected function leaving(Supplier $supplier, array $rows): array
+    {
+        $fresh = array_flip(array_map('strval', array_column($rows, 'external_id')));
+
+        return SupplierStock::where('supplier_id', $supplier->id)
+            ->where('quantity', '>', 0)
+            ->pluck('external_id')
+            ->map(fn ($id) => (string) $id)
+            ->reject(fn (string $id) => isset($fresh[$id]))
+            ->values()
+            ->all();
     }
 
     protected function withoutLink(Supplier $supplier, array $map, $now): int

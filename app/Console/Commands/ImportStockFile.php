@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Supplier;
 use App\Models\SupplierStock;
+use App\Services\Import\ImportManager;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportStockFile extends Command
@@ -19,7 +21,7 @@ class ImportStockFile extends Command
 
     protected $description = 'Import a stock spreadsheet (barcodes, optionally quantities)';
 
-    public function handle(): int
+    public function handle(ImportManager $imports): int
     {
         $supplier = Supplier::where('code', $this->argument('supplier'))->firstOrFail();
         $path = $this->argument('file');
@@ -75,16 +77,26 @@ class ImportStockFile extends Command
             return self::SUCCESS;
         }
 
-        foreach (array_chunk($rows, 500) as $chunk) {
-            SupplierStock::upsert($chunk, ['supplier_id', 'external_id'], ['quantity', 'synced_at', 'updated_at']);
-        }
+        $fresh = array_flip(array_column($rows, 'external_id'));
+        $gone = SupplierStock::where('supplier_id', $supplier->id)
+            ->where('quantity', '>', 0)
+            ->pluck('external_id')
+            ->reject(fn ($id) => isset($fresh[(string) $id]))
+            ->all();
 
-        $zeroed = SupplierStock::where('supplier_id', $supplier->id)
-            ->where('synced_at', '<', $now)
-            ->update(['quantity' => 0, 'synced_at' => $now]);
+        /* The old file is cleared and this one written in its place, in one
+           go so the shop never reads the table half-empty. */
+        DB::transaction(function () use ($supplier, $rows) {
+            SupplierStock::where('supplier_id', $supplier->id)->delete();
 
-        $this->info("{$supplier->code}: {$read} barcodes loaded, {$zeroed} zeroed out.");
-        $this->line('Run import:sync-stock '.$supplier->code.' to apply it to existing offers.');
+            foreach (array_chunk($rows, 500) as $chunk) {
+                SupplierStock::upsert($chunk, ['supplier_id', 'external_id'], ['quantity', 'synced_at', 'updated_at']);
+            }
+        });
+
+        $offers = $imports->applyStockFile($supplier, $gone);
+
+        $this->info("{$supplier->code}: {$read} barcodes loaded, ".count($gone)." gone from the file, {$offers} offers updated on the site.");
 
         return self::SUCCESS;
     }

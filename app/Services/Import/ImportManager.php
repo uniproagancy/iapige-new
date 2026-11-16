@@ -90,9 +90,57 @@ class ImportManager
             return [];
         }
 
-        $settled = 0;
+        $settled = $this->zeroOffers($supplier, $empty->all());
 
-        foreach ($empty->chunk(500) as $chunk) {
+        Log::channel('import')->info('empty rows settled without fetching', [
+            'supplier' => $supplier->code,
+            'rows' => $empty->count(),
+            'offers_zeroed' => $settled,
+        ]);
+
+        return $empty->mapWithKeys(fn ($id) => [(string) $id => true])->all();
+    }
+
+    /*
+     | A freshly loaded full stock file, put to the site's offers at once.
+     | $gone are the codes the previous file had in stock and this one does
+     | not: their rows are deleted with the old file, so no later run would
+     | ever come by them to take them off sale.
+     |
+     | Only codes a file once carried are touched. Offers are kept under the
+     | file's codes for most suppliers, but not for all, and zeroing every
+     | offer the new file does not name would empty those suppliers whole.
+     */
+    public function applyStockFile(Supplier $supplier, array $gone = []): int
+    {
+        $driver = class_exists((string) $supplier->driver) ? $this->driver($supplier) : null;
+
+        if ($driver instanceof SyncsStockFile) {
+            return $driver->syncStockFile();
+        }
+
+        $empty = SupplierStock::where('supplier_id', $supplier->id)
+            ->where('quantity', '<=', 0)
+            ->pluck('external_id')
+            ->all();
+
+        $zeroed = $this->zeroOffers($supplier, array_merge($gone, $empty));
+
+        if ($zeroed) {
+            Log::channel('import')->info('stock file applied: offers it no longer lists set to 0', [
+                'supplier' => $supplier->code,
+                'offers_zeroed' => $zeroed,
+            ]);
+        }
+
+        return $zeroed;
+    }
+
+    protected function zeroOffers(Supplier $supplier, array $externalIds): int
+    {
+        $zeroed = 0;
+
+        foreach (array_chunk(array_values(array_unique(array_map('strval', $externalIds))), 500) as $chunk) {
             $offers = ProductOffer::where('supplier_id', $supplier->id)
                 ->whereIn('external_id', $chunk)
                 ->where('stock', '>', 0)
@@ -109,15 +157,9 @@ class ImportManager
                 $this->importer->refreshFromOffers($product);
             }
 
-            $settled += $offers->count();
+            $zeroed += $offers->count();
         }
 
-        Log::channel('import')->info('empty rows settled without fetching', [
-            'supplier' => $supplier->code,
-            'rows' => $empty->count(),
-            'offers_zeroed' => $settled,
-        ]);
-
-        return $empty->mapWithKeys(fn ($id) => [(string) $id => true])->all();
+        return $zeroed;
     }
 }

@@ -56,6 +56,9 @@ class EliteDriver implements ChecksImportSource, SupplierDriver, SyncsStockFile
        which live in the product's sku as "elite-<barcode>". */
     public function syncStockFile(): int
     {
+        /* Read afresh: a file loaded since this driver was made replaced the
+           one it remembers. */
+        $this->stock = null;
         $file = $this->stockFile();
 
         if (! $file) {

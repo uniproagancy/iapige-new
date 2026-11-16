@@ -136,6 +136,7 @@
                                 <li class="text-muted">{{ __('admin.import_rows_kept') }}</li>
                             @else
                                 <li>{{ __('admin.import_rows_zeroed', ['count' => $result['zeroed']]) }}</li>
+                                <li>{{ __('admin.import_offers_applied', ['count' => $result['offers'] ?? 0]) }}</li>
                             @endif
                             @if ($result['missing_url'])
                                 <li class="text-warning">

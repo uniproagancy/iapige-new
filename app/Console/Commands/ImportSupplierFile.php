@@ -53,7 +53,7 @@ class ImportSupplierFile extends Command
 
         $this->option('merge')
             ? $this->info("{$supplier->code}: {$result['read']} rows merged in; nothing was zeroed out.")
-            : $this->info("{$supplier->code}: {$result['read']} rows loaded, {$result['zeroed']} zeroed out.");
+            : $this->info("{$supplier->code}: {$result['read']} rows loaded, {$result['zeroed']} gone from the file, {$result['offers']} offers updated on the site.");
         $this->line("Next: php artisan import:run {$supplier->code}");
 
         return self::SUCCESS;
