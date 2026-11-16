@@ -14,8 +14,8 @@ class SocialFeedImageController extends Controller
         abort_unless($path !== null, 404);
 
         return response()->file($path, [
-            'Content-Type' => $publication->mime_type, 'Cache-Control' => 'private, no-store, max-age=0',
+            'Content-Type' => $publication->mime_type, 'Cache-Control' => 'public, max-age=86400, immutable',
             'X-Content-Type-Options' => 'nosniff', 'X-Robots-Tag' => 'noindex, nofollow',
-        ])->setPrivate();
+        ])->setPublic();
     }
 }

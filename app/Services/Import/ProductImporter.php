@@ -14,6 +14,7 @@ use App\Services\Feeds\PrimaryFeatureFormatter;
 use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Support\CategoryTree;
 use App\Support\Slug;
+use App\Support\SpecTerms;
 use App\Support\SsdCapacity;
 use App\Support\Text;
 use Illuminate\Support\Facades\DB;
@@ -321,7 +322,44 @@ class ProductImporter
             return;
         }
 
-        $product->saveTranslations($rows);
+        $product->saveTranslations($this->keepGeorgian($product, $rows));
+    }
+
+    /* A name or description put into Georgian here is not undone by the next
+       import bringing the supplier's English again: that English is what the
+       English page shows instead. */
+    protected function keepGeorgian(Product $product, array $rows): array
+    {
+        $default = Language::defaultCode();
+        $existing = $product->translate($default, false);
+
+        if (! $existing || ! isset($rows[$default])) {
+            return $rows;
+        }
+
+        foreach (['name', 'description'] as $field) {
+            $had = (string) $existing->getAttribute($field);
+            $comes = (string) ($rows[$default][$field] ?? '');
+
+            if ($comes === '' || ! preg_match('/\p{Georgian}/u', strip_tags($had)) || preg_match('/\p{Georgian}/u', strip_tags($comes))) {
+                continue;
+            }
+
+            if (! filled($rows[SpecTerms::SOURCE][$field] ?? null)) {
+                $rows[SpecTerms::SOURCE][$field] = $comes;
+            }
+
+            $rows[$default][$field] = $had;
+        }
+
+        if (isset($rows[SpecTerms::SOURCE])) {
+            $english = &$rows[SpecTerms::SOURCE];
+            $english['name'] = $this->fit(filled($english['name'] ?? null) ? $english['name'] : $rows[$default]['name'], 255);
+            $english['slug'] ??= $product->translate(SpecTerms::SOURCE, false)?->slug
+                ?: $this->slugFor($product, $english['name'], SpecTerms::SOURCE);
+        }
+
+        return $rows;
     }
 
     /* A supplier that hands over a whole description where a one-line summary
@@ -449,15 +487,21 @@ class ProductImporter
                     continue;
                 }
 
-                foreach ($rows as $row) {
-                    if (! filled($row['value'] ?? null)) {
-                        continue;
-                    }
+                $byLocale = [];
 
+                foreach ($rows as $row) {
+                    if (filled($row['value'] ?? null)) {
+                        $byLocale[$row['locale']] = ['value' => $row['value']];
+                    }
+                }
+
+                /* Every import writes the supplier's English again, so the
+                   Georgian has to be given here, not once by hand. */
+                foreach (SpecTerms::lines($byLocale, 'value') as $locale => $line) {
                     $translations[] = [
                         'product_spec_id' => $specId,
-                        'locale' => $row['locale'],
-                        'value' => $row['value'],
+                        'locale' => $locale,
+                        'value' => $line['value'],
                     ];
                 }
             }

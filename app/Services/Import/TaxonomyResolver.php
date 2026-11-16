@@ -10,6 +10,7 @@ use App\Models\Language;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Support\Slug;
+use App\Support\SpecTerms;
 use App\Support\Text;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -154,12 +155,15 @@ class TaxonomyResolver
         );
 
         if ($value->wasRecentlyCreated) {
-            $value->saveTranslations(
+            /* The code above is made from the supplier's own words, so the
+               same "Black" still finds this value; only the label is Georgian. */
+            $value->saveTranslations(SpecTerms::lines(
                 collect($rows)
                     ->filter(fn ($r) => filled($r['value'] ?? null) && ! in_array(trim($r['value']), self::EMPTY_VALUES, true))
                     ->mapWithKeys(fn ($r) => [$r['locale'] => ['label' => trim($r['value'])]])
-                    ->all()
-            );
+                    ->all(),
+                'label',
+            ));
         }
 
         if ($typed !== null && ! $this->matchesTypedValue($attribute, $value, $typed)) {
@@ -348,7 +352,7 @@ class TaxonomyResolver
         );
 
         if ($attribute->wasRecentlyCreated) {
-            $attribute->saveTranslations([Language::defaultCode() => ['name' => $name]]);
+            $attribute->saveTranslations(SpecTerms::lines([Language::defaultCode() => ['name' => $name]], 'name'));
         }
 
         DB::table('supplier_attribute_map')->updateOrInsert(

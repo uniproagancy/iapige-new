@@ -40,7 +40,8 @@ class SocialFeedLink
 
     public function imageUrl(SocialPublication $publication): string
     {
-        return URL::route('social.feed-image', ['publication' => $publication->getKey(), 'key' => $this->key($publication)]);
+        // A new image URL also replaces Meta's cached blank-image response.
+        return URL::route('social.feed-image', ['publication' => $publication->getKey(), 'key' => $this->key($publication), 'v' => 2]);
     }
 
     /** This signature grants access only to one public product artwork, never account credentials. */
@@ -64,8 +65,8 @@ class SocialFeedLink
                 || ! in_array($publication->status, ['publishing', 'published', 'unknown'], true)) {
                 return null;
             }
-            $this->preparer->assertCurrent($publication);
-
+            // Meta can fetch the image after the product changes. Keep the signed
+            // artwork snapshot readable; the publisher validates facts before its write.
             return $this->preparer->imagePath($publication);
         } catch (Throwable) {
             return null;

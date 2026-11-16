@@ -15,11 +15,36 @@
 <meta property="og:image:width" content="{{ $seo['image_width'] }}">
 <meta property="og:image:height" content="{{ $seo['image_height'] }}">
 <meta property="og:image:alt" content="{{ $seo['image_alt'] }}">
-<meta property="og:locale" content="{{ str_replace('-', '_', app()->getLocale()) }}">
+@php
+    $ogLocales = [];
+    $ogLocaleFallbacks = ['ka' => 'ka_GE', 'en' => 'en_GB'];
+    foreach (\Mcamara\LaravelLocalization\Facades\LaravelLocalization::getSupportedLocales() as $code => $locale) {
+        $regional = is_array($locale) ? ($locale['regional'] ?? null) : null;
+        $regional = is_string($regional) ? str_replace('-', '_', $regional) : '';
+        if (! preg_match('/\A[a-z]{2}_[A-Z]{2}\z/D', $regional)) {
+            $regional = $ogLocaleFallbacks[$code] ?? '';
+        }
+        if ($regional !== '') {
+            $ogLocales[$code] = $regional;
+        }
+    }
+    $ogCurrentLocale = $ogLocales[app()->getLocale()] ?? null;
+    $ogAvailability = match ($seo['availability']) {
+        'https://schema.org/InStock', 'http://schema.org/InStock' => 'in stock',
+        'https://schema.org/OutOfStock', 'http://schema.org/OutOfStock' => 'out of stock',
+        'https://schema.org/PreOrder', 'http://schema.org/PreOrder' => 'preorder',
+        'https://schema.org/BackOrder', 'http://schema.org/BackOrder' => 'available for order',
+        'https://schema.org/Discontinued', 'http://schema.org/Discontinued' => 'discontinued',
+        default => null,
+    };
+@endphp
+@if ($ogCurrentLocale !== null)
+    <meta property="og:locale" content="{{ $ogCurrentLocale }}">
+@endif
 
-@foreach (\Mcamara\LaravelLocalization\Facades\LaravelLocalization::getSupportedLocales() as $code => $locale)
-    @continue ($code === app()->getLocale())
-    <meta property="og:locale:alternate" content="{{ str_replace('-', '_', $code) }}">
+@foreach ($ogLocales as $regional)
+    @continue ($regional === $ogCurrentLocale)
+    <meta property="og:locale:alternate" content="{{ $regional }}">
 @endforeach
 
 <meta name="twitter:card" content="summary_large_image">
@@ -32,7 +57,7 @@
 
     <meta property="product:price:amount" content="{{ number_format((float) $seo['price'], 2, '.', '') }}">
     <meta property="product:price:currency" content="GEL">
-    @if ($seo['availability'])
-        <meta property="product:availability" content="{{ $seo['availability'] }}">
+    @if ($ogAvailability !== null)
+        <meta property="product:availability" content="{{ $ogAvailability }}">
     @endif
 @endif
