@@ -2,16 +2,22 @@
 
 namespace App\Services\Import\Drivers\Elite;
 
+use App\Models\Product;
+use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Models\SupplierStock;
+use App\Services\Import\ChecksImportSource;
 use App\Services\Import\Concerns\ScansIdRange;
+use App\Services\Import\ProductImporter;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
+use App\Services\Import\SyncsStockFile;
 use App\Services\Import\TaxonomyResolver;
 use App\Support\Figure;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-class EliteDriver implements SupplierDriver
+class EliteDriver implements ChecksImportSource, SupplierDriver, SyncsStockFile
 {
     use ScansIdRange;
 
@@ -34,6 +40,62 @@ class EliteDriver implements SupplierDriver
         }
 
         yield from $this->idsToScan(defaultTo: 35000);
+    }
+
+    /* Before a run, so what the stock file says holds even for a product the
+       run never reaches: one gone from the file is skipped by toPayload, and
+       a skipped product used to keep the stock it had. */
+    public function checkSource(): void
+    {
+        if ($this->stockFile()) {
+            $this->syncStockFile();
+        }
+    }
+
+    /* Elite's offers are kept under its site ids; the file speaks of barcodes,
+       which live in the product's sku as "elite-<barcode>". */
+    public function syncStockFile(): int
+    {
+        $file = $this->stockFile();
+
+        if (! $file) {
+            return 0;
+        }
+
+        $prefix = strtolower($this->supplier->code).'-';
+        $changed = [];
+
+        ProductOffer::where('supplier_id', $this->supplier->id)
+            ->join('products', 'products.id', '=', 'product_offers.product_id')
+            ->select('product_offers.id', 'product_offers.product_id', 'product_offers.stock', 'products.sku')
+            ->chunkById(500, function ($offers) use ($file, $prefix, &$changed) {
+                foreach ($offers as $offer) {
+                    $sku = (string) $offer->sku;
+
+                    if (! str_starts_with(strtolower($sku), $prefix)) {
+                        continue;
+                    }
+
+                    $quantity = max(0, (int) ($file[substr($sku, strlen($prefix))] ?? 0));
+
+                    if ($quantity !== (int) $offer->stock) {
+                        ProductOffer::whereKey($offer->id)->update(['stock' => $quantity, 'synced_at' => now()]);
+                        $changed[$offer->product_id] = true;
+                    }
+                }
+            }, 'product_offers.id', 'id');
+
+        $importer = app(ProductImporter::class);
+
+        foreach (Product::whereIn('id', array_keys($changed))->get() as $product) {
+            $importer->refreshFromOffers($product);
+        }
+
+        if ($changed) {
+            Log::channel('import')->info('elite stock set from the stock file', ['products' => count($changed)]);
+        }
+
+        return count($changed);
     }
 
     public function fetch(string $externalId): ?ProductPayload

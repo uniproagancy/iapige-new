@@ -13,6 +13,7 @@ use App\Models\Supplier;
 use App\Services\Feeds\PrimaryFeatureFormatter;
 use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Support\CategoryTree;
+use App\Support\ProductNames;
 use App\Support\Slug;
 use App\Support\SpecTerms;
 use App\Support\SsdCapacity;
@@ -333,11 +334,11 @@ class ProductImporter
         $default = Language::defaultCode();
         $existing = $product->translate($default, false);
 
-        if (! $existing || ! isset($rows[$default])) {
+        if (! isset($rows[$default])) {
             return $rows;
         }
 
-        foreach (['name', 'description'] as $field) {
+        foreach ($existing ? ['name', 'description'] : [] as $field) {
             $had = (string) $existing->getAttribute($field);
             $comes = (string) ($rows[$default][$field] ?? '');
 
@@ -350,6 +351,15 @@ class ProductImporter
             }
 
             $rows[$default][$field] = $had;
+        }
+
+        // a name still in English is given the one a Georgian shop would use
+        if (($said = ProductNames::georgian($rows[$default]['name'] ?? null)) !== null) {
+            if (! filled($rows[SpecTerms::SOURCE]['name'] ?? null)) {
+                $rows[SpecTerms::SOURCE]['name'] = $rows[$default]['name'];
+            }
+
+            $rows[$default]['name'] = $said;
         }
 
         if (isset($rows[SpecTerms::SOURCE])) {
