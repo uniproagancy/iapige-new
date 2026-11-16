@@ -28,6 +28,8 @@ class Create extends Component
 
     public string $buyerTaxId = '';
 
+    public string $buyerAccount = '';
+
     public string $phone = '';
 
     public string $email = '';
@@ -72,6 +74,7 @@ class Create extends Component
             'date' => ['required', 'date'],
             'buyerName' => ['required', 'string', 'max:160'],
             'buyerTaxId' => ['nullable', 'string', 'max:40'],
+            'buyerAccount' => ['nullable', 'string', 'max:64'],
             'phone' => ['nullable', 'string', 'max:40'],
             'email' => ['nullable', 'email', 'max:120'],
             'address' => ['nullable', 'string', 'max:255'],
@@ -124,6 +127,9 @@ class Create extends Component
         ]);
         $order->created_at = Carbon::parse($this->date)->setTimeFrom(now());
         $order->setAttribute('buyer_tax_id', trim($this->buyerTaxId) ?: null);
+        /* An account number is read in groups of four; it is kept as typed,
+           only without the gaps people leave in it differently each time. */
+        $order->setAttribute('buyer_account', strtoupper(preg_replace('/\s+/', '', $this->buyerAccount)) ?: null);
         $order->setRelation('items', $items);
 
         return $order;

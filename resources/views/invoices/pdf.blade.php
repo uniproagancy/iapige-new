@@ -35,6 +35,9 @@
         .muted { color: #6E747B; }
         .small { font-size: 10px; }
         .right { text-align: right; }
+        /* the figures under their headings: right-aligned, a Georgian
+           heading sat visibly to one side of the number below it */
+        .center { text-align: center; }
         .nowrap { white-space: nowrap; }
 
         h1 { font-size: 15px; margin: 16px 0 2px; }
@@ -123,6 +126,12 @@
                         <td>{{ $order->getAttribute('buyer_tax_id') }}</td>
                     </tr>
                 @endif
+                @if ($order->getAttribute('buyer_account'))
+                    <tr>
+                        <td class="k">{{ __('invoice.iban') }}</td>
+                        <td>{{ $order->getAttribute('buyer_account') }}</td>
+                    </tr>
+                @endif
                 @if ($order->phone)
                     <tr>
                         <td class="k">{{ __('checkout.phone') }}</td>
@@ -190,20 +199,20 @@
     <thead>
         <tr>
             <th style="width:48%">{{ __('invoice.item') }}</th>
-            <th style="width:16%">{{ __('admin.sku') }}</th>
-            <th class="right" style="width:8%">{{ __('admin.qty') }}</th>
-            <th class="right" style="width:14%">{{ __('admin.price') }}</th>
-            <th class="right" style="width:14%">{{ __('admin.total') }}</th>
+            <th class="center" style="width:16%">{{ __('admin.sku') }}</th>
+            <th class="center" style="width:8%">{{ __('admin.qty') }}</th>
+            <th class="center" style="width:14%">{{ __('admin.price') }}</th>
+            <th class="center" style="width:14%">{{ __('admin.total') }}</th>
         </tr>
     </thead>
     <tbody>
         @foreach ($order->items as $item)
             <tr>
                 <td>{{ $item->name }}</td>
-                <td class="muted small">{{ $item->sku }}</td>
-                <td class="right">{{ $item->qty }}</td>
-                <td class="right nowrap">{{ money($item->price) }}</td>
-                <td class="right nowrap"><b>{{ money($item->price * $item->qty) }}</b></td>
+                <td class="center muted small">{{ $item->sku }}</td>
+                <td class="center">{{ $item->qty }}</td>
+                <td class="center nowrap">{{ money($item->price) }}</td>
+                <td class="center nowrap"><b>{{ money($item->price * $item->qty) }}</b></td>
             </tr>
         @endforeach
     </tbody>

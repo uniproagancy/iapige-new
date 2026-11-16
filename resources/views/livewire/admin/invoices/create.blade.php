@@ -94,6 +94,10 @@
                         <label class="form-label mt-1" for="invTax">{{ __('invoice.tax_id') }}</label>
                         <input type="text" id="invTax" class="form-control" wire:model="buyerTaxId">
 
+                        <label class="form-label mt-1" for="invAccount">{{ __('invoice.iban') }}</label>
+                        <input type="text" id="invAccount" class="form-control @error('buyerAccount') is-invalid @enderror"
+                               wire:model="buyerAccount" placeholder="GE00TB0000000000000000">
+
                         <label class="form-label mt-1" for="invPhone">{{ __('checkout.phone') }}</label>
                         <input type="text" id="invPhone" class="form-control" wire:model="phone">
 
