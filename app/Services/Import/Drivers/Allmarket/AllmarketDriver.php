@@ -2,16 +2,25 @@
 
 namespace App\Services\Import\Drivers\Allmarket;
 
+use App\Models\Product;
+use App\Models\ProductOffer;
 use App\Models\Supplier;
+use App\Services\Import\ChecksImportSource;
+use App\Services\Import\ProductImporter;
 use App\Services\Import\ProductPayload;
 use App\Services\Import\SupplierDriver;
 use App\Support\Figure;
 use DOMDocument;
 use DOMXPath;
+use Illuminate\Support\Facades\Log;
 
-class AllmarketDriver implements SupplierDriver
+class AllmarketDriver implements ChecksImportSource, SupplierDriver
 {
     protected const MAX_SPEC_LENGTH = 120;
+
+    /* A feed this much smaller than what we hold in stock is taken for a
+       broken answer, not for a supplier that sold out overnight. */
+    protected const SANE_SHARE = 0.5;
 
     protected AllmarketClient $client;
 
@@ -20,11 +29,52 @@ class AllmarketDriver implements SupplierDriver
         $this->client = new AllmarketClient($supplier->config ?? []);
     }
 
+    /*
+     | What is no longer in the feed is no longer for sale.
+     |
+     | Only what the feed lists was ever visited, so a product Allmarket
+     | dropped kept its last stock and stayed on the shop. Before each run the
+     | feed is read afresh and every offer missing from it goes to nothing --
+     | the product itself still sells while another supplier has it.
+     */
+    public function checkSource(): void
+    {
+        $feed = $this->client->feed(fresh: true);
+
+        $held = ProductOffer::where('supplier_id', $this->supplier->id)->where('stock', '>', 0);
+        $inStock = (clone $held)->count();
+
+        if (! $feed || count($feed) < $inStock * self::SANE_SHARE) {
+            Log::channel('import')->warning('allmarket feed looks incomplete, nothing retired', [
+                'feed' => count($feed),
+                'in_stock' => $inStock,
+            ]);
+
+            return;
+        }
+
+        $gone = (clone $held)
+            ->whereNotIn('external_id', array_map('strval', array_keys($feed)))
+            ->get(['id', 'product_id']);
+
+        if ($gone->isEmpty()) {
+            return;
+        }
+
+        ProductOffer::whereIn('id', $gone->pluck('id'))->update(['stock' => 0, 'synced_at' => now()]);
+
+        $importer = app(ProductImporter::class);
+
+        foreach (Product::whereIn('id', $gone->pluck('product_id')->unique())->get() as $product) {
+            $importer->refreshFromOffers($product);
+        }
+
+        Log::channel('import')->info('allmarket offers retired: gone from the feed', ['offers' => $gone->count()]);
+    }
+
     public function ids(): iterable
     {
-
-        $this->client->forget();
-
+        /* checkSource has just read it afresh. */
         return array_keys($this->client->feed());
     }
 
