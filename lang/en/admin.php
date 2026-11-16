@@ -490,6 +490,10 @@ return [
     'category_deleted_uncategorised' => 'Category deleted; what was in it has no category now',
 
     'order_create' => 'New order',
+    'invoice_free_title' => 'Invoice without an order',
+    'invoice_free_button' => 'Invoice',
+    'invoice_add_line' => 'Add a line',
+    'invoice_download' => 'Download PDF',
     'order_create_hint' => 'An order placed by an operator',
     'import_no_stock_column' => 'No stock column is mapped — every row counts as one available',
     'order_name' => 'Name',

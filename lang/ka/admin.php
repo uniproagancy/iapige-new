@@ -490,6 +490,10 @@ return [
     'category_deleted_uncategorised' => 'კატეგორია წაიშალა, შიგთავსი უკატეგორიოდ დარჩა',
 
     'order_create' => 'ახალი შეკვეთა',
+    'invoice_free_title' => 'ინვოისი შეკვეთის გარეშე',
+    'invoice_free_button' => 'ინვოისი',
+    'invoice_add_line' => 'ხაზის დამატება',
+    'invoice_download' => 'PDF-ის ჩამოტვირთვა',
     'order_create_hint' => 'ოპერატორის მიერ გაფორმებული შეკვეთა',
     'import_no_stock_column' => 'ნაშთის სვეტი მიბმული არ არის — ყოველი სტრიქონი 1 ცალად ითვლება',
     'order_name' => 'სახელი',

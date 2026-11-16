@@ -138,6 +138,7 @@ Route::middleware(['auth', 'can:admin'])
         Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])->name('orders.invoice');
         Route::get('/orders/{order}/invoice/preview', [InvoiceController::class, 'preview'])->name('orders.invoice.preview');
         Route::get('/orders/{order}', Admin\Orders\Show::class)->name('orders.show');
+        Route::get('/invoices/create', Admin\Invoices\Create::class)->name('invoices.create');
 
         /* The product list, for its quick price and stock edit; everything
            else on it answers to the owner alone. */

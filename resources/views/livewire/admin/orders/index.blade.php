@@ -126,6 +126,10 @@
 
     <x-admin.list-card :title="__('admin.orders')" :count="$totals['orders']">
         <x-slot:actions>
+            {{-- an invoice for a sale with no order behind it --}}
+            <a class="btn btn-outline-primary" href="{{ route('admin.invoices.create') }}" wire:navigate>
+                {{ __('admin.invoice_free_button') }}
+            </a>
             <a class="btn btn-primary" href="{{ route('admin.orders.create') }}" wire:navigate>
                 {!! $icon('cart', 'me-25') !!}{{ __('admin.order_create') }}
             </a>

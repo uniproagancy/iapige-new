@@ -117,10 +117,18 @@
                     <td class="k">{{ __('admin.name') }}</td>
                     <td>{{ $order->name }}</td>
                 </tr>
-                <tr>
-                    <td class="k">{{ __('checkout.phone') }}</td>
-                    <td>{{ $order->phone }}</td>
-                </tr>
+                @if ($order->getAttribute('buyer_tax_id'))
+                    <tr>
+                        <td class="k">{{ __('invoice.tax_id') }}</td>
+                        <td>{{ $order->getAttribute('buyer_tax_id') }}</td>
+                    </tr>
+                @endif
+                @if ($order->phone)
+                    <tr>
+                        <td class="k">{{ __('checkout.phone') }}</td>
+                        <td>{{ $order->phone }}</td>
+                    </tr>
+                @endif
                 @if ($order->email)
                     <tr>
                         <td class="k">{{ __('checkout.email') }}</td>
@@ -129,7 +137,7 @@
                 @endif
                 @if ($order->city || $order->address)
                     <tr>
-                        <td class="k">{{ __('admin.delivery') }}</td>
+                        <td class="k">{{ $order->exists ? __('admin.delivery') : __('checkout.address') }}</td>
                         <td>{{ trim($order->city.', '.$order->address, ', ') }}</td>
                     </tr>
                 @endif
@@ -228,7 +236,7 @@
 </table>
 
 @unless ($order->is_paid)
-    <div class="note">{{ __('invoice.reference_note', ['number' => $order->number]) }}</div>
+    <div class="note">{{ __($order->exists ? 'invoice.reference_note' : 'invoice.reference_note_free', ['number' => $order->number]) }}</div>
 @endunless
 
 <div class="foot">
