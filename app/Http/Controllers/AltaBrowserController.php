@@ -6,7 +6,6 @@ use App\Jobs\ImportProductJob;
 use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Services\Import\Drivers\Alta\AltaB2bClient;
-use App\Services\Import\Drivers\Alta\AltaClient;
 use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Services\Import\Drivers\Alta\AltaImageCache;
 use App\Services\Import\Drivers\Alta\AltaStockFeed;
@@ -37,6 +36,18 @@ class AltaBrowserController extends Controller
             $snapshot['items'] = array_values(array_filter($snapshot['items'], fn (array $row) => $row['quantity'] >= $minimum));
             $snapshot['count'] = count($snapshot['items']);
         }
+
+        /* The extension can then collect only what the shop lacks, instead of
+           walking the whole list each time a few products are new. */
+        $held = ProductOffer::where('supplier_id', $supplier->id)
+            ->whereHas('product')
+            ->pluck('external_id')
+            ->flip();
+
+        $snapshot['items'] = array_map(
+            fn (array $row) => $row + ['on_site' => isset($held[$row['item']])],
+            $snapshot['items'],
+        );
 
         return response()->json($snapshot + ['minimum_quantity' => $minimum, 'include_out_of_stock' => $includeOutOfStock],
             200, ['Cache-Control' => 'private, no-store']);

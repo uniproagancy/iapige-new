@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ka">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IAPI · Alta</title>
+    <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+<main>
+    <h1>IAPI · Alta</h1>
+
+    <section>
+        <h2>1. სია</h2>
+        <p class="hint">სია მოდის iapi.ge-დან — ალტას B2B მარაგი. იმავე ბრაუზერში iapi.ge-ს ადმინში უნდა იყო შესული.</p>
+        <button id="load-feed" type="button">სიის ჩატვირთვა</button>
+        <p id="feed-info" class="info"></p>
+    </section>
+
+    <section>
+        <h2>2. შეგროვება</h2>
+        <fieldset id="options">
+            <label><input type="radio" name="mode" value="new" checked> მხოლოდ ახლები — რაც საიტზე ჯერ არ არის</label>
+            <label><input type="radio" name="mode" value="held"> მხოლოდ საიტზე არსებულები — ფასის და აღწერის განახლება</label>
+            <label><input type="radio" name="mode" value="all"> ყველა</label>
+            <label class="inline">რაოდენობა <input id="limit" type="number" min="0" value="0"> <span class="hint">0 = ყველა; საცდელად ჩაწერე 3</span></label>
+            <label><input id="photos-held" type="checkbox"> ფოტოები საიტზე არსებულ პროდუქტებზეც <span class="hint">(ახლებს ფოტოები ყოველთვის მოყვება)</span></label>
+        </fieldset>
+
+        <div class="buttons">
+            <button id="start" type="button">დაწყება</button>
+            <button id="pause" type="button" hidden>პაუზა</button>
+            <button id="resume" type="button" hidden>გაგრძელება</button>
+            <button id="retry" type="button" hidden>შეცდომების თავიდან ცდა</button>
+        </div>
+
+        <p id="alert" class="alert" hidden></p>
+        <p id="state" class="info"></p>
+        <progress id="progress" value="0" max="1"></progress>
+        <ul id="counts" class="counts"></ul>
+    </section>
+
+    <section>
+        <h2>3. ჩამოტვირთვა</h2>
+        <p class="hint">ფაილი აიტვირთება iapi.ge-ს ადმინში: იმპორტი → JSON, მომწოდებელი „ალტა“.</p>
+        <button id="download" type="button" disabled></button>
+        <p id="download-info" class="info"></p>
+    </section>
+
+    <section>
+        <details>
+            <summary>პრობლემები <span id="problem-count"></span></summary>
+            <ul id="problems" class="problems"></ul>
+        </details>
+    </section>
+</main>
+<script type="module" src="panel.js"></script>
+</body>
+</html>

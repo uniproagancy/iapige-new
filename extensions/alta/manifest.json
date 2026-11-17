@@ -1,0 +1,12 @@
+{
+    "manifest_version": 3,
+    "name": "IAPI · Alta",
+    "description": "ალტას პროდუქტების შეგროვება B2B მარაგის სიით და JSON ფაილის მომზადება iapi.ge-ს ადმინისთვის.",
+    "version": "1.0.0",
+    "minimum_chrome_version": "120",
+    "permissions": ["scripting", "storage", "unlimitedStorage"],
+    "host_permissions": ["https://alta.ge/*", "https://imgstore.alta.ge/*", "https://iapi.ge/*"],
+    "background": {"service_worker": "background.js", "type": "module"},
+    "action": {"default_title": "IAPI · Alta"},
+    "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'"}
+}
