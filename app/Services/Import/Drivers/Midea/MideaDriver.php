@@ -185,8 +185,8 @@ class MideaDriver implements SupplierDriver
             categoryName: $data['category'] ?? null,
             translations: [$locale => [
                 'name' => $found['name'],
-                'summary' => $data['description'] ?? null,
-                'description' => $found['description'] ?? $data['description'] ?? null,
+                'summary' => MideaClient::withoutPromotion($data['description'] ?? null) ?: null,
+                'description' => MideaClient::withoutPromotion($found['description'] ?? $data['description'] ?? null),
             ]],
             specs: $specs,
             images: $found['images'] ?? [],

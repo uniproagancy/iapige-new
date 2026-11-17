@@ -319,6 +319,24 @@ class MideaClient
         return self::normalizeCapacity($value, $kind, $labelUnit ?? $columnUnit ?? $defaultUnit);
     }
 
+    /* midea.ge opens many descriptions with its own Trade-in offer ("bring
+       your old one, get 100₾ off"). That deal is honoured only in Midea's
+       showrooms, so on this shop it promises a discount nobody will give.
+       An emptied description stays '' rather than null, so the importer
+       overwrites the old text instead of keeping it. */
+    public static function withoutPromotion(?string $text): ?string
+    {
+        if ($text === null) {
+            return null;
+        }
+
+        $text = preg_replace('~<a\b[^>]*>(?:(?!</a>).){0,40}?trade-in\b.*?</a>~isu', '', $text);
+        $text = preg_replace('~trade-in\b[^<]{0,400}?ფასდაკლება(?:\s*ახალზე)?[\s.!:,;]*(?:<br\s*/?>\s*)*~iu', '', $text);
+
+        // the offer's wrapper is left behind empty, opening the text with a blank line
+        return trim(preg_replace('~\A(?:\s+|<br\s*/?>|<(\w+)\b[^>]*>\s*</\1>)+~iu', '', $text));
+    }
+
     public static function normalizeCapacity(string $value, string $kind, ?string $unit = null): ?string
     {
         if (! in_array($kind, ['kg', 'l'], true)
