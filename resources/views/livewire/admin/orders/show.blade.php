@@ -77,6 +77,12 @@
                 {!! $icon('clock') !!}{{ $order->created_at->format('d.m.Y H:i') }}
             </small>
 
+            @if (config('warranty.enabled') && auth()->user()?->isStaff())
+                <a class="btn btn-sm btn-outline-primary" href="#order-warranty-panel">
+                    {!! $icon('file') !!} საგარანტიო ტალონი
+                </a>
+            @endif
+
             @if ($fulfillment)
                 <a class="btn btn-sm btn-outline-success" href="{{ route('admin.deliveries', ['q' => $order->number]) }}" wire:navigate>
                     {{ __('delivery.open_delivery') }}
@@ -119,6 +125,12 @@
                 {!! $icon('warn') !!}
                 <span>{{ __('admin.order_paid_edit_warning', ['amount' => money($order->total)]) }}</span>
             </div>
+        </div>
+    @endif
+
+    @if (config('warranty.enabled') && auth()->user()?->isStaff())
+        <div id="order-warranty-panel">
+            <livewire:admin.warranties.order-panel :order-id="$order->id" :key="'order-warranty-'.$order->id" />
         </div>
     @endif
 

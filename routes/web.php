@@ -187,3 +187,8 @@ Route::middleware(['auth', 'can:admin'])
         });
 
     });
+
+// Additive warranty routes; each entry checks its own feature flag.
+require __DIR__.'/warranty.php';
+require __DIR__.'/warranty-agent.php';
+require __DIR__.'/warranty-courier.php';

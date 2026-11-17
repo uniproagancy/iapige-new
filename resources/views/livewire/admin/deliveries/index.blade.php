@@ -291,6 +291,25 @@
                             @endforeach
                         </div>
                     @endif
+                    @if(config('warranty.enabled'))
+                        @if($isStaff && $delivery->order && !$delivery->order->trashed())
+                            <div class="px-2 pb-1">
+                                <livewire:admin.warranties.order-panel
+                                    :order-id="$delivery->order_id"
+                                    :delivery-id="$delivery->id"
+                                    :item-ids="$entry['items']->pluck('id')->all()"
+                                    :key="'delivery-warranty-staff-'.md5($supplierName).'-'.$delivery->id" />
+                            </div>
+                        @elseif(!$isStaff && !$isPreview && auth()->user()?->isCourier() && !$isHeld && $delivery->is_eligible && in_array($delivery->status, ['active', 'delivered'], true) && $delivery->order?->status === \App\Models\Order::COMPLETED)
+                            <div class="px-2 pb-1">
+                                <livewire:warranties.delivery-panel
+                                    :delivery-id="$delivery->id"
+                                    :item-ids="$entry['items']->pluck('id')->all()"
+                                    :key="'delivery-warranty-courier-'.md5($supplierName).'-'.$delivery->id" />
+                            </div>
+                        @endif
+                    @endif
+
                     <div class="db-order-footer">
                         <div class="db-actions">
                             @unless($isPreview)

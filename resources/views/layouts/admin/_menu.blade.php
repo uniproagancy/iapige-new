@@ -134,6 +134,14 @@
                     </a>
                 </li>
 
+                @if (config('warranty.enabled') && auth()->user()?->isStaff())
+                    <li class="nav-item {{ $on('admin.warranties.*') }}">
+                        <a class="nav-link d-flex align-items-center" href="{{ route('admin.warranties.index') }}">
+                            {!! $icon('award') !!}<span>{{ __('warranty.title') }}</span>
+                        </a>
+                    </li>
+                @endif
+
                 {{-- an operator's way to the quick price and stock edit --}}
                 @cannot('owner')
                     <li class="nav-item {{ $on('admin.products') }}">

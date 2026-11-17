@@ -1,0 +1,20 @@
+{
+  "schema": "iapi.warranty.supplier-native-identities.v1",
+  "identities": [
+    {
+      "supplier_id": 3,
+      "supplier_code": "elite",
+      "product_id": 9763,
+      "system_reference": "462",
+      "native_sku": "I01469",
+      "expected_product_sku": "elite-I01469",
+      "expected_name": "BOSCH MFQ3540",
+      "expected_offer_references": [
+        "462"
+      ],
+      "checked_at": "2026-11-16T20:55:21+00:00",
+      "proof_sha256": "5f6aaffdabaab8c64bacacede84ebf49f723fc2c14cddf800932209e898c4945",
+      "reference": "Verified Elite product GET: product.id=462; product.name=BOSCH MFQ3540; product.barCode=I01469; 2026-11-16T20:55:21+00:00"
+    }
+  ]
+}

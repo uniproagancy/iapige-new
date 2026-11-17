@@ -1,0 +1,3547 @@
+{
+  "schema": "iapi.warranty.service-directory.v1",
+  "created_on": "2026-11-16",
+  "mode": "staff_supplier_templates_official_terms_with_exact_scope",
+  "scope_ka": "რეალური მომწოდებლის/ბრენდის ოფიციალური საგარანტიო პირობები და სერვისი. ვადა ხელით; უცნობი ველები ცარიელია. საჯარო წყარო ავტომატურ კომერციულ დამტკიცებას არ ნიშნავს.",
+  "suppliers": [
+    {
+      "id": 1,
+      "code": "zoommer",
+      "name": "Zoommer",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "zoommer.technoline",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Zoommer-ისგან რეალიზებული პროდუქცია",
+          "service_name": "შპს ტექნოლაინი",
+          "service_phone": "032 230 40 80",
+          "service_address": "თბილისი, ს. ცინცაძის ქ. 58",
+          "service_email": null,
+          "conditions": "საგარანტიო ბარათი ან შეძენის სხვაგვარი იდენტიფიცირების შესაძლებლობა საჭიროა; ნივთის სერიული ნომრით ან IMEI-ით იდენტიფიცირება უნდა ხერხდებოდეს.\nსაგარანტიო საკითხზე მიმართეთ ტექნოლაინის სერვისს; საჭიროებისამებრ მითითებულია საკურიერო მომსახურებაც.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://zoommer.ge/info/garantia",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Zoommer",
+            "scope_notice": "Zoommer-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დადასტურებული თავდაპირველი ნაკლისას მომსახურება მოიცავს უფასო შეკეთებას ან შეცვლას, კანონით გათვალისწინებული ალტერნატიული უფლებების შენარჩუნებით.",
+              "საჭირო სამუშაო, მასალა და საფოსტო ხარჯი უსასყიდლო მომსახურებაში შედის."
+            ],
+            "exclusions": [
+              "არ იფარება მექანიკური ზემოქმედებით, სითხით/უცხო სხეულით, არასწორი გამოყენებითა და შენახვით გამოწვეული დაზიანება.",
+              "არ იფარება თვითნებური გახსნით, შეკეთებით ან ლუქის მოხსნით გამოწვეული დაზიანება; ასევე ვირუსითა და შეუთავსებელი ფაილებით გამოწვეული ხარვეზი.",
+              "შეძენის ან ნივთის იდენტიფიცირების შეუძლებლობა მომსახურებას აბრკოლებს."
+            ],
+            "customer_duties": [
+              "წარადგინეთ ტალონი ან შეძენის სხვა საიდენტიფიკაციო საფუძველი; ნივთის სერიული ნომერი/IMEI უნდა იკითხებოდეს.",
+              "შენახულ პერსონალურ ფაილებზე სერვისცენტრი პასუხისმგებლობას არ იღებს."
+            ],
+            "claims": [
+              "გამოქვეყნებული წესით შეკეთება ხდება 15 სამუშაო დღეში; უცხოეთიდან ნაწილის ჩამოტანის ან იქ ავტორიზებულ ცენტრში გაგზავნისას — 30 სამუშაო დღეში."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://zoommer.ge/info/garantia",
+                "title": "zoommer.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "code": "alta",
+      "name": "Alta",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "alta.techpoint.listed-center",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Alta-ს საგარანტიო მიღება ტექპოინტში; სპეციალურ ბრენდებს ცალკე კონტაქტი აქვთ.",
+          "service_name": "ტექპოინტი",
+          "service_phone": "032 242 22 15",
+          "service_address": "თბილისი, სულხან ცინცაძის ქ. 5",
+          "service_email": null,
+          "conditions": "წარმოადგინეთ სრულად შევსებული საგარანტიო ტალონი და შეძენის დამადასტურებელი დოკუმენტი; მწარმოებლის ტალონი დაერთოს, თუ პროდუქტს მოჰყვა.\nმიუთითეთ მოდელი, სერიული ნომერი და გაუმართაობის აღწერა.",
+          "routing_confirmed": false,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://alta.ge/topic/addresses-of-service-centers",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://alta.ge/topic/warranty-terms-and-conditions-for-entrepreneurs-and-legal-entities",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ცენტრის კონტაქტი ოფიციალურად დადასტურებულია, მაგრამ ყველა უცნობი ბრენდისთვის ერთადერთ ცენტრად არ ინიშნება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Alta",
+            "scope_notice": "Alta-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "თავდაპირველი ნაკლის შემთხვევაში გათვალისწინებულია უსასყიდლო შეკეთება ან შეცვლა და კანონით განსაზღვრული სხვა საშუალებები. მომსახურება ტარდება ბრენდის ოფიციალურ ცენტრში; კანონისმიერი გარანტიის ტერიტორია საქართველოა."
+            ],
+            "exclusions": [
+              "ჩვეულებრივი ცვეთა, სახარჯი მასალის რესურსის ამოწურვა და ბატარეის ბუნებრივი დაქვეითება თავდაპირველ ნაკლად არ ითვლება.",
+              "არ იფარება არასწორი გამოყენებით, სითხით, მექანიკური ზემოქმედებით, გაუწმენდაობით, ელქსელით ან შეუსაბამო მონტაჟით/შეკეთებით გამოწვეული დაზიანება. პროგრამულ და კომერციულ გამოყენებას ცალკე შეზღუდვები აქვს."
+            ],
+            "customer_duties": [
+              "წარადგინეთ შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ბარათი, თუ მოჰყვა. ტალონში საჭიროა პროდუქტი, სერიული/IMEI, მყიდველი, შეძენის თარიღი, გამყიდველის ბეჭედი და მხარეთა ხელმოწერები.",
+              "გაბარიტული ტექნიკის ვიზიტი წინასწარ შეათანხმეთ; დაუდასტურებელი ან არასაგარანტიო გამოძახება ფასიანია. დაიცავით ინსტრუქცია და ნივთი ხელმისაწვდომი გახადეთ დიაგნოსტიკისთვის."
+            ],
+            "claims": [
+              "შესაბამისი სერვისი შეირჩევა ბრენდით; დიდი ტექნიკის ვიზიტი წინასწარ ინიშნება. დამატებითი მიმართვა: Alta*3838."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+                "title": "alta.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "alta.sony-mea.review",
+          "brands": [
+            "Sony"
+          ],
+          "category_ids": [],
+          "category_names": [
+            "Accessories / Digital Camera",
+            "Battery",
+            "BUDS TWS",
+            "Digital Camera",
+            "Flash Card",
+            "Headphone",
+            "Headphone / In-Ear / Wired",
+            "Headphone / On-Ear / Wireless",
+            "Keyboard",
+            "Lens",
+            "Microphone",
+            "Mouse",
+            "Party Mini",
+            "Sound Bar",
+            "TV",
+            "Video Camcorder",
+            "Wireless Speaker"
+          ],
+          "exclude_category_names": [],
+          "whole_brand_routing": false,
+          "scope_label_ka": "Sony MEA — ოფიციალურ წერილში ცალსახად ჩამოთვლილი კატეგორიები; შესაბამისობა დასადასტურებელია.",
+          "service_name": "ვესტსერვისი",
+          "service_phone": "032 235 75 00",
+          "service_address": "თბილისი, წერეთლის გამზირი 69",
+          "service_email": "sale@westserviceplus.ge",
+          "conditions": null,
+          "routing_confirmed": false,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "partial",
+          "evidence": [
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/19fee8e9386b93e8",
+              "date": "2026-08-10",
+              "kind": "quoted_Alta_B2B_SONY_MEA_notice"
+            },
+            {
+              "url": "https://pana.parts/ge/contacts_ge",
+              "checked_on": "2026-11-16",
+              "kind": "provider_contact"
+            }
+          ],
+          "review_notes_ka": "წერილი ეხება მხოლოდ SONY MEA-ს. წარმოშობისა და კატეგორიის შესაბამისობა და მიმდინარე მიღება დასადასტურებელია; პირობები არ მიენიჭება ყველა Sony-ს პროდუქტს."
+        },
+        {
+          "key": "alta.general.contact",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [
+            "LG",
+            "Samsung",
+            "Electrolux",
+            "AEG",
+            "Apple"
+          ],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Alta-ს საგარანტიო მიმართვისა და შესაბამის ცენტრში გადამისამართების კონტაქტი.",
+          "service_name": "Alta — საგარანტიო მიმართვა",
+          "service_phone": "*3838 / 032 238 00 38",
+          "service_address": null,
+          "service_email": null,
+          "conditions": "შესაბამისი სერვისცენტრის დასაზუსტებლად დაუკავშირდით მომწოდებელს. მოამზადეთ ნივთის მოდელი, სერიული ნომერი და შეძენის დამადასტურებელი დოკუმენტი.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://alta.ge/topic/addresses-of-service-centers",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Alta",
+            "scope_notice": "Alta-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "თავდაპირველი ნაკლის შემთხვევაში გათვალისწინებულია უსასყიდლო შეკეთება ან შეცვლა და კანონით განსაზღვრული სხვა საშუალებები. მომსახურება ტარდება ბრენდის ოფიციალურ ცენტრში; კანონისმიერი გარანტიის ტერიტორია საქართველოა."
+            ],
+            "exclusions": [
+              "ჩვეულებრივი ცვეთა, სახარჯი მასალის რესურსის ამოწურვა და ბატარეის ბუნებრივი დაქვეითება თავდაპირველ ნაკლად არ ითვლება.",
+              "არ იფარება არასწორი გამოყენებით, სითხით, მექანიკური ზემოქმედებით, გაუწმენდაობით, ელქსელით ან შეუსაბამო მონტაჟით/შეკეთებით გამოწვეული დაზიანება. პროგრამულ და კომერციულ გამოყენებას ცალკე შეზღუდვები აქვს."
+            ],
+            "customer_duties": [
+              "წარადგინეთ შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ბარათი, თუ მოჰყვა. ტალონში საჭიროა პროდუქტი, სერიული/IMEI, მყიდველი, შეძენის თარიღი, გამყიდველის ბეჭედი და მხარეთა ხელმოწერები.",
+              "გაბარიტული ტექნიკის ვიზიტი წინასწარ შეათანხმეთ; დაუდასტურებელი ან არასაგარანტიო გამოძახება ფასიანია. დაიცავით ინსტრუქცია და ნივთი ხელმისაწვდომი გახადეთ დიაგნოსტიკისთვის."
+            ],
+            "claims": [
+              "შესაბამისი სერვისი შეირჩევა ბრენდით; დიდი ტექნიკის ვიზიტი წინასწარ ინიშნება. დამატებითი მიმართვა: Alta*3838."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+                "title": "alta.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://alta.ge/topic/warranty-terms-and-conditions-for-entrepreneurs-and-legal-entities",
+                "title": "alta.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "შესაბამისი სერვისცენტრის ზუსტი მისამართი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "alta.lg",
+          "brands": [
+            "LG"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Alta-ს მიერ მითითებული LG-ის მომსახურება.",
+          "service_name": "LG სერვისცენტრი",
+          "service_phone": "032 200 03 33",
+          "service_address": "თბილისი, წერეთლის გამზ. 116",
+          "service_email": null,
+          "conditions": "მწარმოებლის პირობები მოითხოვს შეძენის ორიგინალ დამადასტურებელ დოკუმენტსა და პროდუქტის ორიგინალ საგარანტიო ბარათს.\nნივთზე უნდა იკითხებოდეს LG-ის მოდელისა და სერიული ნომრის ორიგინალი ეტიკეტი; მომსახურება ტარდება ავტორიზებულ ცენტრში.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://alta.ge/topic/warranty-terms-and-conditions-for-entrepreneurs-and-legal-entities",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.lg.com/ae/support/telephone",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.lg.com/ae/support/warranty",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Alta",
+            "scope_notice": "Alta-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ნორმალური გამოყენებისას გამოვლენილი ხარისხის, მუშაობისა და ფუნქციის დეფექტი უფასოდ შეკეთდება LG-ის ან მისი უფლებამოსილი გამყიდველის ავტორიზებულ სერვისში.",
+              "თავდაპირველი ნაკლის შემთხვევაში გათვალისწინებულია უსასყიდლო შეკეთება ან შეცვლა და კანონით განსაზღვრული სხვა საშუალებები. მომსახურება ტარდება ბრენდის ოფიციალურ ცენტრში; კანონისმიერი გარანტიის ტერიტორია საქართველოა."
+            ],
+            "exclusions": [
+              "არ იფარება ბუნებრივი ცვეთა და სახარჯი მასალა, კოსმეტიკური ან მექანიკური დაზიანება, არასწორი გამოყენებით, სითხით, უბედური შემთხვევით ან არაუფლებამოსილი შეკეთებით გამოწვეული დეფექტი.",
+              "სტანდარტული პირობა არ ვრცელდება მეორად/აღდგენილ, ყალბ ან არაუფლებამოსილი არხიდან შეძენილ პროდუქტზე; კომერციული გამოყენება ცალკე ხელშეკრულებით განისაზღვრება.",
+              "ჩვეულებრივი ცვეთა, სახარჯი მასალის რესურსის ამოწურვა და ბატარეის ბუნებრივი დაქვეითება თავდაპირველ ნაკლად არ ითვლება.",
+              "არ იფარება არასწორი გამოყენებით, სითხით, მექანიკური ზემოქმედებით, გაუწმენდაობით, ელქსელით ან შეუსაბამო მონტაჟით/შეკეთებით გამოწვეული დაზიანება. პროგრამულ და კომერციულ გამოყენებას ცალკე შეზღუდვები აქვს."
+            ],
+            "customer_duties": [
+              "მიმართეთ შეძენის ქვეყნის ავტორიზებულ სერვისს ორიგინალი შესყიდვის საბუთითა და საგარანტიო ბარათით. მომსახურებას ითხოვს თავდაპირველი მყიდველი; მოდელისა და სერიული ნომრის ორიგინალი ეტიკეტი წაკითხვადი უნდა იყოს.",
+              "წარადგინეთ შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ბარათი, თუ მოჰყვა. ტალონში საჭიროა პროდუქტი, სერიული/IMEI, მყიდველი, შეძენის თარიღი, გამყიდველის ბეჭედი და მხარეთა ხელმოწერები.",
+              "გაბარიტული ტექნიკის ვიზიტი წინასწარ შეათანხმეთ; დაუდასტურებელი ან არასაგარანტიო გამოძახება ფასიანია. დაიცავით ინსტრუქცია და ნივთი ხელმისაწვდომი გახადეთ დიაგნოსტიკისთვის."
+            ],
+            "claims": [
+              "მომსახურებას ითხოვთ შეძენის ქვეყანაში მოქმედ ავტორიზებულ ცენტრში, ორიგინალი საბუთებითა და ბარათით.",
+              "შესაბამისი სერვისი შეირჩევა ბრენდით; დიდი ტექნიკის ვიზიტი წინასწარ ინიშნება. დამატებითი მიმართვა: Alta*3838."
+            ],
+            "component_terms": [
+              "კომპონენტის დამატებითი გარანტია მხოლოდ მითითებულ ნაწილს ეხება; სამუშაო და, საჭიროებისას, გაზის დატენვა შეიძლება ფასიანი იყოს."
+            ],
+            "sources": [
+              {
+                "url": "https://www.lg.com/ae/support/warranty",
+                "title": "www.lg.com",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+                "title": "alta.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "alta.samsung",
+          "brands": [
+            "Samsung"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Alta-სგან მოწოდებული Samsung; მწარმოებლის მიერ ჩამოთვლილი ავტორიზებული სერვისი — მობილური, TV/AV, საყოფაცხოვრებო და IT.",
+          "service_name": "ELIT ELECTRONICS — Samsung-ის ავტორიზებული სერვისი",
+          "service_phone": "0322200202",
+          "service_address": "თბილისი, დ. გურამიშვილის ქ. 64",
+          "service_email": null,
+          "conditions": "საგარანტიო სერვისი წინასწარ შეუთანხმეთ ავტორიზებულ ცენტრს; წარადგინეთ პროდუქტის შესაბამისი ტალონი და შეძენის დამადასტურებელი საბუთი.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.samsung.com/az/support/ge/",
+              "title": "Samsung — საქართველო: ავტორიზებული სერვისცენტრები და მხარდაჭერა",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "Samsung-ის მოქმედ ოფიციალურ გვერდზე წერია, რომ 1 სექტემბრიდან სატელეფონო მხარდაჭერა იხურება და კონსულტაცია ციფრულ არხებზე გადადის. წყარო წელს არ უთითებს; ძველი ნომერი მოქმედად არ გამოცხადებულა.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Alta",
+            "scope_notice": "Alta-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "Samsung-ის ოფიციალური პროდუქტის მწარმოებლის ბრალით წარმოშობილი დეფექტის აღმოფხვრა საგარანტიო პირობების ფარგლებში უფასოა.",
+              "თავდაპირველი ნაკლის შემთხვევაში გათვალისწინებულია უსასყიდლო შეკეთება ან შეცვლა და კანონით განსაზღვრული სხვა საშუალებები. მომსახურება ტარდება ბრენდის ოფიციალურ ცენტრში; კანონისმიერი გარანტიის ტერიტორია საქართველოა."
+            ],
+            "exclusions": [
+              "არ იფარება არასწორი ინსტალაციის/გამოყენების, არაუფლებამოსილი ჩარევის, მექანიკური ზემოქმედების, სითხის, ტემპერატურის, კოროზიის, უცხო სხეულის, მავნე პროგრამის ან ბუნებრივი ცვეთის შედეგად გამოწვეული დეფექტი.",
+              "პირადი დანიშნულების პროდუქტის სამეწარმეო გამოყენებას სტანდარტული სამომხმარებლო გარანტია არ მოიცავს. სახარჯ ნაწილებსა და აქსესუარებს ცალკე პირობები აქვს.",
+              "ჩვეულებრივი ცვეთა, სახარჯი მასალის რესურსის ამოწურვა და ბატარეის ბუნებრივი დაქვეითება თავდაპირველ ნაკლად არ ითვლება.",
+              "არ იფარება არასწორი გამოყენებით, სითხით, მექანიკური ზემოქმედებით, გაუწმენდაობით, ელქსელით ან შეუსაბამო მონტაჟით/შეკეთებით გამოწვეული დაზიანება. პროგრამულ და კომერციულ გამოყენებას ცალკე შეზღუდვები აქვს."
+            ],
+            "customer_duties": [
+              "სერიული/IMEI ეტიკეტი შეინარჩუნეთ; დაიცავით ინსტრუქცია, მონაცემები სარეზერვოდ შეინახეთ და მომსახურება ავტორიზებულ ცენტრს შეუთანხმეთ.",
+              "წარადგინეთ შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ბარათი, თუ მოჰყვა. ტალონში საჭიროა პროდუქტი, სერიული/IMEI, მყიდველი, შეძენის თარიღი, გამყიდველის ბეჭედი და მხარეთა ხელმოწერები.",
+              "გაბარიტული ტექნიკის ვიზიტი წინასწარ შეათანხმეთ; დაუდასტურებელი ან არასაგარანტიო გამოძახება ფასიანია. დაიცავით ინსტრუქცია და ნივთი ხელმისაწვდომი გახადეთ დიაგნოსტიკისთვის."
+            ],
+            "claims": [
+              "მომსახურება შეათანხმეთ Samsung-ის ავტორიზებულ სერვისთან; გამოიყენეთ ზუსტად შესაბამისი კატეგორიის ორიგინალი ბარათი.",
+              "შესაბამისი სერვისი შეირჩევა ბრენდით; დიდი ტექნიკის ვიზიტი წინასწარ ინიშნება. დამატებითი მიმართვა: Alta*3838."
+            ],
+            "component_terms": [
+              "ინვერტორული ძრავის/კომპრესორის დამატებითი ვალდებულება მხოლოდ შესაბამის ნაწილზე და შესაბამის მოდელზე/გაყიდვის პერიოდზე ვრცელდება.",
+              "კონდიციონერის უფასო სერვისი მოითხოვს Samsung-ის სერტიფიცირებულ მონტაჟსა და ბარათში მონტაჟის ჩანაწერს."
+            ],
+            "sources": [
+              {
+                "url": "https://www.samsung.com/az/support/ge/",
+                "title": "www.samsung.com",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://images.samsung.com/is/content/samsung/assets/ge/support/warranty/Samsung_BWC.pdf",
+                "title": "images.samsung.com",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://images.samsung.com/is/content/samsung/assets/ge/support/warranty/GE_HHP_WARRANTY_202206.pdf",
+                "title": "images.samsung.com",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+                "title": "alta.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://www.samsung.com/az/support/ge/",
+                "title": "Samsung — საქართველო: ავტორიზებული სერვისცენტრები და მხარდაჭერა",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          },
+          "authorized_alternatives": [
+            {
+              "key": "samsung.elite.tbilisi",
+              "name": "ELIT ELECTRONICS — Samsung-ის ავტორიზებული სერვისი",
+              "city": "თბილისი",
+              "address": "თბილისი, დ. გურამიშვილის ქ. 64",
+              "phone": "0322200202",
+              "source_phone_verbatim": "+995(322)200202",
+              "scope_ka": "მობილური, TV და აუდიო/ვიდეო, საყოფაცხოვრებო ტექნიკა, IT",
+              "source_categories": [
+                "mobile",
+                "TV & AV",
+                "household appliances",
+                "IT"
+              ]
+            },
+            {
+              "key": "samsung.techpoint.tbilisi.mobile",
+              "name": "TECHPOINT — Samsung-ის ავტორიზებული სერვისი",
+              "city": "თბილისი",
+              "address": "თბილისი, სულხან ცინცაძის ქ. 5",
+              "phone": "0322422215",
+              "source_phone_verbatim": "+995(322)422215",
+              "scope_ka": "მხოლოდ მობილური მოწყობილობები",
+              "source_categories": [
+                "mobile"
+              ]
+            },
+            {
+              "key": "samsung.techpoint.tbilisi.appliances",
+              "name": "TECHPOINT — Samsung-ის ავტორიზებული სერვისი",
+              "city": "თბილისი",
+              "address": "თბილისი, ანდრონიკაშვილის I შესახვევი, 43",
+              "phone": "0322422215",
+              "source_phone_verbatim": "+995(322)422215",
+              "scope_ka": "TV და აუდიო/ვიდეო, საყოფაცხოვრებო ტექნიკა, IT",
+              "source_categories": [
+                "TV & AV",
+                "household appliances",
+                "IT"
+              ]
+            },
+            {
+              "key": "samsung.techpoint.kutaisi",
+              "name": "TECHPOINT — Samsung-ის ავტორიზებული სერვისი",
+              "city": "ქუთაისი",
+              "address": "ქუთაისი, ირაკლი აბაშიძის ქ. 10",
+              "phone": "0322422215",
+              "source_phone_verbatim": "+995(322)422215",
+              "scope_ka": "მობილური, TV და აუდიო/ვიდეო, საყოფაცხოვრებო ტექნიკა, IT",
+              "source_categories": [
+                "mobile",
+                "TV & AV",
+                "household appliances",
+                "IT"
+              ]
+            },
+            {
+              "key": "samsung.techpoint.batumi",
+              "name": "TECHPOINT — Samsung-ის ავტორიზებული სერვისი",
+              "city": "ბათუმი",
+              "address": "ბათუმი, ჭავჭავაძის ქ. 31",
+              "phone": "0322422215",
+              "source_phone_verbatim": "+995(322)422215",
+              "scope_ka": "მხოლოდ საყოფაცხოვრებო ტექნიკა",
+              "source_categories": [
+                "household appliances"
+              ]
+            },
+            {
+              "key": "samsung.elite.zugdidi",
+              "name": "ELIT ELECTRONICS — Samsung-ის ავტორიზებული სერვისი",
+              "city": "ზუგდიდი",
+              "address": "ზუგდიდი, გამსახურდიას ქ. 30",
+              "phone": "0322200202",
+              "source_phone_verbatim": "+995(322)200202",
+              "scope_ka": "მობილური, TV და აუდიო/ვიდეო, საყოფაცხოვრებო ტექნიკა, IT",
+              "source_categories": [
+                "mobile",
+                "TV & AV",
+                "household appliances",
+                "IT"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "alta.electrolux-aeg",
+          "brands": [
+            "Electrolux",
+            "AEG"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Electrolux / AEG-ის საგარანტიო მომსახურების ცხელი ხაზი.",
+          "service_name": "Electrolux / AEG-ის საგარანტიო ცხელი ხაზი",
+          "service_phone": "+995 800 000 828",
+          "service_address": null,
+          "service_email": null,
+          "conditions": "საგარანტიო მომსახურების მისაღებად დაუკავშირდით ბრენდის ცხელ ხაზს; მოამზადეთ ნივთის მოდელი და შეძენის დამადასტურებელი დოკუმენტი.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Alta",
+            "scope_notice": "Alta-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "თავდაპირველი ნაკლის შემთხვევაში გათვალისწინებულია უსასყიდლო შეკეთება ან შეცვლა და კანონით განსაზღვრული სხვა საშუალებები. მომსახურება ტარდება ბრენდის ოფიციალურ ცენტრში; კანონისმიერი გარანტიის ტერიტორია საქართველოა."
+            ],
+            "exclusions": [
+              "ჩვეულებრივი ცვეთა, სახარჯი მასალის რესურსის ამოწურვა და ბატარეის ბუნებრივი დაქვეითება თავდაპირველ ნაკლად არ ითვლება.",
+              "არ იფარება არასწორი გამოყენებით, სითხით, მექანიკური ზემოქმედებით, გაუწმენდაობით, ელქსელით ან შეუსაბამო მონტაჟით/შეკეთებით გამოწვეული დაზიანება. პროგრამულ და კომერციულ გამოყენებას ცალკე შეზღუდვები აქვს."
+            ],
+            "customer_duties": [
+              "წარადგინეთ შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ბარათი, თუ მოჰყვა. ტალონში საჭიროა პროდუქტი, სერიული/IMEI, მყიდველი, შეძენის თარიღი, გამყიდველის ბეჭედი და მხარეთა ხელმოწერები.",
+              "გაბარიტული ტექნიკის ვიზიტი წინასწარ შეათანხმეთ; დაუდასტურებელი ან არასაგარანტიო გამოძახება ფასიანია. დაიცავით ინსტრუქცია და ნივთი ხელმისაწვდომი გახადეთ დიაგნოსტიკისთვის."
+            ],
+            "claims": [
+              "შესაბამისი სერვისი შეირჩევა ბრენდით; დიდი ტექნიკის ვიზიტი წინასწარ ინიშნება. დამატებითი მიმართვა: Alta*3838."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+                "title": "alta.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "შესაბამისი სერვისცენტრის ზუსტი მისამართი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "alta.apple.isupport",
+          "brands": [
+            "Apple"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Alta-ს მიერ მითითებული Apple-ის საგარანტიო მომსახურება.",
+          "service_name": "აისაფორთი — Apple-ის ოფიციალური სერვისი",
+          "service_phone": "032 230 10 01",
+          "service_address": "თბილისი, სულხან ცინცაძის ქ. 12",
+          "service_email": null,
+          "conditions": "შესაბამისი სერვისცენტრის დასაზუსტებლად დაუკავშირდით მომწოდებელს. მოამზადეთ ნივთის მოდელი, სერიული ნომერი და შეძენის დამადასტურებელი დოკუმენტი.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+              "title": "alta.ge",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Alta",
+            "scope_notice": "Alta-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "თავდაპირველი ნაკლის შემთხვევაში გათვალისწინებულია უსასყიდლო შეკეთება ან შეცვლა და კანონით განსაზღვრული სხვა საშუალებები. მომსახურება ტარდება ბრენდის ოფიციალურ ცენტრში; კანონისმიერი გარანტიის ტერიტორია საქართველოა."
+            ],
+            "exclusions": [
+              "ჩვეულებრივი ცვეთა, სახარჯი მასალის რესურსის ამოწურვა და ბატარეის ბუნებრივი დაქვეითება თავდაპირველ ნაკლად არ ითვლება.",
+              "არ იფარება არასწორი გამოყენებით, სითხით, მექანიკური ზემოქმედებით, გაუწმენდაობით, ელქსელით ან შეუსაბამო მონტაჟით/შეკეთებით გამოწვეული დაზიანება. პროგრამულ და კომერციულ გამოყენებას ცალკე შეზღუდვები აქვს."
+            ],
+            "customer_duties": [
+              "წარადგინეთ შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ბარათი, თუ მოჰყვა. ტალონში საჭიროა პროდუქტი, სერიული/IMEI, მყიდველი, შეძენის თარიღი, გამყიდველის ბეჭედი და მხარეთა ხელმოწერები.",
+              "გაბარიტული ტექნიკის ვიზიტი წინასწარ შეათანხმეთ; დაუდასტურებელი ან არასაგარანტიო გამოძახება ფასიანია. დაიცავით ინსტრუქცია და ნივთი ხელმისაწვდომი გახადეთ დიაგნოსტიკისთვის."
+            ],
+            "claims": [
+              "შესაბამისი სერვისი შეირჩევა ბრენდით; დიდი ტექნიკის ვიზიტი წინასწარ ინიშნება. დამატებითი მიმართვა: Alta*3838."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+                "title": "alta.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "კონკრეტული Apple-ის მოდელის მწარმოებლის ტალონი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "code": "elite",
+      "name": "Elite / Elit Electronics",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "elite.bosch.review",
+          "brands": [
+            "Bosch"
+          ],
+          "category_ids": [],
+          "category_names": [
+            "სამზარეულოს წვრილი ტექნიკა",
+            "სამზარეულოს ტექნიკა",
+            "მცირე საყოფაცხოვრებო ტექნიკა",
+            "საყოფაცხოვრებო ტექნიკა",
+            "მსხვილი საყოფაცხოვრებო ტექნიკა",
+            "მიქსერი",
+            "მიქსერები",
+            "ბლენდერი",
+            "მაცივარი",
+            "მაცივრები",
+            "სარეცხი მანქანა",
+            "სარეცხი მანქანები",
+            "ჭურჭლის სარეცხი მანქანები",
+            "მტვერსასრუტები",
+            "ღუმელები",
+            "ქურები",
+            "უთოები",
+            "საშრობი მანქანები"
+          ],
+          "exclude_category_names": [
+            "გათბობის ქვაბი",
+            "გათბობის ქვაბები",
+            "ქვაბები",
+            "გაზის ქვაბები",
+            "ცენტრალური გათბობის ქვაბები"
+          ],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": false,
+          "scope_label_ka": "Bosch-ის საყოფაცხოვრებო ტექნიკა; გათბობის ქვაბებს არ მოიცავს.",
+          "service_name": "ელიტ სერვისი — Bosch",
+          "service_phone": "032 230 00 20",
+          "service_address": "თბილისი, პეტრე ქავთარაძის ქ. 3",
+          "service_email": "info@es.ge",
+          "conditions": "მიმართვისას მოამზადეთ შეძენის დამადასტურებელი დოკუმენტი და პროდუქტის საგარანტიო მონაცემები.\nსერვისს მიაწოდეთ მოდელი, სერიული ნომერი და გაუმართაობის აღწერა; E-Nr/FD — არსებობის შემთხვევაში.\nმომსახურების შესაბამისი პირობები განისაზღვრება საქონლის შეძენის ქვეყნის წარმომადგენლის საგარანტიო წესებით.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://ee.ge/topic/elit-service-policy",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.bosch-home.com/ge/momsaxureba/seketebis-servisi",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.bosch-home.com/ge/momsaxureba/movla-da-dacva-garantiis-gaxangrzliveba",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://media3.bosch-home.com/Documents/8001262155_A.pdf",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "Bosch-ის მიმდინარე ოფიციალური გვერდის მომსახურების მისამართი — ქავთარაძის3; ძველი PDF-ის1 და ზოგადი Elite-ს გურამიშვილის64 არ ჩაენაცვლოს Bosch-ის კონკრეტულ მისამართს. მომსახურების წესი არ ნიშნავს ციფრული ბეჭდის მიღების დადასტურებას.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite / Elit Electronics-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "Bosch-ის სტანდარტული გარანტია წარმოების დეფექტის აღმოფხვრისთვის ითვალისწინებს შესაბამის შეკეთებას, ორიგინალ ნაწილებსა და სამუშაოს; საჭიროებისას — მოწყობილობის შეცვლას.",
+              "ელიტის კომერციული გარანტია მოიცავს თავდაპირველ ნაკლს; სრული დაფარვის პირველ ეტაპზე შეკეთების, ნაწილებისა და საჭირო ტრანსპორტირების ხარჯი მომხმარებელს არ ეკისრება.",
+              "ბარათით გათვალისწინებულ შემდგომ ეტაპზე უფასო შეიძლება იყოს მხოლოდ სამუშაო; ნაწილები და ტრანსპორტირება ფასიანია."
+            ],
+            "exclusions": [
+              "არ იფარება გამოყენებით გამოწვეული სახარჯი მასალის ცვეთა; ფიზიკური ზემოქმედებით, არასწორი გამოყენებით ან შენახვით, სითხით, უცხო სხეულით, ელქსელით ან არაუფლებამოსილი ჩარევით გამოწვეული დაზიანება."
+            ],
+            "customer_duties": [
+              "დაიცავით ინსტრუქციით განსაზღვრული გამოყენებისა და რეგულარული მოვლის წესები; საგარანტიო მომსახურება შეუთანხმეთ ავტორიზებულ სერვისს.",
+              "შეინახეთ შესყიდვისა და საგარანტიო საბუთები და პროდუქტის წაკითხვადი საიდენტიფიკაციო ნიშნები. საბუთის არქონა უარის საფუძველია მხოლოდ მაშინ, როცა ნივთის სხვაგვარი იდენტიფიცირებაც შეუძლებელია.",
+              "მომსახურებამდე შექმენით პერსონალური მონაცემების სარეზერვო ასლი."
+            ],
+            "claims": [
+              "მიმართვა იწყება შესაბამის ბრენდულ სერვისთან; ზოგადი საკონტაქტოა ელიტის 0322484848, Bosch-ს ცალკე 0322300020."
+            ],
+            "component_terms": [
+              "გახანგრძლივებული გარანტიები ზოგიერთ ძრავას ან ავზს ეხება; ისინი არ ნიშნავს მთელი მოწყობილობის იმავე ვადით სრულ დაფარვას."
+            ],
+            "sources": [
+              {
+                "url": "https://ee.ge/topic/warranty-terms",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://www.bosch-home.com/ge/momsaxureba/warranties",
+                "title": "www.bosch-home.com",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://www.bosch-home.com/ge/momsaxureba/movla-da-dacva-garantiis-gaxangrzliveba",
+                "title": "www.bosch-home.com",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "elite.midea.review",
+          "brands": [
+            "Midea"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Elite-სგან შეძენილი Midea-ს ტექნიკა.",
+          "service_name": "შპს ემსერვისი",
+          "service_phone": "032 252 43 43",
+          "service_address": "თბილისი, დიდი დიღომი, ფარსადანის ქ. 7",
+          "service_email": "info@midea.ge",
+          "conditions": "საგარანტიო შემთხვევაზე მიმართეთ ოფიციალურ სერვის ცენტრს — შპს ემსერვისს.\nსამონტაჟო ტექნიკაზე დაიცავით ტექნიკური მოთხოვნები; მონტაჟის შესაბამისობას ოფიციალური სერვისიც აფასებს.\nშესაბამისი ტექნიკური მოვლა, მათ შორის ფილტრებისა და სადრენაჟე სისტემის გაწმენდა, გათვალისწინებულია მწარმოებლის პირობებით.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.midea.com/ge/support/warranty-policy",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.midea.ge/ka/services",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite-სგან მოწოდებული Midea; ბრენდის ოფიციალური პირობები შესაბამისი მოდელისა და ტალონის ფარგლებში.",
+            "coverage": [
+              "საგარანტიო მომსახურება ეხება ქარხნულ წუნს. ოფიციალურ სერვისცენტრში მიღებიდან 30 კალენდარულ დღეში შეუკეთებლობისას წყარო ითვალისწინებს ტექნიკური დასკვნით იმავე სახის ან ღირებულების პროდუქციით შეცვლას."
+            ],
+            "exclusions": [
+              "გამოირიცხება არაქარხნული დაზიანება: მექანიკური ზემოქმედება, არასწორი მოხმარება/გარემო, სითხე/ორთქლი/უცხო სხეული, არასტაბილური ძაბვა, ტენი, კოროზია, ტემპერატურა, თვითნებური რემონტი, სტიქია და მწერების/მღრღნელების ზიანი. წყაროში ცალკე გამონაკლისებია აქსესუარები — კარი/მინა/რეზინი, სახელურები და ფეხი. გადასწორებული ტალონი და შეუსრულებელი მოვლაც გამორიცხვის საფუძვლებად არის დასახელებული."
+            ],
+            "customer_duties": [
+              "დაიცავით მწარმოებლის ტექნიკური მოთხოვნები და ჩაატარეთ შესაბამისი მოვლა, მათ შორის ფილტრებისა და დრენაჟის გაწმენდა. სხვა შემსრულებლის მონტაჟი ავტომატურად არ გამორიცხავს გარანტიას, თუ ოფიციალური სერვისი მის ტექნიკურ სისწორეს დაადასტურებს."
+            ],
+            "claims": [
+              "საგარანტიო შემთხვევა შეატყობინეთ შპს ემსერვისს. წერილობითი პრეტენზია წარედგინება მოვაჭრეს; წყარო განხილვისთვის 10 სამუშაო დღეს უთითებს. სამეწარმეო ან საზოგადოებრივ ობიექტში საყოფაცხოვრებო ტექნიკის მოხმარებისთვის პირობები განსხვავდება. კომერციული გარანტია კანონით მინიჭებულ უფლებებს არ ზღუდავს."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://www.midea.com/ge/support/warranty-policy",
+                "title": "Midea Georgia — Warranty Policy",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://www.midea.ge/ka/service/----------------garantia/36",
+                "title": "Midea — გარანტია",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://www.midea.ge/ka/services",
+                "title": "Midea — მომსახურების პირობები",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "conditional_sections": [
+              {
+                "category_names": [
+                  "სარეცხი მანქანა",
+                  "სარეცხი მანქანაები"
+                ],
+                "field": "component_terms",
+                "text": "ცალკე გამონაკლისებშია კარის რეზინი/მინა/სახელური, შემავალი და გამავალი მილები, პროგრამის სახელური და სადენის დაზიანება."
+              },
+              {
+                "category_names": [
+                  "კონდიციონერი",
+                  "კონდიციონერიები"
+                ],
+                "field": "component_terms",
+                "text": "ცალკე გამონაკლისებია პულტი, მზით/ყინვით დაზიანებული სადრენაჟო მილი, არასწორი შემაერთებელი გაყვანილობა, სიმძლავრესა და ფართს შორის შეუსაბამობა და გაჭედილი ფილტრი."
+              },
+              {
+                "category_names": [
+                  "მაცივარი",
+                  "მაცივარიები"
+                ],
+                "field": "component_terms",
+                "text": "ცალკე გამონაკლისებია შიდა სათავსოები/თაროები, ნათურა და ჰაერის ბიონიზატორი."
+              },
+              {
+                "category_names": [
+                  "გამწოვი",
+                  "გამწოვიები"
+                ],
+                "field": "component_terms",
+                "text": "მწარმოებელი გამწოვის გაზქურის ზედაპირიდან 65–75 სმ დაშორებას ითხოვს."
+              }
+            ]
+          }
+        },
+        {
+          "key": "elite.beko.review",
+          "brands": [
+            "Beko"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Elite-ს ოფიციალურად მითითებული Beko-ს საგარანტიო სერვისი.",
+          "service_name": "შპს ტექნოჰაუსი — Beko",
+          "service_phone": "*2500 / 032 215 50 50",
+          "service_address": null,
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite / Elit Electronics-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ელიტის კომერციული გარანტია მოიცავს თავდაპირველ ნაკლს; სრული დაფარვის პირველ ეტაპზე შეკეთების, ნაწილებისა და საჭირო ტრანსპორტირების ხარჯი მომხმარებელს არ ეკისრება.",
+              "ბარათით გათვალისწინებულ შემდგომ ეტაპზე უფასო შეიძლება იყოს მხოლოდ სამუშაო; ნაწილები და ტრანსპორტირება ფასიანია."
+            ],
+            "exclusions": [
+              "არ იფარება გამოყენებით გამოწვეული სახარჯი მასალის ცვეთა; ფიზიკური ზემოქმედებით, არასწორი გამოყენებით ან შენახვით, სითხით, უცხო სხეულით, ელქსელით ან არაუფლებამოსილი ჩარევით გამოწვეული დაზიანება."
+            ],
+            "customer_duties": [
+              "შეინახეთ შესყიდვისა და საგარანტიო საბუთები და პროდუქტის წაკითხვადი საიდენტიფიკაციო ნიშნები. საბუთის არქონა უარის საფუძველია მხოლოდ მაშინ, როცა ნივთის სხვაგვარი იდენტიფიცირებაც შეუძლებელია.",
+              "მომსახურებამდე შექმენით პერსონალური მონაცემების სარეზერვო ასლი."
+            ],
+            "claims": [
+              "მიმართვა იწყება შესაბამის ბრენდულ სერვისთან; ზოგადი საკონტაქტოა ელიტის 0322484848, Bosch-ს ცალკე 0322300020."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://ee.ge/topic/warranty-terms",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "შესაბამისი სერვისცენტრის ზუსტი მისამართი",
+              "Beko-ს საქართველოსთვის მოქმედი ბრენდული ტალონი და დამატებითი პირობები"
+            ],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "elite.lg.review",
+          "brands": [
+            "LG"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Elite-ს ოფიციალურად მითითებული LG-ს საგარანტიო სერვისი.",
+          "service_name": "LG Electronics Gulf FZE-ის თბილისის ფილიალი",
+          "service_phone": "032 200 03 33",
+          "service_address": "თბილისი, წერეთლის გამზ. 116",
+          "service_email": null,
+          "conditions": "მწარმოებლის პირობები მოითხოვს შეძენის ორიგინალ დამადასტურებელ დოკუმენტსა და პროდუქტის ორიგინალ საგარანტიო ბარათს.\nნივთზე უნდა იკითხებოდეს LG-ის მოდელისა და სერიული ნომრის ორიგინალი ეტიკეტი; მომსახურება ტარდება ავტორიზებულ ცენტრში.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.lg.com/ae/support/telephone",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.lg.com/ae/support/warranty",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite / Elit Electronics-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ნორმალური გამოყენებისას გამოვლენილი ხარისხის, მუშაობისა და ფუნქციის დეფექტი უფასოდ შეკეთდება LG-ის ან მისი უფლებამოსილი გამყიდველის ავტორიზებულ სერვისში."
+            ],
+            "exclusions": [
+              "არ იფარება ბუნებრივი ცვეთა და სახარჯი მასალა, კოსმეტიკური ან მექანიკური დაზიანება, არასწორი გამოყენებით, სითხით, უბედური შემთხვევით ან არაუფლებამოსილი შეკეთებით გამოწვეული დეფექტი.",
+              "სტანდარტული პირობა არ ვრცელდება მეორად/აღდგენილ, ყალბ ან არაუფლებამოსილი არხიდან შეძენილ პროდუქტზე; კომერციული გამოყენება ცალკე ხელშეკრულებით განისაზღვრება."
+            ],
+            "customer_duties": [
+              "მიმართეთ შეძენის ქვეყნის ავტორიზებულ სერვისს ორიგინალი შესყიდვის საბუთითა და საგარანტიო ბარათით. მომსახურებას ითხოვს თავდაპირველი მყიდველი; მოდელისა და სერიული ნომრის ორიგინალი ეტიკეტი წაკითხვადი უნდა იყოს."
+            ],
+            "claims": [
+              "მომსახურებას ითხოვთ შეძენის ქვეყანაში მოქმედ ავტორიზებულ ცენტრში, ორიგინალი საბუთებითა და ბარათით."
+            ],
+            "component_terms": [
+              "კომპონენტის დამატებითი გარანტია მხოლოდ მითითებულ ნაწილს ეხება; სამუშაო და, საჭიროებისას, გაზის დატენვა შეიძლება ფასიანი იყოს."
+            ],
+            "sources": [
+              {
+                "url": "https://www.lg.com/ae/support/warranty",
+                "title": "www.lg.com",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://alta.ge/topic/warranty-conditions-for-natural-persons",
+                "title": "alta.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "elite.ariston.review",
+          "brands": [
+            "Ariston"
+          ],
+          "category_ids": [],
+          "category_names": [
+            "წყლის გამაცხელებლები",
+            "წყალგამაცხელებლები",
+            "გათბობა",
+            "გათბობის ქვაბი",
+            "გათბობის ქვაბები",
+            "ქვაბები",
+            "გაზის ქვაბები",
+            "ცენტრალური გათბობის ქვაბები"
+          ],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": false,
+          "scope_label_ka": "Ariston-ის გათბობისა და წყლის გამაცხელებელი ტექნიკა.",
+          "service_name": "შპს Artline Wings — Ariston",
+          "service_phone": "032 205 29 30",
+          "service_address": null,
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.ariston.com/ka-ge/support/",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite / Elit Electronics-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ელიტის კომერციული გარანტია მოიცავს თავდაპირველ ნაკლს; სრული დაფარვის პირველ ეტაპზე შეკეთების, ნაწილებისა და საჭირო ტრანსპორტირების ხარჯი მომხმარებელს არ ეკისრება.",
+              "ბარათით გათვალისწინებულ შემდგომ ეტაპზე უფასო შეიძლება იყოს მხოლოდ სამუშაო; ნაწილები და ტრანსპორტირება ფასიანია."
+            ],
+            "exclusions": [
+              "არ იფარება გამოყენებით გამოწვეული სახარჯი მასალის ცვეთა; ფიზიკური ზემოქმედებით, არასწორი გამოყენებით ან შენახვით, სითხით, უცხო სხეულით, ელქსელით ან არაუფლებამოსილი ჩარევით გამოწვეული დაზიანება."
+            ],
+            "customer_duties": [
+              "შეინახეთ შესყიდვისა და საგარანტიო საბუთები და პროდუქტის წაკითხვადი საიდენტიფიკაციო ნიშნები. საბუთის არქონა უარის საფუძველია მხოლოდ მაშინ, როცა ნივთის სხვაგვარი იდენტიფიცირებაც შეუძლებელია.",
+              "მომსახურებამდე შექმენით პერსონალური მონაცემების სარეზერვო ასლი."
+            ],
+            "claims": [
+              "მიმართვა იწყება შესაბამის ბრენდულ სერვისთან; ზოგადი საკონტაქტოა ელიტის 0322484848, Bosch-ს ცალკე 0322300020."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://ee.ge/topic/warranty-terms",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://www.ariston.com/ka-ge/support/",
+                "title": "www.ariston.com",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "შესაბამისი სერვისცენტრის ზუსტი მისამართი",
+              "კონკრეტული Ariston-ის მოდელის ორიგინალი ტალონი და მონტაჟის მოთხოვნები"
+            ],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            },
+            "conditional_sections": [
+              {
+                "category_names": [
+                  "გათბობის ქვაბები",
+                  "გათბობის ქვაბი",
+                  "ქვაბი",
+                  "ქვაბები"
+                ],
+                "field": "customer_duties",
+                "text": "Ariston-ის გათბობის ქვაბის გარანტიის დასაწყებად აუცილებელია ავტორიზებული სერვისის პირველი გაშვება: სპეციალისტი ამოწმებს მონტაჟსა და მუშაობას."
+              }
+            ]
+          }
+        },
+        {
+          "key": "elite.boilers.kebuli",
+          "brands": [
+            "Bosch",
+            "Ferroli"
+          ],
+          "category_ids": [],
+          "category_names": [
+            "გათბობის ქვაბი",
+            "გათბობის ქვაბები",
+            "ქვაბები",
+            "გაზის ქვაბები",
+            "ცენტრალური გათბობის ქვაბები"
+          ],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": false,
+          "scope_label_ka": "Bosch / Ferroli-ის გათბობის ქვაბები.",
+          "service_name": "სოლვერი — ქებული კლიმატის საგარანტიო სერვისი",
+          "service_phone": "032 247 02 47",
+          "service_address": "თბილისი, სოფ. დიღომი, გიორგი ბრწყინვალეს ქ. 51",
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite / Elit Electronics-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "თავდაპირველი ნაკლის გამოსასწორებელი საგარანტიო შეკეთება/შეცვლა ითვალისწინებს საჭირო სამუშაოს, მასალისა და გადაზიდვის ხარჯებს."
+            ],
+            "exclusions": [
+              "არ იფარება ინსტრუქციასთან შეუსაბამო მონტაჟით, არასტანდარტული ნაწილებით, ფიზიკური ზემოქმედებით, არასწორი გამოყენებით, გაყინვით, ნადებით, სითხით, უცხო სხეულით ან სტიქიური მოვლენით გამოწვეული დაზიანება.",
+              "გამონაკლისებია არასტანდარტული ელექტრომომარაგებით, წყლის წნევით/აირის ხარისხით ან არაუფლებამოსილი ჩარევით გამოწვეული დაზიანება და კომერციული გამოყენება."
+            ],
+            "customer_duties": [
+              "შეინახეთ საგარანტიო საბუთი და სერიული ნომერი; ნივთის სხვაგვარი იდენტიფიკაციის შესაძლებლობა მნიშვნელოვანია. გაუმართაობაზე ჯერ სერვისს დაუკავშირდით და სპეციალისტის მოსვლამდე მის ინსტრუქციას მიჰყევით."
+            ],
+            "claims": [
+              "სერვისს მიმართეთ 0322470247-ზე; მიაწოდეთ ხარვეზი და სპეციალისტის მოსვლამდე მის მითითებას მიჰყევით."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://qebuli-climate.ge/wesebi-da-pirobebi/",
+                "title": "qebuli-climate.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "შესაბამისი სერვისცენტრის ზუსტი მისამართი",
+              "კონკრეტული ქვაბის მწარმოებლის ტალონი და პირველი გაშვების მოთხოვნები"
+            ],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "elite.shark-ninja-dyson",
+          "brands": [
+            "Shark",
+            "Ninja",
+            "Dyson"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Shark / Ninja / Dyson-ის მომსახურება.",
+          "service_name": "შპს სერვის ექსპრეს+",
+          "service_phone": "032 231 20 00",
+          "service_address": "თბილისი, ვაჟა-ფშაველას გამზ. 30ა",
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite / Elit Electronics-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ელიტის კომერციული გარანტია მოიცავს თავდაპირველ ნაკლს; სრული დაფარვის პირველ ეტაპზე შეკეთების, ნაწილებისა და საჭირო ტრანსპორტირების ხარჯი მომხმარებელს არ ეკისრება.",
+              "ბარათით გათვალისწინებულ შემდგომ ეტაპზე უფასო შეიძლება იყოს მხოლოდ სამუშაო; ნაწილები და ტრანსპორტირება ფასიანია."
+            ],
+            "exclusions": [
+              "არ იფარება გამოყენებით გამოწვეული სახარჯი მასალის ცვეთა; ფიზიკური ზემოქმედებით, არასწორი გამოყენებით ან შენახვით, სითხით, უცხო სხეულით, ელქსელით ან არაუფლებამოსილი ჩარევით გამოწვეული დაზიანება."
+            ],
+            "customer_duties": [
+              "შეინახეთ შესყიდვისა და საგარანტიო საბუთები და პროდუქტის წაკითხვადი საიდენტიფიკაციო ნიშნები. საბუთის არქონა უარის საფუძველია მხოლოდ მაშინ, როცა ნივთის სხვაგვარი იდენტიფიცირებაც შეუძლებელია.",
+              "მომსახურებამდე შექმენით პერსონალური მონაცემების სარეზერვო ასლი."
+            ],
+            "claims": [
+              "მიმართვა იწყება შესაბამის ბრენდულ სერვისთან; ზოგადი საკონტაქტოა ელიტის 0322484848, Bosch-ს ცალკე 0322300020."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://ee.ge/topic/warranty-terms",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "elite.vestel",
+          "brands": [
+            "Vestel"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Vestel-ის მომსახურება.",
+          "service_name": "შპს მატექს ჯორჯია",
+          "service_phone": "032 219 00 00",
+          "service_address": "თბილისი, აკაკი წერეთლის გამზ. 126",
+          "service_email": "tbilisi.servis2@mateks.ge",
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite / Elit Electronics-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "Vestel-ის განსაზღვრულ მსხვილ საყოფაცხოვრებო ტექნიკაზე ძირითადი ეტაპი სრულ უფასო მომსახურებას მოიცავს; დამატებით ეტაპზე უფასოა მხოლოდ ხელოსნის სამუშაო, ნაწილის შეძენა მომხმარებელს ეკისრება."
+            ],
+            "exclusions": [
+              "არ იფარება ინსტრუქციის დარღვევით, მექანიკური ზემოქმედებით, სითხით, უცხო სხეულით, ელქსელით ან არაუფლებამოსილი მონტაჟით/შეკეთებით გამოწვეული დაზიანება.",
+              "სამეწარმეო გამოყენება სტანდარტული უფასო სერვისის ფარგლებს სცდება."
+            ],
+            "customer_duties": [
+              "წარმოადგინეთ შესყიდვის დამადასტურებელი საბუთი; კომერციული დაფარვისთვის — საგარანტიო ბარათიც. შეინახეთ პროდუქტის იდენტიფიკაცია. ჯერ დაუკავშირდით სერვისს; დაუდასტურებელი ხარვეზის გამოძახება ფასიანია."
+            ],
+            "claims": [
+              "საგარანტიო მიმართვა:0322190000; წერილობითი პრეტენზია:tbilisi.servis2@mateks.ge ან customersupport@mateks.ge."
+            ],
+            "component_terms": [
+              "კომერციული გაფართოება ვრცელდება მხოლოდ ჩამოთვლილ მსხვილ Vestelტექნიკაზე; ტელევიზორს, ჩასაშენებელ და წვრილ ტექნიკას იგი ავტომატურად არ ენიჭება. მაცივრის კორპუსის ვადა ცალკეა."
+            ],
+            "sources": [
+              {
+                "url": "https://www.vestel.ge/menu/საგარანტიო%20პირობები",
+                "title": "www.vestel.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-terms",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "შესაბამისი სერვისცენტრის ზუსტი მისამართი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        },
+        {
+          "key": "elite.general",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [
+            "Bosch",
+            "Ferroli",
+            "Midea",
+            "Beko",
+            "LG",
+            "Ariston",
+            "Shark",
+            "Ninja",
+            "Dyson",
+            "Vestel"
+          ],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Elite-ს საგარანტიო მიღება; ცალკე ჩამოთვლილი ბრენდების სპეციალურ ცენტრებს არ ანაცვლებს.",
+          "service_name": "ელიტ სერვისი",
+          "service_phone": "032 248 48 48",
+          "service_address": "თბილისი, გურამიშვილის ქ. 64",
+          "service_email": null,
+          "conditions": "მიმართვისას წარმოადგინეთ შეძენის დამადასტურებელი დოკუმენტი და შესაბამისი საგარანტიო ტალონი.\nმიუთითეთ ნივთის ბრენდი, მოდელი, სერიული ნომერი და გაუმართაობის აღწერა; საჭიროებისას — E-Nr/FD.\nსერვისში დატოვებისას ფიქსირდება ნივთის მდგომარეობა და ფორმდება მომსახურების შეთანხმება.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://ee.ge/topic/elit-service-policy",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Elite / Elit Electronics",
+            "scope_notice": "Elite / Elit Electronics-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ელიტის კომერციული გარანტია მოიცავს თავდაპირველ ნაკლს; სრული დაფარვის პირველ ეტაპზე შეკეთების, ნაწილებისა და საჭირო ტრანსპორტირების ხარჯი მომხმარებელს არ ეკისრება.",
+              "ბარათით გათვალისწინებულ შემდგომ ეტაპზე უფასო შეიძლება იყოს მხოლოდ სამუშაო; ნაწილები და ტრანსპორტირება ფასიანია."
+            ],
+            "exclusions": [
+              "არ იფარება გამოყენებით გამოწვეული სახარჯი მასალის ცვეთა; ფიზიკური ზემოქმედებით, არასწორი გამოყენებით ან შენახვით, სითხით, უცხო სხეულით, ელქსელით ან არაუფლებამოსილი ჩარევით გამოწვეული დაზიანება."
+            ],
+            "customer_duties": [
+              "შეინახეთ შესყიდვისა და საგარანტიო საბუთები და პროდუქტის წაკითხვადი საიდენტიფიკაციო ნიშნები. საბუთის არქონა უარის საფუძველია მხოლოდ მაშინ, როცა ნივთის სხვაგვარი იდენტიფიცირებაც შეუძლებელია.",
+              "მომსახურებამდე შექმენით პერსონალური მონაცემების სარეზერვო ასლი."
+            ],
+            "claims": [
+              "მიმართვა იწყება შესაბამის ბრენდულ სერვისთან; ზოგადი საკონტაქტოა ელიტის 0322484848, Bosch-ს ცალკე 0322300020."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://ee.ge/topic/warranty-terms",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+                "title": "ee.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "usage_basis": {
+              "retail_vs_dealer": "Manufacturer product rules can support brand-specific preparatory terms. Retailer-only entitlements remain attributed to their publisher; no new supplier promise to IAPI dealers is asserted.",
+              "customer_copy_requires_product_card_for": [
+                "extended labour-only phase",
+                "SPcategory exchange",
+                "retail fast exchange",
+                "component extension or commissioning-sensitive benefits"
+              ],
+              "do_not_auto_copy": [
+                "fixed retail promotional duration",
+                "retailer replacement procedure binding another seller",
+                "foreign-country law or non-defect return conditions"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "code": "midea",
+      "name": "Midea",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "midea.emservice",
+          "brands": [
+            "Midea"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: Midea",
+          "service_name": "შპს ემსერვისი",
+          "service_phone": "032 252 43 43",
+          "service_address": "თბილისი, დიდი დიღომი, ფარსადანის ქ. 7",
+          "service_email": "info@midea.ge",
+          "conditions": "საგარანტიო შემთხვევაზე მიმართეთ ოფიციალურ სერვის ცენტრს — შპს ემსერვისს.\nსამონტაჟო ტექნიკაზე დაიცავით ტექნიკური მოთხოვნები; მონტაჟის შესაბამისობას ოფიციალური სერვისიც აფასებს.\nშესაბამისი ტექნიკური მოვლა, მათ შორის ფილტრებისა და სადრენაჟე სისტემის გაწმენდა, გათვალისწინებულია მწარმოებლის პირობებით.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://www.midea.com/ge/support/warranty-policy",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.midea.ge/ka/services",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Midea",
+            "scope_notice": "Midea-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "საგარანტიო მომსახურება ეხება ქარხნულ წუნს. ოფიციალურ სერვისცენტრში მიღებიდან 30 კალენდარულ დღეში შეუკეთებლობისას წყარო ითვალისწინებს ტექნიკური დასკვნით იმავე სახის ან ღირებულების პროდუქციით შეცვლას."
+            ],
+            "exclusions": [
+              "გამოირიცხება არაქარხნული დაზიანება: მექანიკური ზემოქმედება, არასწორი მოხმარება/გარემო, სითხე/ორთქლი/უცხო სხეული, არასტაბილური ძაბვა, ტენი, კოროზია, ტემპერატურა, თვითნებური რემონტი, სტიქია და მწერების/მღრღნელების ზიანი. წყაროში ცალკე გამონაკლისებია აქსესუარები — კარი/მინა/რეზინი, სახელურები და ფეხი. გადასწორებული ტალონი და შეუსრულებელი მოვლაც გამორიცხვის საფუძვლებად არის დასახელებული."
+            ],
+            "customer_duties": [
+              "დაიცავით მწარმოებლის ტექნიკური მოთხოვნები და ჩაატარეთ შესაბამისი მოვლა, მათ შორის ფილტრებისა და დრენაჟის გაწმენდა. სხვა შემსრულებლის მონტაჟი ავტომატურად არ გამორიცხავს გარანტიას, თუ ოფიციალური სერვისი მის ტექნიკურ სისწორეს დაადასტურებს."
+            ],
+            "claims": [
+              "საგარანტიო შემთხვევა შეატყობინეთ შპს ემსერვისს. წერილობითი პრეტენზია წარედგინება მოვაჭრეს; წყარო განხილვისთვის 10 სამუშაო დღეს უთითებს. სამეწარმეო ან საზოგადოებრივ ობიექტში საყოფაცხოვრებო ტექნიკის მოხმარებისთვის პირობები განსხვავდება. კომერციული გარანტია კანონით მინიჭებულ უფლებებს არ ზღუდავს."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://www.midea.com/ge/support/warranty-policy",
+                "title": "Midea Georgia — Warranty Policy",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://www.midea.ge/ka/service/----------------garantia/36",
+                "title": "Midea — გარანტია",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://www.midea.ge/ka/services",
+                "title": "Midea — მომსახურების პირობები",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false,
+            "conditional_sections": [
+              {
+                "category_names": [
+                  "სარეცხი მანქანა",
+                  "სარეცხი მანქანაები"
+                ],
+                "field": "component_terms",
+                "text": "ცალკე გამონაკლისებშია კარის რეზინი/მინა/სახელური, შემავალი და გამავალი მილები, პროგრამის სახელური და სადენის დაზიანება."
+              },
+              {
+                "category_names": [
+                  "კონდიციონერი",
+                  "კონდიციონერიები"
+                ],
+                "field": "component_terms",
+                "text": "ცალკე გამონაკლისებია პულტი, მზით/ყინვით დაზიანებული სადრენაჟო მილი, არასწორი შემაერთებელი გაყვანილობა, სიმძლავრესა და ფართს შორის შეუსაბამობა და გაჭედილი ფილტრი."
+              },
+              {
+                "category_names": [
+                  "მაცივარი",
+                  "მაცივარიები"
+                ],
+                "field": "component_terms",
+                "text": "ცალკე გამონაკლისებია შიდა სათავსოები/თაროები, ნათურა და ჰაერის ბიონიზატორი."
+              },
+              {
+                "category_names": [
+                  "გამწოვი",
+                  "გამწოვიები"
+                ],
+                "field": "component_terms",
+                "text": "მწარმოებელი გამწოვის გაზქურის ზედაპირიდან 65–75 სმ დაშორებას ითხოვს."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "code": "allmarket",
+      "name": "Allmarket",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "allmarket.supplier.claims",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "საგარანტიო მიმართვა მომწოდებლის საკონტაქტო სამსახურში.",
+          "service_name": "Allmarket — სერვისის პირველადი მიღება",
+          "service_phone": "+995322052505",
+          "service_address": null,
+          "service_email": "service@allmarket.ge",
+          "conditions": "ტექნიკის სერიული ნომერი მომხმარებლის ინვოისს ელექტრონულად უკავშირდება; ბეჭდური ტალონის მოთხოვნა შესაძლებელია.\nმომსახურების მისაღებად პოლიტიკა Allmarket-ის ქოლცენტრთან დაკავშირებას ითხოვს.\nზოგ შემთხვევაში ხარვეზის ფოტო ან ვიდეო შეიძლება მოითხოვონ.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://allmarket.ge/ka/contact",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://allmarket.ge/ka/return-policy",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://allmarket.ge/ka/b2b-gayidvebi",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Allmarket",
+            "scope_notice": "Allmarket-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ტექნიკის თავდაპირველ ნაკლზე მოთხოვნადია უსასყიდლო შეკეთება ან შეცვლა; კანონით განსაზღვრული ალტერნატიული უფლებები შენარჩუნებულია.",
+              "გამოქვეყნებული დაფარვა ეხება ძრავსა და ძირითად შემადგენელ ნაწილებს; დამატებითი კომერციული გარანტია კონკრეტული პროდუქტისთვის მოწმდება."
+            ],
+            "exclusions": [
+              "არ იფარება არასწორი ექსპლუატაციით, მონტაჟით, ელექტროქსელით, მექანიკური/თერმული ზემოქმედებითა და სითხის შეღწევით გამოწვეული დაზიანება.",
+              "არასამრეწველო ნივთის კომერციული გამოყენებით გამოწვეული ზიანი და თვითნებური/არაოფიციალური შეკეთება გამორიცხვებშია.",
+              "ნივთის სერიული ნომერი შესყიდულ პროდუქტს უნდა შეესაბამებოდეს; საჭირო არსებითი ნაწილები სრულად წარადგინეთ."
+            ],
+            "customer_duties": [
+              "ათვლა იწყება მიღება-ჩაბარების გაფორმებიდან. სერიული ნომერი ინვოისთან ელექტრონულად რეგისტრირდება; ბეჭდური ტალონი მოთხოვნით გაიცემა.",
+              "მიმართეთ ქოლცენტრს; დეფექტის დასადგენად შესაძლოა მოითხოვონ ფოტო/ვიდეო და ნივთის აუცილებელი კომპლექტაცია."
+            ],
+            "claims": [],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://allmarket.ge/ka/return-policy",
+                "title": "allmarket.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://allmarket.ge/ka/b2b-gayidvebi",
+                "title": "allmarket.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://allmarket.ge/ka/contact",
+                "title": "allmarket.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "ბრენდზე პასუხისმგებელი სახელოსნო და სერვისის ზუსტი მისამართი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "code": "ingco",
+      "name": "ნოვა / Nova",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "nova.ingco.authorized",
+          "brands": [
+            "INGCO"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ნოვას მიერ რეალიზებული INGCO-ს ტექნიკა.",
+          "service_name": "ნოვა / INGCO — ავტორიზებული სერვისი",
+          "service_phone": "+995599484948",
+          "service_address": "თბილისი, ნონა გაფრინდაშვილის ქ. 35",
+          "service_email": "info@nova.ge",
+          "conditions": "სრულად შევსებული საგარანტიო ბარათი და შესყიდვის მტკიცებულება მოითხოვება: ქვითარი, ანგარიშ-ფაქტურა ან სხვა შესაბამისი საბუთი.\nპირობა ქარხნული მასალისა და აწყობის დეფექტების აღმოფხვრას ეხება.\nმომსახურება ბრენდის ან ავტორიზებულ ცენტრში უნდა შესრულდეს; ქარხნული ნომრის წაკითხვა საჭიროა.\nბუნებრივი ცვეთა, სახარჯი დეტალები/სამუშაო აქსესუარები, რესურსამოწურული აკუმულატორი, გადატვირთვითა და არასწორი გამოყენებით გამოწვეული დაზიანება ცალკე გამორიცხვებშია აღწერილი.\nრეგულარული ტექნიკური მომსახურება მოთხოვნილია და გეგმური მომსახურება ფასიანია.\nსხვა სერვისცენტრები:\nბათუმი, ბაგრატიონის ქ. 105ბ — +995577355085\nქუთაისი, ჭავჭავაძის ქ. 53ა — +995599260953",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://nova.ge/ka/contactus",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://nova.ge/ka/tsesebi-da-pirobebi",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://ingco.ge/ka/tsesebi-da-pirobebi",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://ingco.ge/ka/sagarantio-pirobebi",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "ნოვა / Nova",
+            "scope_notice": "ნოვა / Nova-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "საგარანტიო პერიოდში უსასყიდლოდ აღმოიფხვრება მწარმოებლის მიერ გამოყენებული მასალისა და ქარხნული აწყობის დეფექტები. ვადა ითვლება რეალიზაციის თარიღიდან."
+            ],
+            "exclusions": [
+              "არ იფარება ბუნებრივი ცვეთა; სახარჯი და ცვეთადი დეტალები; შეცვლადი/სამუშაო აქსესუარები; რესურსამოწურული აკუმულატორი; გადატვირთვით, შეუსაბამო დანიშნულებით ან აქსესუარით, არასწორი ექსპლუატაციითა და შენახვით, მექანიკური/თერმული ზემოქმედებით, ტენით, აგრესიული გარემოთი ან უცხო სხეულით გამოწვეული დაზიანებები. გამორიცხულია არაუფლებამოსილ სერვისში გახსნილი/შეკეთებული ან გადასწორებული ნომრის მქონე ინსტრუმენტი."
+            ],
+            "customer_duties": [
+              "სავალდებულოა რეგულარული ტექნიკური მოვლა; გეგმური მომსახურება ფასიანია. პერიოდულობა უკავშირდება ნახშირის მუსების სამუშაო რესურსს. თუ სერვისი შეკეთებას ან საჭირო ნაწილის უზრუნველყოფას 30 სამუშაო დღეში ვერ ახერხებს, წყარო ითვალისწინებს შეცვლას."
+            ],
+            "claims": [
+              "წარადგინეთ სრულად შევსებული საგარანტიო ბარათი და ქვითარი, ანგარიშ-ფაქტურა ან შეძენის სხვა მტკიცებულება. ქარხნული ნომერი უნდა იკითხებოდეს. შეკეთებას ახორციელებს ბრენდის ან მისი ავტორიზებული სერვისი."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://ingco.ge/ka/sagarantio-pirobebi",
+                "title": "INGCO — საგარანტიო პირობები",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://nova.ge/ka/tsesebi-da-pirobebi",
+                "title": "NOVA — წესები და პირობები",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "nova.general.contact",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [
+            "INGCO"
+          ],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ნოვას სხვა ბრენდების საგარანტიო მიმართვის კონტაქტი.",
+          "service_name": "ნოვა — საგარანტიო მიმართვა",
+          "service_phone": "032 200 33 33",
+          "service_address": null,
+          "service_email": "info@nova.ge",
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://nova.ge/ka/contactus",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://nova.ge/ka/tsesebi-da-pirobebi",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება."
+        }
+      ],
+      "owner_identity_note": "მომხმარებლის დადასტურებით, მომწოდებელი6/codeingco არის ნოვა. ბრენდი INGCO და მომწოდებელი ნოვა ერთმანეთისგან განსხვავდება."
+    },
+    {
+      "id": 7,
+      "code": "alneo",
+      "name": "Alneo",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "alneo.supplier.claims",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "საგარანტიო მიმართვა მომწოდებლის საკონტაქტო სამსახურში.",
+          "service_name": "Alneo — საგარანტიო მიმართვის საწყისი კონტაქტი",
+          "service_phone": "+995577147878",
+          "service_address": null,
+          "service_email": "info@alneo.ge",
+          "conditions": "შეკეთება შესაბამისი ბრენდის სერვისცენტრშია განსაზღვრული.\nსაჭიროა საგარანტიო ტალონი, გადახდის მტკიცებულება და მწარმოებლის ტალონი, თუ ასეთი მოჰყვა.\nგაბარიტულ ტექნიკაზე ჯერ ცხელ ხაზთან დაკავშირებაა მითითებული. ჩამონათვალშია მაცივარი, გაზქურა, სარეცხი/ჭურჭლის მანქანა, გამათბობელი, კონდიციონერი, ჩასაშენებელი ზედაპირი, ღუმელი მიკროტალღურის გარდა, გამწოვი და 43 დუიმზე დიდი ტელევიზორი.\nკომერციული გახანგრძლივებისას კონკრეტული საგარანტიო ბარათის პირობებია გადამწყვეტი; ტერიტორია საქართველოა.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://alneo.ge/contact/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://alneo.ge/warranty-conditions/",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Alneo",
+            "scope_notice": "Alneo-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "თავდაპირველი ნაკლისას მომხმარებელს შეუძლია მოითხოვოს უფასო შეკეთება ან შეცვლა; აუცილებელი სამუშაოს, მასალისა და საფოსტო ხარჯი მომსახურებაში შედის.",
+              "შეკეთება/შეცვლა ადგილობრივი ნაწილისას 15 სამუშაო დღემდეა, საზღვარგარეთიდან ნაწილის ან ნივთის გამოწერისას — 30 სამუშაო დღემდე."
+            ],
+            "exclusions": [
+              "არ იფარება არასწორი გამოყენებით/შენახვით, მექანიკური ზემოქმედებით, ძაბვის გაუმართაობით, ლუქის მოხსნით, ვირუსით, არაკვალიფიციური მონტაჟითა და არაუფლებამოსილი შეკეთებით გამოწვეული დეფექტი.",
+              "იდენტიფიცირება უნდა ხერხდებოდეს შესყიდვის საბუთით და სერიული/IMEI ნომრით; პიქსელების დასაშვები რაოდენობა მწარმოებლის სტანდარტით მოწმდება."
+            ],
+            "customer_duties": [
+              "შეკეთება შესაბამისი ბრენდის ცენტრში ხდება. წარადგინეთ ტალონი, შეძენის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა.",
+              "გაბარიტულ ტექნიკაზე, მათ შორის 43 დუიმზე დიდ ტელევიზორზე, მომსახურებისთვის ჯერ ცხელ ხაზზე დარეკეთ."
+            ],
+            "claims": [],
+            "component_terms": [
+              "კანონისმიერი პერიოდის შემდეგ გახანგრძლივება მოქმედებს მხოლოდ კონკრეტული საგარანტიო ბარათის პირობებით; შეკეთების ზღვარია 30 სამუშაო დღე.",
+              "შეკეთების შეუძლებლობის ან ამ ვადის გადაცილებისას გათვალისწინებულია ჩანაცვლება ან კანონით შესაბამისი თანხის დაბრუნება."
+            ],
+            "sources": [
+              {
+                "url": "https://alneo.ge/warranty-conditions/",
+                "title": "alneo.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "კონკრეტული ბრენდის სერვისცენტრი, მისი ნომერი და მისამართი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "code": "kontakt",
+      "name": "Kontakt Home",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "kontakt.samsung",
+          "brands": [
+            "Samsung"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: Samsung",
+          "service_name": "ტექპოინტი / შპს სერვის პლაზა",
+          "service_phone": "032 242 22 15",
+          "service_address": "თბილისი, ცინცაძის ქ. 5",
+          "service_email": null,
+          "conditions": "საგარანტიო მომსახურებისთვის საჭიროა მაღაზიის ან მწარმოებლის საგარანტიო ტალონი.\nნივთის ჩაბარება მყიდველის გარდა სხვა პირსაც შეუძლია.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://techpoint.ge/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.toshiba",
+          "brands": [
+            "Toshiba"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [
+            "ტელევიზორი",
+            "ტელევიზორები",
+            "tv"
+          ],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": false,
+          "scope_label_ka": "ბრენდი: Toshiba — ტელევიზორის გარდა",
+          "service_name": "ტექპოინტი / შპს სერვის პლაზა",
+          "service_phone": "032 242 22 15",
+          "service_address": "თბილისი, ცინცაძის ქ. 5",
+          "service_email": null,
+          "conditions": "საგარანტიო მომსახურებისთვის საჭიროა მაღაზიის ან მწარმოებლის საგარანტიო ტალონი.\nნივთის ჩაბარება მყიდველის გარდა სხვა პირსაც შეუძლია.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://techpoint.ge/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.toshiba_tv",
+          "brands": [
+            "Toshiba"
+          ],
+          "category_ids": [],
+          "category_names": [
+            "ტელევიზორი",
+            "ტელევიზორები",
+            "tv"
+          ],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": false,
+          "scope_label_ka": "ბრენდი: Toshiba — ტელევიზორი, ტელევიზორები, tv",
+          "service_name": "ელიტსერვისი",
+          "service_phone": "032 220 02 02",
+          "service_address": "ქავთარაძის 3",
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_supplier_contact",
+          "evidence": [
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "Kontakt-ის2026-11-13 სერვისების ფურცლის ბრენდზე მითითებული მიმღები: Toshiba TV/TECNO/BRAUN/KENWOOD/DELONGHI. ზოგადი Elite-ს გურამიშვილის64/2484848-ით არ ჩაენაცვლოს; სრული პირობები ჯერ დასამატებელია.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.lg",
+          "brands": [
+            "LG"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: LG",
+          "service_name": "LG სერვისცენტრი",
+          "service_phone": "032 200 03 33",
+          "service_address": "თბილისი, წერეთლის გამზ. 116",
+          "service_email": null,
+          "conditions": "მწარმოებლის პირობები მოითხოვს შეძენის ორიგინალ დამადასტურებელ დოკუმენტსა და პროდუქტის ორიგინალ საგარანტიო ბარათს.\nნივთზე უნდა იკითხებოდეს LG-ის მოდელისა და სერიული ნომრის ორიგინალი ეტიკეტი; მომსახურება ტარდება ავტორიზებულ ცენტრში.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://www.lg.com/ae/support/telephone",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://www.lg.com/ae/support/warranty",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.electrolux",
+          "brands": [
+            "ELECTROLUX"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: ELECTROLUX",
+          "service_name": "ტექპოინტი / შპს სერვის პლაზა",
+          "service_phone": "032 242 22 15",
+          "service_address": "თბილისი, ცინცაძის ქ. 5",
+          "service_email": null,
+          "conditions": "საგარანტიო მომსახურებისთვის საჭიროა მაღაზიის ან მწარმოებლის საგარანტიო ტალონი.\nნივთის ჩაბარება მყიდველის გარდა სხვა პირსაც შეუძლია.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://techpoint.ge/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.hoffmann",
+          "brands": [
+            "HOFFMANN"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: HOFFMANN",
+          "service_name": "ვესტსერვისი / Westservice Plus LLC",
+          "service_phone": "032 235 75 00",
+          "service_address": "თბილისი, წერეთლის გამზ. 69",
+          "service_email": "sale@westserviceplus.ge",
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://pana.parts/ge/contacts_ge",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.tecno",
+          "brands": [
+            "Tecno"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: Tecno",
+          "service_name": "ელიტსერვისი",
+          "service_phone": "032 220 02 02",
+          "service_address": "ქავთარაძის 3",
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_supplier_contact",
+          "evidence": [
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "Kontakt-ის2026-11-13 სერვისების ფურცლის ბრენდზე მითითებული მიმღები: Toshiba TV/TECNO/BRAUN/KENWOOD/DELONGHI. ზოგადი Elite-ს გურამიშვილის64/2484848-ით არ ჩაენაცვლოს; სრული პირობები ჯერ დასამატებელია.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.braun",
+          "brands": [
+            "BRAUN"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: BRAUN",
+          "service_name": "ელიტსერვისი",
+          "service_phone": "032 220 02 02",
+          "service_address": "ქავთარაძის 3",
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_supplier_contact",
+          "evidence": [
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "Kontakt-ის2026-11-13 სერვისების ფურცლის ბრენდზე მითითებული მიმღები: Toshiba TV/TECNO/BRAUN/KENWOOD/DELONGHI. ზოგადი Elite-ს გურამიშვილის64/2484848-ით არ ჩაენაცვლოს; სრული პირობები ჯერ დასამატებელია.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.kenwood",
+          "brands": [
+            "KENWOOD"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: KENWOOD",
+          "service_name": "ელიტსერვისი",
+          "service_phone": "032 220 02 02",
+          "service_address": "ქავთარაძის 3",
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_supplier_contact",
+          "evidence": [
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "Kontakt-ის2026-11-13 სერვისების ფურცლის ბრენდზე მითითებული მიმღები: Toshiba TV/TECNO/BRAUN/KENWOOD/DELONGHI. ზოგადი Elite-ს გურამიშვილის64/2484848-ით არ ჩაენაცვლოს; სრული პირობები ჯერ დასამატებელია.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.delonghi",
+          "brands": [
+            "DeLonghi"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: DeLonghi",
+          "service_name": "ელიტსერვისი",
+          "service_phone": "032 220 02 02",
+          "service_address": "ქავთარაძის 3",
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_supplier_contact",
+          "evidence": [
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "Kontakt-ის2026-11-13 სერვისების ფურცლის ბრენდზე მითითებული მიმღები: Toshiba TV/TECNO/BRAUN/KENWOOD/DELONGHI. ზოგადი Elite-ს გურამიშვილის64/2484848-ით არ ჩაენაცვლოს; სრული პირობები ჯერ დასამატებელია.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.daewoo",
+          "brands": [
+            "DAEWOO"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: DAEWOO",
+          "service_name": "ვესტსერვისი / Westservice Plus LLC",
+          "service_phone": "032 235 75 00",
+          "service_address": "თბილისი, წერეთლის გამზ. 69",
+          "service_email": "sale@westserviceplus.ge",
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://pana.parts/ge/contacts_ge",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.panasonic",
+          "brands": [
+            "PANASONIC"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: PANASONIC",
+          "service_name": "ვესტსერვისი / Westservice Plus LLC",
+          "service_phone": "032 235 75 00",
+          "service_address": "თბილისი, წერეთლის გამზ. 69",
+          "service_email": "sale@westserviceplus.ge",
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://pana.parts/ge/contacts_ge",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "kontakt.roborock",
+          "brands": [
+            "ROBOROCK"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: ROBOROCK",
+          "service_name": "ვესტსერვისი / Westservice Plus LLC",
+          "service_phone": "032 235 75 00",
+          "service_address": "თბილისი, წერეთლის გამზ. 69",
+          "service_email": "sale@westserviceplus.ge",
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://pana.parts/ge/contacts_ge",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "code": "metromart",
+      "name": "Global / Franko",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "global.marazzi.glb",
+          "brands": [
+            "Marazzi"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: Marazzi",
+          "service_name": "GLB სერვისი",
+          "service_phone": "032 256 02 20",
+          "service_address": "თბილისი, აეროპორტის მიმდებარე ტერიტორია",
+          "service_email": null,
+          "conditions": "საგარანტიო მომსახურებისთვის წარმოადგინეთ საგარანტიო ტალონი და სასაქონლო/საკასო ქვითარი ან შეძენის სხვა დამადასტურებელი დოკუმენტი.\nმოწყობილობისა და ტალონის სერიული ნომერი უნდა იკითხებოდეს; მომსახურება ეხება ტალონში მითითებულ პერიოდს.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://marazzi.ge/warranty-conditions/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://marazzi.ge/about/",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Global / Franko",
+            "scope_notice": "Global / Franko-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ტალონში ჩაწერილი საგარანტიო ვადის ფარგლებში გათვალისწინებულია დაზიანებული მოწყობილობის სრული და აუცილებელი შეკეთება. სერვისში წარდგენიდან სარემონტო ვადა 30 სამუშაო დღეა."
+            ],
+            "exclusions": [
+              "წყაროს პირობები გამორიცხავს ვადაგასულ, წაშლილი/გადაკეთებული მონაცემების, დაუკითხავი სერიული ნომრის, დაზიანებული პლომბის/ლუქის მქონე შემთხვევებს; ვიზუალურ/მექანიკურ დაზიანებას; არადანიშნულებით გამოყენებას; არაკვალიფიციურ მონტაჟს/რემონტს ან თვითნებურ გახსნას; მომხმარებლის ტრანსპორტირებისას ან გვერდით მდგომი მოწყობილობით, უცხო სხეულით/სითხით, გაუმართავი ძაბვით, ტენით, კოროზიით, ტემპერატურით ან შენახვის/ექსპლუატაციის წესის დარღვევით გამოწვეულ დაზიანებას."
+            ],
+            "customer_duties": [],
+            "claims": [
+              "საჭიროა საგარანტიო ტალონი და ქვითარი ან შეძენის სხვა დამადასტურებელი დოკუმენტი. ტალონში მონაცემები და მოწყობილობის სერიული ნომერი უნდა იყოს წაკითხვადი და შეუცვლელი.",
+              "თუ გამოძახებაზე ტექნიკური პრობლემა არ დადასტურდა, კონსულტაცია ფასიანია. 30 სამუშაო დღეში შეუკეთებლობისას შეცვლა ხდება სერვისის დასკვნით, წყაროს წესით. კომერციული პირობები არ აუქმებს კანონით მინიჭებულ უფლებებს."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://marazzi.ge/warranty-conditions/",
+                "title": "MARAZZI — საგარანტიო პირობები",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://marazzi.ge/about/",
+                "title": "MARAZZI — Global exclusive representation",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "GLB Service-ის ქუჩა და შენობის ნომერი; წყარო მხოლოდ აეროპორტის მიმდებარე ტერიტორიას უთითებს"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        },
+        {
+          "key": "global.franko.techpoint",
+          "brands": [
+            "Franko"
+          ],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "ბრენდი: Franko",
+          "service_name": "ტექპოინტი / შპს სერვის პლაზა",
+          "service_phone": "032 242 22 15",
+          "service_address": "თბილისი, ცინცაძის ქ. 5",
+          "service_email": null,
+          "conditions": "საგარანტიო მომსახურებისთვის საჭიროა მაღაზიის ან მწარმოებლის საგარანტიო ტალონი.\nFranko-სთვის სერვისი დამატებით ჩეკსაც ითხოვს.\nნივთის ჩაბარება მყიდველის გარდა სხვა პირსაც შეუძლია.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://techpoint.ge/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/192eca266fa0ef96",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "partial",
+            "supplier_name": "Global / Franko",
+            "scope_notice": "Global / Franko-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [],
+            "exclusions": [],
+            "customer_duties": [],
+            "claims": [
+              "Franko-ს საგარანტიო მომსახურებას ტექპოინტი ახორციელებს. საჭიროა სრულად შევსებული საგარანტიო ფურცელი და ჩეკი; მომწოდებლის წერილი ბეჭდით დადასტურებულ ტალონს ითხოვს. Techpoint-ის მოქმედი ინფორმაცია Franko-სთვის ჩეკის წარდგენას ადასტურებს."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://techpoint.ge/",
+                "title": "Techpoint — authorized brands and FAQ",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "Franko-ს სრული ოფიციალური საგარანტიო პირობები და ორიგინალი ტალონი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "code": "comfo",
+      "name": "Comfo",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "comfo.supplier.claims",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "საგარანტიო მიმართვა მომწოდებლის საკონტაქტო სამსახურში.",
+          "service_name": "Comfo — დეფექტის/მომსახურების მიმართვა",
+          "service_phone": "+995322121210",
+          "service_address": null,
+          "service_email": "info@comfo.ge",
+          "conditions": "დეფექტის ან მომსახურების საკითხზე დაუკავშირდით მომწოდებელს მითითებულ ტელეფონზე ან ელფოსტაზე.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://comfo.ge/free-returns/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://comfo.ge/",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "partial",
+            "supplier_name": "Comfo",
+            "scope_notice": "Comfo-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "ოფიციალური პოლიტიკით დაზიანებული, დეფექტური ან შეკვეთასთან შეუსაბამო პროდუქტი იცვლება ან სრულად ანაზღაურდება; ამ შემთხვევის ტრანსპორტირებას მომწოდებელი ფარავს.",
+              "დეფექტის/გარანტიის შემთხვევები ჩვეულებრივი დაბრუნების ვადისგან გამიჯნულია. მიმართვა შესაძლებელია მითითებულ ტელეფონზე ან ელფოსტაზე."
+            ],
+            "exclusions": [],
+            "customer_duties": [],
+            "claims": [],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://comfo.ge/free-returns/",
+                "title": "comfo.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "სრული კომერციული საგარანტიო დაფარვა და გამონაკლისები",
+              "ბრენდზე პასუხისმგებელი სერვისცენტრი და მისამართი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "code": "thermocenter",
+      "name": "Thermocenter",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "thermocenter.supplier.claims",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "საგარანტიო მიმართვა მომწოდებლის საკონტაქტო სამსახურში.",
+          "service_name": "შპს თერმო ცენტრი — საერთო/საბითუმო კონტაქტი",
+          "service_phone": "+995322453344 / *3344",
+          "service_address": null,
+          "service_email": "info@thermocenter.ge",
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://thermocenter.ge/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://thermocenter.ge/თერმო-ცენტრის-ფილიალები/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://thermocenter.ge/ხშირად-დასმული-კითხვები-faq/",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "partial",
+            "supplier_name": "Thermocenter",
+            "scope_notice": "Thermocenter-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [],
+            "exclusions": [],
+            "customer_duties": [],
+            "claims": [],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://thermocenter.ge/ხშირად-დასმული-კითხვები-faq/",
+                "title": "thermocenter.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "სრული კომერციული საგარანტიო დაფარვა და გამონაკლისები",
+              "ბრენდზე პასუხისმგებელი სერვისცენტრი და მისამართი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "code": "citrus",
+      "name": "შპს გოლდენ SKYTECH",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "skytech.golden.contact",
+          "brands": [],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "scope_label_ka": "შპს გოლდენ SKYTECH-ისგან მოწოდებული ყველა ბრენდი.",
+          "service_name": "Skytech",
+          "service_phone": "+995579357500",
+          "service_address": "თბილისი, წერეთლის 69",
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "owner_confirmed_contact",
+          "evidence": [
+            {
+              "kind": "owner_confirmation",
+              "date": "2026-11-17",
+              "statement_ka": "მფლობელმა დაადასტურა, რომ მომწოდებელი ID12 / ძველი კოდი citrus არის შპს გოლდენ SKYTECH და ამ მომწოდებლის ყველა ბრენდის საგარანტიო კონტაქტია Skytech."
+            }
+          ],
+          "review_notes_ka": "მხოლოდ საგარანტიო ცნობარის სახელია შესწორებული. მომწოდებლის არსებული ID12 და იმპორტის კოდი citrus უცვლელია. ფოტოებისა და აღწერების Citrus-დან კოპირება რეალურ მომწოდებელს არ ცვლის. ვადა და საგარანტიო დაფარვის პირობები არ არის გამოგონილი."
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "code": "elitlight",
+      "name": "Elit Light",
+      "excluded": true,
+      "routes": [
+        {
+          "key": "elitlight.unconfirmed",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "whole_brand_routing": false,
+          "scope_label_ka": "საგარანტიო სერვისის მარშრუტი დასადასტურებელია.",
+          "service_name": null,
+          "service_phone": null,
+          "service_address": null,
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": false,
+          "contact_confirmed": false,
+          "conditions_confirmed": false,
+          "status": "pending",
+          "evidence": [
+            {
+              "url": "https://elitlight.ge/",
+              "checked_on": "2026-11-16",
+              "verified_service_contact": false
+            }
+          ],
+          "review_notes_ka": "რეალური პასუხისმგებელი მიმღები და კონტაქტი; დეკორატიული და ელექტრული პროდუქციის მომსახურება ცალ-ცალკე დასაზუსტებელია.\nმფლობელის მითითებით ავტომატური შევსება გამორიცხულია; საჭირო მონაცემები ხელით შეივსება."
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "code": "magitoys",
+      "name": "Magi Toys",
+      "excluded": false,
+      "routes": [
+        {
+          "key": "magitoys.supplier.claims",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "exclude_brands": [],
+          "all_brands": true,
+          "whole_brand_routing": true,
+          "scope_label_ka": "საგარანტიო მიმართვა მომწოდებლის საკონტაქტო სამსახურში.",
+          "service_name": "MagiToys — საერთო კონტაქტი",
+          "service_phone": "+995322550101",
+          "service_address": null,
+          "service_email": "magitoys@mail.ru",
+          "conditions": null,
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://magitoys.ge/კონტაქტი/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://magitoys.ge/პროდუქტი/6189/",
+              "checked_on": "2026-11-17"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "partial",
+            "supplier_name": "Magi Toys",
+            "scope_notice": "Magi Toys-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [],
+            "exclusions": [],
+            "customer_duties": [],
+            "claims": [
+              "ოფიციალური განცხადება გარანტიას ელექტრო მანქანებს, მოტოებსა და კვადროციკლებს უკავშირებს.",
+              "ტალონის წარმოდგენით პროფილაქტიკური მომსახურებაა მითითებული; ნაწილებისა და მომსახურების ფასიანობა განცხადებაში დაზუსტებული არ არის."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://magitoys.ge/პროდუქტი/6189/",
+                "title": "magitoys.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://magitoys.ge/კონტაქტი/",
+                "title": "magitoys.ge",
+                "checked_on": "2026-11-17"
+              },
+              {
+                "url": "https://magitoys.ge/პროდუქტი/a6-6-6/",
+                "title": "magitoys.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "სრული კომერციული საგარანტიო დაფარვა და გამონაკლისები",
+              "ბრენდზე პასუხისმგებელი სერვისცენტრი და მისამართი"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "code": "christmas-trees-1",
+      "name": "ნაძვები 1",
+      "excluded": true,
+      "routes": [
+        {
+          "key": "christmas-trees-1.unconfirmed",
+          "brands": [],
+          "category_ids": [],
+          "category_names": [],
+          "exclude_category_names": [],
+          "whole_brand_routing": false,
+          "scope_label_ka": "საგარანტიო სერვისის მარშრუტი დასადასტურებელია.",
+          "service_name": null,
+          "service_phone": null,
+          "service_address": null,
+          "service_email": null,
+          "conditions": null,
+          "routing_confirmed": false,
+          "contact_confirmed": false,
+          "conditions_confirmed": false,
+          "status": "pending",
+          "evidence": [],
+          "review_notes_ka": "პასუხისმგებელი მომწოდებლის სახელი, საკონტაქტო ნომერი და მომსახურების/დეფექტის მიღების წესი.\nმფლობელის მითითებით ავტომატური შევსება გამორიცხულია; საჭირო მონაცემები ხელით შეივსება."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "suppliers": 15,
+    "excluded_supplier_codes": [
+      "citrus",
+      "elitlight",
+      "christmas-trees-1"
+    ],
+    "routing_entries": 32,
+    "routing_confirmed": 13,
+    "contact_confirmed": 14,
+    "conditions_confirmed": 12,
+    "statuses": {
+      "partial": 14,
+      "pending": 9,
+      "confirmed": 4,
+      "conflicting": 5
+    }
+  },
+  "last_checked_on": "2026-11-17",
+  "unlinked_suppliers": [
+    {
+      "id": null,
+      "code": "shami",
+      "name": "შამი / Shami",
+      "excluded": false,
+      "binding_missing": true,
+      "routes": [
+        {
+          "key": "shami.philips.domestic",
+          "brands": [
+            "Philips"
+          ],
+          "all_brands": false,
+          "category_names": [],
+          "category_ids": [],
+          "exclude_category_names": [],
+          "routing_confirmed": false,
+          "contact_confirmed": false,
+          "conditions_confirmed": false,
+          "status": "unlinked_reference",
+          "scope_label_ka": "Philips — სამზარეულო და საყოფაცხოვრებო ტექნიკა / Versuni",
+          "service_name": null,
+          "service_phone": null,
+          "service_address": null,
+          "service_email": null,
+          "conditions": null,
+          "official_terms": {
+            "confirmed": true,
+            "status": "partial",
+            "supplier_name": "შამი / Shami",
+            "scope_notice": "მხოლოდ Philips-ის სამზარეულო, ყავის, დასუფთავების, ტანსაცმლისა და ჰაერის მოვლის ტექნიკა (Versuni). ტელევიზორებსა და პერსონალური მოვლის ტექნიკას არ მოიცავს.",
+            "coverage": [
+              "ინსტრუქციით განსაზღვრული გამოყენებისას მასალისა და წარმოების დეფექტის აღმოფხვრა უფასოა; პასუხისმგებელი მწარმოებელი არჩევს შეკეთებას, შესაბამისი ფუნქციის ეკვივალენტით შეცვლას ან შესყიდვის გაუქმებას.",
+              "შეკეთება ან შეცვლა თავდაპირველი ვადის ათვლას თავიდან არ იწყებს."
+            ],
+            "exclusions": [
+              "გამორიცხულია ბუნებრივი ცვეთა/სახარჯი ნაწილები, შეუსაბამო აქსესუარები, არაუფლებამოსილი შეკეთება, არასათანადო მოვლით, გადაჭარბებული გამოყენებით, ტრანსპორტირებით, სითხით, დაბინძურებით ან ელქსელით გამოწვეული დაზიანება.",
+              "შეცვლილი ან წაუკითხავი შეძენის საბუთი/საიდენტიფიკაციო ნიშნები, განზრახ დეფექტურად შეძენილი და ადგილობრივ სტანდარტებთან შეუთავსებელი ნივთი გარანტიაში არ შედის."
+            ],
+            "customer_duties": [
+              "შეინახეთ შესყიდვის საბუთი, მოდელი და სერიული/წარმოების კოდი. დაიცავით გამოყენებისა და მოვლის ინსტრუქცია."
+            ],
+            "claims": [
+              "მომსახურება შეუთანხმეთ მწარმოებლის საკონტაქტო სამსახურს; სამეწარმეო გამოყენება ცალკე შეთანხმებით რეგულირდება."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://www.home.id/en-GE/warranty",
+                "title": "Philips — მწარმოებლის ოფიციალური პირობები",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "შამის მიერ მითითებული სერვისცენტრი, ნომერი და ზუსტი მისამართი",
+              "შეკვეთის რეალური მომწოდებლის ჩანაწერთან მიბმა"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          },
+          "evidence": [
+            {
+              "url": "https://www.home.id/en-GE/warranty",
+              "title": "Philips — მწარმოებლის ოფიციალური პირობები",
+              "checked_on": "2026-11-17"
+            }
+          ]
+        },
+        {
+          "key": "shami.philips.care",
+          "brands": [
+            "Philips"
+          ],
+          "all_brands": false,
+          "category_names": [],
+          "category_ids": [],
+          "exclude_category_names": [],
+          "routing_confirmed": false,
+          "contact_confirmed": false,
+          "conditions_confirmed": false,
+          "status": "unlinked_reference",
+          "scope_label_ka": "Philips — პერსონალური მოვლა / Avent",
+          "service_name": null,
+          "service_phone": null,
+          "service_address": null,
+          "service_email": null,
+          "conditions": null,
+          "official_terms": {
+            "confirmed": true,
+            "status": "partial",
+            "supplier_name": "შამი / Shami",
+            "scope_notice": "მხოლოდ Philips-ის პერსონალური მოვლის ელექტრონიკა და Philips Avent-ის ბავშვის მოვლის ელექტრონიკა; ოფიციალური ქართული დანართი, გვერდი6. სამზარეულოს ტექნიკასა და ტელევიზორებს არ მოიცავს.",
+            "coverage": [
+              "მწარმოებლის გარანტია ეხება მასალისა და წარმოების ნაკლს, ინსტრუქციისა და ტექნიკური მონაცემების შესაბამისად გამოყენებისას. მომსახურება ითვალისწინებს შეკეთებას ან, მისი შეუძლებლობისას, შეცვლას."
+            ],
+            "exclusions": [
+              "არ იფარება ექსპლუატაციის, შენახვისა და ტრანსპორტირების დარღვევით, არასათანადო მოვლით, შეუფერებელი ნაწილით, არაუფლებამოსილი ჩარევით, ქსელის გადახრით ან არასწორი მონტაჟით გამოწვეული ხარვეზი; აგრეთვე სტიქიური ზიანი.",
+              "ცალკე გამორიცხულია სახარჯი მასალა და აქსესუარები, მათ შორის ბატარეა, აკუმულატორი, პირი/ჯაგრისი, ფილტრი, კაბელი და სხვა შეზღუდული რესურსის ნაწილი."
+            ],
+            "customer_duties": [
+              "ტალონში მოდელი და სერიული ნომერი ნივთს ზუსტად უნდა ემთხვეოდეს. შეინახეთ თანდართული დოკუმენტები და საიდენტიფიკაციო ნიშნები; გამოიყენეთ მხოლოდ პირადი/ოჯახური დანიშნულებით."
+            ],
+            "claims": [
+              "ნაკლის შესახებ მიმართეთ Philips-ის საინფორმაციო სამსახურს; საჭირო მონტაჟი კვალიფიციურ შემსრულებელს მიანდეთ."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://www.documents.philips.com/assets/20250613/571f390194854e8dba64b2fb00defdf9.pdf",
+                "title": "Philips — მწარმოებლის ოფიციალური პირობები",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "შამის მიერ მითითებული სერვისცენტრი, ნომერი და ზუსტი მისამართი",
+              "შეკვეთის რეალური მომწოდებლის ჩანაწერთან მიბმა"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          },
+          "evidence": [
+            {
+              "url": "https://www.documents.philips.com/assets/20250613/571f390194854e8dba64b2fb00defdf9.pdf",
+              "title": "Philips — მწარმოებლის ოფიციალური პირობები",
+              "checked_on": "2026-11-17"
+            }
+          ]
+        },
+        {
+          "key": "shami.philips.tv",
+          "brands": [
+            "Philips"
+          ],
+          "all_brands": false,
+          "category_names": [],
+          "category_ids": [],
+          "exclude_category_names": [],
+          "routing_confirmed": false,
+          "contact_confirmed": true,
+          "conditions_confirmed": false,
+          "status": "unlinked_reference",
+          "scope_label_ka": "Philips — ტელევიზორი",
+          "service_name": "Philips TV — ოფიციალური საინფორმაციო ხაზი",
+          "service_phone": "800-00-00-80",
+          "service_address": null,
+          "service_email": null,
+          "conditions": null,
+          "official_terms": {
+            "confirmed": true,
+            "status": "partial",
+            "supplier_name": "შამი / Shami",
+            "scope_notice": "მხოლოდ Philips-ის ტელევიზორის საინფორმაციო მხარდაჭერა; სრული საგარანტიო დაფარვის პირობები ჯერ არ დადასტურებულა.",
+            "coverage": [],
+            "exclusions": [],
+            "customer_duties": [],
+            "claims": [
+              "ტელევიზორის საგარანტიო სერვისის დასაზუსტებლად გამოიყენეთ Philips-ის ოფიციალურ გვერდზე საქართველოსთვის მითითებული საინფორმაციო ხაზი."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://www.service.philips.ru/Home/TpVision",
+                "title": "Philips — მწარმოებლის ოფიციალური პირობები",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "Philips TV-ის შესაბამისი მოდელის სრული საგარანტიო პირობები",
+              "ავტორიზებული სახელოსნო და მისამართი",
+              "შეკვეთის რეალური მომწოდებლის ჩანაწერთან მიბმა"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          },
+          "evidence": [
+            {
+              "url": "https://www.service.philips.ru/Home/TpVision",
+              "title": "Philips — მწარმოებლის ოფიციალური პირობები",
+              "checked_on": "2026-11-17"
+            }
+          ]
+        },
+        {
+          "key": "shami.seb.pending",
+          "brands": [
+            "Tefal",
+            "Rowenta",
+            "Moulinex",
+            "Krups"
+          ],
+          "all_brands": false,
+          "category_names": [],
+          "category_ids": [],
+          "exclude_category_names": [],
+          "routing_confirmed": false,
+          "contact_confirmed": false,
+          "conditions_confirmed": false,
+          "status": "unlinked_reference",
+          "scope_label_ka": "Tefal / Rowenta / Moulinex / Krups — საქართველოსთვის მოქმედი მომწოდებლის პირობები და სერვისი დასამატებელია.",
+          "service_name": null,
+          "service_phone": null,
+          "service_address": null,
+          "service_email": null,
+          "conditions": null,
+          "official_terms": null,
+          "evidence": [
+            {
+              "url": "https://www.tefal.com/consumer-services/warranty-and-repairs/warranty",
+              "checked_on": "2026-11-17"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "terms_updated_on": "2026-11-17"
+}
