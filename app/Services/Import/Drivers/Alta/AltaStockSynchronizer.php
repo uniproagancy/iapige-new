@@ -20,7 +20,8 @@ class AltaStockSynchronizer
             $products = [];
 
             foreach (ProductOffer::where('supplier_id', $supplier->id)->lazyById(200) as $offer) {
-                $quantity = max(0, (int) ($rows[$offer->external_id]['quantity'] ?? 0));
+                // gone from the list, or below the minimum the site sells from
+                $quantity = $driver->available($rows[$offer->external_id] ?? null);
 
                 if ($offer->stock !== $quantity) {
                     $offer->update(['stock' => $quantity, 'synced_at' => now()]);

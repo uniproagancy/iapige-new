@@ -104,7 +104,7 @@ class AltaDriver implements ChecksImportSource, HasStockFeed, SupplierDriver
             sku: $this->supplier->code.'-'.$code,
             costPrice: $payload->costPrice,
             oldCostPrice: $payload->oldCostPrice,
-            stock: max(0, (int) ($row['quantity'] ?? 0)),
+            stock: $this->available($row),
             brandName: $payload->brandName ?? ($row['brand'] ?? null),
             categoryName: $payload->categoryName ?? ($row['category'] ?? null),
             translations: $payload->translations,
@@ -117,9 +117,22 @@ class AltaDriver implements ChecksImportSource, HasStockFeed, SupplierDriver
 
     protected function wanted(): array
     {
-        $minimum = max(1, (int) ($this->supplier->config['min_quantity'] ?? 2));
+        return array_filter($this->feed(), fn (array $row) => $this->available($row) > 0);
+    }
 
-        return array_filter($this->feed(), fn (array $row) => $row['quantity'] >= $minimum);
+    /* min_quantity is the shop's floor for Alta: the extension's list and the
+       import already skip anything below it. Stock has to follow the same
+       rule, or a product the list no longer shows stays on sale with one left. */
+    public function available(?array $row): int
+    {
+        $quantity = max(0, (int) ($row['quantity'] ?? 0));
+
+        return $quantity >= $this->minimum() ? $quantity : 0;
+    }
+
+    protected function minimum(): int
+    {
+        return max(1, (int) ($this->supplier->config['min_quantity'] ?? 2));
     }
 
     protected function feed(): array
