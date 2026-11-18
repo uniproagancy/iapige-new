@@ -25,19 +25,6 @@ class Store
             ->values()->all();
     }
 
-    /* Read from the same settings the payment drivers charge by, so the
-       terms page and the bank's bill cannot drift apart. */
-    protected static function instalmentFees(string $locale): array
-    {
-        $pct = fn (string $key, float $default) => rtrim(rtrim(number_format((float) config($key, $default) * 100, 1, '.', ''), '0'), '.').'%';
-        $lines = [
-            'ka' => ['საქართველოს ბანკი — '.$pct('bog.installment.handling_fee', 0.05), 'თიბისი — '.$pct('tbc.installment.handling_fee', 0.05), 'კრედო ბანკი — '.$pct('credo.fee', 0.10)],
-            'en' => ['Bank of Georgia — '.$pct('bog.installment.handling_fee', 0.05), 'TBC — '.$pct('tbc.installment.handling_fee', 0.05), 'Credo Bank — '.$pct('credo.fee', 0.10)],
-        ];
-
-        return $lines[$locale];
-    }
-
     public static function img(string $seed, int $i = 0, int $w = 480, int $h = 360): string
     {
         return 'https://picsum.photos/seed/'.rawurlencode("{$seed}-{$i}")."/{$w}/{$h}";
@@ -247,11 +234,10 @@ class Store
                         ]],
                         ['h' => 'ფორს-მაჟორი', 'p' => 'ვალდებულების შეუსრულებლობაზე არცერთი მხარე არ აგებს პასუხს, თუ ის გამოიწვია შეკვეთის შემდეგ დაწყებულმა სტიქიამ, ტექნოლოგიურმა კატასტროფამ, ხანძარმა, საომარმა მოქმედებამ ან სახელმწიფოს გადაწყვეტილებამ. ასეთ დროს ვადა ამ გარემოების ხანგრძლივობით გრძელდება. მხარე, რომელსაც ეს შეეხო, მეორეს დაუყოვნებლივ ატყობინებს და კომპეტენტური ორგანოს დოკუმენტით ადასტურებს; შეუტყობინებლობა ან დაგვიანებული შეტყობინება ამ საფუძვლით პასუხისმგებლობისგან გათავისუფლების უფლებას ართმევს.'],
                     ]],
-                'installments' => ['name' => 'განვადება', 'title' => 'განვადების პირობები', 'updated' => '18 ნოემბერი, 2026',
+                'installments' => ['name' => 'განვადება', 'title' => 'განვადების პირობები', 'updated' => '1 აგვისტო, 2026',
                     'intro' => 'განვადება საქართველოს ბანკის, თიბისისა და კრედო ბანკის პარტნიორობით.',
                     'sections' => [
                         ['h' => 'დამტკიცება', 'p' => 'განაცხადი ივსება ონლაინ, დამტკიცება 3 წუთში.'],
-                        ['h' => 'ვადა და საკომისიო', 'p' => 'განვადება '.config('shop.instalment_months', 24).' თვემდე. ბანკის განვადებაზე ფასს ემატება მომსახურების საკომისიო:', 'list' => self::instalmentFees('ka')],
                     ]],
             ],
             'en' => [
@@ -291,11 +277,10 @@ class Store
                         ]],
                         ['h' => 'Force majeure', 'p' => 'Neither party is liable for failing to meet an obligation caused by a natural or technological disaster, fire, war or a government decision that began after the order. Time limits are extended for as long as such an event lasts. The affected party notifies the other without delay and confirms it with a document from a competent authority; failing to notify, or notifying late, removes this ground for release from liability.'],
                     ]],
-                'installments' => ['name' => 'Instalments', 'title' => 'Instalment terms', 'updated' => '18 November 2026',
+                'installments' => ['name' => 'Instalments', 'title' => 'Instalment terms', 'updated' => '1 August 2026',
                     'intro' => 'Instalments with Bank of Georgia, TBC and Credo Bank.',
                     'sections' => [
                         ['h' => 'Approval', 'p' => 'Apply online and get a decision within 3 minutes.'],
-                        ['h' => 'Term and fee', 'p' => 'Instalments for up to '.config('shop.instalment_months', 24).' months. A bank instalment adds a handling fee to the price:', 'list' => self::instalmentFees('en')],
                     ]],
             ],
         ]) + __('privacy.documents');
