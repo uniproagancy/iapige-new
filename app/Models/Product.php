@@ -209,7 +209,13 @@ class Product extends Model
     {
         $months = max(1, $months ?? (int) config('shop.instalment_months', 24));
 
-        return (int) round($this->sellingPrice() / $months);
+        /* A bank instalment is paid on the price plus the handling fee the
+           payment drivers add (5% at BOG and TBC, 10% at Credo). The page
+           says "from", so it shows the cheapest of them -- the price alone
+           would promise a monthly sum no bank actually asks for. */
+        $fee = min((float) config('bog.installment.handling_fee', 0.05), (float) config('tbc.installment.handling_fee', 0.05));
+
+        return (int) ceil($this->sellingPrice() * (1 + max(0.0, $fee)) / $months);
     }
 
     public function inStock(): bool

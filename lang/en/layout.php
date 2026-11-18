@@ -3,7 +3,7 @@
 return [
 
     'title' => 'IAPI.GE — electronics store',
-    'description' => 'IAPI.GE — premium electronics store. Authorised warranty, free delivery and 0% instalments for up to 12 months.',
+    'description' => 'IAPI.GE — online store for electronics and home appliances. Warranty, delivery across Georgia and instalments through partner banks.',
     'services' => 'Services',
     'installments' => 'Instalments',
     'language' => 'Language',

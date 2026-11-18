@@ -3,6 +3,8 @@
 namespace App\Services\Warranties;
 
 use App\Models\OrderDeliveryItem;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 /** Read-only supplier routing. No product/price/stock writes and no inferred warranty periods. */
@@ -10,24 +12,51 @@ class WarrantyServiceDirectory
 {
     private ?array $directory = null;
 
+    public function supplierLegalName(?OrderDeliveryItem $item): ?string
+    {
+        if (! $item?->supplier_id) {
+            return null;
+        }
+        $item->loadMissing('supplier');
+        if (! $item->supplier || (int) $item->supplier->id !== (int) $item->supplier_id) {
+            return null;
+        }
+
+        return $this->legalNameForSupplier((int) $item->supplier_id, (string) $item->supplier->code);
+    }
+
+    public function legalNameForSupplier(int $supplierId, string $supplierCode): ?string
+    {
+        return app(WarrantySupplierProfiles::class)->legalName($supplierId, $supplierCode);
+    }
+
     public function supplierName(?OrderDeliveryItem $item): ?string
     {
-        if (! $item) { return null; }
+        if (! $item) {
+            return null;
+        }
         $item->loadMissing('supplier');
-        // Owner-confirmed legacy supplier identifier: this is the Global/Franko feed, not MetroMart retail.
+        // Owner-confirmed company behind the Global/Franko feed; the legacy import ID/code stay unchanged.
         if ((int) $item->supplier_id === 9 && $item->supplier?->code === 'metromart') {
-            return 'Global / Franko';
+            return 'შპს „შამი“';
         }
         if ((int) $item->supplier_id === 6 && $item->supplier?->code === 'ingco') {
             return 'ნოვა / Nova';
         }
+
         return WarrantySupplierIdentity::displayName($item->supplier) ?: $item->supplier_name;
     }
 
     public function all(): array
     {
+        return app(WarrantySupplierProfiles::class)->overlay($this->base());
+    }
+
+    /** Reviewed routes plus blank intake for genuinely new registered suppliers, before owner overlays. */
+    public function base(): array
+    {
         if ($this->directory !== null) {
-            return $this->directory;
+            return app(WarrantyCustomServiceRoutes::class)->append($this->registeredSuppliers($this->directory));
         }
         try {
             $data = json_decode(file_get_contents(resource_path('warranty/service-directory.json')), true, 64, JSON_THROW_ON_ERROR);
@@ -38,7 +67,50 @@ class WarrantyServiceDirectory
             throw ValidationException::withMessages(['service' => __('warranty.errors.directory_invalid')]);
         }
 
-        return $this->directory = $data;
+        $this->directory = $data;
+
+        return app(WarrantyCustomServiceRoutes::class)->append($this->registeredSuppliers($data));
+    }
+
+    private function registeredSuppliers(array $directory): array
+    {
+        if (! Schema::hasTable('suppliers')) {
+            return $directory;
+        }
+        $ids = [];
+        $codes = [];
+        foreach ($directory['suppliers'] as $supplier) {
+            $ids[] = (int) $supplier['id'];
+            $codes[] = $supplier['code'];
+        }
+        // Unlinked research is not authority to guess a new supplier's brand or service scope.
+        foreach ($directory['unlinked_suppliers'] ?? [] as $supplier) {
+            $codes[] = $supplier['code'];
+        }
+        foreach (DB::table('suppliers')->orderBy('id')->limit(201)->get(['id', 'code', 'name']) as $supplier) {
+            $id = (int) $supplier->id;
+            $code = $supplier->code;
+            if ($id < 1 || ! is_string($code) || ! preg_match('/\A[a-z0-9-]{1,100}\z/D', $code)
+                || in_array($id, $ids, true) || in_array($code, $codes, true)
+                || in_array($code, ['citrus', 'elitlight', 'christmas-trees-1'], true)) {
+                continue;
+            }
+            $name = is_string($supplier->name) && trim($supplier->name) !== '' ? $supplier->name : $code;
+            $directory['suppliers'][] = ['id' => $id, 'code' => $code, 'name' => $name, 'excluded' => false,
+                '_registered_owner_route' => true, 'routes' => [[
+                    'key' => 'owner.general', 'brands' => [], 'category_ids' => [], 'category_names' => [],
+                    'exclude_category_names' => [], 'exclude_brands' => [], 'all_brands' => true,
+                    'whole_brand_routing' => true, 'scope_label_ka' => $name.' — საგარანტიო მომსახურება',
+                    'service_name' => null, 'service_phone' => null, 'service_address' => null, 'service_email' => null,
+                    'conditions' => null, 'routing_confirmed' => true, 'contact_confirmed' => false,
+                    'conditions_confirmed' => false, 'status' => 'owner_profile_required', 'evidence' => [],
+                    'official_terms' => null,
+                ]]];
+            $ids[] = $id;
+            $codes[] = $code;
+        }
+
+        return $directory;
     }
 
     public function resolve(?OrderDeliveryItem $item): ?array
@@ -67,7 +139,28 @@ class WarrantyServiceDirectory
             $node = $node->parent;
         }
         $matches = [];
+        $custom = [];
         foreach ($supplier['routes'] as $route) {
+            if (($route['_custom'] ?? false) === true) {
+                if (! ($route['routing_confirmed'] ?? false)) {
+                    continue;
+                }
+                $scope = $route['_custom_scope'] ?? [];
+                if (($scope['product_id'] ?? null) !== null) {
+                    if ((int) $scope['product_id'] === (int) $item->product_id && $item->product) {
+                        $custom[] = ['route' => $route, 'priority' => 3, 'depth' => 0];
+                    }
+                } elseif ((int) ($scope['brand_id'] ?? 0) === (int) ($item->product?->brand_id ?? 0)
+                    && (int) ($scope['brand_id'] ?? 0) > 0) {
+                    if (($scope['category_id'] ?? null) === null) {
+                        $custom[] = ['route' => $route, 'priority' => 1, 'depth' => 0];
+                    } elseif (($depth = array_search((int) $scope['category_id'], $categoryIds, true)) !== false) {
+                        $custom[] = ['route' => $route, 'priority' => 2, 'depth' => $depth];
+                    }
+                }
+
+                continue;
+            }
             $brands = array_map($this->name(...), $route['brands'] ?? []);
             $excludedBrands = array_map($this->name(...), $route['exclude_brands'] ?? []);
             // Supplier-wide intake is allowed only when its official source explicitly covers all supplied goods.
@@ -79,6 +172,11 @@ class WarrantyServiceDirectory
                 continue;
             }
             $include = array_map($this->category(...), $route['category_names'] ?? []);
+            $leafCategories = array_map($this->name(...), $route['leaf_category_names'] ?? []);
+            if ($leafCategories !== [] && ! in_array($this->name($item->product?->category?->name ?? ''), $leafCategories, true)) {
+                // A phone case beneath a phone ancestor is not a phone warranty.
+                continue;
+            }
             $exclude = array_map($this->category(...), $route['exclude_category_names'] ?? []);
             $ids = array_map('intval', $route['category_ids'] ?? []);
             if (($include !== [] || $exclude !== [] || $ids !== []) && $categories === [] && $categoryIds === []) {
@@ -95,11 +193,28 @@ class WarrantyServiceDirectory
             }
             $matches[] = $route;
         }
+        if ($custom !== []) {
+            usort($custom, fn ($a, $b) => ($b['priority'] <=> $a['priority']) ?: ($a['depth'] <=> $b['depth']));
+            $best = $custom[0];
+            if (isset($custom[1]) && $custom[1]['priority'] === $best['priority'] && $custom[1]['depth'] === $best['depth']) {
+                return null;
+            }
+            // A later catalog/category edit must not silently replace a targeted reviewed service.
+            if ($best['priority'] < 3 && collect($matches)->contains(fn ($route) => ! ($route['all_brands'] ?? false))) {
+                return null;
+            }
+            $best['route']['_resolved_category_names'] = $categories;
+
+            return $best['route'];
+        }
         // No cheapest-offer fallback, guessed category, fuzzy brand, or ambiguous route.
-        if (count($matches) !== 1) { return null; }
+        if (count($matches) !== 1) {
+            return null;
+        }
         $resolved = $matches[0];
         // Only catalog categories from this actual delivery item may select a category-specific clause.
         $resolved['_resolved_category_names'] = $categories;
+
         return $resolved;
     }
 
@@ -107,29 +222,35 @@ class WarrantyServiceDirectory
     public function officialTerms(?array $route): ?array
     {
         $terms = $route['official_terms'] ?? null;
-        if (! is_array($terms) || ($terms['confirmed'] ?? false) !== true
+        $ownerEntered = ($route['_profile_owner_entered'] ?? false) === true && ($terms['owner_entered'] ?? false) === true;
+        if (! is_array($terms) || (! $ownerEntered && ($terms['confirmed'] ?? false) !== true)
             || ! in_array($terms['status'] ?? null, ['substantive', 'partial'], true)) {
             return null;
         }
-        $out = ['status' => $terms['status']];
+        $out = ['status' => $terms['status'], 'owner_entered' => $ownerEntered,
+            'source_kind' => $ownerEntered ? 'owner_profile' : 'official'];
         foreach (['supplier_name', 'scope_notice'] as $key) {
             $out[$key] = is_string($terms[$key] ?? null) ? mb_substr(trim($terms[$key]), 0, 3000) : null;
         }
         $hasText = false;
         foreach (['coverage', 'exclusions', 'customer_duties', 'claims', 'component_terms', 'missing_fields'] as $key) {
             $out[$key] = [];
-            foreach (is_array($terms[$key] ?? null) ? array_slice($terms[$key], 0, 30) : [] as $text) {
+            foreach (is_array($terms[$key] ?? null) ? array_slice($terms[$key], 0, $ownerEntered ? 10000 : 30) : [] as $text) {
                 if (is_string($text) && trim($text) !== '') {
-                    $out[$key][] = mb_substr(trim($text), 0, 5000);
+                    $out[$key][] = $ownerEntered ? $text : mb_substr(trim($text), 0, 5000);
                 }
             }
-            if ($key !== 'missing_fields' && $out[$key] !== []) { $hasText = true; }
+            if ($key !== 'missing_fields' && $out[$key] !== []) {
+                $hasText = true;
+            }
         }
         $categories = $route['_resolved_category_names'] ?? [];
         foreach (is_array($terms['conditional_sections'] ?? null) ? $terms['conditional_sections'] : [] as $section) {
             if (! is_array($section) || ! is_array($section['category_names'] ?? null)
                 || ! in_array($section['field'] ?? null, ['coverage', 'exclusions', 'customer_duties', 'claims', 'component_terms'], true)
-                || ! is_string($section['text'] ?? null) || trim($section['text']) === '') { continue; }
+                || ! is_string($section['text'] ?? null) || trim($section['text']) === '') {
+                continue;
+            }
             $names = array_map(fn ($name) => is_string($name) ? $this->category($name) : '', $section['category_names']);
             if ($categories !== [] && array_intersect($names, $categories)) {
                 $out[$section['field']][] = mb_substr(trim($section['text']), 0, 5000);
@@ -141,13 +262,15 @@ class WarrantyServiceDirectory
             $url = is_array($source) ? ($source['url'] ?? null) : null;
             if (! is_string($url) || ! filter_var($url, FILTER_VALIDATE_URL)
                 || parse_url($url, PHP_URL_SCHEME) !== 'https' || parse_url($url, PHP_URL_USER) !== null
-                || parse_url($url, PHP_URL_PASS) !== null) { continue; }
+                || parse_url($url, PHP_URL_PASS) !== null) {
+                continue;
+            }
             $out['sources'][] = ['url' => $url,
                 'title' => is_string($source['title'] ?? null) ? mb_substr($source['title'], 0, 500) : parse_url($url, PHP_URL_HOST),
                 'checked_on' => is_string($source['checked_on'] ?? null) ? mb_substr($source['checked_on'], 0, 10) : null];
         }
 
-        return $hasText && $out['sources'] !== [] ? $out : null;
+        return $ownerEntered || ($hasText && $out['sources'] !== []) ? $out : null;
     }
 
     private function name(?string $name): string

@@ -1,0 +1,126 @@
+{
+  "schema": "iapi.warranty.supplier-legal-identities.v1",
+  "checked_on": "2026-11-17",
+  "identities": [
+    {
+      "supplier_id": 1,
+      "supplier_code": "zoommer",
+      "legal_name": "შპს „ზუმერი ჯორჯია“",
+      "evidence": {
+        "kind": "official_source",
+        "url": "https://zoommer.ge/info/garantia",
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 2,
+      "supplier_code": "alta",
+      "legal_name": "შპს „ალტა“",
+      "evidence": {
+        "kind": "owner_confirmation",
+        "url": null,
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 3,
+      "supplier_code": "elite",
+      "legal_name": "სს „ელიტ ელექტრონიქსი“",
+      "evidence": {
+        "kind": "official_source",
+        "url": "https://ee.ge/topic/warranty-non-warranty-service-center",
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 4,
+      "supplier_code": "midea",
+      "legal_name": "შპს „ემ ტექნიქსი“",
+      "evidence": {
+        "kind": "owner_confirmation",
+        "url": null,
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 5,
+      "supplier_code": "allmarket",
+      "legal_name": "შპს „allmarket.ge“",
+      "evidence": {
+        "kind": "official_source",
+        "url": "https://allmarket.ge/ka/marketing-terms",
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 6,
+      "supplier_code": "ingco",
+      "legal_name": "შპს „ნოვა“",
+      "evidence": {
+        "kind": "official_source",
+        "url": "https://nova.ge/ka/tsesebi-da-pirobebi",
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 7,
+      "supplier_code": "alneo",
+      "legal_name": "შპს „ალნეო ჯორჯია“",
+      "evidence": {
+        "kind": "official_source",
+        "url": "https://alneo.ge/privacy-policy/",
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "legal_name": "შპს „ABC-Telecom GE“",
+      "evidence": {
+        "kind": "official_source",
+        "url": "https://kontakt.ge/warranty-terms",
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 9,
+      "supplier_code": "metromart",
+      "legal_name": "შპს „შამი“",
+      "evidence": {
+        "kind": "owner_confirmation",
+        "url": null,
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 11,
+      "supplier_code": "thermocenter",
+      "legal_name": "შპს „თერმო ცენტრი“",
+      "evidence": {
+        "kind": "official_source",
+        "url": "https://thermocenter.ge/assets/personal-data.pdf",
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 12,
+      "supplier_code": "citrus",
+      "legal_name": "შპს გოლდენ SKYTECH",
+      "evidence": {
+        "kind": "owner_confirmation",
+        "url": null,
+        "checked_on": "2026-11-17"
+      }
+    },
+    {
+      "supplier_id": 14,
+      "supplier_code": "magitoys",
+      "legal_name": "შპს ბითუმჯი",
+      "evidence": {
+        "kind": "owner_confirmation",
+        "url": null,
+        "checked_on": "2026-11-17"
+      }
+    }
+  ]
+}

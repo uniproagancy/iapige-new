@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CanonicalHost;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\TrackPageView;
 use Illuminate\Foundation\Application;
@@ -36,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '_fbc',
         ]);
 
+        $middleware->prepend(CanonicalHost::class);
         $middleware->web(append: [TrackPageView::class, SecurityHeaders::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

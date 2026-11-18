@@ -23,7 +23,7 @@
           "service_name": "შპს ტექნოლაინი",
           "service_phone": "032 230 40 80",
           "service_address": "თბილისი, ს. ცინცაძის ქ. 58",
-          "service_email": null,
+          "service_email": "info@technoline.ge",
           "conditions": "საგარანტიო ბარათი ან შეძენის სხვაგვარი იდენტიფიცირების შესაძლებლობა საჭიროა; ნივთის სერიული ნომრით ან IMEI-ით იდენტიფიცირება უნდა ხერხდებოდეს.\nსაგარანტიო საკითხზე მიმართეთ ტექნოლაინის სერვისს; საჭიროებისამებრ მითითებულია საკურიერო მომსახურებაც.",
           "routing_confirmed": true,
           "contact_confirmed": true,
@@ -91,7 +91,7 @@
           "service_name": "ტექპოინტი",
           "service_phone": "032 242 22 15",
           "service_address": "თბილისი, სულხან ცინცაძის ქ. 5",
-          "service_email": null,
+          "service_email": "support@techpoint.ge",
           "conditions": "წარმოადგინეთ სრულად შევსებული საგარანტიო ტალონი და შეძენის დამადასტურებელი დოკუმენტი; მწარმოებლის ტალონი დაერთოს, თუ პროდუქტს მოჰყვა.\nმიუთითეთ მოდელი, სერიული ნომერი და გაუმართაობის აღწერა.",
           "routing_confirmed": false,
           "contact_confirmed": true,
@@ -680,7 +680,7 @@
           "service_name": "აისაფორთი — Apple-ის ოფიციალური სერვისი",
           "service_phone": "032 230 10 01",
           "service_address": "თბილისი, სულხან ცინცაძის ქ. 12",
-          "service_email": null,
+          "service_email": "info@isupport.ge",
           "conditions": "შესაბამისი სერვისცენტრის დასაზუსტებლად დაუკავშირდით მომწოდებელს. მოამზადეთ ნივთის მოდელი, სერიული ნომერი და შეძენის დამადასტურებელი დოკუმენტი.",
           "routing_confirmed": true,
           "contact_confirmed": true,
@@ -1334,7 +1334,6 @@
               }
             ],
             "missing_fields": [
-              "შესაბამისი სერვისცენტრის ზუსტი მისამართი",
               "კონკრეტული ქვაბის მწარმოებლის ტალონი და პირველი გაშვების მოთხოვნები"
             ],
             "period_autofill": false,
@@ -1502,9 +1501,7 @@
                 "checked_on": "2026-11-17"
               }
             ],
-            "missing_fields": [
-              "შესაბამისი სერვისცენტრის ზუსტი მისამართი"
-            ],
+            "missing_fields": [],
             "period_autofill": false,
             "contract_approval": false,
             "usage_basis": {
@@ -1545,9 +1542,9 @@
           "whole_brand_routing": true,
           "scope_label_ka": "Elite-ს საგარანტიო მიღება; ცალკე ჩამოთვლილი ბრენდების სპეციალურ ცენტრებს არ ანაცვლებს.",
           "service_name": "ელიტ სერვისი",
-          "service_phone": "032 248 48 48",
+          "service_phone": "032 220 02 02",
           "service_address": "თბილისი, გურამიშვილის ქ. 64",
-          "service_email": null,
+          "service_email": "info@es.ge",
           "conditions": "მიმართვისას წარმოადგინეთ შეძენის დამადასტურებელი დოკუმენტი და შესაბამისი საგარანტიო ტალონი.\nმიუთითეთ ნივთის ბრენდი, მოდელი, სერიული ნომერი და გაუმართაობის აღწერა; საჭიროებისას — E-Nr/FD.\nსერვისში დატოვებისას ფიქსირდება ნივთის მდგომარეობა და ფორმდება მომსახურების შეთანხმება.",
           "routing_confirmed": true,
           "contact_confirmed": true,
@@ -1581,7 +1578,7 @@
               "მომსახურებამდე შექმენით პერსონალური მონაცემების სარეზერვო ასლი."
             ],
             "claims": [
-              "მიმართვა იწყება შესაბამის ბრენდულ სერვისთან; ზოგადი საკონტაქტოა ელიტის 0322484848, Bosch-ს ცალკე 0322300020."
+              "საგარანტიო მომსახურებისთვის მიმართეთ ელიტ სერვისს — 032 220 02 02, info@es.ge. Bosch-ის საყოფაცხოვრებო ტექნიკისთვის ცალკე ნომერია 032 230 00 20."
             ],
             "component_terms": [],
             "sources": [
@@ -2020,8 +2017,29 @@
             "Samsung"
           ],
           "category_ids": [],
-          "category_names": [],
-          "exclude_category_names": [],
+          "category_names": [
+            "მობილური ტელეფონები",
+            "მობილური ტელეფონი",
+            "სმარტფონები",
+            "სმარტფონი",
+            "მობილურები",
+            "mobile phone",
+            "mobile phones",
+            "smartphone",
+            "smartphones"
+          ],
+          "exclude_category_names": [
+            "მობილური ტელეფონის აქსესუარები",
+            "მობილურის აქსესუარები",
+            "ტელევიზორის აქსესუარები",
+            "ნოუთბუქის აქსესუარები",
+            "პლანშეტის აქსესუარები",
+            "ნოუთბუქის ჩანთა",
+            "ნოუთბუქის დამტენი",
+            "ტელევიზორის მაგიდა",
+            "ლეპტოპის მაგიდა",
+            "პლანშეტის ეკრანის დამცავი"
+          ],
           "exclude_brands": [],
           "all_brands": false,
           "whole_brand_routing": true,
@@ -2078,7 +2096,18 @@
             "missing_fields": [],
             "period_autofill": false,
             "contract_approval": false
-          }
+          },
+          "leaf_category_names": [
+            "მობილური ტელეფონები",
+            "მობილური ტელეფონი",
+            "სმარტფონები",
+            "სმარტფონი",
+            "მობილურები",
+            "mobile phone",
+            "mobile phones",
+            "smartphone",
+            "smartphones"
+          ]
         },
         {
           "key": "kontakt.toshiba",
@@ -2145,7 +2174,9 @@
                 "checked_on": "2026-11-17"
               }
             ],
-            "missing_fields": [],
+            "missing_fields": [
+              "ამ მოდელის სერვისცენტრის დადასტურება: მომწოდებლის სადილერო სიასა და საჯარო გვერდს განსხვავებული ცენტრი/მისამართი აქვს"
+            ],
             "period_autofill": false,
             "contract_approval": false
           }
@@ -2211,7 +2242,9 @@
                 "checked_on": "2026-11-17"
               }
             ],
-            "missing_fields": [],
+            "missing_fields": [
+              "ამ მოდელის სერვისცენტრის დადასტურება: მომწოდებლის სადილერო სიასა და საჯარო გვერდს განსხვავებული ცენტრი/მისამართი აქვს"
+            ],
             "period_autofill": false,
             "contract_approval": false
           }
@@ -2537,7 +2570,9 @@
                 "checked_on": "2026-11-17"
               }
             ],
-            "missing_fields": [],
+            "missing_fields": [
+              "ამ მოდელის სერვისცენტრის დადასტურება: მომწოდებლის სადილერო სიასა და საჯარო გვერდს განსხვავებული ცენტრი/მისამართი აქვს"
+            ],
             "period_autofill": false,
             "contract_approval": false
           }
@@ -2599,7 +2634,9 @@
                 "checked_on": "2026-11-17"
               }
             ],
-            "missing_fields": [],
+            "missing_fields": [
+              "ამ მოდელის სერვისცენტრის დადასტურება: მომწოდებლის სადილერო სიასა და საჯარო გვერდს განსხვავებული ცენტრი/მისამართი აქვს"
+            ],
             "period_autofill": false,
             "contract_approval": false
           }
@@ -2661,7 +2698,9 @@
                 "checked_on": "2026-11-17"
               }
             ],
-            "missing_fields": [],
+            "missing_fields": [
+              "ამ მოდელის სერვისცენტრის დადასტურება: მომწოდებლის სადილერო სიასა და საჯარო გვერდს განსხვავებული ცენტრი/მისამართი აქვს"
+            ],
             "period_autofill": false,
             "contract_approval": false
           }
@@ -2863,13 +2902,135 @@
             "period_autofill": false,
             "contract_approval": false
           }
+        },
+        {
+          "key": "kontakt.samsung.home-it",
+          "brands": [
+            "Samsung"
+          ],
+          "category_ids": [],
+          "category_names": [
+            "ტელევიზორი",
+            "ტელევიზორები",
+            "tv",
+            "მაცივარი",
+            "მაცივრები",
+            "სარეცხი მანქანა",
+            "სარეცხი მანქანები",
+            "ჭურჭლის სარეცხი მანქანა",
+            "ჭურჭლის სარეცხი მანქანები",
+            "მონიტორი",
+            "მონიტორები",
+            "მიკროტალღური ღუმელი",
+            "მიკროტალღური ღუმელები",
+            "ლეპტოპი",
+            "ლეპტოპები",
+            "ნოუთბუქი",
+            "გეიმინგ ლეპტოპი"
+          ],
+          "exclude_category_names": [
+            "მობილური ტელეფონის აქსესუარები",
+            "მობილურის აქსესუარები",
+            "ტელევიზორის აქსესუარები",
+            "ნოუთბუქის აქსესუარები",
+            "პლანშეტის აქსესუარები",
+            "ნოუთბუქის ჩანთა",
+            "ნოუთბუქის დამტენი",
+            "ტელევიზორის მაგიდა",
+            "ლეპტოპის მაგიდა",
+            "პლანშეტის ეკრანის დამცავი"
+          ],
+          "exclude_brands": [],
+          "all_brands": false,
+          "whole_brand_routing": true,
+          "scope_label_ka": "Samsung — TV/AV, საყოფაცხოვრებო ტექნიკა და IT; კონკრეტული მოდელის მიღება წინასწარ გადაამოწმეთ",
+          "service_name": "ტექპოინტი / შპს სერვის პლაზა",
+          "service_phone": "032 242 22 15",
+          "service_address": "თბილისი, ანდრონიკაშვილის I შესახვევი 43",
+          "service_email": null,
+          "conditions": "საგარანტიო მომსახურებისთვის საჭიროა მაღაზიის ან მწარმოებლის საგარანტიო ტალონი.\nნივთის ჩაბარება მყიდველის გარდა სხვა პირსაც შეუძლია.",
+          "routing_confirmed": true,
+          "contact_confirmed": true,
+          "conditions_confirmed": true,
+          "status": "confirmed_contact",
+          "evidence": [
+            {
+              "url": "https://techpoint.ge/",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "url": "https://mail.google.com/mail/u/0/#all/1a1d4b717a9aeffc",
+              "checked_on": "2026-11-17"
+            },
+            {
+              "kind": "official_public",
+              "url": "https://www.samsung.com/az/support/ge/",
+              "checked_on": "2026-11-17",
+              "scope": "TV/AV, household appliances and IT at Andronikashvili43; not a dealer-contract acceptance claim"
+            }
+          ],
+          "review_notes_ka": "ოფიციალური სერვისის/მიმართვის ინფორმაცია; კომერციული ვადა ხელით ივსება. დილერის დამატებითი პირობების დასტურად არ გამოიყენება.",
+          "official_terms": {
+            "confirmed": true,
+            "status": "substantive",
+            "supplier_name": "Kontakt Home",
+            "scope_notice": "Kontakt Home-ის გამოქვეყნებული პირობები; შესაბამისი პროდუქტისა და მისთვის გაცემული საგარანტიო ბარათის ფარგლებში.",
+            "coverage": [
+              "დამატებითი კომერციული პერიოდი და დაფარული კომპონენტები განისაზღვრება კონკრეტული მწარმოებლის ტალონით; მწარმოებლის პირობას უპირატესობა ენიჭება.",
+              "მოქმედი კომერციული გარანტია ითვალისწინებს უფასო შეკეთებას ან შეცვლას ავტორიზებულ ცენტრში."
+            ],
+            "exclusions": [
+              "არ იფარება დარტყმით/გადაზიდვით, სითხით/ორთქლით, მწერებით, კოროზიით, ძაბვით, სტიქიით, არასწორი მონტაჟით/ექსპლუატაციითა და თვითნებური რემონტით გამოწვეული დაზიანება.",
+              "პუბლიკაცია გამორიცხავს აქსესუარებსა და დეტალებს; კომპონენტის კონკრეტული დაფარვა მწარმოებლის ტალონით გადაამოწმეთ."
+            ],
+            "customer_duties": [
+              "საჭიროა შევსებული ტალონი, გადახდის საბუთი და მწარმოებლის ტალონი, თუ მოჰყვა; ტალონში უნდა იყოს ნივთი, სერიული/IMEI, მყიდველი, გაყიდვის თარიღი და გამყიდველის ბეჭედი.",
+              "დაიცავით ინსტრუქცია, უფლებამოსილი მონტაჟის წესი და საჭირო პერიოდული გაწმენდა/ტექნიკური მომსახურება."
+            ],
+            "claims": [
+              "შეკეთება: მიღებიდან 15 კალენდარული დღე; საზღვარგარეთიდან ნაწილის გამოწერისას — 30 სამუშაო დღემდე.",
+              "ჩამოთვლილ გაბარიტულ ტექნიკაზე ჯერ ცენტრს დაუკავშირდით; კომერციულ ფაზაში უფასო ტრანსპორტირება ცენტრიდან 30 კმ-ის ფარგლებშია განსაზღვრული."
+            ],
+            "component_terms": [],
+            "sources": [
+              {
+                "url": "https://kontakt.ge/warranty-terms",
+                "title": "kontakt.ge",
+                "checked_on": "2026-11-17"
+              }
+            ],
+            "missing_fields": [
+              "კონკრეტული Samsung-ის მოდელის მომსახურების მიღება ამ Techpoint ფილიალში სადილერო ტალონით"
+            ],
+            "period_autofill": false,
+            "contract_approval": false
+          },
+          "leaf_category_names": [
+            "ტელევიზორი",
+            "ტელევიზორები",
+            "tv",
+            "მაცივარი",
+            "მაცივრები",
+            "სარეცხი მანქანა",
+            "სარეცხი მანქანები",
+            "ჭურჭლის სარეცხი მანქანა",
+            "ჭურჭლის სარეცხი მანქანები",
+            "მონიტორი",
+            "მონიტორები",
+            "მიკროტალღური ღუმელი",
+            "მიკროტალღური ღუმელები",
+            "ლეპტოპი",
+            "ლეპტოპები",
+            "ნოუთბუქი",
+            "გეიმინგ ლეპტოპი"
+          ]
         }
       ]
     },
     {
       "id": 9,
       "code": "metromart",
-      "name": "Global / Franko",
+      "name": "შპს „შამი“",
       "excluded": false,
       "routes": [
         {
@@ -2955,7 +3116,7 @@
           "service_name": "ტექპოინტი / შპს სერვის პლაზა",
           "service_phone": "032 242 22 15",
           "service_address": "თბილისი, ცინცაძის ქ. 5",
-          "service_email": null,
+          "service_email": "support@techpoint.ge",
           "conditions": "საგარანტიო მომსახურებისთვის საჭიროა მაღაზიის ან მწარმოებლის საგარანტიო ტალონი.\nFranko-სთვის სერვისი დამატებით ჩეკსაც ითხოვს.\nნივთის ჩაბარება მყიდველის გარდა სხვა პირსაც შეუძლია.",
           "routing_confirmed": true,
           "contact_confirmed": true,
@@ -2998,7 +3159,8 @@
             "contract_approval": false
           }
         }
-      ]
+      ],
+      "review_notes_ka": "სავაჭრო დასახელება: Global / Franko (Global Distribution)."
     },
     {
       "id": 10,
@@ -3327,221 +3489,6 @@
     }
   },
   "last_checked_on": "2026-11-17",
-  "unlinked_suppliers": [
-    {
-      "id": null,
-      "code": "shami",
-      "name": "შამი / Shami",
-      "excluded": false,
-      "binding_missing": true,
-      "routes": [
-        {
-          "key": "shami.philips.domestic",
-          "brands": [
-            "Philips"
-          ],
-          "all_brands": false,
-          "category_names": [],
-          "category_ids": [],
-          "exclude_category_names": [],
-          "routing_confirmed": false,
-          "contact_confirmed": false,
-          "conditions_confirmed": false,
-          "status": "unlinked_reference",
-          "scope_label_ka": "Philips — სამზარეულო და საყოფაცხოვრებო ტექნიკა / Versuni",
-          "service_name": null,
-          "service_phone": null,
-          "service_address": null,
-          "service_email": null,
-          "conditions": null,
-          "official_terms": {
-            "confirmed": true,
-            "status": "partial",
-            "supplier_name": "შამი / Shami",
-            "scope_notice": "მხოლოდ Philips-ის სამზარეულო, ყავის, დასუფთავების, ტანსაცმლისა და ჰაერის მოვლის ტექნიკა (Versuni). ტელევიზორებსა და პერსონალური მოვლის ტექნიკას არ მოიცავს.",
-            "coverage": [
-              "ინსტრუქციით განსაზღვრული გამოყენებისას მასალისა და წარმოების დეფექტის აღმოფხვრა უფასოა; პასუხისმგებელი მწარმოებელი არჩევს შეკეთებას, შესაბამისი ფუნქციის ეკვივალენტით შეცვლას ან შესყიდვის გაუქმებას.",
-              "შეკეთება ან შეცვლა თავდაპირველი ვადის ათვლას თავიდან არ იწყებს."
-            ],
-            "exclusions": [
-              "გამორიცხულია ბუნებრივი ცვეთა/სახარჯი ნაწილები, შეუსაბამო აქსესუარები, არაუფლებამოსილი შეკეთება, არასათანადო მოვლით, გადაჭარბებული გამოყენებით, ტრანსპორტირებით, სითხით, დაბინძურებით ან ელქსელით გამოწვეული დაზიანება.",
-              "შეცვლილი ან წაუკითხავი შეძენის საბუთი/საიდენტიფიკაციო ნიშნები, განზრახ დეფექტურად შეძენილი და ადგილობრივ სტანდარტებთან შეუთავსებელი ნივთი გარანტიაში არ შედის."
-            ],
-            "customer_duties": [
-              "შეინახეთ შესყიდვის საბუთი, მოდელი და სერიული/წარმოების კოდი. დაიცავით გამოყენებისა და მოვლის ინსტრუქცია."
-            ],
-            "claims": [
-              "მომსახურება შეუთანხმეთ მწარმოებლის საკონტაქტო სამსახურს; სამეწარმეო გამოყენება ცალკე შეთანხმებით რეგულირდება."
-            ],
-            "component_terms": [],
-            "sources": [
-              {
-                "url": "https://www.home.id/en-GE/warranty",
-                "title": "Philips — მწარმოებლის ოფიციალური პირობები",
-                "checked_on": "2026-11-17"
-              }
-            ],
-            "missing_fields": [
-              "შამის მიერ მითითებული სერვისცენტრი, ნომერი და ზუსტი მისამართი",
-              "შეკვეთის რეალური მომწოდებლის ჩანაწერთან მიბმა"
-            ],
-            "period_autofill": false,
-            "contract_approval": false
-          },
-          "evidence": [
-            {
-              "url": "https://www.home.id/en-GE/warranty",
-              "title": "Philips — მწარმოებლის ოფიციალური პირობები",
-              "checked_on": "2026-11-17"
-            }
-          ]
-        },
-        {
-          "key": "shami.philips.care",
-          "brands": [
-            "Philips"
-          ],
-          "all_brands": false,
-          "category_names": [],
-          "category_ids": [],
-          "exclude_category_names": [],
-          "routing_confirmed": false,
-          "contact_confirmed": false,
-          "conditions_confirmed": false,
-          "status": "unlinked_reference",
-          "scope_label_ka": "Philips — პერსონალური მოვლა / Avent",
-          "service_name": null,
-          "service_phone": null,
-          "service_address": null,
-          "service_email": null,
-          "conditions": null,
-          "official_terms": {
-            "confirmed": true,
-            "status": "partial",
-            "supplier_name": "შამი / Shami",
-            "scope_notice": "მხოლოდ Philips-ის პერსონალური მოვლის ელექტრონიკა და Philips Avent-ის ბავშვის მოვლის ელექტრონიკა; ოფიციალური ქართული დანართი, გვერდი6. სამზარეულოს ტექნიკასა და ტელევიზორებს არ მოიცავს.",
-            "coverage": [
-              "მწარმოებლის გარანტია ეხება მასალისა და წარმოების ნაკლს, ინსტრუქციისა და ტექნიკური მონაცემების შესაბამისად გამოყენებისას. მომსახურება ითვალისწინებს შეკეთებას ან, მისი შეუძლებლობისას, შეცვლას."
-            ],
-            "exclusions": [
-              "არ იფარება ექსპლუატაციის, შენახვისა და ტრანსპორტირების დარღვევით, არასათანადო მოვლით, შეუფერებელი ნაწილით, არაუფლებამოსილი ჩარევით, ქსელის გადახრით ან არასწორი მონტაჟით გამოწვეული ხარვეზი; აგრეთვე სტიქიური ზიანი.",
-              "ცალკე გამორიცხულია სახარჯი მასალა და აქსესუარები, მათ შორის ბატარეა, აკუმულატორი, პირი/ჯაგრისი, ფილტრი, კაბელი და სხვა შეზღუდული რესურსის ნაწილი."
-            ],
-            "customer_duties": [
-              "ტალონში მოდელი და სერიული ნომერი ნივთს ზუსტად უნდა ემთხვეოდეს. შეინახეთ თანდართული დოკუმენტები და საიდენტიფიკაციო ნიშნები; გამოიყენეთ მხოლოდ პირადი/ოჯახური დანიშნულებით."
-            ],
-            "claims": [
-              "ნაკლის შესახებ მიმართეთ Philips-ის საინფორმაციო სამსახურს; საჭირო მონტაჟი კვალიფიციურ შემსრულებელს მიანდეთ."
-            ],
-            "component_terms": [],
-            "sources": [
-              {
-                "url": "https://www.documents.philips.com/assets/20250613/571f390194854e8dba64b2fb00defdf9.pdf",
-                "title": "Philips — მწარმოებლის ოფიციალური პირობები",
-                "checked_on": "2026-11-17"
-              }
-            ],
-            "missing_fields": [
-              "შამის მიერ მითითებული სერვისცენტრი, ნომერი და ზუსტი მისამართი",
-              "შეკვეთის რეალური მომწოდებლის ჩანაწერთან მიბმა"
-            ],
-            "period_autofill": false,
-            "contract_approval": false
-          },
-          "evidence": [
-            {
-              "url": "https://www.documents.philips.com/assets/20250613/571f390194854e8dba64b2fb00defdf9.pdf",
-              "title": "Philips — მწარმოებლის ოფიციალური პირობები",
-              "checked_on": "2026-11-17"
-            }
-          ]
-        },
-        {
-          "key": "shami.philips.tv",
-          "brands": [
-            "Philips"
-          ],
-          "all_brands": false,
-          "category_names": [],
-          "category_ids": [],
-          "exclude_category_names": [],
-          "routing_confirmed": false,
-          "contact_confirmed": true,
-          "conditions_confirmed": false,
-          "status": "unlinked_reference",
-          "scope_label_ka": "Philips — ტელევიზორი",
-          "service_name": "Philips TV — ოფიციალური საინფორმაციო ხაზი",
-          "service_phone": "800-00-00-80",
-          "service_address": null,
-          "service_email": null,
-          "conditions": null,
-          "official_terms": {
-            "confirmed": true,
-            "status": "partial",
-            "supplier_name": "შამი / Shami",
-            "scope_notice": "მხოლოდ Philips-ის ტელევიზორის საინფორმაციო მხარდაჭერა; სრული საგარანტიო დაფარვის პირობები ჯერ არ დადასტურებულა.",
-            "coverage": [],
-            "exclusions": [],
-            "customer_duties": [],
-            "claims": [
-              "ტელევიზორის საგარანტიო სერვისის დასაზუსტებლად გამოიყენეთ Philips-ის ოფიციალურ გვერდზე საქართველოსთვის მითითებული საინფორმაციო ხაზი."
-            ],
-            "component_terms": [],
-            "sources": [
-              {
-                "url": "https://www.service.philips.ru/Home/TpVision",
-                "title": "Philips — მწარმოებლის ოფიციალური პირობები",
-                "checked_on": "2026-11-17"
-              }
-            ],
-            "missing_fields": [
-              "Philips TV-ის შესაბამისი მოდელის სრული საგარანტიო პირობები",
-              "ავტორიზებული სახელოსნო და მისამართი",
-              "შეკვეთის რეალური მომწოდებლის ჩანაწერთან მიბმა"
-            ],
-            "period_autofill": false,
-            "contract_approval": false
-          },
-          "evidence": [
-            {
-              "url": "https://www.service.philips.ru/Home/TpVision",
-              "title": "Philips — მწარმოებლის ოფიციალური პირობები",
-              "checked_on": "2026-11-17"
-            }
-          ]
-        },
-        {
-          "key": "shami.seb.pending",
-          "brands": [
-            "Tefal",
-            "Rowenta",
-            "Moulinex",
-            "Krups"
-          ],
-          "all_brands": false,
-          "category_names": [],
-          "category_ids": [],
-          "exclude_category_names": [],
-          "routing_confirmed": false,
-          "contact_confirmed": false,
-          "conditions_confirmed": false,
-          "status": "unlinked_reference",
-          "scope_label_ka": "Tefal / Rowenta / Moulinex / Krups — საქართველოსთვის მოქმედი მომწოდებლის პირობები და სერვისი დასამატებელია.",
-          "service_name": null,
-          "service_phone": null,
-          "service_address": null,
-          "service_email": null,
-          "conditions": null,
-          "official_terms": null,
-          "evidence": [
-            {
-              "url": "https://www.tefal.com/consumer-services/warranty-and-repairs/warranty",
-              "checked_on": "2026-11-17"
-            }
-          ]
-        }
-      ]
-    }
-  ],
+  "unlinked_suppliers": [],
   "terms_updated_on": "2026-11-17"
 }

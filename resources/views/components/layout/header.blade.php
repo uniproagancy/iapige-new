@@ -3,7 +3,7 @@
 <div class="head-sentinel" id="headSentinel" aria-hidden="true"></div>
 <header class="header" id="header">
     <a class="logo" href="{{ route('home') }}" aria-label="{{ __('layout.logo_label') }}">
-        <span class="logo__mark" aria-hidden="true"><img src="{{ asset('/img/logo.png') }}"></span>
+        <span class="logo__mark" aria-hidden="true"><img src="{{ asset('/img/logo.png') }}" alt=""></span>
         <span>
             <span class="logo__name">იაფი</span>
             <span class="logo__sub">IAPI.GE</span>

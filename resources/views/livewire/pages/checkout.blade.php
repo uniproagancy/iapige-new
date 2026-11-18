@@ -207,6 +207,12 @@
                     <b>{{ money($total) }}</b>
                 </div>
 
+                {{-- The total has no delivery in it; the buyer is told what it costs before ordering. --}}
+                <p class="cosec__note">
+                    <x-icon name="truck" size="14" />
+                    {{ __('checkout.shipping_note', ['rates' => implode('; ', \App\Support\Store::feeLines(__('checkout.free')))]) }}
+                </p>
+
                 @if ($short)
                     <p class="cosum__short">{{ $short }}</p>
                 @endif

@@ -118,9 +118,15 @@ class SitemapController extends Controller
         $out = [];
 
         foreach (array_keys(LaravelLocalization::getSupportedLocales()) as $locale) {
-            $slug = $model->translate($locale, false)?->slug;
+            $row = $model->translate($locale, false);
+            $slug = $row?->slug;
 
             if (! $slug) {
+                continue;
+            }
+
+            // the same rule as the product page: an English row with a Georgian name is not a translation
+            if ($locale !== Language::defaultCode() && preg_match('/\p{Georgian}/u', (string) $row->name)) {
                 continue;
             }
 

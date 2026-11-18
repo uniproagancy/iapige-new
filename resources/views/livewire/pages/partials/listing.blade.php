@@ -88,9 +88,9 @@
         @endif
 
         <div class="listing__head">
-            <h2 class="listing__title">
+            <h1 class="listing__title">
                 {{ $sub ? collect($listing['subs'])->firstWhere('id', $sub)['name'] ?? $listing['title'] : $listing['title'] }}
-            </h2>
+            </h1>
             @if ($sub)
                 <button type="button" class="listing__reset" wire:click="chooseSub({{ $sub }})">
                     <x-icon name="x" size="12" />

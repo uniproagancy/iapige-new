@@ -56,7 +56,8 @@ class WarrantyAgentController extends Controller
             'manual_term_value' => ['nullable', 'integer', 'min:1', 'max:36500'],
             'manual_term_unit' => ['nullable', 'in:days,months,years'],
         ]);
-        $certificate = $manager->saveDraft($certificate, $data, $request->user());
+        // Technical agents keep the documented-code contract under the manager's current-source row locks.
+        $certificate = $manager->saveDraft($certificate, $data, $request->user(), true);
         $this->record($request, 'agent_updated', $certificate);
 
         return response()->json($this->summary($certificate));

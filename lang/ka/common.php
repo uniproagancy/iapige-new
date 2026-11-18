@@ -3,7 +3,7 @@
 return [
 
     'products_count' => ':count პროდუქტი',
-    'per_month' => 'განვადებით :amount ₾ / თვე',
+    'per_month' => 'განვადებით :amount ₾-დან / თვე',
     'back' => 'უკან',
     'close' => 'დახურვა',
     'home' => 'მთავარი',

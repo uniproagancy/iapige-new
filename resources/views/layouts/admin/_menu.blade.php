@@ -153,6 +153,14 @@
 
                 @can('owner')
 
+                @if (\Illuminate\Support\Facades\Route::has('admin.procurement.index'))
+                    <li class="nav-item {{ $on('admin.procurement.*') }}">
+                        <a class="nav-link d-flex align-items-center" href="{{ route('admin.procurement.index') }}">
+                            {!! $icon('package') !!}<span>{{ __('procurement.title') }}</span>
+                        </a>
+                    </li>
+                @endif
+
                 <li class="nav-item {{ $on('admin.operator-sales') }}">
                     <a class="nav-link d-flex align-items-center" href="{{ route('admin.operator-sales') }}">
                         {!! $icon('users') !!}<span>{{ __('operator_sales.title') }}</span>

@@ -370,6 +370,19 @@ class Catalog extends Component
             ])->section('content');
     }
 
+    /* Most categories have no text of their own, or only their name again,
+       which gives Google a one-word snippet to show. */
+    protected function describe(?Category $category): string
+    {
+        if (! $category) {
+            return __('catalog.index_lead');
+        }
+
+        $own = trim(strip_tags((string) $category->description));
+
+        return mb_strlen($own) >= 70 ? $own : __('catalog.meta_description', ['category' => $category->name]);
+    }
+
     protected function seo(array $data): array
     {
         $narrowed = $this->picked || $this->max !== null || $this->sub !== null
@@ -391,8 +404,7 @@ class Catalog extends Component
         return [
 
             'title' => ($term === '' && $category?->meta_title) ? $category->meta_title : $title.' — '.config('app.name'),
-            'description' => $category?->meta_description
-                ?: ($category?->description ?: __('catalog.index_lead')),
+            'description' => $category?->meta_description ?: $this->describe($category),
             'canonical' => $category ? route('catalog', $category->slug) : route('catalog'),
             'robots' => $narrowed ? 'noindex, follow' : 'index, follow',
             'schema' => [

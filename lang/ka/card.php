@@ -14,6 +14,6 @@ return [
     'tag_sale' => 'აქცია',
     'tag_new' => 'ახალი',
 
-    'installment' => 'განვადებით :amount ₾ / თვე',
+    'installment' => 'განვადებით :amount ₾-დან / თვე',
 
 ];

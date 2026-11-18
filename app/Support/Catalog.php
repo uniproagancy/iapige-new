@@ -45,7 +45,7 @@ class Catalog
     {
         $first = $p->images->first();
 
-        $images = $p->images->map->url()->values()->all() ?: [Store::img("p{$p->id}")];
+        $images = $p->images->map->url()->values()->all() ?: [asset(Store::NO_PHOTO)];
 
         $filters = ['brand' => $p->brand?->slug];
 

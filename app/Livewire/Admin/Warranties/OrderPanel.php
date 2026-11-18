@@ -7,17 +7,19 @@ use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryItem;
 use App\Models\OrderEvent;
+use App\Models\Supplier;
 use App\Models\WarrantyCertificate;
 use App\Models\WarrantyPolicy;
 use App\Models\WarrantySmsMessage;
+use App\Services\Warranties\WarrantyApproval;
 use App\Services\Warranties\WarrantyCertificateManager;
 use App\Services\Warranties\WarrantyCourierSerial;
-use App\Services\Warranties\WarrantyApproval;
 use App\Services\Warranties\WarrantyDocumentStore;
 use App\Services\Warranties\WarrantyPolicyResolver;
 use App\Services\Warranties\WarrantySms;
 use App\Services\Warranties\WarrantySmsGateway;
 use App\Services\Warranties\WarrantySnapshotBuilder;
+use App\Services\Warranties\WarrantySupplierEditor;
 use App\Services\Warranties\WarrantySupplierIdentity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -52,6 +54,9 @@ class OrderPanel extends Component
     public array $smsResendKeys = [];
 
     #[Locked]
+    public array $prepareSendKeys = [];
+
+    #[Locked]
     public ?int $approvalCertificateId = null;
 
     #[Locked]
@@ -60,12 +65,22 @@ class OrderPanel extends Component
     #[Locked]
     public string $approvalSourceFingerprint = '';
 
+    #[Locked]
+    public string $formSourceFingerprint = '';
+
     public array $form = [];
+
     public array $approvalForm = [];
+
     public bool $approvalOpen = false;
+
     public array $policyChoices = [];
+
     public $completedOriginal;
+
     public string $notice = '';
+
+    public string $selectedSupplierId = '';
 
     private const FIELDS = [
         'policy_id', 'actual_supplier_confirmed', 'manual_term_value', 'manual_term_unit',
@@ -98,6 +113,7 @@ class OrderPanel extends Component
         }
         foreach ($this->certificateQuery()->pluck('id') as $id) {
             $this->smsKeys[$id] = (string) Str::uuid();
+            $this->prepareSendKeys[$id] = (string) Str::uuid();
         }
     }
 
@@ -115,8 +131,12 @@ class OrderPanel extends Component
             $input['policy_id'] = $policy->id;
         }
         $certificate = app(WarrantyCertificateManager::class)->prepare($item, $unitIndex, $actor, $input);
+        if ($certificate->status === WarrantyCertificate::DRAFT) {
+            $certificate = app(WarrantySupplierEditor::class)->refreshDraft($certificate, $actor);
+        }
         $this->editingCertificateId = $certificate->id;
         $this->smsKeys[$certificate->id] ??= (string) Str::uuid();
+        $this->completedOriginal = null;
         $this->notice = '';
         $this->resetValidation();
         $this->resetApproval();
@@ -128,6 +148,8 @@ class OrderPanel extends Component
         $this->warrantyActor();
         $this->editingCertificateId = null;
         $this->form = [];
+        $this->formSourceFingerprint = '';
+        $this->selectedSupplierId = '';
         $this->completedOriginal = null;
         $this->resetApproval();
         $this->resetValidation();
@@ -136,15 +158,52 @@ class OrderPanel extends Component
     public function save(): void
     {
         $actor = $this->warrantyActor();
+        $certificate = $this->certificate();
+        if ($certificate->status !== WarrantyCertificate::DRAFT) {
+            throw ValidationException::withMessages(['certificate' => __('warranty.errors.certificate_not_draft')]);
+        }
+        $currentSupplierId = (int) $certificate->deliveryItem?->supplier_id;
+        if ($currentSupplierId < 1 || (int) $certificate->supplier_id !== $currentSupplierId
+            || (int) $this->selectedSupplierId !== $currentSupplierId) {
+            throw ValidationException::withMessages(['selectedSupplierId' => __('warranty.errors.supplier_source_changed')]);
+        }
         $input = array_intersect_key($this->form, array_flip(self::FIELDS));
+        // The explicit save confirms the displayed real supplier; the editor rechecks its exact source under lock.
+        $input['actual_supplier_confirmed'] = true;
         foreach (['policy_id', 'manual_term_value', 'manual_term_unit', 'sale_date', 'delivery_date', 'manufacturer_date'] as $field) {
             if (array_key_exists($field, $input) && $input[$field] === '') {
                 $input[$field] = null;
             }
         }
-        $certificate = app(WarrantyCertificateManager::class)->saveDraft($this->certificate(), $input, $actor);
+        $certificate = app(WarrantySupplierEditor::class)->saveDraft($certificate, $input, $actor, $this->formSourceFingerprint);
         $this->loadForm($certificate);
         $this->notice = __('warranty.draft_saved');
+    }
+
+    public function updatingForm(mixed $value, ?string $key = null): void
+    {
+        $this->warrantyActor();
+        if ($key === 'supplier_native_sku'
+            && trim((string) $value) !== trim((string) ($this->form['supplier_native_sku'] ?? ''))) {
+            $this->form['supplier_native_sku_reference'] = '';
+            $this->form['supplier_native_sku_reason'] = '';
+        }
+    }
+
+    public function changeSupplier(): void
+    {
+        $actor = $this->warrantyActor();
+        $certificate = $this->certificate();
+        abort_unless($certificate->status === WarrantyCertificate::DRAFT, 422);
+        $input = $this->validate(['selectedSupplierId' => ['required', 'integer', 'min:1', 'exists:suppliers,id']], [],
+            ['selectedSupplierId' => __('warranty.supplier')]);
+        $certificate = app(WarrantySupplierEditor::class)->change($certificate, (int) $input['selectedSupplierId'], $actor,
+            $this->formSourceFingerprint);
+        $this->loadForm($certificate);
+        $this->completedOriginal = null;
+        $this->resetApproval();
+        $this->resetValidation();
+        $this->notice = 'მომწოდებელი შეიცვალა შეკვეთის მიწოდების ნივთზეც. გადაამოწმეთ მისი პროდუქტის კოდი და შეავსეთ სერიული ნომერი / IMEI.';
     }
 
     public function issue(): void
@@ -156,14 +215,34 @@ class OrderPanel extends Component
         $this->notice = __('warranty.certificate_issued');
     }
 
+    public function prepareAndSend(): void
+    {
+        $actor = $this->warrantyActor();
+        $certificate = $this->certificate();
+        if (! config('warranty.sms_enabled') || ! config('warranty.public_enabled')) {
+            throw ValidationException::withMessages(['sms' => __('warranty.errors.sms_disabled')]);
+        }
+        if (! app(WarrantySmsGateway::class)->ready()) {
+            throw ValidationException::withMessages(['sms' => __('warranty.errors.sms_gateway_disabled')]);
+        }
+        if ($certificate->status === WarrantyCertificate::DRAFT) {
+            $this->issue();
+            $certificate = $this->certificate();
+        }
+        // This action keeps its original key after any outcome. A retry is a separate explicit resend.
+        $key = $this->prepareSendKeys[$certificate->id] ??= (string) Str::uuid();
+        abort_unless(Str::isUuid($key), 422);
+        $message = app(WarrantySms::class)->send($certificate, $actor, $key);
+        $this->notice = __('warranty.sms_result.'.$message->status);
+    }
+
     public function releaseToCourier(int $certificateId): void
     {
         $actor = $this->warrantyActor();
         $certificate = $this->certificate($certificateId);
-        if ($this->editingCertificateId === $certificate->id) {
-            $this->save();
-            $certificate = $this->certificate($certificateId);
-        }
+        abort_unless($this->editingCertificateId === $certificate->id && $certificate->status === WarrantyCertificate::DRAFT, 422);
+        $this->save();
+        $certificate = $this->certificate($certificateId);
         $result = app(WarrantyCertificateManager::class)->releaseForCourier($certificate, $actor);
         if ($this->editingCertificateId === $certificate->id) {
             $this->loadForm($result['certificate']);
@@ -176,6 +255,7 @@ class OrderPanel extends Component
         $actor = $this->warrantyActor(true);
         $certificate = $this->certificate();
         abort_unless($certificate->status === WarrantyCertificate::DRAFT, 422);
+        app(WarrantySupplierEditor::class)->assertSource($certificate, $this->formSourceFingerprint);
         $preview = app(WarrantyApproval::class)->preview($certificate, $actor);
         $this->approvalForm = array_intersect_key($preview, array_flip(self::APPROVAL_FIELDS));
         $this->approvalForm['approve_as_admin'] = false;
@@ -194,6 +274,7 @@ class OrderPanel extends Component
         $certificate = $this->certificate();
         abort_unless($this->approvalOpen && $this->approvalCertificateId === $certificate->id
             && $certificate->status === WarrantyCertificate::DRAFT, 422);
+        app(WarrantySupplierEditor::class)->assertSource($certificate, $this->formSourceFingerprint);
         $input = array_intersect_key($this->approvalForm, array_flip(self::APPROVAL_FIELDS));
         $input['source_fingerprint'] = $this->approvalSourceFingerprint;
         $policy = app(WarrantyApproval::class)->authorize($certificate, $input, $actor);
@@ -262,6 +343,7 @@ class OrderPanel extends Component
     protected function items(): Builder
     {
         $actor = $this->warrantyActor();
+
         return OrderDeliveryItem::query()->where('is_active', true)
             ->when($this->deliveryId !== null, fn (Builder $query) => $query->where('order_delivery_id', $this->deliveryId))
             ->when($this->itemIds !== [], fn (Builder $query) => $query->whereIn('id', $this->itemIds))
@@ -276,6 +358,7 @@ class OrderPanel extends Component
     protected function certificateQuery(): Builder
     {
         $actor = $this->warrantyActor();
+
         return WarrantyCertificate::query()->where('order_id', $this->orderId)
             ->when($this->itemIds !== [], fn (Builder $query) => $query->whereIn('order_delivery_item_id', $this->itemIds))
             ->whereHas('deliveryItem', fn (Builder $query) => $query->where('is_active', true)->whereHas('delivery',
@@ -291,6 +374,7 @@ class OrderPanel extends Component
         if (! Str::isUuid($key) || ($attempt?->status === 'rejected' && $attempt->idempotency_key === $key)) {
             $this->smsKeys[$certificateId] = (string) Str::uuid();
         }
+
         return $this->smsKeys[$certificateId];
     }
 
@@ -313,6 +397,9 @@ class OrderPanel extends Component
             $this->form[$field] = in_array($field, ['sale_date', 'delivery_date', 'manufacturer_date'], true)
                 ? ($value?->toDateString() ?? '') : ($value ?? '');
         }
+        $this->formSourceFingerprint = app(WarrantySupplierEditor::class)->sourceFingerprint($certificate);
+        $this->selectedSupplierId = $certificate->supplier_id ? (string) $certificate->supplier_id : '';
+        $this->prepareSendKeys[$certificate->id] ??= (string) Str::uuid();
     }
 
     protected function resetApproval(): void
@@ -334,6 +421,7 @@ class OrderPanel extends Component
         if (! $date || ! $item->supplier_id) {
             return collect();
         }
+
         return WarrantyPolicy::where('supplier_id', $item->supplier_id)->where('status', WarrantyPolicy::APPROVED)
             ->orderByDesc('version')->get()->filter(fn ($policy) => app(WarrantyPolicyResolver::class)->matches($policy, $item, $date))->values();
     }
@@ -359,7 +447,9 @@ class OrderPanel extends Component
                 $latestAttempt = $messages->first();
                 if ($certificate) {
                     $this->smsKey($certificate->id, $latestAttempt);
-                    if ($latestAttempt) { $this->resendKey($certificate->id, $latestAttempt->id); }
+                    if ($latestAttempt) {
+                        $this->resendKey($certificate->id, $latestAttempt->id);
+                    }
                 }
                 $resendState = app(WarrantySms::class)->resendState($latestAttempt);
                 $blockedAttempt = $messages->contains(fn ($message) => in_array($message->status, ['pending', 'sending', 'accepted', 'unknown'], true));
@@ -387,11 +477,21 @@ class OrderPanel extends Component
             }
         }
         $editing = $this->editingCertificateId ? $this->certificate()->load(['policy', 'documents']) : null;
+        $sourceStale = $editing?->status === WarrantyCertificate::DRAFT
+            && ! hash_equals($this->formSourceFingerprint, app(WarrantySupplierEditor::class)->sourceFingerprint($editing));
+        $canChangeSupplier = $editing?->status === WarrantyCertificate::DRAFT && ($actor->isAdmin()
+            || ($editing->deliveryItem?->delivery?->status === OrderDelivery::ACTIVE
+                && ! WarrantyCertificate::where('order_delivery_item_id', $editing->order_delivery_item_id)
+                    ->whereIn('status', [WarrantyCertificate::ISSUED, WarrantyCertificate::REVOKED])->exists()));
+
         return view('livewire.admin.warranties.order-panel', [
             'order' => $order, 'cards' => $cards, 'editing' => $editing,
             'snapshot' => $editing ? app(WarrantySnapshotBuilder::class)->draft($editing) : [],
+            'conditionsPreview' => $editing ? app(WarrantyApproval::class)->summary($editing, $actor) : null,
             'isOwner' => $actor->isAdmin(),
             'smsEnabled' => $sendingEnabled, 'gatewayReady' => $gatewayReady,
+            'sourceStale' => $sourceStale, 'canChangeSupplier' => $canChangeSupplier,
+            'suppliers' => Supplier::query()->orderBy('name')->get(['id', 'name', 'code']),
         ]);
     }
 }

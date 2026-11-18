@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Warranties\WarrantyDealerForm;
 use App\Services\Warranties\WarrantyPdf;
 use App\Services\Warranties\WarrantyServiceDirectory;
 use Illuminate\Http\Request;
@@ -32,6 +33,8 @@ class WarrantyServiceTemplateController extends Controller
             'customer' => ['name' => null, 'phone' => null],
             'item' => ['name' => null, 'brand' => null, 'model' => null, 'sku' => null,
                 'supplier_id' => $supplier['id'] ?? null, 'supplier_name' => $supplier['name'], 'supplier_sku' => null,
+                'supplier_legal_name' => isset($supplier['id'])
+                    ? $directory->legalNameForSupplier((int) $supplier['id'], (string) $supplier['code']) : null,
                 'quantity' => 1, 'unit_index' => 1, 'serial_number' => null, 'not_serialized_reason' => null, 'order_number' => null],
             'dates' => ['order_date' => null, 'sale_date' => null, 'delivery_date' => null],
             'warranty' => ['policy_id' => null, 'version' => null, 'name' => null, 'policy_approved' => false,
@@ -49,6 +52,11 @@ class WarrantyServiceTemplateController extends Controller
             'legal' => collect(['rights_text', 'seller_responsibility_text', 'identity_text', 'mark_notice'])
                 ->mapWithKeys(fn ($key) => [$key => __('warranty.legal.'.$key, [], 'ka')])->all(),
         ];
+
+        $dealerForm = app(WarrantyDealerForm::class)->forSupplier((int) ($supplier['id'] ?? 0), (string) ($supplier['code'] ?? ''));
+        if ($dealerForm !== null) {
+            $snapshot['supplier_dealer_form'] = $dealerForm;
+        }
 
         return response()->view('warranties.print', $pdf->viewData($snapshot), 200, [
             'Cache-Control' => 'private, no-store, no-transform, max-age=0', 'Pragma' => 'no-cache',

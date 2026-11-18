@@ -2,10 +2,42 @@
 
 namespace App\Support;
 
+use App\Models\DeliveryCity;
 use App\Models\Slide;
 
 class Store
 {
+    /* A product without a photo shows this, never a stock picture: a random
+       photograph beside a real product name and price is a false picture of
+       what is being sold, on the page and in Google's results. */
+    public const NO_PHOTO = 'img/no-photo.svg';
+
+    /* The rates on the delivery page and at checkout are read from the
+       cities the admin keeps, so the terms never promise a price the courier
+       does not charge. Cities with one price share a line. */
+    public static function feeLines(string $free): array
+    {
+        return DeliveryCity::active()->withTranslation()->get()
+            ->unique(fn (DeliveryCity $city) => $city->name)
+            ->groupBy(fn (DeliveryCity $city) => number_format((float) $city->fee, 2, '.', ''))
+            ->sortKeys(SORT_NUMERIC)
+            ->map(fn ($cities, $fee) => $cities->pluck('name')->implode(', ').' — '.((float) $fee > 0 ? money((float) $fee) : $free))
+            ->values()->all();
+    }
+
+    /* Read from the same settings the payment drivers charge by, so the
+       terms page and the bank's bill cannot drift apart. */
+    protected static function instalmentFees(string $locale): array
+    {
+        $pct = fn (string $key, float $default) => rtrim(rtrim(number_format((float) config($key, $default) * 100, 1, '.', ''), '0'), '.').'%';
+        $lines = [
+            'ka' => ['საქართველოს ბანკი — '.$pct('bog.installment.handling_fee', 0.05), 'თიბისი — '.$pct('tbc.installment.handling_fee', 0.05), 'კრედო ბანკი — '.$pct('credo.fee', 0.10)],
+            'en' => ['Bank of Georgia — '.$pct('bog.installment.handling_fee', 0.05), 'TBC — '.$pct('tbc.installment.handling_fee', 0.05), 'Credo Bank — '.$pct('credo.fee', 0.10)],
+        ];
+
+        return $lines[$locale];
+    }
+
     public static function img(string $seed, int $i = 0, int $w = 480, int $h = 360): string
     {
         return 'https://picsum.photos/seed/'.rawurlencode("{$seed}-{$i}")."/{$w}/{$h}";
@@ -72,14 +104,14 @@ class Store
             'ka' => [
                 ['26—31 აგვისტო',   "ზაფხულის\nფინალური ამოყიდვა",   'NORDA-ს ტექნიკაზე',       'შეთავაზების ნახვა'],
                 ['1—14 სექტემბერი', "სასწავლო სეზონი\nლეპტოპებზე −20%", 'სტუდენტებისთვის',         'აირჩიე ლეპტოპი'],
-                ['ყოველდღე',       "განვადება 0%\n12 თვემდე",          'ონლაინ 3 წუთში',          'გაიგე მეტი'],
+                ['ყოველდღე',       "განვადება\n".config('shop.instalment_months', 24).' თვემდე', 'ონლაინ 3 წუთში',          'გაიგე მეტი'],
                 ['ახალი',          "IAPI Studio One\nხმა სიჩუმეში",    'აქტიური ხმაურის ჩახშობა',  'შეიძინე 1 190 ₾'],
                 ['შემოდგომა',      "ჭკვიანი სახლის\nსტარტერ ნაკრები",  'განათება & უსაფრთხოება',   'ნაკრების ნახვა'],
             ],
             'en' => [
                 ['26—31 August',    "Summer\nclearance sale",          'On NORDA tech',            'See the deals'],
                 ['1—14 September',  "Back to school:\nlaptops −20%",   'For students',             'Pick a laptop'],
-                ['Every day',       "0% instalments\nup to 12 months", 'Approved online in 3 min', 'Learn more'],
+                ['Every day',       "Instalments\nup to ".config('shop.instalment_months', 24).' months', 'Approved online in 3 min', 'Learn more'],
                 ['New',             "IAPI Studio One\nsound of silence", 'Active noise cancelling', 'Buy for 1 190 ₾'],
                 ['Autumn',          "Smart home\nstarter kit",         'Lighting & security',      'See the kit'],
             ],
@@ -179,11 +211,12 @@ class Store
     {
         return self::localized([
             'ka' => [
-                'delivery' => ['name' => 'მიწოდება', 'title' => 'მიწოდების პირობები', 'updated' => '12 აგვისტო, 2026',
-                    'intro' => 'IAPI-ს შეკვეთებს კურიერი მიგიტანთ საქართველოს მასშტაბით. ტარიფი დამოკიდებულია ქალაქზე და შეკვეთის ღირებულებაზე.',
+                'delivery' => ['name' => 'მიწოდება', 'title' => 'მიწოდების პირობები', 'updated' => '18 ნოემბერი, 2026',
+                    'intro' => 'IAPI-ს შეკვეთებს კურიერი მიგიტანთ საქართველოს მასშტაბით. ტარიფი დამოკიდებულია ქალაქზე და ნივთის ზომაზე.',
                     'sections' => [
                         ['h' => 'ვადები', 'p' => 'თბილისში შეკვეთა მიწოდდება 2 სამუშაო დღის ვადაში, რეგიონში 3-7 სამუშაო დღეში.'],
-                        ['h' => 'ტარიფი', 'p' => 'საკურიერო მომსახურება იწყება 5 ₾-დან; საკურიერო მომსახურების ღირებულება დამოკიდებულია ნივთის ზომაზე. რეგიონებში ხელმისაწვდომია მხოლოდ სტანდარტული მიწოდების სერვისი.'],
+                        ['h' => 'ტარიფი', 'p' => 'მიწოდების ფასი ქალაქზეა დამოკიდებული:', 'list' => self::feeLines('უფასო')],
+                        ['h' => 'დიდი ნივთები', 'p' => 'დიდი ზომის ან მძიმე ნივთის მიწოდება შეიძლება მეტი ღირდეს. ზუსტ თანხას ოპერატორი შეკვეთის დადასტურებისას გეტყვით, გადახდამდე. რეგიონებში ხელმისაწვდომია მხოლოდ სტანდარტული მიწოდების სერვისი.'],
                     ]],
                 'returns' => ['name' => 'დაბრუნება', 'title' => 'დაბრუნება და გაცვლა', 'updated' => '2 ნოემბერი, 2026',
                     'intro' => 'ონლაინ ნაყიდ ნივთზე უარის თქმა შეგიძლიათ 14 კალენდარული დღის განმავლობაში, მიზეზის ახსნის გარეშე. ქვემოთ აღწერილია, როგორ და რა პირობებით.',
@@ -214,18 +247,20 @@ class Store
                         ]],
                         ['h' => 'ფორს-მაჟორი', 'p' => 'ვალდებულების შეუსრულებლობაზე არცერთი მხარე არ აგებს პასუხს, თუ ის გამოიწვია შეკვეთის შემდეგ დაწყებულმა სტიქიამ, ტექნოლოგიურმა კატასტროფამ, ხანძარმა, საომარმა მოქმედებამ ან სახელმწიფოს გადაწყვეტილებამ. ასეთ დროს ვადა ამ გარემოების ხანგრძლივობით გრძელდება. მხარე, რომელსაც ეს შეეხო, მეორეს დაუყოვნებლივ ატყობინებს და კომპეტენტური ორგანოს დოკუმენტით ადასტურებს; შეუტყობინებლობა ან დაგვიანებული შეტყობინება ამ საფუძვლით პასუხისმგებლობისგან გათავისუფლების უფლებას ართმევს.'],
                     ]],
-                'installments' => ['name' => 'განვადება', 'title' => 'განვადების პირობები', 'updated' => '1 აგვისტო, 2026',
+                'installments' => ['name' => 'განვადება', 'title' => 'განვადების პირობები', 'updated' => '18 ნოემბერი, 2026',
                     'intro' => 'განვადება საქართველოს ბანკის, თიბისისა და კრედო ბანკის პარტნიორობით.',
                     'sections' => [
                         ['h' => 'დამტკიცება', 'p' => 'განაცხადი ივსება ონლაინ, დამტკიცება 3 წუთში.'],
+                        ['h' => 'ვადა და საკომისიო', 'p' => 'განვადება '.config('shop.instalment_months', 24).' თვემდე. ბანკის განვადებაზე ფასს ემატება მომსახურების საკომისიო:', 'list' => self::instalmentFees('ka')],
                     ]],
             ],
             'en' => [
-                'delivery' => ['name' => 'Delivery', 'title' => 'Delivery terms', 'updated' => '12 August 2026',
-                    'intro' => 'IAPI orders are delivered by courier across Georgia. The rate depends on the city and the order total.',
+                'delivery' => ['name' => 'Delivery', 'title' => 'Delivery terms', 'updated' => '18 November 2026',
+                    'intro' => 'IAPI orders are delivered by courier across Georgia. The rate depends on the city and on the size of the item.',
                     'sections' => [
-                        ['h' => 'Timing', 'p' => 'Orders arrive within 2 days in Tbilisi and in 3—7 working days in the regions.', 'list' => ['Tbilisi — 24 hours', 'Rustavi, Mtskheta — 24—48 hours', 'Other cities — 2—3 days']],
-                        ['h' => 'Rates', 'p' => 'Courier delivery starts at 10 ₾; every city has a free-delivery threshold.'],
+                        ['h' => 'Timing', 'p' => 'Orders arrive within 2 working days in Tbilisi and in 3—7 working days in the regions.'],
+                        ['h' => 'Rates', 'p' => 'The delivery price depends on the city:', 'list' => self::feeLines('free')],
+                        ['h' => 'Large items', 'p' => 'Delivering a large or heavy item can cost more. The operator tells you the exact amount when confirming the order, before you pay. Only standard delivery is available in the regions.'],
                     ]],
                 'returns' => ['name' => 'Returns', 'title' => 'Returns and exchanges', 'updated' => '2 November 2026',
                     'intro' => 'You can withdraw from an online purchase within 14 calendar days, without giving a reason. Here is how, and on what terms.',
@@ -256,10 +291,11 @@ class Store
                         ]],
                         ['h' => 'Force majeure', 'p' => 'Neither party is liable for failing to meet an obligation caused by a natural or technological disaster, fire, war or a government decision that began after the order. Time limits are extended for as long as such an event lasts. The affected party notifies the other without delay and confirms it with a document from a competent authority; failing to notify, or notifying late, removes this ground for release from liability.'],
                     ]],
-                'installments' => ['name' => 'Instalments', 'title' => 'Instalment terms', 'updated' => '1 August 2026',
+                'installments' => ['name' => 'Instalments', 'title' => 'Instalment terms', 'updated' => '18 November 2026',
                     'intro' => 'Instalments with Bank of Georgia, TBC and Credo Bank.',
                     'sections' => [
                         ['h' => 'Approval', 'p' => 'Apply online and get a decision within 3 minutes.'],
+                        ['h' => 'Term and fee', 'p' => 'Instalments for up to '.config('shop.instalment_months', 24).' months. A bank instalment adds a handling fee to the price:', 'list' => self::instalmentFees('en')],
                     ]],
             ],
         ]) + __('privacy.documents');

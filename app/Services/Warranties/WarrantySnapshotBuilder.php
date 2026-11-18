@@ -11,6 +11,7 @@ class WarrantySnapshotBuilder
         if ($certificate->status !== WarrantyCertificate::DRAFT && is_array($certificate->snapshot)) {
             return $certificate->snapshot;
         }
+
         return $this->build($certificate);
     }
 
@@ -44,7 +45,15 @@ class WarrantySnapshotBuilder
         } else {
             $end = null;
         }
-        $forms = $certificate->documents->where('role', 'completed_original');
+        $storedSourceMatches = $item && (int) $certificate->supplier_id === (int) $item->supplier_id
+            && (int) $certificate->product_id === (int) $item->product_id;
+        if (filled($certificate->supplier_native_sku_identity_sha256)
+            && (! is_string($supplierIdentity['identity_hash'] ?? null)
+                || ! hash_equals($certificate->supplier_native_sku_identity_sha256, $supplierIdentity['identity_hash']))) {
+            $storedSourceMatches = false;
+        }
+        $forms = $certificate->status === WarrantyCertificate::DRAFT && ! $storedSourceMatches
+            ? collect() : $certificate->documents->where('role', 'completed_original');
         if ($policy && $policy->status === 'approved') {
             $forms = $forms->concat($policy->documents->where('role', 'terms'));
         }
@@ -52,7 +61,7 @@ class WarrantySnapshotBuilder
         if (! filled($termText) && $termValue && $termUnit) {
             $termText = __('warranty.term_text.'.$termUnit, ['count' => $termValue], 'ka');
         }
-        return ['schema' => 'iapi.warranty.v1',
+        $snapshot = ['schema' => 'iapi.warranty.v1',
             'certificate' => ['number' => $certificate->number, 'revision' => $certificate->revision,
                 'status' => $certificate->status, 'issued_at' => $certificate->issued_at?->toIso8601String()],
             'seller' => config('warranty.seller', ['name' => 'შპს „უნიპრო“', 'tax_id' => '416353635',
@@ -61,6 +70,7 @@ class WarrantySnapshotBuilder
             'item' => ['name' => $item?->name, 'brand' => $item?->product?->brand?->name, 'model' => $item?->name,
                 'sku' => $item?->sku, 'supplier_id' => $certificate->supplier_id,
                 'supplier_name' => app(WarrantyServiceDirectory::class)->supplierName($item),
+                'supplier_legal_name' => app(WarrantyServiceDirectory::class)->supplierLegalName($item),
                 'supplier_sku' => $supplierIdentity['native_sku'], 'quantity' => 1, 'unit_index' => $certificate->unit_index,
                 'serial_number' => $certificate->serial_number, 'not_serialized_reason' => $certificate->not_serialized_reason,
                 'order_number' => $item?->delivery?->order?->number],
@@ -93,6 +103,12 @@ class WarrantySnapshotBuilder
                 'sha256' => $document->sha256, 'mime_type' => $document->mime_type, 'role' => $document->role])->values()->all(),
             'legal' => collect(['rights_text', 'seller_responsibility_text', 'identity_text', 'mark_notice'])
                 ->mapWithKeys(fn ($key) => [$key => __('warranty.legal.'.$key, [], 'ka')])->all()];
+        $dealerForm = app(WarrantyDealerForm::class)->forCertificate($certificate);
+        if ($dealerForm !== null) {
+            $snapshot['supplier_dealer_form'] = $dealerForm;
+        }
+
+        return $snapshot;
     }
 
     public function hash(array $snapshot): string
@@ -110,6 +126,7 @@ class WarrantySnapshotBuilder
                 $item = $this->canonical($item);
             }
         }
+
         return $value;
     }
 }

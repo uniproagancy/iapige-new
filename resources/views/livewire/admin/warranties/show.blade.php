@@ -43,13 +43,38 @@
             </div>
 
             @if ($isDraft)
-                <div class="border rounded p-1 mb-2">
-                    <h5>{{ __('warranty.service') }}</h5>
-                    <div class="row g-1">
-                        @foreach (['name' => 'service_name', 'phone' => 'service_phone', 'address' => 'service_address', 'scope' => 'service_scope'] as $key => $label)
-                            <div class="col-md-6"><small class="text-muted d-block">{{ __('warranty.fields.'.$label) }}</small><span>{{ ($snapshot['warranty']['service'][$key] ?? '') ?: '—' }}</span></div>
-                        @endforeach
-                    </div>
+                @php
+                    $warrantyPreview = $conditionsPreview ?? [
+                        'service' => data_get($snapshot, 'warranty.service', []),
+                        'coverage' => data_get($snapshot, 'warranty.coverage', ''),
+                        'conditions' => data_get($snapshot, 'warranty.conditions', ''),
+                        'claim_instructions' => data_get($snapshot, 'warranty.claim_instructions', ''),
+                        'missing_fields' => [],
+                        'auto_ready' => (bool) data_get($snapshot, 'warranty.policy_approved', false),
+                    ];
+                @endphp
+                <div class="border rounded p-1 mb-1">
+                    <strong>{{ __('warranty.conditions_preview') }}</strong>
+                    <small class="text-muted d-block">{{ __('warranty.conditions_preview_help') }}</small>
+                    @if ($isOwner && $certificate->deliveryItem?->supplier)
+                        <a class="btn btn-sm btn-outline-primary mt-50" href="{{ route('admin.warranties.services', ['supplier' => $certificate->deliveryItem->supplier->code]) }}" target="_blank" rel="noopener noreferrer">{{ __('warranty.edit_supplier_terms') }}</a>
+                    @endif
+                    <div class="mt-50">{{ data_get($warrantyPreview, 'service.name') ?: '—' }}</div>
+                    @foreach (['phone', 'email', 'address', 'scope'] as $contactField)
+                        @if (filled(data_get($warrantyPreview, 'service.'.$contactField)))<span class="d-block">{{ data_get($warrantyPreview, 'service.'.$contactField) }}</span>@endif
+                    @endforeach
+                    @if (! ($warrantyPreview['auto_ready'] ?? false))
+                        <div class="alert alert-warning py-50 mt-1 mb-0" role="status">{{ __('warranty.supplier_warranty_incomplete') }}@if (! empty($warrantyPreview['missing_fields']))<ul class="mb-0">@foreach ($warrantyPreview['missing_fields'] as $missingField)<li>{{ $missingField }}</li>@endforeach</ul>@endif</div>
+                    @elseif (blank($warrantyPreview['coverage'] ?? null) && blank($warrantyPreview['conditions'] ?? null))
+                        <small class="text-muted d-block mt-50">{{ __('warranty.conditions_optional_notice') }}</small>
+                    @endif
+                    @if (filled($warrantyPreview['coverage'] ?? null) || filled($warrantyPreview['conditions'] ?? null) || filled($warrantyPreview['claim_instructions'] ?? null))
+                        <details class="mt-1"><summary>{{ __('warranty.conditions_details') }}</summary>
+                            @foreach (['coverage', 'conditions', 'claim_instructions'] as $termsField)
+                                @if (filled($warrantyPreview[$termsField] ?? null))<div class="mt-1"><strong>{{ __('warranty.'.$termsField) }}</strong><div style="white-space: pre-line">{{ $warrantyPreview[$termsField] }}</div></div>@endif
+                            @endforeach
+                        </details>
+                    @endif
                 </div>
                 <p class="text-muted">{{ __('warranty.draft_intro') }}</p>
                 <form wire:submit="save">
@@ -64,22 +89,9 @@
                         </div>
                         <div class="col-12"><small class="text-muted">{{ __('warranty.manual_term_notice') }}</small></div>
                         <div class="col-md-6">
-                            <label for="certificate-policy" class="form-label">{{ __('warranty.approved_policy') }}</label>
-                            <select id="certificate-policy" class="form-select" wire:model.live="form.policy_id">
-                                <option value="">{{ __('warranty.choose_policy') }}</option>
-                                @foreach ($policies as $policy)
-                                    <option value="{{ $policy->id }}">{{ $policy->name }} · {{ __('warranty.version') }} {{ $policy->version }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">{{ __('warranty.policy_match_explainer') }}</small>
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label">{{ __('warranty.actual_supplier') }}</label>
                             <div class="form-control bg-light">{{ \App\Services\Warranties\WarrantySupplierIdentity::displayName($certificate->supplier) ?: __('warranty.supplier_missing') }}</div>
                             <small class="text-muted">{{ __('warranty.supplier_edit_in_delivery') }}</small>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check mt-50"><input id="certificate-supplier-confirmed" class="form-check-input" type="checkbox" wire:model="form.actual_supplier_confirmed"><label for="certificate-supplier-confirmed" class="form-check-label">{{ __('warranty.actual_supplier_attestation') }}</label></div>
                         </div>
                         <div class="col-md-6">
                             <label for="certificate-native-sku" class="form-label">{{ __('warranty.native_supplier_sku') }}</label>
@@ -90,14 +102,6 @@
                             <label class="form-label">{{ __('warranty.supplier_system_reference') }}</label>
                             <div class="form-control bg-transparent">{{ $supplierIdentity['system_reference'] ?? '—' }}</div>
                             <small class="text-muted d-block">{{ __('warranty.supplier_system_reference_help') }}</small>
-                        </div>
-                        <div class="col-12">
-                            <label for="certificate-native-reference" class="form-label">{{ __('warranty.native_sku_reference') }}</label>
-                            <textarea id="certificate-native-reference" class="form-control" rows="2" maxlength="2000" wire:model="form.supplier_native_sku_reference"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <label for="certificate-native-reason" class="form-label">{{ __('warranty.native_sku_reason') }}</label>
-                            <textarea id="certificate-native-reason" class="form-control" rows="2" maxlength="2000" wire:model="form.supplier_native_sku_reason"></textarea>
                         </div>
                         <div class="col-md-6">
                             <label for="certificate-serial" class="form-label">{{ __('warranty.serial_number') }}</label>
@@ -142,11 +146,22 @@
                             <label for="certificate-manufacturer-proof" class="form-label">{{ __('warranty.manufacturer_date_proof') }}</label>
                             <input id="certificate-manufacturer-proof" class="form-control" type="text" maxlength="2000" wire:model="form.manufacturer_date_proof">
                         </div>
+                        <div class="col-12"><details><summary>{{ __('warranty.approved_policy') }}</summary>
+                            <label for="certificate-policy" class="form-label">{{ __('warranty.approved_policy') }}</label>
+                            <select id="certificate-policy" class="form-select" wire:model.live="form.policy_id">
+                                <option value="">{{ __('warranty.choose_policy') }}</option>
+                                @foreach ($policies as $policy)
+                                    <option value="{{ $policy->id }}">{{ $policy->name }} · {{ __('warranty.version') }} {{ $policy->version }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">{{ __('warranty.policy_match_explainer') }}</small>
+                        </details></div>
                     </div>
                     <div class="d-flex flex-wrap gap-1 mt-2">
                         <button type="submit" class="btn btn-outline-primary" wire:loading.attr="disabled">{{ __('warranty.save_draft') }}</button>
                         @if ($isOwner || ! $certificate->previous_certificate_id)
-                            <button type="button" class="btn btn-success" wire:click="issue" wire:confirm="{{ __('warranty.issue_confirm') }}" wire:loading.attr="disabled">{{ __('warranty.issue') }}</button>
+                            <button type="button" class="btn btn-primary" wire:click="prepareAndSend" wire:loading.attr="disabled" @disabled(! $smsEnabled)>{{ __('warranty.prepare_and_send') }}</button>
+                            <button type="button" class="btn btn-outline-success" wire:click="issue" wire:confirm="{{ __('warranty.issue_confirm') }}" wire:loading.attr="disabled">{{ __('warranty.prepare_certificate') }}</button>
                         @endif
                     </div>
                     <p class="text-muted mt-1 mb-0">{{ __('warranty.issue_explainer') }}</p>

@@ -22,6 +22,7 @@ return [
     'subtotal' => 'Products',
     'discount' => 'Discount',
     'shipping' => 'Delivery',
+    'shipping_note' => 'Delivery is not included in the total. The rate depends on the city: :rates. For large items the operator tells you the exact amount when confirming the order, before you pay.',
     'total' => 'Total',
     'free' => 'Free',
     'place_order' => 'Place the order',

@@ -5,12 +5,17 @@ namespace App\Livewire\Admin\Warranties;
 use App\Livewire\Admin\Warranties\Concerns\AuthorizesWarranties;
 use App\Models\WarrantyCertificate;
 use App\Models\WarrantyPolicy;
+use App\Models\WarrantySmsMessage;
+use App\Services\Warranties\WarrantyApproval;
 use App\Services\Warranties\WarrantyCertificateManager;
 use App\Services\Warranties\WarrantyDocumentStore;
-use App\Services\Warranties\WarrantySnapshotBuilder;
 use App\Services\Warranties\WarrantySms;
-use App\Models\WarrantySmsMessage;
+use App\Services\Warranties\WarrantySmsGateway;
+use App\Services\Warranties\WarrantySnapshotBuilder;
+use App\Services\Warranties\WarrantySupplierEditor;
+use App\Services\Warranties\WarrantySupplierIdentity;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -28,6 +33,9 @@ class Show extends Component
 
     #[Locked]
     public array $smsResendKeys = [];
+
+    #[Locked]
+    public string $formSourceFingerprint = '';
 
     public array $form = [];
 
@@ -68,12 +76,23 @@ class Show extends Component
             }
             $this->form[$field] = $value ?? '';
         }
+        $this->formSourceFingerprint = app(WarrantySupplierEditor::class)->sourceFingerprint($certificate);
     }
 
     public function save(): void
     {
         $actor = $this->warrantyActor();
+        $certificate = $this->certificate();
+        if ($certificate->status !== WarrantyCertificate::DRAFT) {
+            throw ValidationException::withMessages(['certificate' => __('warranty.errors.certificate_not_draft')]);
+        }
+        $currentSupplierId = (int) $certificate->deliveryItem?->supplier_id;
+        if ($currentSupplierId < 1 || (int) $certificate->supplier_id !== $currentSupplierId) {
+            throw ValidationException::withMessages(['supplier_id' => __('warranty.errors.supplier_source_changed')]);
+        }
         $input = array_intersect_key($this->form, array_flip(self::FIELDS));
+        // This applies only through the editor's atomic, fingerprint-checked save for the displayed actual item.
+        $input['actual_supplier_confirmed'] = true;
         $input['policy_id'] = ($input['policy_id'] ?? '') === '' ? null : $input['policy_id'];
         foreach (['sale_date', 'delivery_date', 'manufacturer_date'] as $field) {
             $input[$field] = ($input[$field] ?? '') === '' ? null : $input[$field];
@@ -81,9 +100,19 @@ class Show extends Component
         foreach (['manual_term_value', 'manual_term_unit'] as $field) {
             $input[$field] = ($input[$field] ?? '') === '' ? null : $input[$field];
         }
-        app(WarrantyCertificateManager::class)->saveDraft($this->certificate(), $input, $actor);
+        app(WarrantySupplierEditor::class)->saveDraft($certificate, $input, $actor, $this->formSourceFingerprint);
         $this->loadForm();
         $this->dispatch('toast', message: __('warranty.draft_saved'));
+    }
+
+    public function updatingForm(mixed $value, ?string $key = null): void
+    {
+        $this->warrantyActor();
+        if ($key === 'supplier_native_sku'
+            && trim((string) $value) !== trim((string) ($this->form['supplier_native_sku'] ?? ''))) {
+            $this->form['supplier_native_sku_reference'] = '';
+            $this->form['supplier_native_sku_reason'] = '';
+        }
     }
 
     public function issue(): void
@@ -93,6 +122,25 @@ class Show extends Component
         app(WarrantyCertificateManager::class)->issue($this->certificate(), $actor);
         $this->loadForm();
         $this->dispatch('toast', message: __('warranty.certificate_issued'));
+    }
+
+    public function prepareAndSend(): void
+    {
+        $actor = $this->warrantyActor();
+        $certificate = $this->certificate();
+        if (! config('warranty.sms_enabled') || ! config('warranty.public_enabled')) {
+            throw ValidationException::withMessages(['sms' => __('warranty.errors.sms_disabled')]);
+        }
+        if (! app(WarrantySmsGateway::class)->ready()) {
+            throw ValidationException::withMessages(['sms' => __('warranty.errors.sms_gateway_disabled')]);
+        }
+        if ($certificate->status === WarrantyCertificate::DRAFT) {
+            $this->issue();
+            $certificate = $this->certificate();
+        }
+        abort_unless(Str::isUuid($this->smsIdempotencyKey), 422);
+        $message = app(WarrantySms::class)->send($certificate, $actor, $this->smsIdempotencyKey);
+        $this->dispatch('toast', message: __('warranty.sms_result.'.$message->status));
     }
 
     public function uploadCompletedOriginal(): void
@@ -141,6 +189,7 @@ class Show extends Component
         if ($smsAttempt) {
             $this->smsResendKeys[$smsAttempt->id] ??= (string) Str::uuid();
         }
+        $gatewayReady = app(WarrantySmsGateway::class)->ready();
 
         return view('livewire.admin.warranties.show', [
             'smsAttempt' => $smsAttempt,
@@ -150,10 +199,15 @@ class Show extends Component
             'policies' => $policies,
             'blankForms' => $blankForms,
             'snapshot' => $snapshot,
-            'supplierIdentity' => app(\App\Services\Warranties\WarrantySupplierIdentity::class)->resolve($certificate->deliveryItem, $certificate),
+            'conditionsPreview' => app(WarrantyApproval::class)->summary($certificate, $actor),
+            'supplierIdentity' => app(WarrantySupplierIdentity::class)->resolve($certificate->deliveryItem, $certificate),
             'isOwner' => $actor->isAdmin(),
             'isDraft' => $certificate->status === 'draft',
-            'smsEnabled' => (bool) config('warranty.sms_enabled', false),
+            'smsEnabled' => (bool) config('warranty.sms_enabled', false)
+                && (bool) config('warranty.public_enabled', false) && $gatewayReady,
+            'gatewayReady' => $gatewayReady,
+            'sourceStale' => $certificate->status === WarrantyCertificate::DRAFT
+                && ! hash_equals($this->formSourceFingerprint, app(WarrantySupplierEditor::class)->sourceFingerprint($certificate)),
         ])->layout('layouts.admin', ['title' => __('warranty.certificate_title', ['number' => $certificate->number])]);
     }
 }

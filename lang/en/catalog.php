@@ -36,5 +36,6 @@ return [
     'yes' => 'Yes',
     'no' => 'No',
     'index_lead' => 'Pick a category and see every product',
+    'meta_description' => ':category — prices, specifications and online ordering at IAPI.GE. Official warranty, delivery across Georgia and instalments.',
 
 ];

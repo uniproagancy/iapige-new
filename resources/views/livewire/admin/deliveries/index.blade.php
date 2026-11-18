@@ -1,4 +1,7 @@
 <div class="delivery-board" wire:poll.10s x-data x-on:keydown.escape.window="$wire.closeModal()">
+    @php
+        $supplierIdentity = app(\App\Services\Delivery\SupplierItemIdentity::class);
+    @endphp
     <style>
         .delivery-board{--delivery-orange:#ff7900;--delivery-border:#40485e;--delivery-muted:#a6adc0;color:#d0d2d6}
         .delivery-board .db-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px;flex-wrap:wrap}
@@ -206,11 +209,14 @@
                     <div class="db-order-body">
                         <div class="db-products">
                             @foreach($entry['items'] as $item)
+                                @php
+                                    $itemCodes = $supplierIdentity->resolve($item);
+                                @endphp
                                 <div class="db-product">
                                     <h4 class="db-product-name">{{ $item->name }}</h4>
                                     <div class="db-item-tags">
-                                        <span>{{ __('delivery.sku') }}: <strong>{{ $item->sku ?: '—' }}</strong></span>
-                                        <span>{{ __('delivery.supplier_sku') }}: <strong>{{ $item->supplier_sku ?: '—' }}</strong></span>
+                                        <span>{{ __('delivery.sku') }}: <strong>{{ $itemCodes['shop_sku'] ?: '—' }}</strong></span>
+                                        <span>{{ __('delivery.supplier_sku') }}: <strong>{{ $itemCodes['native_sku'] ?: '—' }}</strong></span>
                                     </div>
                                     <div class="db-product-money">
                                         <span>{{ __('delivery.quantity') }}: <strong>{{ $item->qty }}</strong> × {{ money($item->price) }}</span>
@@ -412,7 +418,14 @@
                                                 <label for="supplier-name-{{ $item->id }}">{{ __('delivery.supplier_name') }}</label>
                                                 <input id="supplier-name-{{ $item->id }}" class="form-control" wire:model="itemForms.{{ $item->id }}.supplier_name" maxlength="191" @disabled(!empty($itemForms[$item->id]['supplier_id']))>
                                             </div>
-                                            <div class="col-md-6"><label for="supplier-sku-{{ $item->id }}">{{ __('delivery.supplier_sku') }}</label><input id="supplier-sku-{{ $item->id }}" class="form-control" wire:model="itemForms.{{ $item->id }}.supplier_sku" maxlength="191"></div>
+                                            <div class="col-md-6">
+                                                <label for="supplier-sku-{{ $item->id }}">{{ __('delivery.supplier_sku') }}</label>
+                                                <input id="supplier-sku-{{ $item->id }}" class="form-control" wire:model="nativeSkuForms.{{ $item->id }}" maxlength="191" @disabled(empty($nativeSkuHashes[$item->id]))>
+                                                <small class="db-muted d-block mt-50">{{ empty($nativeSkuHashes[$item->id]) ? __('delivery.native_code_save_supplier_first') : __('delivery.native_code_help') }}</small>
+                                                <button type="button" class="btn btn-sm btn-outline-primary mt-50" wire:click="saveNativeSku({{ $item->id }})" wire:loading.attr="disabled" @disabled(empty($nativeSkuHashes[$item->id]))>{{ __('delivery.native_code_save') }}</button>
+                                                @if($nativeSkuSavedItemId === $item->id)<small class="text-success d-block mt-50" role="status">{{ __('delivery.native_code_saved') }}</small>@endif
+                                                @error('nativeSkuForms.'.$item->id)<small class="text-danger d-block" role="alert">{{ $message }}</small>@enderror
+                                            </div>
                                             <div class="col-md-6"><label for="warehouse-{{ $item->id }}">{{ __('delivery.warehouse') }}</label><input id="warehouse-{{ $item->id }}" class="form-control" wire:model="itemForms.{{ $item->id }}.warehouse" maxlength="255"></div>
                                             <div class="col-12"><label for="pickup-{{ $item->id }}">{{ __('delivery.pickup_address') }}</label><input id="pickup-{{ $item->id }}" class="form-control" wire:model="itemForms.{{ $item->id }}.pickup_address" maxlength="500"></div>
                                         </div>
@@ -464,7 +477,7 @@
                                 @foreach($selectedDelivery->items as $item)
                                     <div class="db-confirm-item">
                                         <strong class="d-block">{{ $item->name }}</strong>
-                                        <small class="db-muted">{{ trim((string) $item->supplier_name) ?: __('delivery.unassigned_supplier') }} · {{ $item->supplier_sku ?: $item->sku }}</small>
+                                        <small class="db-muted">{{ trim((string) $item->supplier_name) ?: __('delivery.unassigned_supplier') }} · {{ __('delivery.supplier_sku') }}: {{ $supplierIdentity->resolve($item)['native_sku'] ?: '—' }}</small>
                                         <div class="mt-1">{{ __('delivery.quantity') }}: <strong>{{ $item->qty }}</strong></div>
                                         @if(trim((string) $item->warehouse) !== '')<small class="db-muted d-block">{{ __('delivery.warehouse') }}: {{ $item->warehouse }}</small>@endif
                                         @if($item->pickup_address)<small class="db-muted d-block">{{ __('delivery.pickup_address') }}: {{ $item->pickup_address }}</small>@endif
@@ -479,7 +492,7 @@
                                 @foreach($selectedDelivery->items as $item)
                                     <div class="db-confirm-item">
                                         <strong class="d-block">{{ $item->name }}</strong>
-                                        <small class="db-muted">{{ $item->supplier_name ?: __('delivery.unassigned_supplier') }} · {{ $item->supplier_sku ?: $item->sku }}</small>
+                                        <small class="db-muted">{{ $item->supplier_name ?: __('delivery.unassigned_supplier') }} · {{ __('delivery.supplier_sku') }}: {{ $supplierIdentity->resolve($item)['native_sku'] ?: '—' }}</small>
                                         <div class="d-flex justify-content-between mt-1"><span>{{ $item->qty }} × {{ $modal !== 'delivered' ? money($item->price, 2) : money($item->price) }}</span><strong>{{ $modal !== 'delivered' ? money($item->sum, 2) : money($item->sum) }}</strong></div>
                                     </div>
                                 @endforeach

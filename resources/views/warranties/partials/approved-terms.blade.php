@@ -1,4 +1,4 @@
-@if (data_get($snapshot, 'warranty.policy_approved'))
+@if (data_get($snapshot, 'warranty.policy_approved') && collect(['coverage', 'conditions', 'component_terms'])->contains(fn ($field) => filled(data_get($snapshot, 'warranty.'.$field))))
     <div style="page-break-before:always">
         <h1>{{ __('warranty.approved_terms_title', [], $documentLocale) }}</h1>
         <p class="small">№ {{ $value('certificate.number') }} · {{ $value('item.name') }}</p>
@@ -11,8 +11,10 @@
             <tr><td class="label">{{ __('warranty.starts_on', [], $documentLocale) }}</td><td>{{ $documentDates['starts'] ?? $empty }}</td></tr>
             <tr><td class="label">{{ __('warranty.ends_on', [], $documentLocale) }}</td><td>{{ $documentDates['ends'] ?? $empty }}</td></tr>
         </table>
-        <h2>{{ __('warranty.coverage', [], $documentLocale) }}</h2>
-        <p class="preserve">{{ $value('warranty.coverage') }}</p>
+        @if (filled(data_get($snapshot, 'warranty.coverage')))
+            <h2>{{ __('warranty.coverage', [], $documentLocale) }}</h2>
+            <p class="preserve">{{ $value('warranty.coverage') }}</p>
+        @endif
         @if (filled(data_get($snapshot, 'warranty.component_terms')))
             <h3>{{ __('warranty.component_terms', [], $documentLocale) }}</h3>
             <p class="preserve">{{ $value('warranty.component_terms') }}</p>

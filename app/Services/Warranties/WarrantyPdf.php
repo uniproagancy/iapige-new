@@ -69,6 +69,11 @@ class WarrantyPdf
             throw new InvalidArgumentException(__('warranty.pdf_schema_invalid'));
         }
 
+        $dealerForm = app(WarrantyDealerForm::class)->frozen($snapshot['supplier_dealer_form'] ?? null);
+        if ($dealerForm !== null && (int) data_get($snapshot, 'item.supplier_id') !== (int) $dealerForm['supplier_id']) {
+            throw new InvalidArgumentException(__('warranty.errors.dealer_form_invalid'));
+        }
+
         $isDraft = data_get($snapshot, 'certificate.status') !== 'issued';
         $taxId = data_get($snapshot, 'seller.tax_id');
         if (! $isDraft && (! is_scalar($taxId) || (string) $taxId !== '416353635')) {
@@ -81,19 +86,24 @@ class WarrantyPdf
             data_set($snapshot, 'customer.phone', $this->maskedPhone((string) $phone));
         }
 
-        $mark = resource_path('warranty/unipro-stamp.svg');
+        $mark = resource_path('warranty/unipro-stamp-photo.png');
         if (! is_file($mark) || ! is_readable($mark)) {
+            throw new RuntimeException(__('warranty.pdf_mark_missing'));
+        }
+        $markBytes = file_get_contents($mark);
+        if (! is_string($markBytes) || ! str_starts_with($markBytes, "\x89PNG\r\n\x1a\n")) {
             throw new RuntimeException(__('warranty.pdf_mark_missing'));
         }
 
         return [
             'snapshot' => $snapshot,
+            'dealerForm' => $dealerForm,
             'documentLocale' => 'ka',
             'pdfMode' => $pdfMode,
             'regular' => $pdfMode ? $this->font('Linotype-HelveticaNeueLTGEO55Roman.ttf') : null,
             'bold' => $pdfMode ? $this->font('Linotype-HelveticaNeueLTGEO75Bold.ttf') : null,
-            // This is a fixed, application-owned SVG. Supplier/customer uploads never become markup.
-            'stamp' => 'data:image/svg+xml;base64,'.base64_encode((string) file_get_contents($mark)),
+            // Fixed application asset from the owner's stamp photograph; uploads never become markup.
+            'stamp' => 'data:image/png;base64,'.base64_encode($markBytes),
             'isDraft' => $isDraft,
             'documentDates' => [
                 'order' => $this->date(data_get($snapshot, 'dates.order_date')),

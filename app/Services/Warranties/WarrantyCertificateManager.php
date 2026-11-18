@@ -29,6 +29,7 @@ class WarrantyCertificateManager
     public function prepare(OrderDeliveryItem $item, int $unitIndex, User $actor, array $input = []): WarrantyCertificate
     {
         $this->staff($actor);
+
         return DB::transaction(function () use ($item, $unitIndex, $actor, $input): WarrantyCertificate {
             $item = OrderDeliveryItem::whereKey($item->id)->lockForUpdate()->firstOrFail();
             $this->source($item, $unitIndex);
@@ -40,7 +41,7 @@ class WarrantyCertificateManager
             $certificate = new WarrantyCertificate(['number' => 'IAPI-W-'.Str::ulid(), 'revision' => 1,
                 'status' => WarrantyCertificate::DRAFT, 'order_delivery_item_id' => $item->id, 'unit_index' => $unitIndex,
                 'created_by' => $actor->id, 'updated_by' => $actor->id]);
-            $this->refreshSource($certificate, $item);
+            $this->refreshSource($certificate, $item, $actor);
             $this->applyInput($certificate, $input);
             if (! $certificate->policy_id && $certificate->sale_date) {
                 $certificate->policy_id = $this->resolver->resolve($item, $certificate->sale_date->toDateString())?->id;
@@ -49,14 +50,16 @@ class WarrantyCertificateManager
             $this->events->record('certificate_prepared', $actor, $certificate);
             $this->saleDateEvent($certificate, $actor, []);
             $this->nativeSkuEvent($certificate, $actor, []);
+
             return $certificate->fresh();
         });
     }
 
-    public function saveDraft(WarrantyCertificate $certificate, array $input, User $actor): WarrantyCertificate
+    public function saveDraft(WarrantyCertificate $certificate, array $input, User $actor, bool $requireNativeSkuProof = false): WarrantyCertificate
     {
         $this->staff($actor);
-        return DB::transaction(function () use ($certificate, $input, $actor): WarrantyCertificate {
+
+        return DB::transaction(function () use ($certificate, $input, $actor, $requireNativeSkuProof): WarrantyCertificate {
             $item = $this->lockedItem($certificate);
             $certificate = WarrantyCertificate::whereKey($certificate->id)->lockForUpdate()->firstOrFail();
             $this->draft($certificate);
@@ -66,17 +69,24 @@ class WarrantyCertificateManager
             $currentIdentity = app(WarrantySupplierIdentity::class)->identityHash($item);
             $staleNative = filled($certificate->supplier_native_sku) && filled($certificate->supplier_native_sku_identity_sha256)
                 && (! $currentIdentity || ! hash_equals($certificate->supplier_native_sku_identity_sha256, $currentIdentity));
-            $this->refreshSource($certificate, $item);
+            $sourceChanged = $this->sourceChanged($certificate, $item);
+            $this->refreshSource($certificate, $item, $actor);
+            if ($sourceChanged) {
+                // A stale form cannot reconfirm the former supplier or physical unit under a different source.
+                $input = array_diff_key($input, array_flip(['policy_id', 'actual_supplier_confirmed', 'serial_number',
+                    'not_serialized_reason', 'supplier_native_sku', 'supplier_native_sku_reference', 'supplier_native_sku_reason']));
+            }
             if ($staleNative) {
                 // Do not let a stale form silently reconfirm the previous supplier's code under a new source.
                 $input = array_diff_key($input, array_flip(['supplier_native_sku', 'supplier_native_sku_reference', 'supplier_native_sku_reason']));
             }
-            $this->applyInput($certificate, $input);
+            $this->applyInput($certificate, $input, $requireNativeSkuProof);
             $certificate->updated_by = $actor->id;
             $certificate->save();
             $this->events->record('certificate_draft_updated', $actor, $certificate);
             $this->saleDateEvent($certificate, $actor, $previousDate);
             $this->nativeSkuEvent($certificate, $actor, $previousNative);
+
             return $certificate->fresh();
         });
     }
@@ -91,9 +101,11 @@ class WarrantyCertificateManager
                 $certificate = WarrantyCertificate::whereKey($certificate->id)->lockForUpdate()->firstOrFail();
                 if ($certificate->status === WarrantyCertificate::ISSUED) {
                     app(WarrantyCertificateFiles::class)->path($certificate);
+
                     return $certificate;
                 }
                 [$policy, $previousNative] = $this->validateIssuance($certificate, $item, $actor);
+
                 return $this->writeIssued($certificate, $item, $actor, $policy, $previousNative, $writtenPath);
             });
         } catch (\Throwable $error) {
@@ -108,6 +120,7 @@ class WarrantyCertificateManager
     public function releaseForCourier(WarrantyCertificate $certificate, User $actor): array
     {
         $this->staff($actor);
+
         return $this->courierSerialTransaction(function (?string &$writtenPath) use ($certificate, $actor): array {
             $actor = User::whereKey($actor->id)->lockForUpdate()->firstOrFail();
             $this->staff($actor);
@@ -116,7 +129,9 @@ class WarrantyCertificateManager
             $this->draft($certificate);
             $this->emptyCourierSerial($certificate);
             $this->latestUnitRevision($certificate);
-            if ($certificate->previous_certificate_id) { $this->owner($actor); }
+            if ($certificate->previous_certificate_id) {
+                $this->owner($actor);
+            }
             [$policy, $previousNative] = $this->validateIssuance($certificate, $item, $actor, true, false);
             $certificate->forceFill(['policy_id' => $policy->id, 'updated_by' => $actor->id])->save();
             $certificate->setRelation('policy', $policy->load('documents'))->setRelation('deliveryItem', $item);
@@ -125,6 +140,7 @@ class WarrantyCertificateManager
             $hash = $this->courierSerialFingerprint($certificate, $item);
             $this->events->record('certificate_courier_serial_released', $actor, $certificate, $policy,
                 ['reference' => $hash, 'delivery_id' => $item->order_delivery_id]);
+
             return ['certificate' => $certificate->fresh(), 'release_hash' => $hash];
         });
     }
@@ -139,16 +155,21 @@ class WarrantyCertificateManager
             }
             $this->emptyCourierSerial($certificate);
             $release = $this->courierSerialRelease($certificate);
-            if (! $release) { return ['ready' => false, 'release_hash' => null, 'reason' => 'courier_serial_release_required']; }
+            if (! $release) {
+                return ['ready' => false, 'release_hash' => null, 'reason' => 'courier_serial_release_required'];
+            }
             $this->releaseActor($certificate, $release);
             $this->latestUnitRevision($certificate);
             $item = $certificate->deliveryItem;
-            if (! $item) { $this->invalid('certificate', 'courier_serial_release_stale'); }
+            if (! $item) {
+                $this->invalid('certificate', 'courier_serial_release_stale');
+            }
             $this->source($item, $certificate->unit_index);
             $hash = $this->courierSerialFingerprint($certificate, $item);
             if (! is_string($release->metadata['reference'] ?? null) || ! hash_equals($release->metadata['reference'], $hash)) {
                 $this->invalid('certificate', 'courier_serial_release_stale');
             }
+
             return ['ready' => true, 'release_hash' => $hash, 'reason' => null];
         } catch (\Throwable) {
             return ['ready' => false, 'release_hash' => null, 'reason' => 'courier_serial_release_stale'];
@@ -165,48 +186,51 @@ class WarrantyCertificateManager
             'release_hash' => ['required', 'string', 'regex:/\A[a-f0-9]{64}\z/D'],
         ])->validate();
         $input['serial_number'] = trim($input['serial_number']);
+
         return $this->courierSerialTransaction(function (?string &$writtenPath) use ($certificate, $actor, $deliveryId, $input): WarrantyCertificate {
-                $actor = User::whereKey($actor->id)->lockForUpdate()->firstOrFail();
-                abort_unless($actor->isCourier(), 403);
-                $item = $this->lockedItem($certificate);
-                $certificate = WarrantyCertificate::whereKey($certificate->id)->lockForUpdate()->firstOrFail();
-                $delivery = app(WarrantyCourierAccess::class)->delivery($actor, $deliveryId, true);
-                abort_unless((int) $item->order_delivery_id === (int) $delivery->id
-                    && (int) $certificate->order_id === (int) $delivery->order_id && $item->is_active, 404);
-                $item->setRelation('delivery', $delivery->load('order'));
-                $this->source($item, $certificate->unit_index);
-                $this->latestUnitRevision($certificate);
-                $release = $this->courierSerialRelease($certificate);
-                if (! $release || ! is_string($release->metadata['reference'] ?? null)
-                    || ! hash_equals($release->metadata['reference'], $input['release_hash'])) {
-                    $this->invalid('certificate', 'courier_serial_release_required');
+            $actor = User::whereKey($actor->id)->lockForUpdate()->firstOrFail();
+            abort_unless($actor->isCourier(), 403);
+            $item = $this->lockedItem($certificate);
+            $certificate = WarrantyCertificate::whereKey($certificate->id)->lockForUpdate()->firstOrFail();
+            $delivery = app(WarrantyCourierAccess::class)->delivery($actor, $deliveryId, true);
+            abort_unless((int) $item->order_delivery_id === (int) $delivery->id
+                && (int) $certificate->order_id === (int) $delivery->order_id && $item->is_active, 404);
+            $item->setRelation('delivery', $delivery->load('order'));
+            $this->source($item, $certificate->unit_index);
+            $this->latestUnitRevision($certificate);
+            $release = $this->courierSerialRelease($certificate);
+            if (! $release || ! is_string($release->metadata['reference'] ?? null)
+                || ! hash_equals($release->metadata['reference'], $input['release_hash'])) {
+                $this->invalid('certificate', 'courier_serial_release_required');
+            }
+            $releaseActor = $this->releaseActor($certificate, $release, true);
+            if ($certificate->status === WarrantyCertificate::ISSUED && $certificate->revoked_at === null) {
+                $completed = $certificate->events()->where('type', 'certificate_courier_serial_completed')
+                    ->where('metadata->reference', $input['release_hash'])->exists();
+                if (! $completed || $certificate->serial_number !== $input['serial_number']) {
+                    $this->invalid('serial_number', 'courier_serial_changed');
                 }
-                $releaseActor = $this->releaseActor($certificate, $release, true);
-                if ($certificate->status === WarrantyCertificate::ISSUED && $certificate->revoked_at === null) {
-                    $completed = $certificate->events()->where('type', 'certificate_courier_serial_completed')
-                        ->where('metadata->reference', $input['release_hash'])->exists();
-                    if (! $completed || $certificate->serial_number !== $input['serial_number']) {
-                        $this->invalid('serial_number', 'courier_serial_changed');
-                    }
-                    app(WarrantyCertificateFiles::class)->path($certificate);
-                    return $certificate;
-                }
-                $this->draft($certificate);
-                $this->emptyCourierSerial($certificate);
-                if (! hash_equals($input['release_hash'], $this->courierSerialFingerprint($certificate, $item))) {
-                    $this->invalid('certificate', 'courier_serial_release_stale');
-                }
-                // No directory approval is permitted on this delegated courier path.
-                [$policy, $previousNative] = $this->validateIssuance($certificate, $item, $actor, false, false);
-                if (! hash_equals($input['release_hash'], $this->courierSerialFingerprint($certificate, $item))) {
-                    $this->invalid('certificate', 'courier_serial_release_stale');
-                }
-                $certificate->serial_number = $input['serial_number'];
-                $this->validateUnit($certificate, $item);
-                $issued = $this->writeIssued($certificate, $item, $actor, $policy, $previousNative, $writtenPath, $releaseActor);
-                $this->events->record('certificate_courier_serial_completed', $actor, $issued, $policy,
-                    ['reference' => $input['release_hash'], 'delivery_id' => $deliveryId, 'previous_id' => $release->id]);
-                return $issued;
+                app(WarrantyCertificateFiles::class)->path($certificate);
+
+                return $certificate;
+            }
+            $this->draft($certificate);
+            $this->emptyCourierSerial($certificate);
+            if (! hash_equals($input['release_hash'], $this->courierSerialFingerprint($certificate, $item))) {
+                $this->invalid('certificate', 'courier_serial_release_stale');
+            }
+            // No directory approval is permitted on this delegated courier path.
+            [$policy, $previousNative] = $this->validateIssuance($certificate, $item, $actor, false, false);
+            if (! hash_equals($input['release_hash'], $this->courierSerialFingerprint($certificate, $item))) {
+                $this->invalid('certificate', 'courier_serial_release_stale');
+            }
+            $certificate->serial_number = $input['serial_number'];
+            $this->validateUnit($certificate, $item);
+            $issued = $this->writeIssued($certificate, $item, $actor, $policy, $previousNative, $writtenPath, $releaseActor);
+            $this->events->record('certificate_courier_serial_completed', $actor, $issued, $policy,
+                ['reference' => $input['release_hash'], 'delivery_id' => $deliveryId, 'previous_id' => $release->id]);
+
+            return $issued;
         });
     }
 
@@ -220,11 +244,16 @@ class WarrantyCertificateManager
                     Storage::disk(config('warranty.disk', 'local'))->delete($writtenPath);
                     $writtenPath = null;
                 }
+
                 return $callback($writtenPath);
             }, 3);
         } catch (\Throwable $error) {
-            if ($writtenPath !== null) { Storage::disk(config('warranty.disk', 'local'))->delete($writtenPath); }
-            if ($this->causedByConcurrencyError($error)) { $this->invalid('certificate', 'courier_serial_release_stale'); }
+            if ($writtenPath !== null) {
+                Storage::disk(config('warranty.disk', 'local'))->delete($writtenPath);
+            }
+            if ($this->causedByConcurrencyError($error)) {
+                $this->invalid('certificate', 'courier_serial_release_stale');
+            }
             throw $error;
         }
     }
@@ -234,7 +263,12 @@ class WarrantyCertificateManager
     {
         $this->draft($certificate);
         $this->source($item, $certificate->unit_index);
-        if ($item->delivery->order->status !== Order::COMPLETED) { $this->invalid('certificate', 'order_completion_required'); }
+        if ($this->sourceChanged($certificate, $item)) {
+            $this->invalid('certificate', 'supplier_source_changed');
+        }
+        if ($item->delivery->order->status !== Order::COMPLETED) {
+            $this->invalid('certificate', 'order_completion_required');
+        }
         if ($certificate->manual_term_value < 1 || ! in_array($certificate->manual_term_unit, ['days', 'months', 'years'], true)) {
             $this->invalid('manual_term_value', 'manual_period_required');
         }
@@ -246,6 +280,14 @@ class WarrantyCertificateManager
         $previousNative = $this->nativeSkuState($certificate);
         $this->refreshNativeSku($certificate, $item);
         $this->validateDates($certificate, $item, 'sale_date');
+        $boundPolicy = $certificate->policy;
+        if ($allowDirectoryApproval && $boundPolicy
+            && in_array($boundPolicy->approval_mode, ['verified_directory', 'supplier_profile'], true)
+            && ! app(WarrantyApproval::class)->matchesBoundPolicy($boundPolicy, $item)) {
+            // A central supplier edit applies to the next explicit issuance, never to a frozen PDF.
+            $certificate->policy_id = null;
+            $certificate->unsetRelation('policy');
+        }
         $policy = $this->resolver->resolve($item, $certificate->sale_date->toDateString());
         if ($allowDirectoryApproval && ! $policy && ! $certificate->policy_id) {
             $policy = app(WarrantyApproval::class)->fromConfirmedDirectory($certificate, $actor);
@@ -254,21 +296,30 @@ class WarrantyCertificateManager
             $this->invalid('policy_id', 'approved_policy_required');
         }
         $policy = WarrantyPolicy::whereKey($policy->id)->lockForUpdate()->firstOrFail();
-        if ($policy->status !== WarrantyPolicy::APPROVED) { $this->invalid('policy_id', 'approved_policy_required'); }
+        if ($policy->status !== WarrantyPolicy::APPROVED) {
+            $this->invalid('policy_id', 'approved_policy_required');
+        }
         $certificate->setRelation('policy', $policy->load('documents'))->setRelation('deliveryItem', $item);
         $this->validateDates($certificate, $item, $policy->start_basis);
         if ($policy->start_basis === 'manufacturer_date'
             && (! $certificate->manufacturer_date || ! filled($certificate->manufacturer_date_proof))) {
             $this->invalid('manufacturer_date_proof', 'manufacturer_proof_required');
         }
-        if ($requireUnit) { $this->validateUnit($certificate, $item); }
+        if ($requireUnit) {
+            $this->validateUnit($certificate, $item);
+        }
         $this->refreshCustomer($certificate, $item);
         if (! filled($certificate->customer_name) || ! Phone::digits($certificate->customer_phone)) {
             $this->invalid('customer', 'customer_required');
         }
         $completed = $certificate->documents()->where('role', 'completed_original')->get();
-        if ($policy->requires_original && $completed->isEmpty()) { $this->invalid('document', 'completed_original_required'); }
-        foreach ($completed->concat($policy->documents()->where('role', 'terms')->get()) as $document) { $this->documents->path($document); }
+        if ($policy->requires_original && $completed->isEmpty()) {
+            $this->invalid('document', 'completed_original_required');
+        }
+        foreach ($completed->concat($policy->documents()->where('role', 'terms')->get()) as $document) {
+            $this->documents->path($document);
+        }
+
         return [$policy, $previousNative];
     }
 
@@ -281,7 +332,9 @@ class WarrantyCertificateManager
         $snapshot = $this->snapshots->build($certificate);
         $this->validateSeller($snapshot);
         $bytes = app(WarrantyPdf::class)->bytes($snapshot);
-        if (! str_starts_with($bytes, '%PDF-') || strlen($bytes) > 20 * 1024 * 1024) { $this->invalid('certificate', 'pdf_invalid'); }
+        if (! str_starts_with($bytes, '%PDF-') || strlen($bytes) > 20 * 1024 * 1024) {
+            $this->invalid('certificate', 'pdf_invalid');
+        }
         $path = 'warranties/certificates/'.Str::ulid().'.pdf';
         app(WarrantyPrivateStorage::class)->put($path, $bytes);
         $writtenPath = $path;
@@ -300,6 +353,7 @@ class WarrantyCertificateManager
         }
         $this->events->record('certificate_issued', $actor, $certificate);
         $this->nativeSkuEvent($certificate, $actor, $previousNative);
+
         return $certificate->fresh();
     }
 
@@ -322,7 +376,9 @@ class WarrantyCertificateManager
     {
         $latest = WarrantyCertificate::where('order_delivery_item_id', $certificate->order_delivery_item_id)
             ->where('unit_index', $certificate->unit_index)->orderByDesc('revision')->orderByDesc('id')->first(['id']);
-        if (! $latest || (int) $latest->id !== (int) $certificate->id) { $this->invalid('certificate', 'latest_revision_required'); }
+        if (! $latest || (int) $latest->id !== (int) $certificate->id) {
+            $this->invalid('certificate', 'latest_revision_required');
+        }
     }
 
     private function courierSerialRelease(WarrantyCertificate $certificate): ?WarrantyEvent
@@ -336,6 +392,7 @@ class WarrantyCertificateManager
         if (! $actor || ! $actor->isStaff() || ($certificate->previous_certificate_id && ! $actor->isAdmin())) {
             $this->invalid('certificate', 'courier_serial_release_stale');
         }
+
         return $actor;
     }
 
@@ -350,6 +407,7 @@ class WarrantyCertificateManager
             $documentFacts[] = $document->attributesToArray();
         }
         $previous = $certificate->previous_certificate_id ? WarrantyCertificate::find($certificate->previous_certificate_id) : null;
+
         return $this->snapshots->hash([
             'certificate' => $certificate->only(['id', 'number', 'revision', 'previous_certificate_id', 'order_id', 'order_item_id',
                 'order_delivery_item_id', 'product_id', 'supplier_id', 'policy_id', 'unit_index', 'serial_number', 'not_serialized_reason',
@@ -375,6 +433,7 @@ class WarrantyCertificateManager
     {
         $this->owner($actor);
         Validator::make(['reason' => $reason], ['reason' => ['required', 'string', 'min:3', 'max:2000']])->validate();
+
         return DB::transaction(function () use ($certificate, $reason, $actor): WarrantyCertificate {
             $certificate = WarrantyCertificate::whereKey($certificate->id)->lockForUpdate()->firstOrFail();
             if ($certificate->status === WarrantyCertificate::REVOKED) {
@@ -386,6 +445,7 @@ class WarrantyCertificateManager
             $certificate->forceFill(['status' => WarrantyCertificate::REVOKED, 'revoked_at' => now(),
                 'revoked_by' => $actor->id, 'revocation_reason' => trim($reason), 'updated_by' => $actor->id])->save();
             $this->events->record('certificate_revoked', $actor, $certificate, metadata: ['reason' => trim($reason)]);
+
             return $certificate->fresh();
         });
     }
@@ -393,6 +453,7 @@ class WarrantyCertificateManager
     public function correct(WarrantyCertificate $certificate, User $actor): WarrantyCertificate
     {
         $this->owner($actor);
+
         return DB::transaction(function () use ($certificate, $actor): WarrantyCertificate {
             $item = $this->lockedItem($certificate);
             $certificate = WarrantyCertificate::whereKey($certificate->id)->lockForUpdate()->firstOrFail();
@@ -418,15 +479,16 @@ class WarrantyCertificateManager
                 'number' => 'IAPI-W-'.Str::ulid(), 'revision' => (int) $latest + 1, 'previous_certificate_id' => $certificate->id,
                 'status' => WarrantyCertificate::DRAFT, 'actual_supplier_confirmed' => false,
                 'created_by' => $actor->id, 'updated_by' => $actor->id]);
-            $this->refreshSource($draft, $item);
+            $this->refreshSource($draft, $item, $actor);
             $draft->save();
             // Completed supplier originals must be reconfirmed for this correction, not silently copied.
             $this->events->record('certificate_correction_prepared', $actor, $draft, metadata: ['previous_id' => $certificate->id]);
+
             return $draft->fresh();
         });
     }
 
-    protected function applyInput(WarrantyCertificate $certificate, array $input): void
+    protected function applyInput(WarrantyCertificate $certificate, array $input, bool $requireNativeSkuProof = false): void
     {
         $valid = Validator::make($input, ['policy_id' => ['nullable', 'integer', 'exists:warranty_policies,id'],
             'serial_number' => ['nullable', 'string', 'max:191'], 'not_serialized_reason' => ['nullable', 'string', 'max:1000'],
@@ -453,7 +515,9 @@ class WarrantyCertificateManager
         if (filled($manualValue) !== filled($manualUnit)) {
             $this->invalid('manual_term_value', 'manual_period_pair_required');
         }
-        $maximum = match ($manualUnit) { 'years' => 100, 'months' => 1200, default => 36500 };
+        $maximum = match ($manualUnit) {
+            'years' => 100, 'months' => 1200, default => 36500
+        };
         Validator::make(['manual_term_value' => $manualValue],
             ['manual_term_value' => ['nullable', 'integer', 'min:1', 'max:'.$maximum]], [],
             ['manual_term_value' => __('warranty.manual_term_value')])->validate();
@@ -461,7 +525,7 @@ class WarrantyCertificateManager
             $valid['serial_number'] = trim($valid['serial_number']);
         }
         $this->applySaleDate($certificate, $valid);
-        $this->applyNativeSku($certificate, $valid);
+        $this->applyNativeSku($certificate, $valid, $requireNativeSkuProof);
         unset($valid['sale_date'], $valid['sale_date_override_reason'], $valid['supplier_native_sku'],
             $valid['supplier_native_sku_reference'], $valid['supplier_native_sku_reason']);
         $certificate->fill(array_map(fn ($value) => $value === '' ? null : $value, $valid));
@@ -470,11 +534,23 @@ class WarrantyCertificateManager
         }
     }
 
-    protected function refreshSource(WarrantyCertificate $certificate, OrderDeliveryItem $item): void
+    protected function refreshSource(WarrantyCertificate $certificate, OrderDeliveryItem $item, ?User $actor = null): void
     {
-        if ($certificate->supplier_id && (int) $certificate->supplier_id !== (int) $item->supplier_id) {
-            $certificate->actual_supplier_confirmed = false;
-            $certificate->policy_id = null;
+        if ($this->sourceChanged($certificate, $item)) {
+            // The old filled card stays private, but cannot satisfy a different supplier's original-card requirement.
+            if ($certificate->exists && $certificate->status === WarrantyCertificate::DRAFT) {
+                foreach ($certificate->documents()->where('role', 'completed_original')->lockForUpdate()->get() as $document) {
+                    DB::table('warranty_documents')->where('id', $document->id)->where('certificate_id', $certificate->id)
+                        ->where('role', 'completed_original')->update(['role' => 'source']);
+                    $this->events->record('certificate_original_quarantined', $actor, $certificate,
+                        metadata: ['document_id' => $document->id, 'reason' => 'completed_original → source']);
+                }
+                $certificate->unsetRelation('documents');
+            }
+            $certificate->forceFill(['actual_supplier_confirmed' => false, 'policy_id' => null,
+                'serial_number' => null, 'not_serialized_reason' => null, 'serial_fingerprint' => null,
+                'supplier_native_sku' => null, 'supplier_native_sku_source' => null, 'supplier_native_sku_reference' => null,
+                'supplier_native_sku_reason' => null, 'supplier_native_sku_identity_sha256' => null]);
         }
         $certificate->forceFill(['order_id' => $item->delivery->order_id, 'order_item_id' => $item->order_item_id,
             'product_id' => $item->product_id, 'supplier_id' => $item->supplier_id]);
@@ -486,6 +562,21 @@ class WarrantyCertificateManager
         $this->refreshCustomer($certificate, $item);
     }
 
+    protected function sourceChanged(WarrantyCertificate $certificate, OrderDeliveryItem $item): bool
+    {
+        if (! $certificate->exists && ! $certificate->supplier_id && ! $certificate->product_id) {
+            return false;
+        }
+        if ((int) $certificate->supplier_id !== (int) $item->supplier_id
+            || (int) $certificate->product_id !== (int) $item->product_id) {
+            return true;
+        }
+        $hash = $certificate->supplier_native_sku_identity_sha256;
+        $current = filled($hash) ? app(WarrantySupplierIdentity::class)->identityHash($item) : null;
+
+        return filled($hash) && (! $current || ! hash_equals($hash, $current));
+    }
+
     protected function refreshNativeSku(WarrantyCertificate $certificate, OrderDeliveryItem $item): void
     {
         $identity = app(WarrantySupplierIdentity::class)->resolve($item, $certificate);
@@ -495,36 +586,47 @@ class WarrantyCertificateManager
             'supplier_native_sku_identity_sha256' => $identity['confirmed'] ? $identity['identity_hash'] : null]);
     }
 
-    protected function applyNativeSku(WarrantyCertificate $certificate, array $valid): void
+    protected function applyNativeSku(WarrantyCertificate $certificate, array $valid, bool $requireNativeSkuProof = false): void
     {
         if (! array_key_exists('supplier_native_sku', $valid)) {
             return;
         }
         $native = trim((string) ($valid['supplier_native_sku'] ?? ''));
-        $reference = trim((string) ($valid['supplier_native_sku_reference'] ?? $certificate->supplier_native_sku_reference ?? ''));
-        $reason = trim((string) ($valid['supplier_native_sku_reason'] ?? $certificate->supplier_native_sku_reason ?? ''));
+        $unchanged = $native === $certificate->supplier_native_sku;
+        // Optional notes belong to this code: a replacement must not inherit the former code's evidence.
+        $reference = trim((string) (array_key_exists('supplier_native_sku_reference', $valid)
+            ? $valid['supplier_native_sku_reference'] : ($unchanged ? $certificate->supplier_native_sku_reference : null)));
+        $reason = trim((string) (array_key_exists('supplier_native_sku_reason', $valid)
+            ? $valid['supplier_native_sku_reason'] : ($unchanged ? $certificate->supplier_native_sku_reason : null)));
         $item = $certificate->deliveryItem;
         if ($native === '') {
             $certificate->forceFill(['supplier_native_sku' => null, 'supplier_native_sku_source' => null,
                 'supplier_native_sku_reference' => null, 'supplier_native_sku_reason' => null, 'supplier_native_sku_identity_sha256' => null]);
             $this->refreshNativeSku($certificate, $item);
+
             return;
         }
-        if ($native === $certificate->supplier_native_sku && $reference === $certificate->supplier_native_sku_reference
+        if ($unchanged && ($reference === $certificate->supplier_native_sku_reference || $reference === '')
             && $certificate->supplier_native_sku_source === 'verified_registry' && $reason === '') {
             return; // Saving an auto-filled form must not invent a staff confirmation.
         }
-        Validator::make(['supplier_native_sku_reference' => $reference, 'supplier_native_sku_reason' => $reason], [
-            'supplier_native_sku_reference' => ['required', 'string', 'min:5', 'max:2000'],
-            'supplier_native_sku_reason' => ['required', 'string', 'min:5', 'max:2000'],
-        ], [], ['supplier_native_sku_reference' => __('warranty.native_sku_reference'),
-            'supplier_native_sku_reason' => __('warranty.native_sku_reason')])->validate();
+        if ($requireNativeSkuProof && ! $unchanged) {
+            // This internal flag is used by the technical API, after the current draft was locked/refreshed.
+            Validator::make(['supplier_native_sku_reference' => $reference, 'supplier_native_sku_reason' => $reason], [
+                'supplier_native_sku_reference' => ['required', 'string', 'min:5', 'max:2000'],
+                'supplier_native_sku_reason' => ['required', 'string', 'min:5', 'max:2000'],
+            ])->validate();
+        }
         $hash = app(WarrantySupplierIdentity::class)->identityHash($item);
-        if (! $hash || (int) $certificate->supplier_id !== (int) $item->supplier_id) {
+        if (! $hash || (int) $certificate->supplier_id !== (int) $item->supplier_id
+            || (int) $certificate->product_id !== (int) $item->product_id
+            || (int) $certificate->order_delivery_item_id !== (int) $item->id
+            || (int) $certificate->order_id !== (int) $item->delivery?->order_id) {
             $this->invalid('supplier_native_sku', 'supplier_confirmation_required');
         }
         $certificate->forceFill(['supplier_native_sku' => $native, 'supplier_native_sku_source' => 'staff_confirmed',
-            'supplier_native_sku_reference' => $reference, 'supplier_native_sku_reason' => $reason,
+            'supplier_native_sku_reference' => $reference !== '' ? $reference : null,
+            'supplier_native_sku_reason' => $reason !== '' ? $reason : null,
             'supplier_native_sku_identity_sha256' => $hash]);
     }
 
@@ -551,6 +653,7 @@ class WarrantyCertificateManager
         if (! Order::whereKey($orderId)->where('status', Order::COMPLETED)->exists()) {
             return null;
         }
+
         return OrderEvent::where('order_id', $orderId)->where('type', 'status')->where('to', Order::COMPLETED)
             ->orderByDesc('id')->first(['id', 'created_at']);
     }
@@ -592,6 +695,7 @@ class WarrantyCertificateManager
         if ($selected === null || $selected === $automatic) {
             $certificate->forceFill(['sale_date' => $automatic, 'sale_date_source_event_id' => $event?->id,
                 'sale_date_source' => $automatic ? 'operator_completion' : null, 'sale_date_override_reason' => null]);
+
             return;
         }
         Validator::make(['sale_date_override_reason' => $reason],
@@ -652,6 +756,7 @@ class WarrantyCertificateManager
         }
         if (! $hasSerial) {
             $certificate->serial_fingerprint = null;
+
             return;
         }
         // Serialize the duplicate check within the supplier namespace, including manually entered product lines.
@@ -672,6 +777,7 @@ class WarrantyCertificateManager
         if (! $certificate->order_delivery_item_id) {
             $this->invalid('certificate', 'delivery_item_required');
         }
+
         return OrderDeliveryItem::whereKey($certificate->order_delivery_item_id)->lockForUpdate()->firstOrFail();
     }
 

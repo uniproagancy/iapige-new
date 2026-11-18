@@ -1,5 +1,8 @@
 @php
     $isSample = $isSample ?? false;
+    $showLegalRoles = array_key_exists('supplier_legal_name', (array) data_get($snapshot, 'item', []));
+    $hasPolicyTerms = collect(['coverage', 'conditions', 'component_terms'])
+        ->contains(fn ($field) => filled(data_get($snapshot, 'warranty.'.$field)));
     $referenceTerms = data_get($snapshot, 'warranty.reference_terms');
     $hasReferenceTerms = ! data_get($snapshot, 'warranty.policy_approved') && is_array($referenceTerms)
         && collect(['coverage', 'exclusions', 'customer_duties', 'claims', 'component_terms'])
@@ -10,6 +13,11 @@
         return is_scalar($text) && trim((string) $text) !== '' ? (string) $text : $empty;
     };
 @endphp
+@if (($dealerForm['schema'] ?? null) === 'iapi.warranty.zoommer-dealer.v1')
+    @include('warranties.partials.zoommer-dealer-paper')
+@elseif (($dealerForm['schema'] ?? null) === 'iapi.warranty.elite-dealer.v1')
+    @include('warranties.partials.elite-dealer-paper')
+@else
 <style>
     body { font-size: 9.5pt; line-height: 1.3; }
     .simple-paper .header td { padding-bottom: 8px; }
@@ -31,6 +39,7 @@
 <div class="paper simple-paper">
     <table class="header"><tr><td>
         <div class="brand">IAPI.GE</div>
+        @if ($showLegalRoles)<div class="small muted">გამყიდველი / დილერი</div>@endif
         <div class="seller-name">{{ $value('seller.name') }}</div>
         <div class="muted small">{{ __('warranty.tax_id', [], $documentLocale) }}: {{ $value('seller.tax_id') }}</div>
         <div class="muted small">{{ $value('seller.address') }}</div>
@@ -44,6 +53,7 @@
         <tr><td class="label">{{ __('warranty.phone', [], $documentLocale) }}</td><td>{{ $value('customer.phone') }}</td></tr>
         <tr><td class="label">{{ __('warranty.product', [], $documentLocale) }}</td><td><strong>{{ $value('item.name') }}</strong></td></tr>
         <tr><td class="label">{{ __('warranty.supplier', [], $documentLocale) }}</td><td>{{ $value('item.supplier_name') }}</td></tr>
+        @if (filled(data_get($snapshot, 'item.supplier_legal_name')))<tr><td class="label">მომწოდებლის იურიდიული დასახელება</td><td>{{ $value('item.supplier_legal_name') }}</td></tr>@endif
         <tr><td class="label">{{ __('warranty.supplier_sku', [], $documentLocale) }}</td><td><strong>{{ $value('item.supplier_sku') }}</strong></td></tr>
         <tr><td class="label">{{ __('warranty.serial_number', [], $documentLocale) }}</td><td>{{ $value('item.serial_number') }}</td></tr>
         <tr><td class="label">{{ __('warranty.order_date', [], $documentLocale) }}</td><td>{{ $documentDates['order'] ?? $empty }}</td></tr>
@@ -58,13 +68,18 @@
         <p><strong>{{ __('warranty.address', [], $documentLocale) }}:</strong> {{ $value('warranty.service.address') }}</p>
         @if (filled(data_get($snapshot, 'warranty.service.email')))<p><!--email_off-->{{ $value('warranty.service.email') }}<!--/email_off--></p>@endif
     </div>
-    <h3>{{ data_get($snapshot, 'warranty.policy_approved') || $hasReferenceTerms ? __('warranty.conditions', [], $documentLocale) : 'საგარანტიო მომსახურება — მიმართვის პირობები' }}</h3>
-    @if (data_get($snapshot, 'warranty.policy_approved'))
+    @if ((data_get($snapshot, 'warranty.policy_approved') && $hasPolicyTerms) || $hasReferenceTerms || filled(data_get($snapshot, 'warranty.conditions')))
+    <h3>{{ __('warranty.conditions', [], $documentLocale) }}</h3>
+    @if (data_get($snapshot, 'warranty.policy_approved') && $hasPolicyTerms)
         <p>{{ __('warranty.approved_terms_attached_notice', [], $documentLocale) }}</p>
     @elseif ($hasReferenceTerms)
         <p>დაფარვა, გამონაკლისები და მომსახურების წესები მოცემულია თანდართულ საგარანტიო პირობებში.</p>
     @else
         <p class="preserve">{{ $value('warranty.conditions') }}</p>
+    @endif
+    @elseif (filled(data_get($snapshot, 'warranty.claim_instructions')))
+        <h3>სერვისთან მიმართვა</h3>
+        <p class="preserve">{{ $value('warranty.claim_instructions') }}</p>
     @endif
     @if (data_get($snapshot, 'original_forms', []) !== [])
         <p class="small">{{ __('warranty.original_documents', [], $documentLocale) }}:
@@ -79,5 +94,6 @@
         <p class="source">{{ __('warranty.simple_rights_notice', [], $documentLocale) }}</p>
     </td>@if ((string) data_get($snapshot, 'seller.tax_id') === '416353635')<td class="mark-cell"><img class="stamp" src="{{ $stamp }}" alt="{{ __('warranty.company_mark', [], $documentLocale) }}"></td>@endif</tr></table>
 </div>
+@endif
 @include('warranties.partials.approved-terms')
 @include('warranties.partials.official-terms')

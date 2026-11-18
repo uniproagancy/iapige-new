@@ -14,6 +14,6 @@ return [
     'tag_sale' => 'Sale',
     'tag_new' => 'New',
 
-    'installment' => ':amount GEL / month',
+    'installment' => 'from :amount ₾ / month',
 
 ];

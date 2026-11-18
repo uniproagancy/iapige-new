@@ -1,0 +1,18 @@
+{
+  "schema": "iapi.delivery.supplier-native-identities.v1",
+  "identities": [
+    {
+      "supplier_id": 1,
+      "supplier_code": "zoommer",
+      "product_id": 5632,
+      "system_reference": "49662",
+      "native_sku": "ZOOM-037464",
+      "expected_product_sku": "ZOOM-037464",
+      "expected_name": "Apple iPhone 17 Pro Max | 256GB Cosmic Orange",
+      "expected_offer_references": ["49662"],
+      "checked_at": "2026-11-18T07:52:05+00:00",
+      "proof_sha256": "d73b605dbef72f35851f8989fa540c606c38f9d4e976126bfb3cf924ed5538e4",
+      "reference": "Configured ZoommerClient official product details GET: requested productId=49662; response product.id=49662; product.barCode=ZOOM-037464; exact product name confirmed; 2026-11-18T07:52:05+00:00"
+    }
+  ]
+}

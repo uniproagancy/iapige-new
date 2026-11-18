@@ -6,7 +6,7 @@
     <div class="foot">
         <div class="foot__brand">
             <div class="foot__logo">
-                <span class="logo__mark" aria-hidden="true"><img src="{{ asset('/img/logo.png') }}"></span>
+                <span class="logo__mark" aria-hidden="true"><img src="{{ asset('/img/logo.png') }}" alt=""></span>
                 <span>
                     <span class="foot__name">იაფი</span>
                     <span class="foot__sub">IAPI.GE</span>
@@ -53,7 +53,7 @@
                 @foreach ($banks as $bank)
                     <div class="bank">
                         @if (! empty($bank['logo']) && file_exists(public_path("img/bank/{$bank['logo']}")))
-                            <img class="bank__logo" src="{{ asset("img/bank/{$bank['logo']}") }}" alt="" loading="lazy" style="width: 40px; border-radius: 10px">
+                            <img class="bank__logo" src="{{ asset("img/bank/{$bank['logo']}") }}" alt="{{ $bank['name'] ?? '' }}" width="40" height="40" loading="lazy" style="width: 40px; border-radius: 10px">
                         @else
                             <span class="bank__mark" style="background:{{ $bank['color'] }}">{{ $bank['mark'] }}</span>
                         @endif

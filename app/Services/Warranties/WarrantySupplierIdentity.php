@@ -18,6 +18,10 @@ class WarrantySupplierIdentity
 
     public static function displayName(?Supplier $supplier): ?string
     {
+        if ($supplier && (int) $supplier->id === 9 && $supplier->code === 'metromart') {
+            return 'შპს „შამი“';
+        }
+
         return $supplier && self::isSkytech((int) $supplier->id, $supplier->code)
             ? 'შპს გოლდენ SKYTECH' : $supplier?->name;
     }
@@ -30,10 +34,19 @@ class WarrantySupplierIdentity
             return $result;
         }
         $result['identity_hash'] = $hash;
-        if ($certificate && (int) $certificate->supplier_id === (int) $item->supplier_id
+        if ($certificate && $certificate->supplier_native_sku_source === 'staff_confirmed') {
+            $item->loadMissing('delivery');
+        }
+        if ($certificate && $item->exists && $certificate->order_delivery_item_id && $item->delivery?->order_id
+            && (int) $certificate->supplier_id === (int) $item->supplier_id
+            && (int) $certificate->product_id === (int) $item->product_id
+            && (int) $certificate->order_delivery_item_id === (int) $item->id
+            && (int) $certificate->order_id === (int) $item->delivery?->order_id
             && $certificate->supplier_native_sku_source === 'staff_confirmed'
-            && filled($certificate->supplier_native_sku) && filled($certificate->supplier_native_sku_reference)
-            && filled($certificate->supplier_native_sku_reason) && is_string($certificate->supplier_native_sku_identity_sha256)
+            && is_string($certificate->supplier_native_sku) && trim($certificate->supplier_native_sku) !== ''
+            && mb_strlen($certificate->supplier_native_sku) <= 191
+            && ! preg_match('/[\x00-\x1f\x7f]/u', $certificate->supplier_native_sku)
+            && is_string($certificate->supplier_native_sku_identity_sha256)
             && hash_equals($hash, $certificate->supplier_native_sku_identity_sha256)) {
             return [...$result, 'native_sku' => $certificate->supplier_native_sku, 'source' => 'staff_confirmed',
                 'reference' => $certificate->supplier_native_sku_reference, 'confirmed' => true];
@@ -70,6 +83,7 @@ class WarrantySupplierIdentity
         if (count($matches) !== 1) {
             return $result;
         }
+
         return [...$result, 'native_sku' => $matches[0]['native_sku'], 'source' => 'verified_registry',
             'reference' => $matches[0]['reference'], 'confirmed' => true];
     }
@@ -83,6 +97,7 @@ class WarrantySupplierIdentity
         if (! $item->supplier || (int) $item->supplier->id !== (int) $item->supplier_id) {
             return null;
         }
+
         return hash('sha256', json_encode([(int) $item->supplier_id, $item->supplier->code,
             $item->product_id ? (int) $item->product_id : null, $item->sku, $item->name, $item->supplier_sku],
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
@@ -96,6 +111,7 @@ class WarrantySupplierIdentity
         } catch (\Throwable) {
             return [];
         }
+
         return ($data['schema'] ?? null) === 'iapi.warranty.supplier-native-identities.v1'
             && is_array($data['identities'] ?? null) ? $data['identities'] : [];
     }

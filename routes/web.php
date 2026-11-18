@@ -192,3 +192,6 @@ Route::middleware(['auth', 'can:admin'])
 require __DIR__.'/warranty.php';
 require __DIR__.'/warranty-agent.php';
 require __DIR__.'/warranty-courier.php';
+
+// Private owner procurement workspace.
+require __DIR__.'/procurement.php';

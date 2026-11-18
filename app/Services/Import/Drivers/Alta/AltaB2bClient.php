@@ -39,9 +39,50 @@ class AltaB2bClient
     }
 
     /**
+     * Alta's own answer for one item, field for field, for checking by hand
+     * what the list says. Null when the code is not on the list.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function raw(string $item): ?array
+    {
+        $items = $this->call($item);
+        $first = is_array($items) ? ($items[0] ?? null) : $items;
+
+        return $first === null ? null : json_decode(json_encode($first, JSON_THROW_ON_ERROR), true);
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     protected function ask(string $item): array
+    {
+        $items = $this->call($item);
+
+        if ($items === null) {
+            /* An account without a price list answers with an empty envelope
+               rather than an error, which is how a dead login looks. */
+            Log::channel('import')->warning('alta b2b answered with no items', [
+                'item' => $item ?: '(all)',
+            ]);
+
+            throw new AltaUnavailable('Alta B2B returned an empty envelope. The previous data was preserved.');
+        }
+
+        $rows = [];
+
+        foreach (is_array($items) ? $items : [$items] as $row) {
+            $built = $this->row($row);
+
+            if ($built) {
+                $rows[] = $built;
+            }
+        }
+
+        return $rows;
+    }
+
+    protected function call(string $item): mixed
     {
         $user = (string) ($this->config['user'] ?? '');
         $password = (string) ($this->config['password'] ?? '');
@@ -69,29 +110,7 @@ class AltaB2bClient
             throw new AltaUnavailable('Alta B2B could not be reached. The previous data was preserved.', 0, $e);
         }
 
-        $items = $response->PriceList->items->item ?? null;
-
-        if ($items === null) {
-            /* An account without a price list answers with an empty envelope
-               rather than an error, which is how a dead login looks. */
-            Log::channel('import')->warning('alta b2b answered with no items', [
-                'item' => $item ?: '(all)',
-            ]);
-
-            throw new AltaUnavailable('Alta B2B returned an empty envelope. The previous data was preserved.');
-        }
-
-        $rows = [];
-
-        foreach (is_array($items) ? $items : [$items] as $row) {
-            $built = $this->row($row);
-
-            if ($built) {
-                $rows[] = $built;
-            }
-        }
-
-        return $rows;
+        return $response->PriceList->items->item ?? null;
     }
 
     /**

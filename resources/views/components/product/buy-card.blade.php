@@ -34,7 +34,7 @@
         </div>
 
         <div class="priceblock__inst">
-            <span>{{ __('product.installment') }}</span>
+            <span>{{ __('product.installment', ['months' => config('shop.instalment_months', 24)]) }}</span>
             <b>{{ __('product.per_month', ['amount' => $product['monthly']]) }}</b>
         </div>
     </div>

@@ -34,6 +34,7 @@ class Seo
             'price' => $given['price'] ?? null,
             'availability' => $given['availability'] ?? null,
             'schema' => array_values(array_filter((array) ($given['schema'] ?? []))),
+            'locales' => $given['locales'] ?? null,
         ];
     }
 
@@ -44,11 +45,18 @@ class Seo
         return trim(preg_replace('/\s+/u', ' ', strip_tags($value)));
     }
 
-    public static function alternates(): array
+    /* $only names the languages a page truly has. A product with no English
+       text still opens under /en, in Georgian; announcing that as the English
+       version would hand Google a duplicate of the Georgian page. */
+    public static function alternates(?array $only = null): array
     {
         $out = [];
 
         foreach (array_keys(LaravelLocalization::getSupportedLocales()) as $code) {
+            if ($only !== null && ! in_array($code, $only, true)) {
+                continue;
+            }
+
             $out[$code] = LaravelLocalization::getLocalizedURL($code, null, [], false);
         }
 
@@ -163,14 +171,22 @@ class Seo
             '@id' => $url.'#product',
             'name' => product_title($card['brand'] ?? null, $card['name'] ?? null),
             'url' => $url,
-            'image' => array_values(array_filter((array) ($card['gallery'] ?? $card['images'] ?? []))),
-            'description' => Str::limit(strip_tags((string) ($card['description'] ?? $card['spec'] ?? '')), 500, ''),
+            // the stand-in drawing is not a picture of the product
+            'image' => array_values(array_filter(
+                (array) ($card['gallery'] ?? $card['images'] ?? []),
+                fn ($src) => $src && ! str_ends_with($src, Store::NO_PHOTO),
+            )),
+            'description' => Str::limit(self::plain($card['description'] ?? $card['spec'] ?? ''), 500, ''),
             'offers' => self::offer($card, $model, $url),
         ];
 
         if ($sku = $card['sku'] ?? $card['code'] ?? null) {
             $node['sku'] = (string) $sku;
-            $node['mpn'] = (string) $sku;
+        }
+
+        // the same code the Merchant feed sends, so page and feed never disagree
+        if ($gtin = Gtin::of($model)) {
+            $node['gtin'] = $gtin;
         }
 
         if ($brand = $card['brand'] ?? null) {
@@ -205,41 +221,15 @@ class Seo
             'itemCondition' => 'https://schema.org/NewCondition',
             'priceValidUntil' => now()->addDays(self::PRICE_VALID_DAYS)->toDateString(),
             'seller' => ['@id' => url('/').'#organization'],
-            'shippingDetails' => self::shipping(),
             'hasMerchantReturnPolicy' => self::returnPolicy(),
         ]);
     }
 
-    protected static function shipping(): array
-    {
-        return [
-            '@type' => 'OfferShippingDetails',
-            'shippingRate' => [
-                '@type' => 'MonetaryAmount',
-                'value' => '0',
-                'currency' => 'GEL',
-            ],
-            'shippingDestination' => [
-                '@type' => 'DefinedRegion',
-                'addressCountry' => 'GE',
-            ],
-            'deliveryTime' => [
-                '@type' => 'ShippingDeliveryTime',
-                'handlingTime' => [
-                    '@type' => 'QuantitativeValue',
-                    'minValue' => 0,
-                    'maxValue' => 1,
-                    'unitCode' => 'DAY',
-                ],
-                'transitTime' => [
-                    '@type' => 'QuantitativeValue',
-                    'minValue' => 1,
-                    'maxValue' => max(1, (int) config('shop.delivery_days', 2)),
-                    'unitCode' => 'DAY',
-                ],
-            ],
-        ];
-    }
+    /* No shippingDetails: the fee is set per city (0 in Tbilisi, up to 12 ₾
+       elsewhere) and schema.org cannot name Georgian cities. A single figure
+       here would be wrong for most buyers, and Merchant Center disapproves a
+       page whose shipping disagrees with the account's shipping settings,
+       which are where the real rates are kept. */
 
     protected static function returnPolicy(): array
     {
@@ -249,7 +239,8 @@ class Seo
             'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
             'merchantReturnDays' => max(1, (int) config('shop.return_days', 14)),
             'returnMethod' => 'https://schema.org/ReturnByMail',
-            'returnFees' => 'https://schema.org/FreeReturn',
+            // the returns page: "the direct cost of returning it is yours"
+            'returnFees' => 'https://schema.org/ReturnFeesCustomerResponsibility',
         ];
     }
 
@@ -259,9 +250,12 @@ class Seo
             return 'https://schema.org/PreOrder';
         }
 
+        /* Out of stock, not back order: the cart refuses a product with no
+           stock, and Merchant Center checks the page against the feed, which
+           says out_of_stock. */
         return (int) $model->stock > 0
             ? 'https://schema.org/InStock'
-            : 'https://schema.org/BackOrder';
+            : 'https://schema.org/OutOfStock';
     }
 
     public static function itemList(iterable $cards, ?string $name = null): ?array

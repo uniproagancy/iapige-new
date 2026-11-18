@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'native_code_help' => 'The supplier’s actual article code. Saving it separately updates both work pages.',
+    'native_code_save' => 'Save supplier code',
+    'native_code_saved' => 'Supplier code saved.',
+    'native_code_save_supplier_first' => 'Save the supplier change first, then enter its article code.',
+    'native_code_changed' => 'The supplier or code changed in another window. Reopen the editor.',
+    'native_code_unavailable' => 'An active order and assigned supplier are required to edit this code.',
     'title' => 'Deliveries',
     'subtitle' => 'Completed orders by supplier — paid or payable in cash on delivery.',
     'courier_subtitle' => 'Your assigned deliveries and their history.',

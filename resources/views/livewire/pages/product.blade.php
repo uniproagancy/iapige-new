@@ -47,7 +47,7 @@
            data-quick-order-open="quick-order-{{ $model->id }}">
             <span class="btn-buy__label">{{ __('product.buy') }}</span>
             <span class="btn-buy__sep" aria-hidden="true"></span>
-            <span class="btn-buy__note">{{ __('common.per_month', ['amount' => $product['monthly']]) }} · 0%</span>
+            <span class="btn-buy__note">{{ __('common.per_month', ['amount' => $product['monthly']]) }}</span>
         </a>
         @else
             <span class="btn-buy is-unavailable" aria-disabled="true">{{ __('product.not_available') }}</span>

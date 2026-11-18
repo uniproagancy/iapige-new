@@ -2,9 +2,12 @@
 <meta name="robots" content="{{ $seo['robots'] }}">
 <link rel="canonical" href="{{ $seo['canonical'] }}">
 
-@foreach (\App\Support\Seo::alternates() as $code => $href)
-    <link rel="alternate" hreflang="{{ $code }}" href="{{ $href }}">
-@endforeach
+{{-- A noindex page is not offered in other languages; its canonical speaks for it. --}}
+@unless (str_contains($seo['robots'], 'noindex'))
+    @foreach (\App\Support\Seo::alternates($seo['locales']) as $code => $href)
+        <link rel="alternate" hreflang="{{ $code }}" href="{{ $href }}">
+    @endforeach
+@endunless
 
 <meta property="og:site_name" content="{{ config('app.name') }}">
 <meta property="og:type" content="{{ $seo['type'] }}">

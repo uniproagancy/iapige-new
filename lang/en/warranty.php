@@ -122,6 +122,10 @@ return [
     'email' => 'Email',
     'ends_on' => 'Coverage end date',
     'errors' => [
+        'supplier_source_changed' => 'The supplier or item changed in deliveries. Reopen the certificate editor and check the current information.',
+        'supplier_source_unavailable' => 'The item supplier cannot be changed in this state. Check the order and delivery status.',
+        'supplier_correction_required' => 'This item already has an issued certificate. An administrator must first prepare a correction revision.',
+        'dealer_form_invalid' => 'The supplier warranty card could not be verified. Certificate preparation is temporarily unavailable.',
         'actual_delivery_required' => 'Enter and confirm actual delivery.',
         'approved_policy_required' => 'Approved terms are required for this item and supplier.',
         'binding_duplicate' => 'The file contains duplicate product and supplier entries.',
@@ -182,6 +186,8 @@ return [
         'unit_identity_required' => 'Enter the serial number or explain why the unit has none.',
     ],
     'events' => [
+        'certificate_original_quarantined' => 'Previous supplier original retained privately; excluded from the new certificate',
+        'certificate_supplier_source_reset' => 'Supplier refreshed; previous native SKU and confirmation cleared',
         'certificate_courier_serial_released' => 'Certificate released for courier serial completion',
         'certificate_courier_serial_completed' => 'Courier completed IMEI / serial number',
         'agent_issued' => 'Agent issued the warranty',

@@ -2,18 +2,21 @@
 
 namespace App\Livewire\Pages;
 
+use App\Models\Language;
+use App\Models\Product as ProductModel;
 use App\Services\Facebook\Pixel;
 use App\Services\Social\SocialFeedLink;
 use App\Support\Catalog;
 use App\Support\Seo;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class Product extends Component
 {
     public int $productId;
 
-    protected ?\App\Models\Product $resolved = null;
+    protected ?ProductModel $resolved = null;
 
     public function mount(string $slug)
     {
@@ -34,9 +37,38 @@ class Product extends Component
         ]));
     }
 
+    /* Languages this product has its own text in. English counts only when
+       its name is English: a row holding the Georgian name again is no
+       translation. */
+    protected function languages(ProductModel $model): array
+    {
+        // withTranslation() loads the current language only, so the other rows are read here
+        $names = $model->translations()->pluck('name', 'locale');
+
+        return array_values(array_filter(
+            array_keys(LaravelLocalization::getSupportedLocales()),
+            fn (string $code) => $code === Language::defaultCode()
+                || (filled($names[$code] ?? null) && ! preg_match('/\p{Georgian}/u', $names[$code])),
+        ));
+    }
+
+    protected function written(): bool
+    {
+        return in_array(app()->getLocale(), $this->languages($this->resolved), true);
+    }
+
+    protected function inDefaultLanguage(ProductModel $model): string
+    {
+        $default = Language::defaultCode();
+
+        $slug = $model->translations()->where('locale', $default)->value('slug') ?? $model->slug;
+
+        return LaravelLocalization::getLocalizedURL($default, route('product', $slug), [], false);
+    }
+
     public function render()
     {
-        $model = $this->resolved ??= \App\Models\Product::active()->withTranslation()
+        $model = $this->resolved ??= ProductModel::active()->withTranslation()
             ->with(['specs' => fn ($q) => $q->withTranslation()->with(['attribute' => fn ($a) => $a->withTranslation()])])
             ->findOrFail($this->productId);
 
@@ -83,7 +115,9 @@ class Product extends Component
                     'price' => $data['product']['price'],
                     'availability' => Seo::availability($model),
 
-                    'canonical' => route('product', $model->slug),
+                    'canonical' => $this->written() ? route('product', $model->slug) : $this->inDefaultLanguage($model),
+                    'robots' => $this->written() ? 'index, follow' : 'noindex, follow',
+                    'locales' => $this->languages($model),
                     'schema' => [
                         Seo::product($data['product'], $model),
                         Seo::breadcrumbs($data['product']['breadcrumbs']),

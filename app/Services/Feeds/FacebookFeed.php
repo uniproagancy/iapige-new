@@ -131,7 +131,8 @@ class FacebookFeed extends ProductFeed
             return '';
         }
 
-        $monthly = (int) ceil($price / $this->config['instalment_months']);
+        // the same figure, fee included, as the product page shows
+        $monthly = $product->monthlyPrice();
 
         return __('product.quick_monthly_from', ['amount' => money($monthly)]);
     }

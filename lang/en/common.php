@@ -3,7 +3,7 @@
 return [
 
     'products_count' => ':count products',
-    'per_month' => 'or :amount ₾ / month',
+    'per_month' => 'or from :amount ₾ / month',
     'back' => 'Back',
     'close' => 'Close',
     'home' => 'Home',

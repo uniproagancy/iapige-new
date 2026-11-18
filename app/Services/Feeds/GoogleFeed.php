@@ -3,6 +3,7 @@
 namespace App\Services\Feeds;
 
 use App\Models\Product;
+use App\Support\Gtin;
 use XMLWriter;
 
 class GoogleFeed extends ProductFeed
@@ -68,22 +69,20 @@ class GoogleFeed extends ProductFeed
         $this->written++;
     }
 
+    /* Only a barcode that passes the check digit is sent. Our sku is a
+       supplier's stock number, and sending it as an MPN is what Merchant
+       Center flags as a wrong identifier. Without a GTIN a branded item still
+       lists, with a warning; identifier_exists=no is reserved for the
+       unbranded, since claiming it for a branded product is itself an error. */
     protected function writeIdentity(XMLWriter $xml, Product $product, ?string $brand): void
     {
         if ($brand) {
             $xml->writeElement('g:brand', $this->clean($brand, 70));
         }
 
-        $sku = trim((string) $product->sku);
-        $isGtin = preg_match('/^\d{8}$|^\d{12,14}$/', $sku) === 1;
-
-        if ($isGtin) {
-            $xml->writeElement('g:gtin', $sku);
-        } elseif ($sku !== '') {
-            $xml->writeElement('g:mpn', $sku);
-        }
-
-        if (! $brand || $sku === '') {
+        if ($gtin = Gtin::of($product)) {
+            $xml->writeElement('g:gtin', $gtin);
+        } elseif (! $brand) {
             $xml->writeElement('g:identifier_exists', 'no');
         }
     }
@@ -102,7 +101,7 @@ class GoogleFeed extends ProductFeed
         if ($product->is_preorder) {
             $xml->writeElement('g:custom_label_0', 'preorder');
         } elseif ($price > $this->config['instalment_from']) {
-            $monthly = (int) ceil($price / $this->config['instalment_months']);
+            $monthly = $product->monthlyPrice();
             $xml->writeElement('g:custom_label_0', __('product.quick_monthly_from', ['amount' => money($monthly)]));
         }
 

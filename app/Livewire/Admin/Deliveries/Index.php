@@ -11,6 +11,8 @@ use App\Models\ProductOffer;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\Delivery\OrderDeliveryManager;
+use App\Services\Delivery\SupplierItemCodes;
+use App\Services\Delivery\SupplierItemIdentity;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -60,6 +62,14 @@ class Index extends Component
     public array $form = [];
 
     public array $itemForms = [];
+
+    public array $nativeSkuForms = [];
+
+    #[Locked]
+    public array $nativeSkuHashes = [];
+
+    #[Locked]
+    public ?int $nativeSkuSavedItemId = null;
 
     public string $newDate = '';
 
@@ -209,12 +219,18 @@ class Index extends Component
         $this->itemForms = $delivery->items->mapWithKeys(fn ($item) => [$item->id => Arr::only($item->toArray(), [
             'supplier_id', 'supplier_name', 'supplier_sku', 'warehouse', 'pickup_address',
         ])])->all();
+        $this->nativeSkuForms = $this->nativeSkuHashes = [];
+        $this->nativeSkuSavedItemId = null;
+        foreach ($delivery->items as $item) {
+            $this->nativeSkuForms[$item->id] = app(SupplierItemIdentity::class)->resolve($item)['native_sku'] ?? '';
+            $this->nativeSkuHashes[$item->id] = app(SupplierItemCodes::class)->editHash($item);
+        }
     }
 
-    public function updatedItemForms(mixed $value, string $path): void
+    public function updatedItemForms(mixed $value, ?string $path = null): void
     {
         $this->staff();
-        if (! preg_match('/\A([0-9]+)\.supplier_id\z/', $path, $matches) || $this->modal !== 'edit' || ! $this->activeId) {
+        if ($path === null || ! preg_match('/\A([0-9]+)\.supplier_id\z/', $path, $matches) || $this->modal !== 'edit' || ! $this->activeId) {
             return;
         }
         $item = $this->findDelivery($this->activeId)->items->firstWhere('id', (int) $matches[1]);
@@ -224,12 +240,29 @@ class Index extends Component
         $this->itemForms[$item->id]['supplier_sku'] = '';
         $this->itemForms[$item->id]['warehouse'] = '';
         $this->itemForms[$item->id]['pickup_address'] = '';
+        // A staged supplier change must be saved before entering that supplier's article.
+        $this->nativeSkuForms[$item->id] = '';
+        $this->nativeSkuHashes[$item->id] = '';
+        $this->nativeSkuSavedItemId = null;
         if ($supplier && $item->product_id) {
             $offers = ProductOffer::where('product_id', $item->product_id)->where('supplier_id', $supplier->id)->get(['external_id']);
             if ($offers->count() === 1) {
                 $this->itemForms[$item->id]['supplier_sku'] = (string) $offers->first()->external_id;
             }
         }
+    }
+
+    public function saveNativeSku(int $itemId): void
+    {
+        $user = $this->staff();
+        abort_unless($this->modal === 'edit' && $this->activeId, 422);
+        $item = $this->findDelivery($this->activeId)->items->firstWhere('id', $itemId);
+        abort_unless($item && isset($this->nativeSkuHashes[$itemId]) && $this->nativeSkuHashes[$itemId] !== ''
+            && (int) ($this->itemForms[$itemId]['supplier_id'] ?? 0) === (int) $item->supplier_id, 422);
+        $this->validate(['nativeSkuForms.'.$itemId => ['nullable', 'string', 'max:191']]);
+        app(SupplierItemCodes::class)->save($itemId, $this->nativeSkuForms[$itemId] ?? null, $this->nativeSkuHashes[$itemId], $user);
+        $this->nativeSkuHashes[$itemId] = app(SupplierItemCodes::class)->editHash($item);
+        $this->nativeSkuSavedItemId = $itemId;
     }
 
     public function saveEdit(): void
@@ -429,7 +462,7 @@ class Index extends Component
         $this->expectedCashAmount = null;
         $this->correctionVersion = null;
         $this->resetValidation();
-        $this->reset(['form', 'itemForms', 'reason', 'newDate', 'correctionTarget']);
+        $this->reset(['form', 'itemForms', 'nativeSkuForms', 'nativeSkuHashes', 'nativeSkuSavedItemId', 'reason', 'newDate', 'correctionTarget']);
     }
 
     protected function saved(): void
