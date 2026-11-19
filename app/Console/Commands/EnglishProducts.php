@@ -26,16 +26,28 @@ class EnglishProducts extends Command
 {
     protected $signature = 'products:english
         {--names= : glossary JSON of Georgian name phrases, {"georgian": "english"}}
+        {--specs= : JSON of whole Georgian texts of specification names, values and filter labels, {"georgian": "english"}}
         {--show=12 : how many changes, picked at random, to print for checking}
         {--apply : write the changes; without it only counts}';
 
-    protected $description = 'Give products with only a Georgian name an English name for the English site';
+    protected $description = 'Put Georgian-only product names, specifications and filter labels into English for the English site';
 
     /* A run of Georgian words, with the spaces, commas and slashes Georgian names put between them */
     private const PHRASE = '/[\x{10D0}-\x{10FF}][\x{10D0}-\x{10FF}\-]*(?:[ ,\/]+[\x{10D0}-\x{10FF}][\x{10D0}-\x{10FF}\-]*)*/u';
 
+    /* table => [the row it translates, the text column] */
+    private const SPEC_TABLES = [
+        'attribute_translations' => ['attribute_id', 'name'],
+        'attribute_value_translations' => ['attribute_value_id', 'label'],
+        'product_spec_translations' => ['product_spec_id', 'value'],
+    ];
+
     public function handle(): int
     {
+        if ($this->option('specs')) {
+            return $this->specs((string) $this->option('specs'), (bool) $this->option('apply'));
+        }
+
         $glossary = json_decode((string) @file_get_contents((string) $this->option('names')), true);
 
         if (! is_array($glossary) || ! $glossary) {
@@ -90,6 +102,67 @@ class EnglishProducts extends Command
         } elseif (! $apply) {
             $this->info('Nothing written; run again with --apply.');
         }
+
+        return self::SUCCESS;
+    }
+
+    /* Specification names, their values and filter labels. A text is
+       translated whole -- "ძირითადი კამერის ვიდეო რეზოლუცია" -- since word by
+       word reads backwards in English. Only texts in the file are touched;
+       an English row that is already English is left as it is. */
+    private function specs(string $file, bool $apply): int
+    {
+        $map = json_decode((string) @file_get_contents($file), true);
+
+        if (! is_array($map) || ! $map) {
+            $this->error('Give the translations: --specs=file.json, {"georgian": "english"}.');
+
+            return self::FAILURE;
+        }
+
+        $map = array_filter($map, fn ($english, $georgian) => is_string($english) && trim($english) !== ''
+            && ! preg_match('/\p{Georgian}/u', $english), ARRAY_FILTER_USE_BOTH);
+        $backup = 'backups/specs_english_'.now()->format('Ymd_His').'.jsonl';
+
+        foreach (self::SPEC_TABLES as $table => [$key, $column]) {
+            $rows = DB::table("{$table} as k")
+                ->leftJoin("{$table} as e", fn ($join) => $join->on("e.{$key}", '=', "k.{$key}")->where('e.locale', '=', 'en'))
+                ->where('k.locale', Language::defaultCode())
+                ->whereRaw("k.{$column} regexp '[ა-ჰ]'")
+                ->where(fn ($q) => $q->whereNull('e.id')->orWhereRaw("e.{$column} regexp '[ა-ჰ]'"))
+                ->get(["k.{$key} as owner", "k.{$column} as georgian", 'e.id as english_id', "e.{$column} as before"]);
+
+            $writes = [];
+
+            foreach ($rows as $row) {
+                $english = $map[trim((string) $row->georgian)] ?? null;
+
+                if ($english !== null) {
+                    $writes[] = ['row' => $row, 'english' => mb_substr($english, 0, $column === 'value' ? 4000 : 255)];
+                }
+            }
+
+            $this->line("{$table}: ".count($rows).' shown in Georgian, '.count($writes).' translated');
+
+            if (! $apply || ! $writes) {
+                continue;
+            }
+
+            Storage::disk('local')->append($backup, implode("\n", array_map(
+                fn ($w) => json_encode(['table' => $table, $key => $w['row']->owner, 'before' => $w['row']->before], JSON_UNESCAPED_UNICODE),
+                $writes,
+            )));
+
+            foreach (array_chunk($writes, 1000) as $chunk) {
+                DB::table($table)->upsert(
+                    array_map(fn ($w) => [$key => $w['row']->owner, 'locale' => 'en', $column => $w['english']], $chunk),
+                    [$key, 'locale'],
+                    [$column],
+                );
+            }
+        }
+
+        $this->info($apply ? "Done. English rows that were replaced are listed in storage/app/{$backup}" : 'Nothing written; run again with --apply.');
 
         return self::SUCCESS;
     }

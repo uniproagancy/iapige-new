@@ -132,11 +132,32 @@ class MagiToysDriver implements SupplierDriver
         return strtoupper($this->supplier->code).'-'.$id;
     }
 
+    /* The sheet's price normally is the page's price to the tetri. When the
+       two are worlds apart the sheet row is not about this page: a file
+       uploaded on 16 November paired links with the wrong rows (a 2 300 ₾
+       compressor came in at 200 ₾), turned 14.04 into the date 46126 and
+       5.135 into 5135. The page is the product the shopper sees -- its name,
+       its photos -- so its own price is the one that belongs beside them. */
+    public const PRICE_DRIFT = 2.0;
+
     protected function cost(SupplierStock $row, array $page): float
     {
         $cost = (float) $row->cost_price;
+        $shown = (float) ($page['price'] ?? 0);
 
-        return $cost > 0 ? $cost : (float) ($page['price'] ?? 0);
+        if ($cost <= 0) {
+            return $shown;
+        }
+
+        if ($shown > 0 && max($cost, $shown) / min($cost, $shown) >= self::PRICE_DRIFT) {
+            Log::channel('import')->warning('magitoys sheet price disagrees with its page; the page price is used', [
+                'code' => $row->external_id, 'sheet' => $cost, 'page' => $shown,
+            ]);
+
+            return $shown;
+        }
+
+        return $cost;
     }
 
     /* The sheet is the stock record; the page only says whether the source
