@@ -50,6 +50,13 @@ return [
         'worker_url' => env('ELITE_WORKER_URL'),
         'token' => env('ELITE_TOKEN'),
     ],
+    /* TanTan Georgia's WooCommerce REST API. The key pair is the shop's own
+       consumer key and secret, sent as basic auth; it stays in .env. */
+    'tantan' => [
+        'api_url' => env('TANTAN_API_URL', 'https://tantangeorgia.ge/wp-json/wc/v3'),
+        'key' => env('TANTAN_KEY'),
+        'secret' => env('TANTAN_SECRET'),
+    ],
     'citrus' => [
         'base_url' => env('CITRUS_BASE_URL', 'https://citrus.ge'),
         'user_agent' => env('CITRUS_USER_AGENT', 'Mozilla/5.0'),

@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             MetromartSupplierSeeder::class,
             MideaSupplierSeeder::class,
             ThermocenterSupplierSeeder::class,
+            TanTanSupplierSeeder::class,
         ]);
     }
 }
