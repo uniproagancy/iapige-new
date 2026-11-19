@@ -47,10 +47,6 @@
 
         <a class="card__name" href="{{ $p['url'] }}">{{ $p['name'] }}</a>
 
-        @if (! empty($p['spec']))
-            <span class="card__spec">{{ $p['spec'] }}</span>
-        @endif
-
         <div class="card__prices">
             <span @class(['card__price', 'card__price--sale' => ! empty($p['old'])])>{{ money($p['price']) }}</span>
             @if (! empty($p['old']))

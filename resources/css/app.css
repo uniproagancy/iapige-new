@@ -87,7 +87,7 @@ button,
   font-family:var(--caps)
 }
 /* ---- back to the body face where it is running text, not a label ---- */
-.card__spec,.result__name,.result__price,.cart-item__name,.cart-item__cat,
+.result__name,.result__price,.cart-item__name,.cart-item__cat,
 .hero__sub,.banner__text,.duo__text,.editorial__text,.news__text,.foot__about,
 .perk__text,.auth__heroText,.auth__perk,.field__label,.check,.results__empty,
 .card__monthly,.card__old,.promo__note,.cart__monthly,.auth__note,.bank__name{
@@ -432,7 +432,6 @@ button,
   overflow:hidden;transition:color .18s
 }
 .card:hover .card__name{color:var(--red-dark)}
-.card__spec{font-size:11px;color:var(--muted-3);line-height:1.4}
 .card__prices{display:flex;align-items:baseline;gap:8px;min-height:28px;margin-top:2px}
 .card__price{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
 .card__price--sale{color:var(--red-bright)}
