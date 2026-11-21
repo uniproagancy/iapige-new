@@ -29,9 +29,7 @@ class WarrantySupplierEditor extends OrderDeliveryManager
             $this->staff($actor);
             $this->draft($current);
             $this->available($order, $delivery, $item, $current);
-            if ($expectedFingerprint !== null) {
-                $this->assertSource($current, $expectedFingerprint);
-            }
+            if ($expectedFingerprint !== null) { $this->assertSource($current, $expectedFingerprint); }
             if ($delivery->status === OrderDelivery::ACTIVE) {
                 $this->editable($delivery);
             } elseif ($delivery->status === OrderDelivery::DELIVERED) {
@@ -57,10 +55,7 @@ class WarrantySupplierEditor extends OrderDeliveryManager
             $this->updateItems($delivery, [$item->id => ['supplier_id' => $newSupplierId]], $order, $actor);
             $drafts = WarrantyCertificate::where('order_delivery_item_id', $item->id)
                 ->where('status', WarrantyCertificate::DRAFT)->orderBy('id')->lockForUpdate()->get();
-            foreach ($drafts as $draft) {
-                $this->reset($draft, $actor);
-            }
-
+            foreach ($drafts as $draft) { $this->reset($draft, $actor); }
             return $current->fresh();
         }, 3);
     }
@@ -68,14 +63,12 @@ class WarrantySupplierEditor extends OrderDeliveryManager
     public function saveDraft(WarrantyCertificate $certificate, array $input, User $actor, string $expectedHash): WarrantyCertificate
     {
         $this->staff($actor);
-
         return DB::transaction(function () use ($certificate, $input, $actor, $expectedHash): WarrantyCertificate {
             [, , , $current] = $this->context($certificate, true);
             $actor = User::whereKey($actor->id)->lockForUpdate()->firstOrFail();
             $this->staff($actor);
             $this->draft($current);
             $this->assertSource($current, $expectedHash);
-
             return $this->certificates->saveDraft($current, $input, $actor);
         }, 3);
     }
@@ -84,17 +77,13 @@ class WarrantySupplierEditor extends OrderDeliveryManager
     public function refreshDraft(WarrantyCertificate $certificate, User $actor): WarrantyCertificate
     {
         $this->staff($actor);
-
         return DB::transaction(function () use ($certificate, $actor): WarrantyCertificate {
             [$order, $delivery, $item, $current] = $this->context($certificate, true);
             $actor = User::whereKey($actor->id)->lockForUpdate()->firstOrFail();
             $this->staff($actor);
             $this->draft($current);
             if (! $item->is_active || $order->trashed() || $order->status === Order::CANCELLED
-                || $delivery->status === OrderDelivery::CANCELLED) {
-                $this->fail('supplier_source_unavailable');
-            }
-
+                || $delivery->status === OrderDelivery::CANCELLED) { $this->fail('supplier_source_unavailable'); }
             return $this->refreshChanged($current, $item, $actor);
         }, 3);
     }
@@ -102,7 +91,6 @@ class WarrantySupplierEditor extends OrderDeliveryManager
     public function sourceFingerprint(WarrantyCertificate $certificate): string
     {
         [, , $item] = $this->context($certificate, false);
-
         return app(WarrantyApproval::class)->identityFingerprint($item);
     }
 
@@ -132,20 +120,15 @@ class WarrantySupplierEditor extends OrderDeliveryManager
             ->where('order_id', $order->id)->when($lock, fn ($query) => $query->lockForUpdate())->firstOrFail();
         $delivery->setRelation('order', $order);
         $item->setRelation('delivery', $delivery);
-
         return [$order, $delivery, $item, $current];
     }
 
     private function draft(WarrantyCertificate $certificate): void
     {
-        if ($certificate->status !== WarrantyCertificate::DRAFT) {
-            $this->fail('certificate_not_draft');
-        }
+        if ($certificate->status !== WarrantyCertificate::DRAFT) { $this->fail('certificate_not_draft'); }
         $latest = WarrantyCertificate::where('order_delivery_item_id', $certificate->order_delivery_item_id)
             ->where('unit_index', $certificate->unit_index)->orderByDesc('revision')->orderByDesc('id')->first(['id']);
-        if (! $latest || (int) $latest->id !== (int) $certificate->id) {
-            $this->fail('latest_revision_required');
-        }
+        if (! $latest || (int) $latest->id !== (int) $certificate->id) { $this->fail('latest_revision_required'); }
     }
 
     private function available(Order $order, OrderDelivery $delivery, OrderDeliveryItem $item, WarrantyCertificate $certificate): void
@@ -166,11 +149,8 @@ class WarrantySupplierEditor extends OrderDeliveryManager
                 || (int) $draft->product_id !== (int) $item->product_id
                 || (filled($draft->supplier_native_sku_identity_sha256)
                     && (! $identity || ! hash_equals($draft->supplier_native_sku_identity_sha256, $identity)));
-            if ($changed) {
-                $this->reset($draft, $actor);
-            }
+            if ($changed) { $this->reset($draft, $actor); }
         }
-
         return $certificate->fresh();
     }
 
@@ -181,7 +161,6 @@ class WarrantySupplierEditor extends OrderDeliveryManager
             'supplier_native_sku' => null, 'serial_number' => null, 'not_serialized_reason' => null], $actor);
         $this->events->record('certificate_supplier_source_reset', $actor, $certificate,
             metadata: ['previous_id' => $beforeSupplier, 'reference' => (string) $certificate->supplier_id]);
-
         return $certificate;
     }
 

@@ -323,6 +323,13 @@
                             @endunless
                             @if($isStaff)
                                 <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="openComment({{ $delivery->id }})">{{ __('delivery.comment') }}</button>
+                                @if(!$isPreview && $delivery->order?->status === \App\Models\Order::CANCELLED && !$delivery->order->trashed())
+                                    <button type="button" class="btn btn-sm btn-success"
+                                            wire:click="restoreOrder({{ $delivery->id }})"
+                                            wire:loading.attr="disabled" wire:target="restoreOrder({{ $delivery->id }})">
+                                        {{ __('order_restore.button') }}
+                                    </button>
+                                @endif
                                 @if($delivery->isEditable())
                                     <button type="button" class="btn btn-sm btn-outline-primary" wire:click="openEdit({{ $delivery->id }})">{{ __('delivery.edit') }}</button>
                                     <button type="button" class="btn btn-sm btn-outline-warning" wire:click="openPostpone({{ $delivery->id }})">{{ __('delivery.postpone') }}</button>

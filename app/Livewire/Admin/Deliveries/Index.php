@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\Delivery\OrderDeliveryManager;
 use App\Services\Delivery\SupplierItemCodes;
 use App\Services\Delivery\SupplierItemIdentity;
+use App\Services\Orders\OrderRestorer;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -326,6 +327,20 @@ class Index extends Component
         $delivery = $this->findDelivery($id);
         abort_unless($delivery->isEditable(), 422);
         $this->open('cancel', $delivery);
+    }
+
+    public function restoreOrder(int $id): void
+    {
+        $user = $this->staff();
+        $delivery = $this->findDelivery($id);
+        app(OrderRestorer::class)->restore($delivery->order_id, $user);
+
+        if ($this->status === 'cancelled') {
+            $this->status = 'all';
+        }
+        $this->closeModal();
+        $this->resetPage();
+        $this->dispatch('toast', message: __('order_restore.restored'));
     }
 
     public function openHistory(int $id): void

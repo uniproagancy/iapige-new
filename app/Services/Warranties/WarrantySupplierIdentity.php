@@ -21,7 +21,6 @@ class WarrantySupplierIdentity
         if ($supplier && (int) $supplier->id === 9 && $supplier->code === 'metromart') {
             return 'შპს „შამი“';
         }
-
         return $supplier && self::isSkytech((int) $supplier->id, $supplier->code)
             ? 'შპს გოლდენ SKYTECH' : $supplier?->name;
     }
@@ -83,7 +82,6 @@ class WarrantySupplierIdentity
         if (count($matches) !== 1) {
             return $result;
         }
-
         return [...$result, 'native_sku' => $matches[0]['native_sku'], 'source' => 'verified_registry',
             'reference' => $matches[0]['reference'], 'confirmed' => true];
     }
@@ -97,7 +95,6 @@ class WarrantySupplierIdentity
         if (! $item->supplier || (int) $item->supplier->id !== (int) $item->supplier_id) {
             return null;
         }
-
         return hash('sha256', json_encode([(int) $item->supplier_id, $item->supplier->code,
             $item->product_id ? (int) $item->product_id : null, $item->sku, $item->name, $item->supplier_sku],
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
@@ -111,7 +108,6 @@ class WarrantySupplierIdentity
         } catch (\Throwable) {
             return [];
         }
-
         return ($data['schema'] ?? null) === 'iapi.warranty.supplier-native-identities.v1'
             && is_array($data['identities'] ?? null) ? $data['identities'] : [];
     }

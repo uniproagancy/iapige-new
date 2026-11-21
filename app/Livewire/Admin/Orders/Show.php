@@ -11,6 +11,7 @@ use App\Models\PaymentTransaction;
 use App\Models\QuickPaymentStart;
 use App\Services\Delivery\OrderDeliveryManager;
 use App\Services\Facebook\Pixel;
+use App\Services\Orders\OrderRestorer;
 use App\Services\Payments\PaymentCheck;
 use App\Services\Payments\PaymentManager;
 use App\Services\Sender\SmsOffice;
@@ -98,6 +99,10 @@ class Show extends Component
     {
         Gate::authorize('admin');
 
+        if (! $this->saveAddress()) {
+            return;
+        }
+
         $manager = app(OrderDeliveryManager::class);
         $order = $this->order->fresh('items');
 
@@ -115,10 +120,29 @@ class Show extends Component
     {
         Gate::authorize('admin');
         $this->validate(['status' => ['required', 'in:'.implode(',', Order::STATUSES)], 'note' => ['nullable', 'string', 'max:2000']]);
+
+        $current = $this->order->fresh();
+        if ($current?->status === Order::CANCELLED && $this->status !== Order::CANCELLED) {
+            if ($this->status === Order::VIEWED) {
+                $this->restoreOrder();
+
+                return;
+            }
+
+            throw ValidationException::withMessages(['status' => __('order_restore.restore_first')]);
+        }
+
+        if (! $this->saveAddress()) {
+            return;
+        }
+
         $changed = DB::transaction(function () {
             $order = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
             if ($this->status === $order->status) {
                 return false;
+            }
+            if ($order->status === Order::CANCELLED) {
+                throw ValidationException::withMessages(['status' => __('order_restore.restore_first')]);
             }
             $from = $order->status;
             $beforeBank = $order->payment_bank;
@@ -159,6 +183,20 @@ class Show extends Component
         $this->order->refresh()->load(['items.product.images', 'events.user']);
 
         $this->dispatch('toast', message: __('admin.saved'));
+    }
+
+    public function restoreOrder(): void
+    {
+        Gate::authorize('admin');
+
+        app(OrderRestorer::class)->restore($this->order->id, auth()->user());
+        $this->order = $this->order->fresh(['items.product.images', 'events.user', 'user']);
+        $this->status = $this->order->status;
+        $this->note = '';
+        $this->resetValidation();
+        $this->fillFromOrder();
+
+        $this->dispatch('toast', message: __('order_restore.restored'));
     }
 
     protected function reportSale(): void

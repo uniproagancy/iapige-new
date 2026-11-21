@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\WarrantyCertificate;
 use App\Models\WarrantyDocument;
-use App\Models\WarrantyEvent;
 use App\Services\Warranties\WarrantyCertificateFiles;
 use App\Services\Warranties\WarrantyDocumentStore;
 use App\Services\Warranties\WarrantyPdf;
@@ -66,7 +64,7 @@ class WarrantyController extends Controller
         $approvedPolicyDocument = in_array($document->role, ['official_form', 'terms'], true) && $document->policy_id !== null
             && $document->policy?->status === 'approved';
         $archivedOriginal = $document->certificate_id !== null && $document->role === 'source'
-            && WarrantyEvent::query()->where('certificate_id', $document->certificate_id)
+            && \App\Models\WarrantyEvent::query()->where('certificate_id', $document->certificate_id)
                 ->where('type', 'certificate_original_quarantined')
                 ->where('metadata->document_id', $document->id)->exists();
         abort_unless($actor->isAdmin() || $archivedOriginal || ($document->certificate_id !== null
@@ -106,7 +104,7 @@ class WarrantyController extends Controller
         return $response->setPrivate();
     }
 
-    protected function authorizeStaff(Request $request): User
+    protected function authorizeStaff(Request $request): \App\Models\User
     {
         $actor = $request->user();
         abort_unless(config('warranty.enabled') && $actor?->isStaff(), 403);

@@ -6,6 +6,7 @@ use App\Models\DeliveryCity;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\Delivery\DeliveryCalculator;
 use App\Services\Facebook\Pixel;
 use App\Services\Orders\OrderLines;
@@ -13,6 +14,8 @@ use App\Support\Catalog;
 use App\Support\Figure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 
 /*
  | An order is read and corrected in the same place, so the page that shows it
@@ -32,6 +35,9 @@ trait EditsOrder
     public ?int $cityId = null;
 
     public string $address = '';
+
+    #[Locked]
+    public string $savedAddress = '';
 
     public string $comment = '';
 
@@ -60,6 +66,7 @@ trait EditsOrder
         $this->delivery = $order->delivery ?: 'courier';
         $this->cityId = $order->delivery_city_id;
         $this->address = (string) $order->address;
+        $this->savedAddress = $this->address;
         $this->comment = (string) $order->comment;
         $this->payment = (string) $order->payment;
         $this->paymentBank = (string) $order->payment_bank;
@@ -77,6 +84,87 @@ trait EditsOrder
         }
 
         $this->shippingOverride = (string) $order->shipping;
+    }
+
+    public function updatedAddress(): void
+    {
+        $this->saveAddress();
+    }
+
+    /* Address changes also accompany completion and navigation. Saving the
+       whole editor here would recreate items and change financial drafts. */
+    public function saveAddress(): bool
+    {
+        Gate::authorize('admin');
+        $actor = User::find(auth()->id());
+        abort_unless($actor?->isStaff(), 403);
+
+        $this->validateOnly('address', ['address' => ['nullable', 'string', 'max:255']]);
+
+        if ($this->address !== $this->savedAddress && trim($this->address) === '') {
+            throw ValidationException::withMessages(['address' => __('order_address.required')]);
+        }
+
+        $order = DB::transaction(function () {
+            $order = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
+
+            if ($this->delivery !== 'courier' || $order->delivery !== 'courier') {
+                if ($this->address !== $this->savedAddress) {
+                    throw ValidationException::withMessages(['address' => __('order_address.delivery_save_required')]);
+                }
+
+                return $order;
+            }
+
+            if ($this->address !== $this->savedAddress && $order->status === Order::CANCELLED) {
+                throw ValidationException::withMessages(['address' => __('admin.order_closed_for_edit')]);
+            }
+
+            $address = $this->addressForSave($order);
+
+            if ((string) $address !== (string) $order->address) {
+                $order->update(['address' => $address]);
+                $order->events()->create([
+                    'user_id' => auth()->id(),
+                    'type' => 'note',
+                    'note' => __('order_address.updated'),
+                ]);
+            }
+
+            return $order;
+        });
+
+        $this->order = $order;
+        if ($this->delivery === 'courier' && $order->delivery === 'courier') {
+            $this->address = (string) $order->address;
+            $this->savedAddress = $this->address;
+            $this->resetValidation('address');
+        }
+
+        return true;
+    }
+
+    protected function addressForSave(Order $order): ?string
+    {
+        if ($this->delivery !== 'courier') {
+            if ((string) $order->address !== $this->savedAddress) {
+                throw ValidationException::withMessages(['address' => __('order_address.conflict')]);
+            }
+
+            return null;
+        }
+
+        // An untouched old tab must preserve an address corrected elsewhere.
+        if ($this->address === $this->savedAddress) {
+            return $order->address;
+        }
+
+        if ((string) $order->address !== $this->savedAddress
+            && (string) $order->address !== $this->address) {
+            throw ValidationException::withMessages(['address' => __('order_address.conflict')]);
+        }
+
+        return $this->address;
     }
 
     /*
@@ -371,6 +459,11 @@ trait EditsOrder
         DB::transaction(function () {
             $order = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
 
+            if ($order->status === Order::CANCELLED) {
+                throw ValidationException::withMessages(['address' => __('admin.order_closed_for_edit')]);
+            }
+
+            $address = $this->addressForSave($order);
             $this->paymentBank = trim($this->paymentBank);
             if ($this->payment === 'transfer' && $order->status === Order::COMPLETED
                 && ($order->payment !== 'transfer' || filled($order->payment_bank))) {
@@ -411,7 +504,7 @@ trait EditsOrder
                 'delivery' => $this->delivery,
                 'delivery_city_id' => $city?->id,
                 'city' => $city?->name,
-                'address' => $this->delivery === 'courier' ? $this->address : null,
+                'address' => $address,
                 'comment' => $this->comment ?: null,
                 'payment' => $this->payment,
                 'payment_bank' => $this->payment === 'transfer' ? ($this->paymentBank ?: null) : null,

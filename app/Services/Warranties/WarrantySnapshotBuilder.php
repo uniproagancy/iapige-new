@@ -11,7 +11,6 @@ class WarrantySnapshotBuilder
         if ($certificate->status !== WarrantyCertificate::DRAFT && is_array($certificate->snapshot)) {
             return $certificate->snapshot;
         }
-
         return $this->build($certificate);
     }
 
@@ -104,10 +103,7 @@ class WarrantySnapshotBuilder
             'legal' => collect(['rights_text', 'seller_responsibility_text', 'identity_text', 'mark_notice'])
                 ->mapWithKeys(fn ($key) => [$key => __('warranty.legal.'.$key, [], 'ka')])->all()];
         $dealerForm = app(WarrantyDealerForm::class)->forCertificate($certificate);
-        if ($dealerForm !== null) {
-            $snapshot['supplier_dealer_form'] = $dealerForm;
-        }
-
+        if ($dealerForm !== null) { $snapshot['supplier_dealer_form'] = $dealerForm; }
         return $snapshot;
     }
 
@@ -126,7 +122,6 @@ class WarrantySnapshotBuilder
                 $item = $this->canonical($item);
             }
         }
-
         return $value;
     }
 }

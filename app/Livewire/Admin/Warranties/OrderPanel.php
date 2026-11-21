@@ -11,16 +11,16 @@ use App\Models\Supplier;
 use App\Models\WarrantyCertificate;
 use App\Models\WarrantyPolicy;
 use App\Models\WarrantySmsMessage;
-use App\Services\Warranties\WarrantyApproval;
 use App\Services\Warranties\WarrantyCertificateManager;
 use App\Services\Warranties\WarrantyCourierSerial;
+use App\Services\Warranties\WarrantyApproval;
 use App\Services\Warranties\WarrantyDocumentStore;
 use App\Services\Warranties\WarrantyPolicyResolver;
 use App\Services\Warranties\WarrantySms;
 use App\Services\Warranties\WarrantySmsGateway;
 use App\Services\Warranties\WarrantySnapshotBuilder;
-use App\Services\Warranties\WarrantySupplierEditor;
 use App\Services\Warranties\WarrantySupplierIdentity;
+use App\Services\Warranties\WarrantySupplierEditor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -69,17 +69,11 @@ class OrderPanel extends Component
     public string $formSourceFingerprint = '';
 
     public array $form = [];
-
     public array $approvalForm = [];
-
     public bool $approvalOpen = false;
-
     public array $policyChoices = [];
-
     public $completedOriginal;
-
     public string $notice = '';
-
     public string $selectedSupplierId = '';
 
     private const FIELDS = [
@@ -343,7 +337,6 @@ class OrderPanel extends Component
     protected function items(): Builder
     {
         $actor = $this->warrantyActor();
-
         return OrderDeliveryItem::query()->where('is_active', true)
             ->when($this->deliveryId !== null, fn (Builder $query) => $query->where('order_delivery_id', $this->deliveryId))
             ->when($this->itemIds !== [], fn (Builder $query) => $query->whereIn('id', $this->itemIds))
@@ -358,7 +351,6 @@ class OrderPanel extends Component
     protected function certificateQuery(): Builder
     {
         $actor = $this->warrantyActor();
-
         return WarrantyCertificate::query()->where('order_id', $this->orderId)
             ->when($this->itemIds !== [], fn (Builder $query) => $query->whereIn('order_delivery_item_id', $this->itemIds))
             ->whereHas('deliveryItem', fn (Builder $query) => $query->where('is_active', true)->whereHas('delivery',
@@ -374,7 +366,6 @@ class OrderPanel extends Component
         if (! Str::isUuid($key) || ($attempt?->status === 'rejected' && $attempt->idempotency_key === $key)) {
             $this->smsKeys[$certificateId] = (string) Str::uuid();
         }
-
         return $this->smsKeys[$certificateId];
     }
 
@@ -421,7 +412,6 @@ class OrderPanel extends Component
         if (! $date || ! $item->supplier_id) {
             return collect();
         }
-
         return WarrantyPolicy::where('supplier_id', $item->supplier_id)->where('status', WarrantyPolicy::APPROVED)
             ->orderByDesc('version')->get()->filter(fn ($policy) => app(WarrantyPolicyResolver::class)->matches($policy, $item, $date))->values();
     }
@@ -447,9 +437,7 @@ class OrderPanel extends Component
                 $latestAttempt = $messages->first();
                 if ($certificate) {
                     $this->smsKey($certificate->id, $latestAttempt);
-                    if ($latestAttempt) {
-                        $this->resendKey($certificate->id, $latestAttempt->id);
-                    }
+                    if ($latestAttempt) { $this->resendKey($certificate->id, $latestAttempt->id); }
                 }
                 $resendState = app(WarrantySms::class)->resendState($latestAttempt);
                 $blockedAttempt = $messages->contains(fn ($message) => in_array($message->status, ['pending', 'sending', 'accepted', 'unknown'], true));
@@ -483,7 +471,6 @@ class OrderPanel extends Component
             || ($editing->deliveryItem?->delivery?->status === OrderDelivery::ACTIVE
                 && ! WarrantyCertificate::where('order_delivery_item_id', $editing->order_delivery_item_id)
                     ->whereIn('status', [WarrantyCertificate::ISSUED, WarrantyCertificate::REVOKED])->exists()));
-
         return view('livewire.admin.warranties.order-panel', [
             'order' => $order, 'cards' => $cards, 'editing' => $editing,
             'snapshot' => $editing ? app(WarrantySnapshotBuilder::class)->draft($editing) : [],

@@ -19,18 +19,9 @@ class TbcInstallment implements PaymentDriver
 
     public function start(Order $order, array $options = []): PaymentTransaction
     {
-        $fee = (float) config('tbc.installment.handling_fee', 0.05);
+        $products = $this->products($order);
 
-        $products = array_map(fn (array $line) => [
-            'name' => mb_substr($line['item']->name, 0, 100),
-            'price' => round($line['price'] * (1 + $fee), 2),
-            'quantity' => $line['qty'],
-        ], app(PaymentLines::class)->of($order));
-
-        $total = round(array_sum(array_map(
-            fn ($product) => $product['price'] * $product['quantity'],
-            $products,
-        )), 2);
+        $total = round(array_sum(array_column($products, 'price')), 2);
 
         $payload = [
             'merchantKey' => (string) config('tbc.installment.merchant_key'),
@@ -69,6 +60,29 @@ class TbcInstallment implements PaymentDriver
             'response' => $data,
             'redirect_url' => $redirect,
         ]);
+    }
+
+    /* TBC checks priceTotal against the sum of the products' prices and does
+       not multiply by quantity: two of one lamp, sent as 101.85 x 2 with a
+       total of 203.70, came out 101.85 short and every such application was
+       refused. Each unit goes as a line of its own, so the sum is the total
+       however the bank reads "quantity". */
+    protected function products(Order $order): array
+    {
+        $fee = (float) config('tbc.installment.handling_fee', 0.05);
+        $products = [];
+
+        foreach (app(PaymentLines::class)->of($order) as $line) {
+            for ($unit = 0; $unit < $line['qty']; $unit++) {
+                $products[] = [
+                    'name' => mb_substr($line['item']->name, 0, 100),
+                    'price' => round($line['price'] * (1 + $fee), 2),
+                    'quantity' => 1,
+                ];
+            }
+        }
+
+        return $products;
     }
 
     public function confirm(PaymentTransaction $transaction): bool

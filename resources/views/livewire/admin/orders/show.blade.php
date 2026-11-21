@@ -36,7 +36,31 @@
         ->implode('') ?: '?';
 @endphp
 
-<div>
+<div x-data="{
+        addressNavigationPending: false,
+        addressNavigationBypass: false,
+        async leaveWithAddress(event) {
+            if (this.addressNavigationBypass || $wire.delivery !== 'courier'
+                || $wire.address === $wire.savedAddress) return;
+            event.preventDefault();
+            if (this.addressNavigationPending) return;
+            this.addressNavigationPending = true;
+            const destination = String(event.detail.url);
+            const historyNavigation = event.detail.history;
+            try {
+                const saved = await $wire.saveAddress();
+                if (saved !== true) return;
+                this.addressNavigationBypass = true;
+                if (historyNavigation) window.location.replace(destination);
+                else Livewire.navigate(destination);
+            } finally {
+                this.addressNavigationPending = false;
+                this.addressNavigationBypass = false;
+            }
+        }
+    }"
+    x-on:livewire:navigate.document="leaveWithAddress($event)"
+    x-on:beforeunload.window="if ($wire.delivery === 'courier' && $wire.address !== $wire.savedAddress) { $event.preventDefault(); $event.returnValue = ''; }">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-2">
         <div class="d-flex align-items-center gap-1">
             <a class="btn btn-sm btn-icon btn-outline-secondary"
@@ -113,8 +137,14 @@
 
     @unless ($this->editable())
         <div class="alert alert-secondary">
-            <div class="alert-body d-flex align-items-center gap-50">
-                {!! $icon('warn') !!}{{ __('admin.order_closed_for_edit') }}
+            <div class="alert-body d-flex flex-wrap justify-content-between align-items-center gap-1">
+                <span>{!! $icon('warn') !!}{{ __('order_restore.help') }}</span>
+                @if (auth()->user()?->isStaff() && $order->status === \App\Models\Order::CANCELLED)
+                    <button type="button" class="btn btn-success" wire:click="restoreOrder"
+                            wire:loading.attr="disabled" wire:target="restoreOrder">
+                        {!! $icon('sync', 'me-25') !!}{{ __('order_restore.button') }}
+                    </button>
+                @endif
             </div>
         </div>
     @endunless
@@ -359,18 +389,24 @@
                 </div>
 
                 <div class="card-body">
-                    <select class="form-select mb-1" wire:model.live="status">
+                    <select class="form-select mb-1" wire:model.live="status"
+                            @disabled($order->status === \App\Models\Order::CANCELLED)>
                         @foreach ($statuses as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
+                    @error('status') <div class="alert alert-danger p-1">{{ $message }}</div> @enderror
                     @error('paymentBank') <div class="alert alert-danger p-1">{{ $message }}</div> @enderror
                     @error('transferPayment') <div class="alert alert-danger p-1">{{ $message }}</div> @enderror
 
                     <button type="button" class="btn btn-primary w-100"
-                            wire:click="changeStatus" @disabled($status === $order->status)>
+                            wire:click="changeStatus" wire:loading.attr="disabled" wire:target="changeStatus,restoreOrder"
+                            @disabled($status === $order->status || $order->status === \App\Models\Order::CANCELLED)>
                         {{ __('admin.save') }}
                     </button>
+                    @if ($order->status === \App\Models\Order::CANCELLED)
+                        <small class="d-block text-muted mt-50">{{ __('order_restore.restore_first') }}</small>
+                    @endif
 
                     @unless ($order->is_paid)
                         @if ($transaction)
@@ -574,7 +610,13 @@
                     @if ($delivery === 'courier')
                         {{-- no city to pick: the address says where it goes --}}
                         <label class="form-label mt-1" for="orderAddress">{{ __('checkout.address') }}</label>
-                        <input type="text" id="orderAddress" class="form-control" wire:model="address">
+                        <input type="text" id="orderAddress" class="form-control @error('address') is-invalid @enderror"
+                               wire:model.live.blur="address" maxlength="255" @disabled(! $this->editable())>
+                        @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <small class="text-muted mt-50" wire:loading.block wire:target="address,saveAddress">{{ __('order_address.saving') }}</small>
+                        @if ($address !== '' && $address === $savedAddress && ! $errors->has('address'))
+                            <small class="text-success mt-50" wire:loading.block.remove wire:target="address,saveAddress">{{ __('order_address.saved') }}</small>
+                        @endif
                     @endif
 
                     <label class="form-label mt-1" for="orderShipping">{{ __('checkout.shipping') }}</label>

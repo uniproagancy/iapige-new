@@ -20,44 +20,21 @@ class Services extends Component
 
     #[Url(as: 'supplier', except: '')]
     public string $supplierCode = '';
-
-    #[Locked]
-    public ?int $editingSupplierId = null;
-
-    #[Locked]
-    public string $editingSupplierCode = '';
-
-    #[Locked]
-    public string $editingRouteKey = '';
-
-    #[Locked]
-    public string $profileFingerprint = '';
-
+    #[Locked] public ?int $editingSupplierId = null;
+    #[Locked] public string $editingSupplierCode = '';
+    #[Locked] public string $editingRouteKey = '';
+    #[Locked] public string $profileFingerprint = '';
     public array $form = [];
-
     public string $notice = '';
-
-    #[Locked]
-    public ?int $customSupplierId = null;
-
-    #[Locked]
-    public string $customSupplierCode = '';
-
-    #[Locked]
-    public array $customRouteFingerprints = [];
-
+    #[Locked] public ?int $customSupplierId = null;
+    #[Locked] public string $customSupplierCode = '';
+    #[Locked] public array $customRouteFingerprints = [];
     public bool $customOpen = false;
-
     public string $scopeMode = 'brand';
-
     public string $customBrandId = '';
-
     public string $customCategoryId = '';
-
     public string $customProductId = '';
-
     public string $productQuery = '';
-
     public array $customFields = [];
 
     public function mount(): void
@@ -91,13 +68,9 @@ class Services extends Component
             ->first(fn ($row) => $row['code'] === $this->supplierCode && ! $row['excluded']);
         abort_unless($supplier && is_int($supplier['id']), 404);
         $editor = app(WarrantySupplierProfiles::class)->editor($supplier['id'], $supplier['code'], $routeKey, $actor);
-        $this->editingSupplierId = $supplier['id'];
-        $this->editingSupplierCode = $supplier['code'];
-        $this->editingRouteKey = $routeKey;
-        $this->profileFingerprint = $editor['fingerprint'];
-        $this->form = $editor['fields'];
-        $this->notice = '';
-        $this->resetValidation();
+        $this->editingSupplierId = $supplier['id']; $this->editingSupplierCode = $supplier['code'];
+        $this->editingRouteKey = $routeKey; $this->profileFingerprint = $editor['fingerprint'];
+        $this->form = $editor['fields']; $this->notice = ''; $this->resetValidation();
     }
 
     public function save(): void
@@ -106,20 +79,14 @@ class Services extends Component
         abort_unless($this->editingSupplierId && $this->editingSupplierCode !== '' && $this->editingRouteKey !== '', 404);
         $saved = app(WarrantySupplierProfiles::class)->save($this->editingSupplierId, $this->editingSupplierCode,
             $this->editingRouteKey, $this->form, $this->profileFingerprint, $actor);
-        $this->form = $saved['fields'];
-        $this->profileFingerprint = $saved['fingerprint'];
+        $this->form = $saved['fields']; $this->profileFingerprint = $saved['fingerprint'];
         $this->notice = 'შენახულია — შემდეგ ტალონებს ეს მონაცემები ავტომატურად გაჰყვება.';
     }
 
     public function cancelEdit(): void
     {
-        $this->editingSupplierId = null;
-        $this->editingSupplierCode = '';
-        $this->editingRouteKey = '';
-        $this->profileFingerprint = '';
-        $this->form = [];
-        $this->notice = '';
-        $this->resetValidation();
+        $this->editingSupplierId = null; $this->editingSupplierCode = ''; $this->editingRouteKey = '';
+        $this->profileFingerprint = ''; $this->form = []; $this->notice = ''; $this->resetValidation();
     }
 
     public function startCustomRoute(): void
@@ -187,8 +154,7 @@ class Services extends Component
         }
         $saved = app(WarrantyCustomServiceRoutes::class)->setActive($supplier['id'], $supplier['code'], $routeKey, $active, $fingerprint, $actor);
         if ($this->editingSupplierId === $supplier['id'] && $this->editingRouteKey === $routeKey) {
-            $this->form = $saved['fields'];
-            $this->profileFingerprint = $saved['fingerprint'];
+            $this->form = $saved['fields']; $this->profileFingerprint = $saved['fingerprint'];
         }
         $this->notice = $active ? 'საგარანტიო მონაცემები ჩართულია.' : 'გამორთულია — უკვე გაცემული ტალონები უცვლელი რჩება.';
     }
@@ -199,35 +165,24 @@ class Services extends Component
             ->filter(fn ($supplier) => ($supplier['code'] ?? '') === $this->supplierCode
                 && ! ($supplier['excluded'] ?? true) && is_int($supplier['id'] ?? null) && $supplier['id'] > 0)->values();
         abort_unless($matches->count() === 1, 404);
-
         return $matches->first();
     }
 
     private function normalizeSupplierSelection(): void
     {
-        if ($this->supplierCode === '') {
-            return;
-        }
+        if ($this->supplierCode === '') { return; }
         $valid = preg_match('/\A[a-z0-9._-]{1,100}\z/D', $this->supplierCode)
-            && collect(app(WarrantyServiceDirectory::class)->base()['suppliers'])->contains(fn ($supplier) => ($supplier['code'] ?? '') === $this->supplierCode && ! ($supplier['excluded'] ?? true)
+            && collect(app(WarrantyServiceDirectory::class)->base()['suppliers'])->contains(fn ($supplier) =>
+                ($supplier['code'] ?? '') === $this->supplierCode && ! ($supplier['excluded'] ?? true)
                 && is_int($supplier['id'] ?? null) && $supplier['id'] > 0);
-        if (! $valid) {
-            $this->supplierCode = '';
-            $this->notice = 'მომწოდებელი ვერ მოიძებნა. აირჩიეთ სიიდან.';
-        }
+        if (! $valid) { $this->supplierCode = ''; $this->notice = 'მომწოდებელი ვერ მოიძებნა. აირჩიეთ სიიდან.'; }
     }
 
     private function resetCustomForm(): void
     {
-        $this->customOpen = false;
-        $this->customSupplierId = null;
-        $this->customSupplierCode = '';
-        $this->scopeMode = 'brand';
-        $this->customBrandId = '';
-        $this->customCategoryId = '';
-        $this->customProductId = '';
-        $this->productQuery = '';
-        $this->customFields = [];
+        $this->customOpen = false; $this->customSupplierId = null; $this->customSupplierCode = '';
+        $this->scopeMode = 'brand'; $this->customBrandId = ''; $this->customCategoryId = '';
+        $this->customProductId = ''; $this->productQuery = ''; $this->customFields = [];
     }
 
     /** Display-only research metadata. It never approves terms or changes supplier routing. */
@@ -235,22 +190,14 @@ class Services extends Component
     {
         $unknown = ['checked_on' => null, 'suppliers' => []];
         $path = resource_path('warranty/supplier-review.json');
-        if (! is_file($path) || ! is_readable($path)) {
-            return $unknown;
-        }
+        if (! is_file($path) || ! is_readable($path)) { return $unknown; }
         $size = filesize($path);
-        if (! is_int($size) || $size < 2 || $size > 256 * 1024) {
-            return $unknown;
-        }
+        if (! is_int($size) || $size < 2 || $size > 256 * 1024) { return $unknown; }
         try {
             $bytes = file_get_contents($path, false, null, 0, 256 * 1024 + 1);
-            if (! is_string($bytes) || strlen($bytes) > 256 * 1024) {
-                return $unknown;
-            }
+            if (! is_string($bytes) || strlen($bytes) > 256 * 1024) { return $unknown; }
             $data = json_decode($bytes, true, 16, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
-            return $unknown;
-        }
+        } catch (\Throwable) { return $unknown; }
         if (! is_array($data) || ($data['schema'] ?? null) !== 'iapi.warranty.supplier-review.v1'
             || ! is_string($data['checked_on'] ?? null)
             || ! preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D', $data['checked_on'])
@@ -267,9 +214,7 @@ class Services extends Component
                 return $unknown;
             }
             foreach (['status_ka', 'scope_notice_ka'] as $field) {
-                if (! is_string($review[$field] ?? null) || trim($review[$field]) === '' || mb_strlen($review[$field]) > 4000) {
-                    return $unknown;
-                }
+                if (! is_string($review[$field] ?? null) || trim($review[$field]) === '' || mb_strlen($review[$field]) > 4000) { return $unknown; }
             }
             if (! array_key_exists('original_form_scope_ka', $review)
                 || ! ($review['original_form_scope_ka'] === null
@@ -277,20 +222,14 @@ class Services extends Component
                 return $unknown;
             }
             foreach (['missing_fields', 'conflicts_ka'] as $field) {
-                if (! is_array($review[$field] ?? null) || ! array_is_list($review[$field]) || count($review[$field]) > 50) {
-                    return $unknown;
-                }
+                if (! is_array($review[$field] ?? null) || ! array_is_list($review[$field]) || count($review[$field]) > 50) { return $unknown; }
                 foreach ($review[$field] as $line) {
-                    if (! is_string($line) || trim($line) === '' || mb_strlen($line) > 4000) {
-                        return $unknown;
-                    }
+                    if (! is_string($line) || trim($line) === '' || mb_strlen($line) > 4000) { return $unknown; }
                 }
             }
             // JSON keys preserve null-versus-integer identity; a code match alone is insufficient.
             $key = json_encode([$review['id'], $review['code']], JSON_THROW_ON_ERROR);
-            if (isset($indexed[$key])) {
-                return $unknown;
-            }
+            if (isset($indexed[$key])) { return $unknown; }
             $indexed[$key] = $review;
         }
 
@@ -315,7 +254,6 @@ class Services extends Component
                     $groups[$route['key']] = $route + ['scopes' => [$route['scope_label_ka']]];
                 }
                 $reviewKey = json_encode([$supplier['id'] ?? null, $supplier['code']], JSON_THROW_ON_ERROR);
-
                 return array_merge($supplier, ['groups' => $groups, 'review' => $reviews['suppliers'][$reviewKey] ?? null]);
             });
         $this->customRouteFingerprints = [];

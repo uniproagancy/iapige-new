@@ -6,7 +6,7 @@
         .pr-board .pr-private:before{content:"";height:6px;width:6px;border-radius:50%;background:var(--pr-accent)}
         .pr-board .pr-counts{display:flex;flex-wrap:wrap;gap:.55rem;margin:1rem 0 1.4rem}
         .pr-board .pr-count{border:1px solid var(--pr-line);background:var(--pr-soft);border-radius:10px;padding:.65rem 1rem;min-width:105px}
-        .pr-board .pr-count strong{font-size:1.3rem;display:block;line-height:1.25}.pr-board .pr-count span{font-size:.8rem}
+        .pr-board .pr-count{color:inherit}.pr-board .pr-count strong{font-size:1.3rem;display:block;line-height:1.25}.pr-board .pr-count span{font-size:.8rem}
         .pr-board .pr-count.pr-alert{border-color:rgba(234,84,85,.45)}
         .pr-board .pr-tools{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap}.pr-board .pr-search{flex:1;min-width:210px}
         .pr-board .pr-status{width:auto;min-width:180px}.pr-board .pr-dates{border-top:1px solid var(--pr-line);margin-top:1rem;padding-top:1rem}
@@ -30,6 +30,14 @@
         .pr-board .pr-review,.pr-board .pr-editor{border:1px solid rgba(255,123,0,.55);border-radius:12px;padding:1.3rem;margin-bottom:1.4rem;background:var(--pr-soft)}
         .pr-board .pr-review textarea{min-height:150px;line-height:1.7;resize:vertical}.pr-board .pr-editor .form-control,.pr-board .pr-editor .form-select{min-height:40px}.pr-board .pr-edit-supplier{border-top:1px solid var(--pr-line);padding-top:1rem;margin-top:1.2rem}
         .pr-board .pr-empty{text-align:center;padding:3.5rem 1rem;border:1px dashed var(--pr-line);border-radius:12px}.pr-board .pr-muted{opacity:.72}
+        .pr-board .pr-sections,.pr-board .pr-day-picker{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+        .pr-board .pr-day-field{min-width:190px;max-width:240px}.pr-board .pr-day-field label{display:block;margin-bottom:.35rem;font-weight:600}
+        .pr-board .pr-postal-card{border:1px solid var(--pr-line);border-left:3px solid #ff9f43;border-radius:12px;padding:1.2rem;margin-bottom:1rem;background:var(--pr-soft)}
+        .pr-board .pr-postal-card.is-uploaded{border-left-color:#28c76f}.pr-board .pr-postal-card.is-changed{border-left-color:#ff9f43}.pr-board .pr-postal-card.is-unavailable{border-left-color:#ea5455}
+        .pr-board .pr-postal-head{display:flex;justify-content:space-between;align-items:start;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+        .pr-board .pr-postal-items{border-top:1px solid var(--pr-line);border-bottom:1px solid var(--pr-line);padding:.75rem 0;margin:.75rem 0}
+        .pr-board .pr-postal-item{display:flex;justify-content:space-between;gap:.75rem;padding:.4rem 0}.pr-board .pr-postal-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
+        .pr-board .pr-postal-picker{display:flex;gap:.65rem;align-items:end;flex-wrap:wrap}.pr-board .pr-postal-picker>div{flex:1;min-width:230px}
         @media(max-width:900px){.pr-board .pr-layout{grid-template-columns:1fr}.pr-board .pr-sidebar{position:static;display:flex;overflow-x:auto;gap:.3rem}.pr-board .pr-supplier{width:auto;flex-shrink:0;max-width:220px;white-space:nowrap}.pr-board .pr-count{min-width:90px;flex:1}.pr-board .pr-group-head,.pr-board .pr-group-body{padding-left:1rem;padding-right:1rem}}
         @media(max-width:575px){.pr-board .pr-status{width:100%}.pr-board .pr-summary td,.pr-board .pr-summary th{font-size:.82rem}.pr-board .pr-count{padding:.55rem .7rem}.pr-board .pr-header h2{font-size:1.4rem}.pr-board .pr-group-head .btn{width:100%}.pr-board .pr-group-head{gap:.7rem}}
         @media(max-width:575px){.pr-board .pr-summary thead{display:none}.pr-board .pr-summary tbody{display:block}.pr-board .pr-summary tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.55rem .75rem;border-top:1px solid var(--pr-line);padding:.9rem 0}.pr-board .pr-summary td{display:block;border:0;padding:0}.pr-board .pr-summary td:first-child{grid-column:1;grid-row:1}.pr-board .pr-summary .pr-code{grid-column:1;grid-row:2}.pr-board .pr-summary .pr-quantity{grid-column:2;grid-row:1}.pr-board .pr-summary .pr-order-actions{grid-column:2;grid-row:2;align-self:end}}
@@ -52,18 +60,37 @@
     @if ($errors->any())<div class="alert alert-warning" role="alert"><ul class="mb-0">@foreach ($errors->all() as $message)<li>{{ $message }}</li>@endforeach</ul></div>@endif
     @if ($board['truncated'] ?? false)<div class="alert alert-info" role="status">{{ __('procurement.truncated') }}</div>@endif
 
+    <div class="pr-sections" aria-label="{{ __('procurement_postal.sections') }}">
+        <button type="button" class="btn {{ $section === 'suppliers' ? 'btn-primary' : 'btn-outline-secondary' }}" wire:click="chooseSection('suppliers')">{{ __('procurement_postal.suppliers') }}</button>
+        <button type="button" class="btn {{ $section === 'postal' ? 'btn-primary' : 'btn-outline-secondary' }}" wire:click="chooseSection('postal')">{{ __('procurement_postal.title') }}</button>
+    </div>
+
+    @if ($section === 'suppliers')
     <div class="pr-counts">
         <div class="pr-count"><strong>{{ count($board['groups'] ?? []) }}</strong><span>{{ __('procurement.summary_suppliers') }}</span></div>
         <div class="pr-count"><strong>{{ collect($board['groups'] ?? [])->sum(fn ($group) => count($group['summary'] ?? [])) }}</strong><span>{{ __('procurement.summary_models') }}</span></div>
         <div class="pr-count"><strong>{{ $allRows->where('type', 'current')->sum('qty') }}</strong><span>{{ __('procurement.summary_units') }}</span></div>
         <div class="pr-count {{ $attention ? 'pr-alert' : '' }}"><strong>{{ $attention }}</strong><span>{{ __('procurement.summary_attention') }}</span></div>
     </div>
+    @endif
 
     <div class="card"><div class="card-body">
+        <div class="pr-day-picker">
+            <div class="pr-day-field"><label for="procurement-day">{{ __('procurement_postal.delivery_day') }}</label><input id="procurement-day" type="date" class="form-control" wire:model.live="deliveryDate"></div>
+            <button type="button" class="btn btn-outline-secondary mt-2" wire:click="shiftDeliveryDate(-1)" aria-label="{{ __('procurement_postal.previous_day') }}">‹</button>
+            <button type="button" class="btn btn-outline-secondary mt-2" wire:click="shiftDeliveryDate(1)" aria-label="{{ __('procurement_postal.next_day') }}">›</button>
+            <button type="button" class="btn btn-outline-primary mt-2" wire:click="chooseToday">{{ __('procurement_postal.today') }}</button>
+            <button type="button" class="btn {{ $from === '' && $to === '' ? 'btn-primary' : 'btn-outline-secondary' }} mt-2" wire:click="showAllDates">{{ __('procurement_postal.all_dates') }}</button>
+        </div>
+        <p class="small pr-muted">{{ __('procurement_postal.day_help') }} @if ($from === '' && $to === '')<strong>{{ __('procurement_postal.all_dates_label') }}</strong>@elseif ($deliveryDate === '')<strong>{{ $from ?: '…' }} — {{ $to ?: '…' }}</strong>@endif</p>
         <div class="pr-tools">
             <div class="pr-search"><label class="visually-hidden" for="procurement-search">{{ __('procurement.search') }}</label><input id="procurement-search" type="search" class="form-control" wire:model.live.debounce.350ms="search" maxlength="120" placeholder="{{ __('procurement.search') }}"></div>
             <label class="visually-hidden" for="procurement-status">{{ __('procurement.status') }}</label>
-            <select id="procurement-status" class="form-select pr-status" wire:model.live="status">@foreach ($statusChoices as $choice)<option value="{{ $choice }}">{{ in_array($choice, ['outstanding', 'all'], true) ? __('procurement.'.$choice) : __('procurement.statuses.'.$choice) }}</option>@endforeach</select>
+            @if ($section === 'suppliers')
+                <select id="procurement-status" class="form-select pr-status" wire:model.live="status">@foreach ($statusChoices as $choice)<option value="{{ $choice }}">{{ in_array($choice, ['outstanding', 'all'], true) ? __('procurement.'.$choice) : __('procurement.statuses.'.$choice) }}</option>@endforeach</select>
+            @else
+                <select id="procurement-status" class="form-select pr-status" wire:model.live="postalStatus">@foreach (['all', 'waiting', 'picked_up', 'uploaded', 'changed', 'unavailable'] as $choice)<option value="{{ $choice }}">{{ __('procurement_postal.statuses.'.$choice) }}</option>@endforeach</select>
+            @endif
             <button type="button" class="btn btn-outline-secondary" wire:click="clearFilters">{{ __('procurement.clear') }}</button>
         </div>
         <details class="mt-1"><summary class="small" style="cursor:pointer">{{ __('procurement.filters') }}</summary><div class="row g-1 pr-dates">
@@ -71,6 +98,10 @@
             <div class="col-sm-6"><label class="form-label" for="procurement-to">{{ __('procurement.to') }}</label><input id="procurement-to" type="date" class="form-control" wire:model.live="to"></div>
         </div></details>
     </div></div>
+
+    @if ($section === 'postal')
+        @include('livewire.admin.procurement.postal')
+    @else
 
     @if ($reviewText !== '')
         <section class="pr-review" wire:key="procurement-review-{{ hash('sha256', $reviewText) }}" x-data="{ copied: false, failed: false }" x-on:procurement-copy-result.window="copied = $event.detail.success; failed = !copied">
@@ -114,7 +145,9 @@
                         @if (($group['summary'] ?? []) !== [])
                             <table class="pr-summary"><thead><tr><th>{{ __('procurement.model') }}</th><th>{{ __('procurement.code') }}</th><th>{{ __('procurement.quantity') }}</th><th>{{ __('procurement.actions') }}</th></tr></thead><tbody>
                                 @foreach ($group['summary'] as $summary)
-                                    @php($summaryStatus = $summary['status'] ?? 'unsent')
+                                    @php
+                                        $summaryStatus = $summary['status'] ?? 'unsent';
+                                    @endphp
                                     <tr wire:key="procurement-model-{{ $summary['key'] ?? hash('sha256', $summary['model'].'|'.$summary['code']) }}">
                                         <td><div class="pr-model">{{ $summary['model'] }}</div><div class="pr-summary-status"><span class="pr-badge pr-badge-{{ $summaryStatus }}">{{ __('procurement.statuses.'.$summaryStatus) }}</span></div></td>
                                         <td class="pr-code">@if (filled($summary['code'] ?? null)){{ $summary['code'] }}@if (($summary['code_label'] ?? '') === 'reference')<small class="d-block pr-muted">{{ __('procurement.reference') }}</small>@endif @else<span class="small pr-muted">{{ __('procurement.no_code') }}</span>@endif</td>
@@ -138,7 +171,9 @@
                         <details class="pr-detail"><summary>{{ __('procurement.orders') }} · {{ count(array_filter($group['rows'], fn ($row) => ($row['type'] ?? '') === 'current')) }}</summary>
                             @foreach ($group['rows'] as $row)
                                 @if (($row['type'] ?? '') === 'current')
-                                    @php($displayStatus = ($row['handled'] ?? false) ? 'resolved' : $row['status'])
+                                    @php
+                                        $displayStatus = ($row['handled'] ?? false) ? 'resolved' : $row['status'];
+                                    @endphp
                                     <div class="pr-line" wire:key="procurement-row-{{ $row['key'] }}">
                                         <div class="pr-line-head"><div><span class="pr-model">{{ $row['model'] }}</span> <strong>× {{ $row['qty'] }}</strong>@if (filled($row['code'] ?? null))<div class="small pr-muted">{{ ($row['code_label'] ?? '') === 'reference' ? __('procurement.reference') : __('procurement.code') }}: {{ $row['code'] }}</div>@endif</div><span class="pr-badge pr-badge-{{ $displayStatus }}">{{ __('procurement.statuses.'.$displayStatus) }}</span></div>
                                         @if (! ($row['available'] ?? true))<p class="small text-warning mt-50 mb-0">{{ __('procurement.unavailable') }}</p>@endif
@@ -146,6 +181,18 @@
                                         @if (filled($row['note'] ?? null))<p class="pr-note">{{ $row['note'] }}</p>@endif
                                         @if (($row['issue_qty'] ?? 0) > 0)<p class="small text-danger mt-50 mb-0">{{ __('procurement.issue_qty') }}: {{ $row['issue_qty'] }}</p>@endif
                                         <div class="pr-line-actions">@if (($row['available'] ?? false) && $row['status'] === 'unsent')<button type="button" class="btn btn-sm btn-primary" wire:click="markRowOrdered('{{ $row['key'] }}', '{{ $row['expected_hash'] }}')" wire:loading.attr="disabled">{{ __('procurement.mark_ordered') }}</button>@endif<button type="button" class="btn btn-sm btn-outline-secondary" wire:click="editRow('{{ $row['key'] }}')">{{ __('procurement.edit') }}</button>@if (($row['available'] ?? true) && ($row['copy_text'] ?? '') !== '')<button type="button" class="btn btn-sm btn-outline-primary" x-on:click="await copyReview(await $wire.reviewRow(@js($row['key'])))">{{ __('procurement.copy_row') }}</button>@endif</div>
+                                        @php
+                                            $postalState = $postalItems[$row['item_id']] ?? null;
+                                        @endphp
+                                        @if ($postalState)
+                                            <div class="pr-line-actions">
+                                                @if ($postalState['selected'])
+                                                    <span class="pr-badge pr-badge-received">{{ __('procurement_postal.badge') }}</span><button type="button" class="btn btn-sm btn-outline-secondary" wire:click="chooseSection('postal')">{{ __('procurement_postal.open_list') }}</button>
+                                                @elseif ($postalState['available'])
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" wire:click="selectPostal({{ $postalState['order_id'] }}, '{{ $postalState['expected_hash'] }}')" wire:loading.attr="disabled">{{ __('procurement_postal.select') }}</button>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 @endif
                             @endforeach
@@ -157,4 +204,5 @@
             @endforelse
         </main>
     </div>
+    @endif
 </div>

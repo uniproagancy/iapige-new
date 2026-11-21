@@ -5,15 +5,14 @@ namespace App\Livewire\Admin\Warranties;
 use App\Livewire\Admin\Warranties\Concerns\AuthorizesWarranties;
 use App\Models\WarrantyCertificate;
 use App\Models\WarrantyPolicy;
-use App\Models\WarrantySmsMessage;
-use App\Services\Warranties\WarrantyApproval;
 use App\Services\Warranties\WarrantyCertificateManager;
+use App\Services\Warranties\WarrantyApproval;
 use App\Services\Warranties\WarrantyDocumentStore;
+use App\Services\Warranties\WarrantySnapshotBuilder;
 use App\Services\Warranties\WarrantySms;
 use App\Services\Warranties\WarrantySmsGateway;
-use App\Services\Warranties\WarrantySnapshotBuilder;
 use App\Services\Warranties\WarrantySupplierEditor;
-use App\Services\Warranties\WarrantySupplierIdentity;
+use App\Models\WarrantySmsMessage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
@@ -200,7 +199,7 @@ class Show extends Component
             'blankForms' => $blankForms,
             'snapshot' => $snapshot,
             'conditionsPreview' => app(WarrantyApproval::class)->summary($certificate, $actor),
-            'supplierIdentity' => app(WarrantySupplierIdentity::class)->resolve($certificate->deliveryItem, $certificate),
+            'supplierIdentity' => app(\App\Services\Warranties\WarrantySupplierIdentity::class)->resolve($certificate->deliveryItem, $certificate),
             'isOwner' => $actor->isAdmin(),
             'isDraft' => $certificate->status === 'draft',
             'smsEnabled' => (bool) config('warranty.sms_enabled', false)

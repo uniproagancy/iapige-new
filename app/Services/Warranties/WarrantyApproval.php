@@ -25,28 +25,23 @@ class WarrantyApproval
     {
         $this->owner($actor);
         [$certificate, $item] = $this->current($certificate);
-
         return $this->data($certificate, $item);
     }
 
     /** Staff see the supplier facts directly; viewing never creates or approves anything. */
     public function summary(WarrantyCertificate $certificate, User $actor): array
     {
-        if (! $actor->exists || ! $actor->isStaff()) {
-            abort(403);
-        }
+        if (! $actor->exists || ! $actor->isStaff()) { abort(403); }
         if ($certificate->status !== WarrantyCertificate::DRAFT) {
             $snapshot = $certificate->snapshot ?? [];
-
             return ['service' => data_get($snapshot, 'warranty.service', []),
                 'coverage' => data_get($snapshot, 'warranty.coverage'),
                 'conditions' => data_get($snapshot, 'warranty.conditions'),
                 'claim_instructions' => data_get($snapshot, 'warranty.claim_instructions'),
                 'missing_fields' => [], 'auto_ready' => $certificate->status === WarrantyCertificate::ISSUED];
         }
-        try {
-            [$current, $item] = $this->current($certificate);
-        } catch (ValidationException) {
+        try { [$current, $item] = $this->current($certificate); }
+        catch (ValidationException) {
             return ['service' => [], 'coverage' => null, 'conditions' => null, 'claim_instructions' => null,
                 'missing_fields' => ['შეკვეთის მომწოდებელი ან ნივთი შეიცვალა. ხელახლა გახსენით მომზადება.'], 'auto_ready' => false];
         }
@@ -59,7 +54,6 @@ class WarrantyApproval
                 'claim_instructions' => $policy->claim_instructions, 'missing_fields' => [], 'auto_ready' => true];
         }
         $data = $this->data($current, $item);
-
         return ['service' => ['name' => $data['service_name'], 'phone' => $data['service_phone'],
             'email' => $data['service_email'], 'address' => $data['service_address'],
             'scope' => $data['_scope_label']], 'coverage' => $data['coverage'], 'conditions' => $data['conditions'],
@@ -69,22 +63,16 @@ class WarrantyApproval
 
     public function canAutoApprove(WarrantyCertificate $certificate): bool
     {
-        if ($certificate->status !== WarrantyCertificate::DRAFT) {
-            return false;
-        }
+        if ($certificate->status !== WarrantyCertificate::DRAFT) { return false; }
         try {
             [$current, $item] = $this->current($certificate);
-
             return $this->data($current, $item)['auto_ready'];
-        } catch (ValidationException) {
-            return false;
-        }
+        } catch (ValidationException) { return false; }
     }
 
     public function authorize(WarrantyCertificate $certificate, array $input, User $actor): WarrantyPolicy
     {
         $this->owner($actor);
-
         return DB::transaction(function () use ($certificate, $input, $actor): WarrantyPolicy {
             [$certificate, $item] = $this->current($certificate, true);
             $preview = $this->data($certificate, $item);
@@ -109,7 +97,6 @@ class WarrantyApproval
             $needsReview = ! $preview['auto_ready'] || $preview['missing_fields'] !== [] || $missing !== [];
             $reason = Validator::make($input, ['review_note' => [$needsReview ? 'required' : 'nullable', 'string',
                 $needsReview ? 'min:3' : 'min:0', 'max:5000']], [], ['review_note' => 'ადმინის დადასტურების განმარტება'])->validate()['review_note'] ?? null;
-
             return $this->store($certificate, $item, $values, $actor, 'owner_confirmed_item',
                 $preview, $missing, $reason);
         });
@@ -118,17 +105,11 @@ class WarrantyApproval
     /** Called only by the staff's explicit Issue action, never mount/render/preparation. */
     public function fromConfirmedDirectory(WarrantyCertificate $certificate, User $actor): ?WarrantyPolicy
     {
-        if (! $actor->exists || ! $actor->isStaff()) {
-            $this->invalid('authorization', 'ტალონის დადასტურება მხოლოდ თანამშრომელს შეუძლია.');
-        }
-
+        if (! $actor->exists || ! $actor->isStaff()) { $this->invalid('authorization', 'ტალონის დადასტურება მხოლოდ თანამშრომელს შეუძლია.'); }
         return DB::transaction(function () use ($certificate, $actor): ?WarrantyPolicy {
             [$certificate, $item] = $this->current($certificate, true);
             $preview = $this->data($certificate, $item);
-            if (! $preview['auto_ready']) {
-                return null;
-            }
-
+            if (! $preview['auto_ready']) { return null; }
             return $this->store($certificate, $item, array_intersect_key($preview, array_flip(self::EDITABLE)),
                 $actor, $preview['_full_source_confirmed'] ? 'verified_directory' : 'supplier_profile',
                 $preview, $preview['missing_fields'], null);
@@ -139,13 +120,9 @@ class WarrantyApproval
     {
         if (! in_array($policy->approval_mode, ['verified_directory', 'owner_confirmed_item', 'supplier_profile'], true)
             || ! $policy->order_delivery_item_id || (int) $policy->order_delivery_item_id !== (int) $item->id
-            || ! is_array($policy->approval_context)) {
-            return false;
-        }
+            || ! is_array($policy->approval_context)) { return false; }
         $hash = $policy->approval_context['identity_sha256'] ?? null;
-        if (! is_string($hash) || ! hash_equals($hash, $this->identityFingerprint($item))) {
-            return false;
-        }
+        if (! is_string($hash) || ! hash_equals($hash, $this->identityFingerprint($item))) { return false; }
         if (in_array($policy->approval_mode, ['verified_directory', 'supplier_profile'], true)) {
             $route = $this->directory->resolve($item);
             $savedRouteKey = $policy->approval_context['route_key'] ?? null;
@@ -157,12 +134,9 @@ class WarrantyApproval
                 $source = hash('sha256', json_encode([$this->identityFingerprint($item), $route, config('warranty.seller')],
                     JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
                 $saved = $policy->approval_context['source_sha256'] ?? null;
-                if (! is_string($saved) || ! hash_equals($saved, $source)) {
-                    return false;
-                }
+                if (! is_string($saved) || ! hash_equals($saved, $source)) { return false; }
             }
         }
-
         return true;
     }
 
@@ -174,7 +148,6 @@ class WarrantyApproval
         for ($i = 0; $node && $i < 16 && ! isset($categories[$node->id]); $i++, $node = $node->parent) {
             $categories[$node->id] = $node->name;
         }
-
         return hash('sha256', json_encode([$item->id, $item->order_delivery_id, $item->supplier_id, $item->supplier?->code,
             $item->product_id, $item->sku, $item->name, $item->supplier_sku, $item->product?->brand_id,
             $item->product?->brand?->name, $categories], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
@@ -203,7 +176,7 @@ class WarrantyApproval
             'coverage' => $join($terms['coverage'] ?? []),
             'conditions' => $join(array_merge($terms['exclusions'] ?? [], $terms['customer_duties'] ?? [])),
             'claim_instructions' => $claims, 'component_terms' => $join($terms['component_terms'] ?? []),
-            'start_basis' => in_array($route['official_terms']['start_basis'] ?? null, ['sale_date', 'delivery_date', 'manufacturer_date'], true)
+            'start_basis' => in_array($route['official_terms']['start_basis'] ?? null, ['sale_date','delivery_date','manufacturer_date'], true)
                 ? $route['official_terms']['start_basis'] : 'sale_date',
             'source_reference' => $join(array_values(array_filter(array_merge(array_column($terms['sources'] ?? [], 'url'),
                 [is_string($route['_profile_source_text'] ?? null) ? $route['_profile_source_text'] : null])))),
@@ -218,15 +191,12 @@ class WarrantyApproval
             && ($terms['coverage'] ?? []) !== [] && ($terms['exclusions'] ?? []) !== [] && ($terms['claims'] ?? []) !== []
             && ! ($route['_profile_owner_entered'] ?? false);
         foreach ($terms['customer_duties'] ?? [] as $text) {
-            if (str_contains($text, 'პირველი გაშვება')) {
-                $fullSource = false;
-            }
+            if (str_contains($text, 'პირველი გაშვება')) { $fullSource = false; }
         }
         // The supplier profile is maintained once. Missing optional facts stay blank, never invented.
         // Commissioning conditions remain in the document; no commissioning date or act is inferred here.
         $auto = $route && ($route['routing_confirmed'] ?? false) && $hasContact
             && filled($values['service_name']) && (filled($values['service_phone']) || filled($values['service_email']));
-
         return $values + ['missing_fields' => array_values(array_unique($missing)), 'auto_ready' => (bool) $auto,
             'source_fingerprint' => hash('sha256', json_encode([$this->identityFingerprint($item), $route, $seller],
                 JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)),
@@ -240,14 +210,9 @@ class WarrantyApproval
         $missing = [];
         foreach (['coverage' => 'საგარანტიო დაფარვა', 'service_name' => 'სერვისცენტრის დასახელება',
             'service_address' => 'სერვისცენტრის მისამართი'] as $field => $label) {
-            if (! filled($values[$field] ?? null)) {
-                $missing[] = $label;
-            }
+            if (! filled($values[$field] ?? null)) { $missing[] = $label; }
         }
-        if (! filled($values['service_phone'] ?? null) && ! filled($values['service_email'] ?? null)) {
-            $missing[] = 'სერვისის საკონტაქტო ნომერი ან ელფოსტა';
-        }
-
+        if (! filled($values['service_phone'] ?? null) && ! filled($values['service_email'] ?? null)) { $missing[] = 'სერვისის საკონტაქტო ნომერი ან ელფოსტა'; }
         return $missing;
     }
 
@@ -263,10 +228,8 @@ class WarrantyApproval
         $policy = WarrantyPolicy::create($values + ['family_uuid' => (string) Str::uuid(), 'version' => 1,
             'status' => WarrantyPolicy::APPROVED, 'supplier_id' => $item->supplier_id, 'product_id' => $item->product_id,
             'brand_id' => null, 'category_id' => null, 'order_delivery_item_id' => $item->id, 'approval_mode' => $mode,
-            'name' => match ($mode) {
-                'verified_directory' => 'დადასტურებული წყარო — ',
-                'supplier_profile' => 'მომწოდებლის საგარანტიო — ', default => 'ადმინის დადასტურება — '
-            }.mb_substr($item->name, 0, 170),
+            'name' => match ($mode) { 'verified_directory' => 'დადასტურებული წყარო — ',
+                'supplier_profile' => 'მომწოდებლის საგარანტიო — ', default => 'ადმინის დადასტურება — ' }.mb_substr($item->name, 0, 170),
             'issuer_name' => $seller['name'] ?? null, 'issuer_address' => $seller['address'] ?? null,
             'issuer_contact' => ($seller['phone'] ?? '').' · '.($seller['email'] ?? ''), 'territory' => 'საქართველო',
             'source_confirmed' => $mode === 'verified_directory',
@@ -280,21 +243,16 @@ class WarrantyApproval
             'created_by' => $actor->id, 'updated_by' => $actor->id,
             'approved_by' => $mode === 'owner_confirmed_item' ? $actor->id : null, 'approved_at' => now()]);
         $certificate->forceFill(['policy_id' => $policy->id, 'updated_by' => $actor->id])->save();
-        $this->events->record(match ($mode) {
-            'verified_directory' => 'policy_from_verified_source',
-            'supplier_profile' => 'policy_from_supplier_profile', default => 'policy_owner_confirmed'
-        },
+        $this->events->record(match ($mode) { 'verified_directory' => 'policy_from_verified_source',
+            'supplier_profile' => 'policy_from_supplier_profile', default => 'policy_owner_confirmed' },
             $actor, $certificate, $policy, ['reason' => $reason, 'scope' => 'delivery_item:'.$item->id,
                 'reference' => $preview['source_fingerprint']]);
-
         return $policy;
     }
 
     private function current(WarrantyCertificate $certificate, bool $lock = false): array
     {
-        if (! $certificate->exists || ! $certificate->order_delivery_item_id) {
-            $this->invalid('certificate', 'საგარანტიო ტალონი ვერ მოიძებნა.');
-        }
+        if (! $certificate->exists || ! $certificate->order_delivery_item_id) { $this->invalid('certificate', 'საგარანტიო ტალონი ვერ მოიძებნა.'); }
         $item = OrderDeliveryItem::query()->when($lock, fn ($q) => $q->lockForUpdate())->findOrFail($certificate->order_delivery_item_id);
         $certificate = WarrantyCertificate::query()->when($lock, fn ($q) => $q->lockForUpdate())->findOrFail($certificate->id);
         $item->loadMissing(['delivery.order', 'supplier', 'product.brand', 'product.category']);
@@ -304,19 +262,16 @@ class WarrantyApproval
             || (int) $certificate->order_id !== (int) $item->delivery?->order_id
             || ! $item->delivery?->order || $item->delivery->order->trashed()
             || $item->delivery->order->status === Order::CANCELLED || $item->delivery->status === OrderDelivery::CANCELLED
-            || (in_array($item->supplier->code, ['citrus', 'elitlight', 'christmas-trees-1'], true)
+            || (in_array($item->supplier->code, ['citrus','elitlight','christmas-trees-1'], true)
                 && ! WarrantySupplierIdentity::isSkytech((int) $item->supplier_id, $item->supplier->code))) {
             $this->invalid('certificate', 'შეკვეთის ან მომწოდებლის მონაცემები შეიცვალა. თავიდან გადაამოწმეთ ტალონი.');
         }
-
         return [$certificate, $item];
     }
 
     private function owner(User $actor): void
     {
-        if (! $actor->exists || ! $actor->isAdmin()) {
-            $this->invalid('authorization', 'პირობების ხელით დადასტურება მხოლოდ ადმინს შეუძლია.');
-        }
+        if (! $actor->exists || ! $actor->isAdmin()) { $this->invalid('authorization', 'პირობების ხელით დადასტურება მხოლოდ ადმინს შეუძლია.'); }
     }
 
     private function invalid(string $key, string $message): never

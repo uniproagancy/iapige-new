@@ -2,8 +2,11 @@
 
 namespace App\Livewire\Admin\Procurement;
 
+use App\Models\OrderDeliveryItem;
 use App\Models\User;
 use App\Services\Procurement\ProcurementBoard;
+use App\Services\Procurement\ProcurementPostal;
+use Carbon\CarbonImmutable;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -24,6 +27,17 @@ class Index extends Component
 
     #[Url(except: '')]
     public string $to = '';
+
+    #[Url(as: 'date', except: '')]
+    public string $deliveryDate = '';
+
+    #[Url(except: 'suppliers')]
+    public string $section = 'suppliers';
+
+    #[Url(as: 'postal_status', except: 'all')]
+    public string $postalStatus = 'all';
+
+    public string $postalOrderId = '';
 
     #[Locked]
     public array $reviewManifest = [];
@@ -55,12 +69,24 @@ class Index extends Component
     public function mount(): void
     {
         $this->actor();
+        if ($this->deliveryDate !== '') {
+            $this->chooseDeliveryDate($this->deliveryDate);
+        } elseif ($this->from !== '' && $this->from === $this->to) {
+            $this->deliveryDate = $this->from;
+        }
+        if (! in_array($this->section, ['suppliers', 'postal'], true)) {
+            $this->section = 'suppliers';
+        }
     }
 
     public function updated(string $property): void
     {
         $this->actor();
-        if (in_array($property, ['search', 'supplierId', 'status', 'from', 'to'], true)) {
+        if (in_array($property, ['search', 'supplierId', 'status', 'from', 'to', 'deliveryDate', 'section', 'postalStatus'], true)) {
+            if (in_array($property, ['from', 'to'], true)) {
+                $this->deliveryDate = $this->from !== '' && $this->from === $this->to ? $this->from : '';
+            }
+            $this->postalOrderId = '';
             $this->closeReview();
             $this->closeEdit();
             $this->notice = '';
@@ -71,10 +97,112 @@ class Index extends Component
     {
         $this->actor();
         $this->search = $this->supplierId = $this->from = $this->to = '';
+        $this->deliveryDate = $this->postalOrderId = '';
+        $this->postalStatus = 'all';
         $this->status = 'outstanding';
         $this->closeReview();
         $this->closeEdit();
         $this->notice = '';
+    }
+
+    public function updatedDeliveryDate(): void
+    {
+        $this->chooseDeliveryDate($this->deliveryDate);
+    }
+
+    public function chooseDeliveryDate(string $date): void
+    {
+        $this->actor();
+        $this->deliveryDate = $date;
+        $this->validateOnly('deliveryDate', ['deliveryDate' => ['nullable', 'date_format:Y-m-d']]);
+        $this->from = $this->to = $date;
+        $this->postalOrderId = '';
+        $this->closeReview();
+        $this->closeEdit();
+        $this->notice = '';
+    }
+
+    public function chooseToday(): void
+    {
+        $this->chooseDeliveryDate(CarbonImmutable::now('Asia/Tbilisi')->toDateString());
+    }
+
+    public function showAllDates(): void
+    {
+        $this->chooseDeliveryDate('');
+    }
+
+    public function shiftDeliveryDate(int $direction): void
+    {
+        $this->actor();
+        abort_unless(in_array($direction, [-1, 1], true), 422);
+        $this->validateOnly('deliveryDate', ['deliveryDate' => ['nullable', 'date_format:Y-m-d']]);
+        $day = $this->deliveryDate !== '' ? $this->deliveryDate : CarbonImmutable::now('Asia/Tbilisi')->toDateString();
+        $this->chooseDeliveryDate(CarbonImmutable::parse($day, 'Asia/Tbilisi')->addDays($direction)->toDateString());
+    }
+
+    public function chooseSection(string $section): void
+    {
+        $this->actor();
+        abort_unless(in_array($section, ['suppliers', 'postal'], true), 422);
+        $this->section = $section;
+        $this->postalOrderId = '';
+        $this->closeReview();
+        $this->closeEdit();
+        $this->notice = '';
+    }
+
+    public function selectPostal(int $orderId, string $expectedHash): void
+    {
+        app(ProcurementPostal::class)->select($this->actor(), $orderId, $expectedHash);
+        $this->postalOrderId = '';
+        $this->notice = __('procurement_postal.selected');
+    }
+
+    public function addPostalOrder(): void
+    {
+        $this->actor();
+        $this->validate(['postalOrderId' => ['required', 'integer', 'min:1']]);
+        $candidates = app(ProcurementPostal::class)->candidates($this->actor(), $this->postalFilters());
+        $candidate = collect($candidates['rows'])->firstWhere('order_id', (int) $this->postalOrderId);
+        abort_unless($candidate, 404);
+        $this->selectPostal((int) $candidate['order_id'], $candidate['expected_hash']);
+    }
+
+    public function deselectPostal(int $orderId, string $expectedHash): void
+    {
+        app(ProcurementPostal::class)->deselect($this->actor(), $orderId, $expectedHash);
+        $this->notice = __('procurement_postal.removed');
+    }
+
+    public function markPostalPickedUp(int $orderId, string $expectedHash): void
+    {
+        app(ProcurementPostal::class)->markPickedUp($this->actor(), $orderId, $expectedHash);
+        $this->notice = __('procurement_postal.saved');
+    }
+
+    public function markPostalUploaded(int $orderId, string $expectedHash): void
+    {
+        app(ProcurementPostal::class)->markUploaded($this->actor(), $orderId, $expectedHash);
+        $this->notice = __('procurement_postal.saved');
+    }
+
+    public function undoPostalUploaded(int $orderId, string $expectedHash): void
+    {
+        app(ProcurementPostal::class)->undoUploaded($this->actor(), $orderId, $expectedHash);
+        $this->notice = __('procurement_postal.saved');
+    }
+
+    public function undoPostalPickedUp(int $orderId, string $expectedHash): void
+    {
+        app(ProcurementPostal::class)->undoPickedUp($this->actor(), $orderId, $expectedHash);
+        $this->notice = __('procurement_postal.saved');
+    }
+
+    protected function postalFilters(): array
+    {
+        return ['q' => mb_substr($this->search, 0, 120), 'date_from' => $this->from,
+            'date_to' => $this->to, 'status' => $this->postalStatus];
     }
 
     public function chooseSupplier(string $id): void
@@ -269,8 +397,25 @@ class Index extends Component
     public function render()
     {
         $board = $this->board();
+        $postal = app(ProcurementPostal::class);
+        $postalItems = [];
+        if ($postal->isInstalled() && $this->section === 'suppliers') {
+            $itemIds = collect($board['groups'])->flatMap(fn ($group) => $group['rows'])
+                ->where('type', 'current')->pluck('item_id')->unique()->values()->all();
+            $sources = OrderDeliveryItem::whereIn('id', $itemIds)->with('delivery:id,order_id')->get();
+            $states = $postal->states($this->actor(), $sources->pluck('delivery.order_id')->filter()->unique()->values()->all());
+            foreach ($sources as $source) {
+                $postalItems[$source->id] = $states[$source->delivery?->order_id] ?? null;
+            }
+        }
+        $postalBoard = $this->section === 'postal'
+            ? $postal->board($this->actor(), $this->postalFilters())
+            : ['rows' => [], 'counts' => [], 'total' => 0, 'truncated' => false, 'installed' => $postal->isInstalled()];
+        $postalCandidates = $this->section === 'postal'
+            ? $postal->candidates($this->actor(), $this->postalFilters())
+            : ['rows' => [], 'truncated' => false];
 
-        return view('livewire.admin.procurement.index', ['board' => $board])
+        return view('livewire.admin.procurement.index', compact('board', 'postalBoard', 'postalCandidates', 'postalItems'))
             ->layout('layouts.admin', ['title' => __('procurement.title')]);
     }
 }
