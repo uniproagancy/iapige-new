@@ -94,7 +94,7 @@ class Index extends Component
                     'takes_file' => ! empty($columns['key']),
                     'no_stock_column' => ! empty($columns['key']) && empty($columns['stock']),
                     'scans' => (bool) ($supplier->config['scan'] ?? false),
-                    'min_cost' => SupplierFloor::of($supplier),
+                    'floor' => SupplierFloor::of($supplier),
                     'below' => SupplierFloor::of($supplier) > 0 ? $floor->below($supplier)->count() : 0,
                 ];
             });

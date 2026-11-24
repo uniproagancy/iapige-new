@@ -11,10 +11,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /*
- | A supplier's price floor: config.min_cost, compared with what the
- | supplier charges (cost), the same number ProductImporter::worthAdding()
- | refuses new products by. The floor only stops new arrivals; what came in
- | before it was set is cleared from here.
+ | A supplier's price floor: config.min_price, the lowest price the shop
+ | will sell this supplier's goods at -- the shelf price after markup, the
+ | number the customer sees. config.min_cost is the older floor on what the
+ | supplier charges; ProductImporter::worthAdding() still honours both.
+ |
+ | The floor only stops new arrivals; what came in before it was set is
+ | cleared from here.
  */
 class SupplierFloor
 {
@@ -22,7 +25,7 @@ class SupplierFloor
 
     public static function of(Supplier $supplier): float
     {
-        return (float) ($supplier->config['min_cost'] ?? 0);
+        return (float) ($supplier->config['min_price'] ?? 0);
     }
 
     public function set(Supplier $supplier, float $floor): void
@@ -30,21 +33,22 @@ class SupplierFloor
         $config = (array) $supplier->config;
 
         if ($floor > 0) {
-            $config['min_cost'] = $floor;
+            $config['min_price'] = $floor;
         } else {
-            unset($config['min_cost']);
+            unset($config['min_price']);
         }
 
         $supplier->update(['config' => $config]);
     }
 
-    /** Offers of this supplier priced under its floor, on products still on the site. */
+    /** Offers of this supplier on products the site sells under its floor. */
     public function below(Supplier $supplier): Builder
     {
+        $floor = self::of($supplier);
+
         return ProductOffer::query()
             ->where('supplier_id', $supplier->id)
-            ->where('cost_price', '<', self::of($supplier))
-            ->whereHas('product');
+            ->whereHas('product', fn (Builder $q) => $q->where('price', '<', $floor));
     }
 
     /*
@@ -97,7 +101,7 @@ class SupplierFloor
             Catalog::forgetStocked();
         }
 
-        Log::channel('import')->info('cleared below the supplier floor', [
+        Log::channel('import')->info('cleared below the supplier price floor', [
             'supplier' => $supplier->code,
             'floor' => self::of($supplier),
         ] + $done);

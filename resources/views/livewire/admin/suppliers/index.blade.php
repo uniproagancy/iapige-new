@@ -110,7 +110,7 @@
                                         <button type="button" class="btn btn-sm btn-outline-danger"
                                                 wire:click="purgeBelowFloor({{ $supplier->id }})"
                                                 wire:loading.attr="disabled"
-                                                wire:confirm="{{ __('admin.sup_purge_confirm', ['count' => $row['below'], 'amount' => money($row['min_cost']), 'name' => $supplier->name]) }}">
+                                                wire:confirm="{{ __('admin.sup_purge_confirm', ['count' => $row['below'], 'amount' => money($row['floor']), 'name' => $supplier->name]) }}">
                                             {{ __('admin.sup_purge', ['count' => number_format($row['below'])]) }}
                                         </button>
                                     @endif

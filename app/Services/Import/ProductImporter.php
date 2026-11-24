@@ -131,6 +131,21 @@ class ProductImporter
             return false;
         }
 
+        $shelf = SupplierFloor::of($supplier);
+        $price = $supplier->markup($payload->costPrice);
+
+        if ($shelf > 0 && $price < $shelf) {
+            Log::channel('import')->info('skipped: sells below the supplier price floor', [
+                'supplier' => $supplier->code,
+                'external' => $payload->externalId,
+                'sku' => $payload->sku,
+                'price' => $price,
+                'floor' => $shelf,
+            ]);
+
+            return false;
+        }
+
         return true;
     }
 
