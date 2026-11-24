@@ -599,6 +599,12 @@
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title mb-0">{{ __('admin.delivery') }}</h4>
+
+                    <div class="form-check mb-0">
+                        <input id="orderRegional" type="checkbox" class="form-check-input"
+                               wire:model.live="isRegional" @disabled(! $this->editable())>
+                        <label class="form-check-label" for="orderRegional">{{ __('admin.order_regional') }}</label>
+                    </div>
                 </div>
 
                 <div class="card-body">

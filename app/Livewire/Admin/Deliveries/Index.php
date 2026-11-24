@@ -43,6 +43,11 @@ class Index extends Component
     #[Url(except: false)]
     public bool $allDates = false;
 
+    /* Sits on top of the status tabs rather than among them: a regional
+       order is still new, delivered or cancelled like any other. */
+    #[Url(except: false)]
+    public bool $regional = false;
+
     #[Locked]
     public bool $courierPreview = false;
 
@@ -139,6 +144,13 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function toggleRegional(): void
+    {
+        $this->actor();
+        $this->regional = ! $this->regional;
+        $this->resetPage();
+    }
+
     public function setStatus(string $status): void
     {
         $user = $this->actor();
@@ -166,7 +178,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    protected function baseQuery(): Builder
+    protected function baseQuery(bool $byRegion = true): Builder
     {
         $this->actor();
         $term = mb_substr(trim($this->search), 0, 100);
@@ -174,6 +186,7 @@ class Index extends Component
 
         return OrderDelivery::query()->visibleTo($this->actor())
             ->when($this->courierPreview, fn (Builder $query) => $query->forCourierBoard())
+            ->when($byRegion && $this->regional, fn (Builder $query) => $query->whereHas('order', fn ($order) => $order->where('is_regional', true)))
             ->when(! $this->allDates && $this->validDate($this->date), fn ($q) => $q->whereDate('delivery_date', $this->date))
             ->when($term !== '', function ($q) use ($term, $digits) {
                 $q->where(function ($search) use ($term, $digits) {
@@ -502,6 +515,7 @@ class Index extends Component
         $heldCount = (clone $base)->held()->count();
         $counts['active'] = max(0, (int) ($counts['active'] ?? 0) - $heldCount);
         $counts['held'] = $heldCount;
+        $regionalCount = $this->baseQuery(byRegion: false)->whereHas('order', fn ($order) => $order->where('is_regional', true))->count();
         $query = (clone $base)
             ->when($this->status === 'held', fn (Builder $query) => $query->held())
             ->when($this->status === 'active', fn (Builder $query) => $query->where('status', OrderDelivery::ACTIVE)
@@ -548,7 +562,7 @@ class Index extends Component
             ->with('user:id,name')->latest('id')->limit(100)->get()->groupBy('order_id');
 
         return view('livewire.admin.deliveries.index', [
-            'deliveries' => $deliveries, 'groups' => $groups, 'counts' => $counts,
+            'deliveries' => $deliveries, 'groups' => $groups, 'counts' => $counts, 'regionalCount' => $regionalCount,
             'selectedDelivery' => $selected, 'events' => $events, 'comments' => $comments,
             'isStaff' => $isStaff, 'isOwner' => $user->isAdmin() && ! $this->courierPreview,
             'isPreview' => $this->courierPreview,

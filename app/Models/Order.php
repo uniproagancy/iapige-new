@@ -16,7 +16,7 @@ class Order extends Model
     protected $fillable = [
         'number', 'user_id', 'cart_id', 'status',
         'name', 'phone', 'email',
-        'delivery', 'delivery_city_id', 'city', 'address', 'comment',
+        'delivery', 'delivery_city_id', 'city', 'address', 'is_regional', 'comment',
         'payment', 'payment_bank', 'payment_status', 'is_paid', 'paid_at', 'installment_months',
         'subtotal', 'shipping', 'total',
     ];
@@ -28,6 +28,7 @@ class Order extends Model
             'shipping' => 'decimal:2',
             'total' => 'decimal:2',
             'is_paid' => 'boolean',
+            'is_regional' => 'boolean',
             'paid_at' => 'datetime',
             'installment_months' => 'integer',
         ];

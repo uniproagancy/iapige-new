@@ -35,6 +35,7 @@ return [
     'delivered' => 'Delivered',
     'cancelled' => 'Cancelled',
     'all' => 'All',
+    'regional' => 'Regions',
     'held' => 'On hold',
     'held_help' => 'The order must be completed and either paid or payable in cash on delivery. An operator must check it.',
     'unassigned_supplier' => 'Supplier needs confirmation',

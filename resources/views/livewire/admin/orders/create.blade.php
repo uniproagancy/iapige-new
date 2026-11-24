@@ -201,7 +201,7 @@
                         <h4 class="card-title">{{ __('admin.order_step_delivery') }}</h4>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex gap-1 mb-1">
+                        <div class="d-flex flex-wrap align-items-center gap-1 mb-1">
                             @foreach (['courier' => __('admin.order_delivery_courier'), 'pickup' => __('admin.order_delivery_pickup')] as $key => $label)
                                 <button type="button"
                                         @class(['btn btn-sm', 'btn-primary' => $delivery === $key, 'btn-outline-primary' => $delivery !== $key])
@@ -209,6 +209,11 @@
                                     {{ $label }}
                                 </button>
                             @endforeach
+
+                            <div class="form-check ms-auto mb-0">
+                                <input id="o-regional" type="checkbox" class="form-check-input" wire:model.live="isRegional">
+                                <label class="form-check-label" for="o-regional">{{ __('admin.order_regional') }}</label>
+                            </div>
                         </div>
 
                         @if ($delivery === 'courier')
@@ -334,6 +339,9 @@
                         <dt class="col-6 fw-normal text-muted">{{ __('admin.order_step_delivery') }}</dt>
                         <dd class="col-6 text-end">
                             {{ $delivery === 'pickup' ? __('admin.order_delivery_pickup') : __('admin.order_delivery_courier') }}
+                            @if ($isRegional)
+                                <span class="badge rounded-pill badge-light-warning">{{ __('admin.order_regional') }}</span>
+                            @endif
                         </dd>
                     </dl>
 

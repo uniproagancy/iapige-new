@@ -43,6 +43,8 @@ class Create extends Component
 
     public string $address = '';
 
+    public bool $isRegional = false;
+
     public string $comment = '';
 
     public ?string $shippingOverride = null;
@@ -123,6 +125,7 @@ class Create extends Component
             ],
             'delivery' => array_merge([
                 'delivery' => ['required', 'in:courier,pickup'],
+                'isRegional' => ['boolean'],
                 'comment' => ['nullable', 'string', 'max:1000'],
                 'shippingOverride' => ['nullable', 'numeric', 'min:0', 'max:9999'],
             ], $this->delivery === 'courier' ? [
@@ -378,6 +381,7 @@ class Create extends Component
             'delivery_city_id' => $city?->id,
             'city' => $city?->name,
             'address' => $this->delivery === 'courier' ? $this->address : null,
+            'is_regional' => $this->isRegional,
             'comment' => $this->comment ?: null,
             'payment' => $this->payment,
             'payment_bank' => $this->payment === 'transfer' ? (trim($this->paymentBank) ?: null) : null,

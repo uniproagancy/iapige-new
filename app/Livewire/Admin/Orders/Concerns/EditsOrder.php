@@ -36,6 +36,8 @@ trait EditsOrder
 
     public string $address = '';
 
+    public bool $isRegional = false;
+
     #[Locked]
     public string $savedAddress = '';
 
@@ -67,6 +69,7 @@ trait EditsOrder
         $this->cityId = $order->delivery_city_id;
         $this->address = (string) $order->address;
         $this->savedAddress = $this->address;
+        $this->isRegional = (bool) $order->is_regional;
         $this->comment = (string) $order->comment;
         $this->payment = (string) $order->payment;
         $this->paymentBank = (string) $order->payment_bank;
@@ -250,6 +253,28 @@ trait EditsOrder
                 'from' => $before ?: '—', 'to' => $order->payment_bank ?: '—',
             ]),
         ]);
+    }
+
+    /* Saved on the click, like the address: the flag only sorts the order
+       for whoever sends it out, so it needs no "save" of its own. */
+    public function updatedIsRegional(): void
+    {
+        abort_unless(auth()->user()?->isStaff(), 403);
+
+        if (! $this->editable()) {
+            $this->isRegional = (bool) $this->order->is_regional;
+
+            return;
+        }
+
+        $this->order->update(['is_regional' => $this->isRegional]);
+        $this->order->events()->create([
+            'user_id' => auth()->id(),
+            'type' => 'note',
+            'note' => __($this->isRegional ? 'admin.order_regional_on' : 'admin.order_regional_off'),
+        ]);
+
+        $this->dispatch('toast', message: __('admin.saved'));
     }
 
     public function editable(): bool

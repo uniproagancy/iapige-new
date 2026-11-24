@@ -19,6 +19,8 @@
         .delivery-board .db-tab.is-selected{background:#ff790019;color:#ffad65;border-color:var(--delivery-orange)}
         .delivery-board .db-tab-held{border-color:#b369db99;color:#d48bff}
         .delivery-board .db-tab-held.is-selected{background:#b369db26;border-color:#b369db;color:#e1b4ff}
+        .delivery-board .db-tab-region{border-color:#28c76f99;color:#5fd99a}
+        .delivery-board .db-tab-region.is-selected{background:#28c76f26;border-color:#28c76f;color:#8ff0bd}
         .delivery-board .db-tab span{border-radius:6px;min-width:22px;padding:1px 6px;background:#414b65;color:#fff;font-size:11px}
         .delivery-board .db-meta-bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 16px;font-size:12px;color:var(--delivery-muted)}
         .delivery-board .db-live{display:inline-flex;align-items:center;gap:7px}.delivery-board .db-live::before{content:"";width:7px;height:7px;border-radius:50%;background:#28c76f}
@@ -156,6 +158,11 @@
                     <span>{{ (int) ($tab === 'all' ? $counts->sum() : ($counts[$tab] ?? 0)) }}</span>
                 </button>
             @endforeach
+
+            <button type="button" class="db-tab db-tab-region {{ $regional ? 'is-selected' : '' }}" wire:click="toggleRegional" aria-pressed="{{ $regional ? 'true' : 'false' }}">
+                {{ __('delivery.regional') }}
+                <span>{{ $regionalCount }}</span>
+            </button>
         </div>
     </div>
 
