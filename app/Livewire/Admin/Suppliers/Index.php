@@ -9,6 +9,8 @@ use App\Models\SupplierStock;
 use App\Services\Import\Drivers\Alta\AltaDriver;
 use App\Services\Import\Drivers\Alta\AltaStockFeed;
 use App\Services\Import\ImportManager;
+use App\Services\Import\SupplierFloor;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 class Index extends Component
@@ -24,6 +26,18 @@ class Index extends Component
     public string $markup = '';
 
     public string $config = '';
+
+    /** Supplier id => the floor typed into its row. */
+    public array $floors = [];
+
+    public function mount(): void
+    {
+        $this->floors = Supplier::all()
+            ->mapWithKeys(fn (Supplier $supplier) => [
+                $supplier->id => SupplierFloor::of($supplier) > 0 ? (string) SupplierFloor::of($supplier) : '',
+            ])
+            ->all();
+    }
 
     public function render()
     {
@@ -59,11 +73,13 @@ class Index extends Component
             ->get()
             ->keyBy('supplier_id');
 
+        $floor = app(SupplierFloor::class);
+
         return Supplier::orderByDesc('is_active')
             ->orderBy('priority')
             ->orderBy('name')
             ->get()
-            ->map(function (Supplier $supplier) use ($rows, $offers) {
+            ->map(function (Supplier $supplier) use ($rows, $offers, $floor) {
                 $stock = $rows->get($supplier->id);
                 $offer = $offers->get($supplier->id);
                 $columns = $supplier->config['columns'] ?? [];
@@ -78,7 +94,8 @@ class Index extends Component
                     'takes_file' => ! empty($columns['key']),
                     'no_stock_column' => ! empty($columns['key']) && empty($columns['stock']),
                     'scans' => (bool) ($supplier->config['scan'] ?? false),
-                    'min_cost' => (float) ($supplier->config['min_cost'] ?? 0),
+                    'min_cost' => SupplierFloor::of($supplier),
+                    'below' => SupplierFloor::of($supplier) > 0 ? $floor->below($supplier)->count() : 0,
                 ];
             });
     }
@@ -90,6 +107,29 @@ class Index extends Component
         $supplier->update(['is_active' => ! $supplier->is_active]);
 
         $this->dispatch('toast', message: __('admin.saved'));
+    }
+
+    public function saveFloor(int $id, SupplierFloor $floor): void
+    {
+        Gate::authorize('owner');
+
+        $this->validate(
+            ["floors.$id" => 'nullable|numeric|min:0|max:1000000'],
+            attributes: ["floors.$id" => __('admin.sup_floor_label')],
+        );
+
+        $floor->set(Supplier::findOrFail($id), (float) ($this->floors[$id] ?? 0));
+
+        $this->dispatch('toast', message: __('admin.saved'));
+    }
+
+    public function purgeBelowFloor(int $id, SupplierFloor $floor): void
+    {
+        Gate::authorize('owner');
+
+        $done = $floor->purge(Supplier::findOrFail($id));
+
+        $this->dispatch('toast', message: __('admin.sup_purged', $done));
     }
 
     public function queue(int $id, ImportManager $manager): void

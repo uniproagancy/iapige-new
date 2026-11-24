@@ -28,7 +28,8 @@ class WarrantySnapshotBuilder
             $approvedPolicy = false;
         }
         // The directory is preparation guidance. It must never overwrite approved contractual terms.
-        $service = $approvedPolicy ? null : app(WarrantyServiceDirectory::class)->resolve($item);
+        $directory = app(WarrantyServiceDirectory::class);
+        $service = $approvedPolicy ? null : $directory->resolve($item);
         $manualPeriod = filled($certificate->manual_term_value) && filled($certificate->manual_term_unit);
         $termValue = $manualPeriod ? $certificate->manual_term_value : null;
         $termUnit = $manualPeriod ? $certificate->manual_term_unit : null;
@@ -81,7 +82,7 @@ class WarrantySnapshotBuilder
                     ?: ($certificate->sale_date ? 'legacy_manual' : 'missing')), [], 'ka')],
             'warranty' => ['policy_id' => $policy?->id, 'version' => $policy?->version, 'name' => $policy?->name,
                 'policy_approved' => $approvedPolicy,
-                'reference_terms' => $approvedPolicy ? null : app(WarrantyServiceDirectory::class)->officialTerms($service),
+                'reference_terms' => $approvedPolicy ? null : $directory->officialTerms($service),
                 'issuer_name' => $policy?->issuer_name, 'issuer_address' => $policy?->issuer_address, 'issuer_contact' => $policy?->issuer_contact,
                 'term_value' => $termValue, 'term_unit' => $termUnit, 'term_text' => $termText,
                 'starts_on' => $start?->toDateString(), 'ends_on' => $end?->toDateString(), 'territory' => $policy?->territory,
@@ -102,6 +103,9 @@ class WarrantySnapshotBuilder
                 'sha256' => $document->sha256, 'mime_type' => $document->mime_type, 'role' => $document->role])->values()->all(),
             'legal' => collect(['rights_text', 'seller_responsibility_text', 'identity_text', 'mark_notice'])
                 ->mapWithKeys(fn ($key) => [$key => __('warranty.legal.'.$key, [], 'ka')])->all()];
+        if ((int) $certificate->supplier_id === 2 && (int) $item?->supplier_id === 2 && $item->supplier?->code === 'alta') {
+            $snapshot['warranty']['paper_signatures_required'] = true;
+        }
         $dealerForm = app(WarrantyDealerForm::class)->forCertificate($certificate);
         if ($dealerForm !== null) { $snapshot['supplier_dealer_form'] = $dealerForm; }
         return $snapshot;

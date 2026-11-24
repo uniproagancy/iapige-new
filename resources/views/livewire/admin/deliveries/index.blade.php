@@ -49,6 +49,7 @@
         .delivery-board .db-products{padding:18px;border-right:1px solid #ffffff0d}
         .delivery-board .db-product+.db-product{border-top:1px solid #ffffff12;padding-top:16px;margin-top:16px}
         .delivery-board .db-product-name{font-size:16px;font-weight:600;color:#f0f2f8;margin:0 0 8px;line-height:1.55;overflow-wrap:anywhere}
+        .delivery-board .db-product-index{color:#ffad65;margin-inline-end:.35rem}
         .delivery-board .db-item-tags{display:flex;gap:6px 14px;flex-wrap:wrap;color:var(--delivery-muted);font-size:12px}
         .delivery-board .db-item-tags strong{color:#e3e6f0;font-weight:500;overflow-wrap:anywhere}
         .delivery-board .db-product-money{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:12px 0;font-size:13px}.delivery-board .db-product-money>strong{font-size:16px;color:#e8ebf5}
@@ -179,13 +180,12 @@
             @foreach($entries as $entry)
                 @php
                     $delivery = $entry['delivery'];
-                    $multipleSuppliers = $delivery->items->groupBy(fn($item) => trim((string) $item->supplier_name))->count() > 1;
                     $isHeld = $delivery->isHeld();
                     $isPickedUp = $delivery->status === 'active' && $delivery->isPickedUp();
                     $visibleStatus = $isHeld ? 'held' : ($isPickedUp ? 'picked_up' : $delivery->status);
                     $orderComments = $comments->get($delivery->order_id, collect());
                 @endphp
-                <article class="db-order is-{{ $delivery->status }} {{ $isHeld ? 'is-held' : ($isPickedUp ? 'is-picked-up' : '') }}" wire:key="delivery-{{ md5($supplierName) }}-{{ $delivery->id }}">
+                <article class="db-order is-{{ $delivery->status }} {{ $isHeld ? 'is-held' : ($isPickedUp ? 'is-picked-up' : '') }}" wire:key="delivery-{{ $delivery->id }}">
                     <div class="db-order-top">
                         <div class="db-order-ref">
                             <span class="db-ordinal">{{ $entry['ordinal'] }}</span>
@@ -212,8 +212,13 @@
                                 @php
                                     $itemCodes = $supplierIdentity->resolve($item);
                                 @endphp
-                                <div class="db-product">
-                                    <h4 class="db-product-name">{{ $item->name }}</h4>
+                                <div class="db-product" wire:key="delivery-product-{{ $item->id }}">
+                                    <h4 class="db-product-name">
+                                        @unless($loop->count === 1)
+                                            <span class="db-product-index" aria-hidden="true">{{ $loop->iteration }}.</span>
+                                        @endunless
+                                        {{ $item->name }}
+                                    </h4>
                                     <div class="db-item-tags">
                                         <span>{{ __('delivery.sku') }}: <strong>{{ $itemCodes['shop_sku'] ?: '—' }}</strong></span>
                                         <span>{{ __('delivery.supplier_sku') }}: <strong>{{ $itemCodes['native_sku'] ?: '—' }}</strong></span>
@@ -237,9 +242,6 @@
                                     @endif
                                 </div>
                             @endforeach
-                            @if($multipleSuppliers)
-                                <p class="db-muted mt-2 mb-0" title="{{ __('delivery.multi_supplier_help') }}">{{ __('delivery.multi_supplier') }}</p>
-                            @endif
                         </div>
                         <div class="db-customer">
                             <div class="db-contact">
@@ -303,15 +305,13 @@
                                 <livewire:admin.warranties.order-panel
                                     :order-id="$delivery->order_id"
                                     :delivery-id="$delivery->id"
-                                    :item-ids="$entry['items']->pluck('id')->all()"
-                                    :key="'delivery-warranty-staff-'.md5($supplierName).'-'.$delivery->id" />
+                                    :key="'delivery-warranty-staff-'.$delivery->id" />
                             </div>
                         @elseif(!$isStaff && !$isPreview && auth()->user()?->isCourier() && !$isHeld && $delivery->is_eligible && in_array($delivery->status, ['active', 'delivered'], true) && $delivery->order?->status === \App\Models\Order::COMPLETED)
                             <div class="px-2 pb-1">
                                 <livewire:warranties.delivery-panel
                                     :delivery-id="$delivery->id"
-                                    :item-ids="$entry['items']->pluck('id')->all()"
-                                    :key="'delivery-warranty-courier-'.md5($supplierName).'-'.$delivery->id" />
+                                    :key="'delivery-warranty-courier-'.$delivery->id" />
                             </div>
                         @endif
                     @endif

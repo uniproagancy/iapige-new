@@ -93,7 +93,7 @@ class WarrantyApproval
             $rules['requires_original'] = ['required', 'boolean'];
             $values = Validator::make($values, $rules, [], ['coverage' => 'საგარანტიო დაფარვა',
                 'claim_instructions' => 'მომსახურების მიღების წესი'])->validate();
-            $missing = $this->missing($values);
+            $missing = $this->missing($values, $preview['_dealer_hotline_only']);
             $needsReview = ! $preview['auto_ready'] || $preview['missing_fields'] !== [] || $missing !== [];
             $reason = Validator::make($input, ['review_note' => [$needsReview ? 'required' : 'nullable', 'string',
                 $needsReview ? 'min:3' : 'min:0', 'max:5000']], [], ['review_note' => 'ადმინის დადასტურების განმარტება'])->validate()['review_note'] ?? null;
@@ -130,7 +130,8 @@ class WarrantyApproval
                 && preg_match('/\Aowner\.[0-9A-HJKMNP-TV-Z]{26}\z/D', $savedRouteKey) === 1;
             // A disabled custom route can fall back to an unprofiled official route. Its previous
             // generated policy must still be refreshed at the next explicit issue, never silently reused.
-            if (isset($route['_profile_fingerprint']) || $wasCustomRoute) {
+            $alta = (int) $item->supplier_id === 2 && $item->supplier?->code === 'alta';
+            if (isset($route['_profile_fingerprint']) || $wasCustomRoute || $alta) {
                 $source = hash('sha256', json_encode([$this->identityFingerprint($item), $route, config('warranty.seller')],
                     JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
                 $saved = $policy->approval_context['source_sha256'] ?? null;
@@ -157,6 +158,9 @@ class WarrantyApproval
     {
         $route = $this->directory->resolve($item);
         $terms = $this->directory->officialTerms($route);
+        $dealerSource = $this->directory->dealerTermsSource($route);
+        $hotlineOnly = $dealerSource !== null && ($route['_dealer_hotline_only'] ?? false)
+            && ! in_array('service_name', $route['_profile_changed_fields'] ?? [], true);
         $hasContact = ($route['contact_confirmed'] ?? false) || ($route['_profile_owner_entered'] ?? false);
         $seller = config('warranty.seller');
         $join = static fn ($lines) => implode("\n", is_array($lines) ? $lines : []);
@@ -179,13 +183,14 @@ class WarrantyApproval
             'start_basis' => in_array($route['official_terms']['start_basis'] ?? null, ['sale_date','delivery_date','manufacturer_date'], true)
                 ? $route['official_terms']['start_basis'] : 'sale_date',
             'source_reference' => $join(array_values(array_filter(array_merge(array_column($terms['sources'] ?? [], 'url'),
-                [is_string($route['_profile_source_text'] ?? null) ? $route['_profile_source_text'] : null])))),
+                [$dealerSource !== null ? implode(' · ', $dealerSource) : null,
+                    is_string($route['_profile_source_text'] ?? null) ? $route['_profile_source_text'] : null])))),
             // This controls an internal electronic attachment, not the supplier's original-card requirement.
             'requires_original' => false];
         $sourceMissing = array_values(array_filter($terms['missing_fields'] ?? [], fn ($text) => is_string($text)
             && ! (filled($values['service_address']) && in_array($text, ['შესაბამისი სერვისცენტრის ზუსტი მისამართი',
                 'სერვისის ზუსტი მისამართი', 'სერვისის მიღების ზუსტი მისამართი'], true))));
-        $missing = array_values(array_unique(array_merge($this->missing($values), $sourceMissing)));
+        $missing = array_values(array_unique(array_merge($this->missing($values, $hotlineOnly), $sourceMissing)));
         $fullSource = $route && ($route['routing_confirmed'] ?? false) && ($route['contact_confirmed'] ?? false)
             && ($terms['status'] ?? null) === 'substantive' && $missing === []
             && ($terms['coverage'] ?? []) !== [] && ($terms['exclusions'] ?? []) !== [] && ($terms['claims'] ?? []) !== []
@@ -196,21 +201,23 @@ class WarrantyApproval
         // The supplier profile is maintained once. Missing optional facts stay blank, never invented.
         // Commissioning conditions remain in the document; no commissioning date or act is inferred here.
         $auto = $route && ($route['routing_confirmed'] ?? false) && $hasContact
-            && filled($values['service_name']) && (filled($values['service_phone']) || filled($values['service_email']));
+            && filled($values['service_name']) && (filled($values['service_phone']) || filled($values['service_email']))
+            && ($dealerSource === null || ($terms !== null && $missing === []));
         return $values + ['missing_fields' => array_values(array_unique($missing)), 'auto_ready' => (bool) $auto,
             'source_fingerprint' => hash('sha256', json_encode([$this->identityFingerprint($item), $route, $seller],
                 JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)),
             '_source_confirmed' => $terms !== null, '_full_source_confirmed' => (bool) $fullSource,
             '_scope_label' => $route['scope_label_ka'] ?? null, '_route_key' => $route['key'] ?? null,
-            '_sources' => $terms['sources'] ?? []];
+            '_sources' => $terms['sources'] ?? [],
+            '_dealer_terms_source' => $dealerSource, '_dealer_hotline_only' => $hotlineOnly];
     }
 
-    private function missing(array $values): array
+    private function missing(array $values, bool $hotlineOnly): array
     {
         $missing = [];
         foreach (['coverage' => 'საგარანტიო დაფარვა', 'service_name' => 'სერვისცენტრის დასახელება',
             'service_address' => 'სერვისცენტრის მისამართი'] as $field => $label) {
-            if (! filled($values[$field] ?? null)) { $missing[] = $label; }
+            if (($field !== 'service_address' || ! $hotlineOnly) && ! filled($values[$field] ?? null)) { $missing[] = $label; }
         }
         if (! filled($values['service_phone'] ?? null) && ! filled($values['service_email'] ?? null)) { $missing[] = 'სერვისის საკონტაქტო ნომერი ან ელფოსტა'; }
         return $missing;
@@ -239,7 +246,8 @@ class WarrantyApproval
             'approval_context' => ['identity_sha256' => $this->identityFingerprint($item), 'certificate_id' => $certificate->id,
                 'route_key' => $preview['_route_key'], 'source_sha256' => $preview['source_fingerprint'],
                 'official_sources' => $preview['_sources'], 'reviewed_missing_fields' => array_values(array_unique(array_merge($preview['missing_fields'], $missing))),
-                'owner_review_note' => $reason, 'actor_id' => $actor->id],
+                'owner_review_note' => $reason, 'actor_id' => $actor->id]
+                + ($preview['_dealer_terms_source'] === null ? [] : ['dealer_terms_source' => $preview['_dealer_terms_source']]),
             'created_by' => $actor->id, 'updated_by' => $actor->id,
             'approved_by' => $mode === 'owner_confirmed_item' ? $actor->id : null, 'approved_at' => now()]);
         $certificate->forceFill(['policy_id' => $policy->id, 'updated_by' => $actor->id])->save();

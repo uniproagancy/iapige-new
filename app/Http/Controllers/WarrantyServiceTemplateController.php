@@ -53,6 +53,9 @@ class WarrantyServiceTemplateController extends Controller
                 ->mapWithKeys(fn ($key) => [$key => __('warranty.legal.'.$key, [], 'ka')])->all(),
         ];
 
+        if (($supplier['id'] ?? null) === 2 && $supplier['code'] === 'alta') {
+            $snapshot['warranty']['paper_signatures_required'] = true;
+        }
         $dealerForm = app(WarrantyDealerForm::class)->forSupplier((int) ($supplier['id'] ?? 0), (string) ($supplier['code'] ?? ''));
         if ($dealerForm !== null) {
             $snapshot['supplier_dealer_form'] = $dealerForm;

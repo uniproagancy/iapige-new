@@ -513,26 +513,24 @@ class Index extends Component
             ->orderBy('id');
         $deliveries = $query->paginate(20);
         $groups = [];
-        foreach ($deliveries as $index => $delivery) {
-            $bySupplier = $delivery->items->sortBy(fn ($item) => mb_strtolower($item->supplier_name.'|'.$item->warehouse))
-                ->groupBy(fn ($item) => trim((string) $item->supplier_name) ?: __('delivery.unassigned_supplier'));
-            foreach ($bySupplier as $supplier => $items) {
-                $groups[$supplier][] = ['delivery' => $delivery, 'items' => $items, 'ordinal' => $deliveries->firstItem() + $index];
-            }
-            if ($bySupplier->isEmpty()) {
-                $groups[__('delivery.unassigned_supplier')][] = ['delivery' => $delivery, 'items' => collect(), 'ordinal' => $deliveries->firstItem() + $index];
-            }
+        foreach ($deliveries as $delivery) {
+            $items = $delivery->items->sortBy(fn ($item) => mb_strtolower($item->supplier_name.'|'.$item->warehouse));
+            $supplierNames = $items->map(fn ($item) => trim((string) $item->supplier_name))->unique();
+            $supplier = $supplierNames->first() ?? '';
+
+            // A supplier group should never split the delivery itself across cards.
+            $group = match (true) {
+                $supplierNames->count() > 1 => __('delivery.multi_supplier'),
+                $supplier === '' => __('delivery.unassigned_supplier'),
+                default => $supplier,
+            };
+            $groups[$group][] = ['delivery' => $delivery, 'items' => $items];
         }
         uksort($groups, fn ($a, $b) => strnatcasecmp($a, $b));
-        $ordinals = [];
-        $nextOrdinal = $deliveries->firstItem() ?? 1;
-        foreach ($groups as $supplier => $entries) {
-            foreach ($entries as $index => $entry) {
-                $id = $entry['delivery']->id;
-                if (! isset($ordinals[$id])) {
-                    $ordinals[$id] = $nextOrdinal++;
-                }
-                $groups[$supplier][$index]['ordinal'] = $ordinals[$id];
+        $ordinal = $deliveries->firstItem() ?? 1;
+        foreach ($groups as $group => $entries) {
+            foreach (array_keys($entries) as $index) {
+                $groups[$group][$index]['ordinal'] = $ordinal++;
             }
         }
         $selected = null;

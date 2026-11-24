@@ -249,6 +249,9 @@ class Services extends Component
             ->map(function ($supplier) use ($reviews) {
                 $groups = [];
                 foreach ($supplier['routes'] as $route) {
+                    if (($route['_only_with_owner_profile'] ?? false) && empty($route['_profile_changed_fields'])) {
+                        continue;
+                    }
                     $route['official_terms'] = app(WarrantyServiceDirectory::class)->officialTerms($route);
                     // Each editor is bound to one exact route, even when two services share a contact.
                     $groups[$route['key']] = $route + ['scopes' => [$route['scope_label_ka']]];

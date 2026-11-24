@@ -86,18 +86,38 @@
                                         <span class="badge rounded-pill badge-light-info">{{ __('admin.sup_scans') }}</span>
                                     @endif
 
-                                    @if ($row['min_cost'] > 0)
-                                        <span class="badge rounded-pill badge-light-secondary">
-                                            {{ __('admin.sup_floor', ['amount' => money($row['min_cost'])]) }}
-                                        </span>
-                                    @endif
-
                                     @if ($row['no_stock_column'])
                                         <span class="badge rounded-pill badge-light-danger">
                                             {!! $icon('warn') !!} {{ __('admin.sup_no_stock_column') }}
                                         </span>
                                     @endif
                                 </div>
+
+                                <div class="mt-50 d-flex flex-wrap align-items-center gap-50">
+                                    <form class="input-group input-group-sm" style="max-width:260px"
+                                          wire:submit="saveFloor({{ $supplier->id }})">
+                                        <span class="input-group-text" title="{{ __('admin.sup_floor_hint') }}">
+                                            {{ __('admin.sup_floor_label') }}
+                                        </span>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                               wire:model="floors.{{ $supplier->id }}" placeholder="0">
+                                        <button type="submit" class="btn btn-outline-primary" wire:loading.attr="disabled">
+                                            {{ __('admin.save') }}
+                                        </button>
+                                    </form>
+
+                                    @if ($row['below'] > 0)
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                wire:click="purgeBelowFloor({{ $supplier->id }})"
+                                                wire:loading.attr="disabled"
+                                                wire:confirm="{{ __('admin.sup_purge_confirm', ['count' => $row['below'], 'amount' => money($row['min_cost']), 'name' => $supplier->name]) }}">
+                                            {{ __('admin.sup_purge', ['count' => number_format($row['below'])]) }}
+                                        </button>
+                                    @endif
+                                </div>
+                                @error('floors.'.$supplier->id)
+                                    <small class="text-danger d-block">{{ $message }}</small>
+                                @enderror
                             </td>
 
                             <td class="text-center">{{ $supplier->priority }}</td>

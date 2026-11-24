@@ -18,9 +18,15 @@
 @endphp
 @if ($displaySections !== [])
     <div class="official-terms" style="page-break-before:always">
-        <h1>მომწოდებლის საგარანტიო პირობები</h1>
-        <p class="small">{{ is_string($officialTerms['supplier_name'] ?? null) ? $officialTerms['supplier_name'] : '' }} · № {{ $value('certificate.number') }}</p>
-        @if (is_string($officialTerms['scope_notice'] ?? null) && trim($officialTerms['scope_notice']) !== '')
+        @if (data_get($snapshot, 'warranty.paper_signatures_required') === true)
+            <h1>{{ __('warranty.seller_reference_terms_title', [], $documentLocale) }}</h1>
+            <p class="small">{{ $value('seller.name') }} · № {{ $value('certificate.number') }}</p>
+        @else
+            <h1>მომწოდებლის საგარანტიო პირობები</h1>
+            <p class="small">{{ is_string($officialTerms['supplier_name'] ?? null) ? $officialTerms['supplier_name'] : '' }} · № {{ $value('certificate.number') }}</p>
+        @endif
+        @if ((data_get($snapshot, 'warranty.paper_signatures_required') !== true || ($officialTerms['issuer_kind'] ?? null) === 'seller')
+            && is_string($officialTerms['scope_notice'] ?? null) && trim($officialTerms['scope_notice']) !== '')
             <p class="preserve">{{ $officialTerms['scope_notice'] }}</p>
         @endif
         @foreach ($displaySections as $section)

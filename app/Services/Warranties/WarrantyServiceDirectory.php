@@ -119,7 +119,9 @@ class WarrantyServiceDirectory
             $node = $node->parent;
         }
         $matches = [];
+        $fallbacks = [];
         $custom = [];
+        $alta = (int) $supplier['id'] === 2 && $supplier['code'] === 'alta';
         foreach ($supplier['routes'] as $route) {
             if (($route['_custom'] ?? false) === true) {
                 if (! ($route['routing_confirmed'] ?? false)) { continue; }
@@ -136,6 +138,10 @@ class WarrantyServiceDirectory
                         $custom[] = ['route' => $route, 'priority' => 2, 'depth' => $depth];
                     }
                 }
+                continue;
+            }
+            if ($alta && ($route['_only_with_owner_profile'] ?? false)
+                && empty($route['_profile_changed_fields'])) {
                 continue;
             }
             $brands = array_map($this->name(...), $route['brands'] ?? []);
@@ -168,6 +174,10 @@ class WarrantyServiceDirectory
             if ($exclude !== [] && $categories === []) {
                 continue;
             }
+            if ($alta && ($route['_dealer_fallback'] ?? false)) {
+                $fallbacks[] = $route;
+                continue;
+            }
             $matches[] = $route;
         }
         if ($custom !== []) {
@@ -175,10 +185,11 @@ class WarrantyServiceDirectory
             $best = $custom[0];
             if (isset($custom[1]) && $custom[1]['priority'] === $best['priority'] && $custom[1]['depth'] === $best['depth']) { return null; }
             // A later catalog/category edit must not silently replace a targeted reviewed service.
-            if ($best['priority'] < 3 && collect($matches)->contains(fn ($route) => ! ($route['all_brands'] ?? false))) { return null; }
+            if (! $alta && $best['priority'] < 3 && collect($matches)->contains(fn ($route) => ! ($route['all_brands'] ?? false))) { return null; }
             $best['route']['_resolved_category_names'] = $categories;
             return $best['route'];
         }
+        $matches = $matches ?: $fallbacks;
         // No cheapest-offer fallback, guessed category, fuzzy brand, or ambiguous route.
         if (count($matches) !== 1) { return null; }
         $resolved = $matches[0];
@@ -187,17 +198,34 @@ class WarrantyServiceDirectory
         return $resolved;
     }
 
+    /** Private provenance for supplier-supplied dealer material. */
+    public function dealerTermsSource(?array $route): ?array
+    {
+        $source = $route['_dealer_terms_source'] ?? null;
+        if (! is_array($source) || ! is_string($source['title'] ?? null) || ! is_string($source['reference'] ?? null)
+            || ! is_string($source['dated_on'] ?? null) || ! is_string($source['sha256'] ?? null)
+            || ! preg_match('/\A[0-9a-f]{64}\z/D', $source['sha256'])) {
+            return null;
+        }
+
+        return array_intersect_key($source, array_flip(['title', 'reference', 'dated_on', 'sha256']));
+    }
+
     /** Source-backed preparation text. This never approves a policy or changes an issued snapshot. */
     public function officialTerms(?array $route): ?array
     {
         $terms = $route['official_terms'] ?? null;
+        $dealerSource = $this->dealerTermsSource($route);
         $ownerEntered = ($route['_profile_owner_entered'] ?? false) === true && ($terms['owner_entered'] ?? false) === true;
         if (! is_array($terms) || (! $ownerEntered && ($terms['confirmed'] ?? false) !== true)
             || ! in_array($terms['status'] ?? null, ['substantive', 'partial'], true)) {
             return null;
         }
         $out = ['status' => $terms['status'], 'owner_entered' => $ownerEntered,
-            'source_kind' => $ownerEntered ? 'owner_profile' : 'official'];
+            'source_kind' => $ownerEntered ? 'owner_profile' : ($dealerSource ? 'dealer_annex' : 'official')];
+        if ($dealerSource !== null) {
+            $out['issuer_kind'] = 'seller';
+        }
         foreach (['supplier_name', 'scope_notice'] as $key) {
             $out[$key] = is_string($terms[$key] ?? null) ? mb_substr(trim($terms[$key]), 0, 3000) : null;
         }
@@ -222,6 +250,12 @@ class WarrantyServiceDirectory
                 $hasText = true;
             }
         }
+        $changedFields = $route['_profile_changed_fields'] ?? [];
+        if ($dealerSource !== null && array_intersect($changedFields, ['service_name', 'service_phone', 'service_address', 'service_email'])
+            && ! in_array('claim_instructions', $changedFields, true)) {
+            // Keep the general instruction. Branch details belong to the original service only.
+            $out['claims'] = array_slice($out['claims'], 0, 1);
+        }
         $out['sources'] = [];
         foreach (is_array($terms['sources'] ?? null) ? array_slice($terms['sources'], 0, 15) : [] as $source) {
             $url = is_array($source) ? ($source['url'] ?? null) : null;
@@ -233,7 +267,7 @@ class WarrantyServiceDirectory
                 'checked_on' => is_string($source['checked_on'] ?? null) ? mb_substr($source['checked_on'], 0, 10) : null];
         }
 
-        return $ownerEntered || ($hasText && $out['sources'] !== []) ? $out : null;
+        return $ownerEntered || ($hasText && ($out['sources'] !== [] || $dealerSource !== null)) ? $out : null;
     }
 
     private function name(?string $name): string

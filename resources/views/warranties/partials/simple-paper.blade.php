@@ -65,7 +65,9 @@
         <h2>სერვისცენტრი / საგარანტიო მიმართვა: {{ $value('warranty.service.name') }}</h2>
         @if (filled(data_get($snapshot, 'warranty.service.scope')))<p class="small">{{ $value('warranty.service.scope') }}</p>@endif
         <p><strong>{{ __('warranty.phone', [], $documentLocale) }}:</strong> {{ $value('warranty.service.phone') }}</p>
-        <p><strong>{{ __('warranty.address', [], $documentLocale) }}:</strong> {{ $value('warranty.service.address') }}</p>
+        @if (data_get($snapshot, 'warranty.paper_signatures_required') !== true || filled(data_get($snapshot, 'warranty.service.address')))
+            <p><strong>{{ __('warranty.address', [], $documentLocale) }}:</strong> {{ $value('warranty.service.address') }}</p>
+        @endif
         @if (filled(data_get($snapshot, 'warranty.service.email')))<p><!--email_off-->{{ $value('warranty.service.email') }}<!--/email_off--></p>@endif
     </div>
     @if ((data_get($snapshot, 'warranty.policy_approved') && $hasPolicyTerms) || $hasReferenceTerms || filled(data_get($snapshot, 'warranty.conditions')))
@@ -87,6 +89,12 @@
                 {{ is_array($original) && is_string($original['label'] ?? null) ? $original['label'] : '' }}@if (! $loop->last) · @endif
             @endforeach
         </p>
+    @endif
+    @if (data_get($snapshot, 'warranty.paper_signatures_required') === true)
+        <table class="kv paper-signatures"><tr>
+            <td style="width: 50%">{{ __('warranty.seller_employee_signature', [], $documentLocale) }} {{ $empty }}</td>
+            <td>{{ __('warranty.buyer_signature', [], $documentLocale) }} {{ $empty }}</td>
+        </tr></table>
     @endif
     <table class="mark-row"><tr><td>
         <p class="small">{{ $value('seller.name') }}<br>{{ $value('seller.phone') }} · <!--email_off-->{{ $value('seller.email') }}<!--/email_off--></p>
