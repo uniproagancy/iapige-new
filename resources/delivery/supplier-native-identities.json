@@ -9,10 +9,3672 @@
       "native_sku": "ZOOM-037464",
       "expected_product_sku": "ZOOM-037464",
       "expected_name": "Apple iPhone 17 Pro Max | 256GB Cosmic Orange",
-      "expected_offer_references": ["49662"],
+      "expected_offer_references": [
+        "49662"
+      ],
       "checked_at": "2026-11-18T07:52:05+00:00",
       "proof_sha256": "d73b605dbef72f35851f8989fa540c606c38f9d4e976126bfb3cf924ed5538e4",
       "reference": "Configured ZoommerClient official product details GET: requested productId=49662; response product.id=49662; product.barCode=ZOOM-037464; exact product name confirmed; 2026-11-18T07:52:05+00:00"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19252,
+      "system_reference": "GR-RT559WE-PMJ(06)",
+      "native_sku": "TM-MT-BMT-1108-RT-0150",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0150",
+      "expected_name": "მაცივარი Toshiba GR-RT559WE-PMJ(06)",
+      "expected_offer_references": [
+        "GR-RT559WE-PMJ(06)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C2, REF-WM-DW!C23"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19253,
+      "system_reference": "GR-RT559WE-PMJ(37)",
+      "native_sku": "TM-MT-BMT-1108-RT-0142",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0142",
+      "expected_name": "მაცივარი Toshiba GR-RT559WE-PMJ(37)",
+      "expected_offer_references": [
+        "GR-RT559WE-PMJ(37)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C3, REF-WM-DW!C24"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19254,
+      "system_reference": "GR-RT624WE-PMJ(06)",
+      "native_sku": "TM-MT-BMT-1108-RT-0165",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0165",
+      "expected_name": "მაცივარი Toshiba GR-RT624WE-PMJ(06)",
+      "expected_offer_references": [
+        "GR-RT624WE-PMJ(06)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C4, REF-WM-DW!C25"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19255,
+      "system_reference": "GR-RB500WE-PMJ(06)",
+      "native_sku": "TM-MT-BMT-1108-RB-0242",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RB-0242",
+      "expected_name": "მაცივარი Toshiba GR-RB500WE-PMJ(06)",
+      "expected_offer_references": [
+        "GR-RB500WE-PMJ(06)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C7, REF-WM-DW!C29"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19256,
+      "system_reference": "GR-RB500WE-PMJ(49)",
+      "native_sku": "TM-MT-BMT-1108-RB-0243",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RB-0243",
+      "expected_name": "მაცივარი Toshiba GR-RB500WE-PMJ(49)",
+      "expected_offer_references": [
+        "GR-RB500WE-PMJ(49)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C8, REF-WM-DW!C30"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19257,
+      "system_reference": "GR-RB449WE-PMJ(51)",
+      "native_sku": "TM-MT-BMT-1108-RT-0179",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0179",
+      "expected_name": "მაცივარი Toshiba GR-RB449WE-PMJ(51)",
+      "expected_offer_references": [
+        "GR-RB449WE-PMJ(51)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C10, REF-WM-DW!C32"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19258,
+      "system_reference": "GR-RB449WE-PMJ(49)",
+      "native_sku": "TM-MT-BMT-1108-RT-0178",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0178",
+      "expected_name": "მაცივარი Toshiba GR-RB449WE-PMJ(49)",
+      "expected_offer_references": [
+        "GR-RB449WE-PMJ(49)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C11, REF-WM-DW!C33"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19259,
+      "system_reference": "RT42CG6420S9WT",
+      "native_sku": "TM-MT-BMT-1108-RT-0217",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0217",
+      "expected_name": "მაცივარი Samsung RT42CG6420S9WT",
+      "expected_offer_references": [
+        "RT42CG6420S9WT"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C41"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19260,
+      "system_reference": "RT42CG6000B1WT",
+      "native_sku": "TM-MT-BMT-1108-RT-0172",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0172",
+      "expected_name": "მაცივარი Samsung RT42CG6000B1WT",
+      "expected_offer_references": [
+        "RT42CG6000B1WT"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C42"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19261,
+      "system_reference": "RB29FERNDSA/WR",
+      "native_sku": "TM-MT-BMT-1108-RB-0266",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RB-0266",
+      "expected_name": "მაცივარი Samsung RB29FERNDSA/WR",
+      "expected_offer_references": [
+        "RB29FERNDSA/WR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C45"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19262,
+      "system_reference": "RB31FERNDSA/WR",
+      "native_sku": "TM-MT-BMT-1108-RB-0265",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RB-0265",
+      "expected_name": "მაცივარი Samsung RB31FERNDSA/WR",
+      "expected_offer_references": [
+        "RB31FERNDSA/WR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C46"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19263,
+      "system_reference": "RB50DG602ES9WR",
+      "native_sku": "TM-MT-BMT-1108-RB-0275",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RB-0275",
+      "expected_name": "მაცივარი Samsung RB50DG602ES9WR",
+      "expected_offer_references": [
+        "RB50DG602ES9WR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C47"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19264,
+      "system_reference": "RB50DG602EB1WR",
+      "native_sku": "TM-MT-BMT-1108-RB-0274",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RB-0274",
+      "expected_name": "მაცივარი Samsung RB50DG602EB1WR",
+      "expected_offer_references": [
+        "RB50DG602EB1WR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C48"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19265,
+      "system_reference": "GN-B502PLGB",
+      "native_sku": "TM-MT-BMT-1108-RT-0171",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0171",
+      "expected_name": "მაცივარი LG GN-B502PLGB",
+      "expected_offer_references": [
+        "GN-B502PLGB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C56"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19266,
+      "system_reference": "GR-B642PFFQ",
+      "native_sku": "TM-MT-BMT-1108-RT-0202",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0202",
+      "expected_name": "მაცივარი LG GR-B642PFFQ",
+      "expected_offer_references": [
+        "GR-B642PFFQ"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C57"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19267,
+      "system_reference": "GN-C752HQCM.ADSQMER",
+      "native_sku": "TM-MT-BMT-1108-RT-0205",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RT-0205",
+      "expected_name": "მაცივარი LG GN-C752HQCM.ADSQMER",
+      "expected_offer_references": [
+        "GN-C752HQCM.ADSQMER"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C59"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19268,
+      "system_reference": "GR-B509FVFW.ASEQMER",
+      "native_sku": "TM-MT-BMT-1108-RB-0257",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RB-0257",
+      "expected_name": "მაცივარი LG GR-B509FVFW.ASEQMER",
+      "expected_offer_references": [
+        "GR-B509FVFW.ASEQMER"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C64"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19269,
+      "system_reference": "GR-X267CQEW.AMCQMER",
+      "native_sku": "TM-MT-BMT-1108-RF-0032",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-RF-0032",
+      "expected_name": "მაცივარი LG GR-X267CQEW.AMCQMER",
+      "expected_offer_references": [
+        "GR-X267CQEW.AMCQMER"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C71"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19270,
+      "system_reference": "TW-BN80C2UZ(SK)",
+      "native_sku": "TM-MT-BMT-1108-WM-0598",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0598",
+      "expected_name": "სარეცხი მანქანა Toshiba TW-BN80C2UZ(SK)",
+      "expected_offer_references": [
+        "TW-BN80C2UZ(SK)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C22, REF-WM-DW!C85"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19271,
+      "system_reference": "TW-BN90C4UZ(MK)",
+      "native_sku": "TM-MT-BMT-1108-WM-0589",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0589",
+      "expected_name": "სარეცხი მანქანა Toshiba TW-BN90C4UZ(MK)",
+      "expected_offer_references": [
+        "TW-BN90C4UZ(MK)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C24, REF-WM-DW!C88"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19272,
+      "system_reference": "TW-BN90C4UZ(SK)",
+      "native_sku": "TM-MT-BMT-1108-WM-0591",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0591",
+      "expected_name": "სარეცხი მანქანა Toshiba TW-BN90C4UZ(SK)",
+      "expected_offer_references": [
+        "TW-BN90C4UZ(SK)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C25, REF-WM-DW!C89"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19273,
+      "system_reference": "TW-BN90C4UZ(WK)",
+      "native_sku": "TM-MT-BMT-1108-WM-0599",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0599",
+      "expected_name": "სარეცხი მანქანა Toshiba TW-BN90C4UZ(WK)",
+      "expected_offer_references": [
+        "TW-BN90C4UZ(WK)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C26, REF-WM-DW!C90"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19274,
+      "system_reference": "TW-BK100GF4UZ(WK)",
+      "native_sku": "TM-MT-BMT-1108-WM-0585",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0585",
+      "expected_name": "სარეცხი მანქანა Toshiba TW-BK100GF4UZ(WK)",
+      "expected_offer_references": [
+        "TW-BK100GF4UZ(WK)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C27, REF-WM-DW!C92"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19275,
+      "system_reference": "WW70AGAS25AXLP",
+      "native_sku": "TM-MT-BMT-1108-WM-0581",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0581",
+      "expected_name": "სარეცხი მანქანა Samsung WW70AGAS25AXLP",
+      "expected_offer_references": [
+        "WW70AGAS25AXLP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C98"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19276,
+      "system_reference": "WW80AG6L28BBLP",
+      "native_sku": "TM-MT-BMT-1108-WM-0582",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0582",
+      "expected_name": "სარეცხი მანქანა Samsung WW80AG6L28BBLP",
+      "expected_offer_references": [
+        "WW80AG6L28BBLP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C101"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19277,
+      "system_reference": "WW80AG6L28WELP",
+      "native_sku": "TM-MT-BMT-1108-WM-0583",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0583",
+      "expected_name": "სარეცხი მანქანა Samsung WW80AG6L28WELP",
+      "expected_offer_references": [
+        "WW80AG6L28WELP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C102"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19278,
+      "system_reference": "WW90DG6U34LELP",
+      "native_sku": "TM-MT-BMT-1108-WM-0613",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0613",
+      "expected_name": "სარეცხი მანქანა Samsung WW90DG6U34LELP",
+      "expected_offer_references": [
+        "WW90DG6U34LELP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C104"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19279,
+      "system_reference": "WW90DG6U34LBLP",
+      "native_sku": "TM-MT-BMT-1108-WM-0615",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0615",
+      "expected_name": "სარეცხი მანქანა Samsung WW90DG6U34LBLP",
+      "expected_offer_references": [
+        "WW90DG6U34LBLP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C105"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19280,
+      "system_reference": "WW90DG5U34AELP",
+      "native_sku": "TM-MT-BMT-1108-WM-0616",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0616",
+      "expected_name": "სარეცხი მანქანა Samsung WW90DG5U34AELP",
+      "expected_offer_references": [
+        "WW90DG5U34AELP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C106"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19281,
+      "system_reference": "WW90DG5U34ABLP",
+      "native_sku": "TM-MT-BMT-1108-WM-0614",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0614",
+      "expected_name": "სარეცხი მანქანა Samsung WW90DG5U34ABLP",
+      "expected_offer_references": [
+        "WW90DG5U34ABLP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C107"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19282,
+      "system_reference": "WW11CGP44CSBLP",
+      "native_sku": "TM-MT-BMT-1108-WM-0572",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0572",
+      "expected_name": "სარეცხი მანქანა Samsung WW11CGP44CSBLP",
+      "expected_offer_references": [
+        "WW11CGP44CSBLP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C108"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19283,
+      "system_reference": "WW11CB944CGHLP",
+      "native_sku": "TM-MT-BMT-1108-WM-0573",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0573",
+      "expected_name": "სარეცხი მანქანა Samsung WW11CB944CGHLP",
+      "expected_offer_references": [
+        "WW11CB944CGHLP"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C109"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19284,
+      "system_reference": "EW6F9482E",
+      "native_sku": "TM-MT-BMT-1108-WM-0630",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0630",
+      "expected_name": "სარეცხი მანქანა Electrolux EW6F9482E",
+      "expected_offer_references": [
+        "EW6F9482E"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C139"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19285,
+      "system_reference": "EW7FG4492UDE",
+      "native_sku": "TM-MT-BMT-1108-WM-0570",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0570",
+      "expected_name": "სარეცხი მანქანა Electrolux EW7FG4492UDE",
+      "expected_offer_references": [
+        "EW7FG4492UDE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C144"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19286,
+      "system_reference": "EW6F9492E",
+      "native_sku": "TM-MT-BMT-1108-WM-0628",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0628",
+      "expected_name": "სარეცხი მანქანა Electrolux EW6F9492E",
+      "expected_offer_references": [
+        "EW6F9492E"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C145"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19287,
+      "system_reference": "EW6F9452E",
+      "native_sku": "TM-MT-BMT-1108-WM-0629",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0629",
+      "expected_name": "სარეცხი მანქანა Electrolux EW6F9452E",
+      "expected_offer_references": [
+        "EW6F9452E"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C146"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19288,
+      "system_reference": "LFR6G944GE",
+      "native_sku": "TM-MT-BMT-1108-WM-0624",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0624",
+      "expected_name": "სარეცხი მანქანა AEG LFR6G944GE",
+      "expected_offer_references": [
+        "LFR6G944GE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C147"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19289,
+      "system_reference": "LFR6G544E",
+      "native_sku": "TM-MT-BMT-1108-WM-0625",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0625",
+      "expected_name": "სარეცხი მანქანა AEG LFR6G544E",
+      "expected_offer_references": [
+        "LFR6G544E"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C148"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19290,
+      "system_reference": "DW-10F4(B)-CIS",
+      "native_sku": "TM-MT-BMT-1108-DW-0108",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0108",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Toshiba DW-10F4(B)-CIS",
+      "expected_offer_references": [
+        "DW-10F4(B)-CIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C31, REF-WM-DW!C155"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19291,
+      "system_reference": "DW-14F6(B)-CIS",
+      "native_sku": "TM-MT-BMT-1108-DW-0109",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0109",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Toshiba DW-14F6(B)-CIS",
+      "expected_offer_references": [
+        "DW-14F6(B)-CIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C32, REF-WM-DW!C156"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19292,
+      "system_reference": "DW-14F7(B)-CIS",
+      "native_sku": "TM-MT-BMT-1108-DW-0117",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0117",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Toshiba DW-14F7(B)-CIS",
+      "expected_offer_references": [
+        "DW-14F7(B)-CIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C33, REF-WM-DW!C157"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19293,
+      "system_reference": "DW-16F1(BS)-CIS",
+      "native_sku": "TM-MT-BMT-1108-DW-0116",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0116",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Toshiba DW-16F1(BS)-CIS",
+      "expected_offer_references": [
+        "DW-16F1(BS)-CIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C34, REF-WM-DW!C158"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19294,
+      "system_reference": "E62SD200SW",
+      "native_sku": "TM-MT-BMT-1108-DW-0125",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0125",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Electrolux E62SD200SW",
+      "expected_offer_references": [
+        "E62SD200SW"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C167"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19295,
+      "system_reference": "DW60M5052FS/TR",
+      "native_sku": "TM-MT-BMT-1108-DW-0043",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0043",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Samsung DW60M5052FS/TR",
+      "expected_offer_references": [
+        "DW60M5052FS/TR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C168"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19296,
+      "system_reference": "DW60M5052FW/TR",
+      "native_sku": "TM-MT-BMT-1108-DW-0044",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0044",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Samsung DW60M5052FW/TR (თეთრი)",
+      "expected_offer_references": [
+        "DW60M5052FW/TR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C169"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19297,
+      "system_reference": "DW60M6072FS/TR",
+      "native_sku": "TM-MT-BMT-1108-DW-0045",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0045",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Samsung DW60M6072FS/TR",
+      "expected_offer_references": [
+        "DW60M6072FS/TR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C170"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19298,
+      "system_reference": "EEA23200L",
+      "native_sku": "TM-MT-BMT-1108-IS-0022",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-IS-0022",
+      "expected_name": "ჩასაშენებელი ჭურჭლის სარეცხი მანქანა Electrolux EEA23200L",
+      "expected_offer_references": [
+        "EEA23200L"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C179"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19299,
+      "system_reference": "KL52E100S",
+      "native_sku": "TM-MT-BMT-1108-DI-0047",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DI-0047",
+      "expected_name": "ჩასაშენებელი ჭურჭლის სარეცხი მანქანა Electrolux KL52E100S",
+      "expected_offer_references": [
+        "KL52E100S"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx REF-WM-DW!C187"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19300,
+      "system_reference": "DW-10B3(B)-CIS",
+      "native_sku": "TM-MT-BMT-1108-DW-0111",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0111",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Toshiba DW-10B3(B)-CIS",
+      "expected_offer_references": [
+        "DW-10B3(B)-CIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C35, REF-WM-DW!C189"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19301,
+      "system_reference": "DW-10B2(B)-CIS",
+      "native_sku": "TM-MT-BMT-1108-IS-0024",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-IS-0024",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Toshiba DW-10B2(B)-CIS",
+      "expected_offer_references": [
+        "DW-10B2(B)-CIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C36, REF-WM-DW!C190"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19302,
+      "system_reference": "DW-14B4(B)-CIS",
+      "native_sku": "TM-MT-BMT-1108-DW-0110",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-DW-0110",
+      "expected_name": "ჭურჭლის სარეცხი მანქანა Toshiba DW-14B4(B)-CIS",
+      "expected_offer_references": [
+        "DW-14B4(B)-CIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C37, REF-WM-DW!C191"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19303,
+      "system_reference": "32NST3000",
+      "native_sku": "TM-DG-TVA-1118-TV-1049",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1049",
+      "expected_name": "ტელევიზორი Hoffmann 32NST3000",
+      "expected_offer_references": [
+        "32NST3000"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C42, TV !C9"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19304,
+      "system_reference": "32AT4000",
+      "native_sku": "TM-DG-TVA-1118-TV-1050",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1050",
+      "expected_name": "ტელევიზორი Hoffmann 32AT4000",
+      "expected_offer_references": [
+        "32AT4000"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C43, TV !C10"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19305,
+      "system_reference": "43AT4000",
+      "native_sku": "TM-DG-TVA-1118-TV-1051",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1051",
+      "expected_name": "ტელევიზორი Hoffmann 43AT4000",
+      "expected_offer_references": [
+        "43AT4000"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C44, TV !C11"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19306,
+      "system_reference": "32V35RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1020",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1020",
+      "expected_name": "ტელევიზორი Toshiba 32V35RE",
+      "expected_offer_references": [
+        "32V35RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C51, TV !C18"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19307,
+      "system_reference": "43V35RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1021",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1021",
+      "expected_name": "ტელევიზორი Toshiba 43V35RE",
+      "expected_offer_references": [
+        "43V35RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C52, TV !C19"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19308,
+      "system_reference": "50M450RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1064",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1064",
+      "expected_name": "ტელევიზორი Toshiba 50M450RE",
+      "expected_offer_references": [
+        "50M450RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C54, TV !C21"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19309,
+      "system_reference": "55M450RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1014",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1014",
+      "expected_name": "ტელევიზორი Toshiba 55M450RE",
+      "expected_offer_references": [
+        "55M450RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C55, TV !C22"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19310,
+      "system_reference": "55Z670RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1065",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1065",
+      "expected_name": "ტელევიზორი Toshiba 55Z670RE",
+      "expected_offer_references": [
+        "55Z670RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C56, TV !C23"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19311,
+      "system_reference": "65M450RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1022",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1022",
+      "expected_name": "ტელევიზორი Toshiba 65M450RE",
+      "expected_offer_references": [
+        "65M450RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C58, TV !C25"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19312,
+      "system_reference": "65Z670RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1018",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1018",
+      "expected_name": "ტელევიზორი Toshiba 65Z670RE",
+      "expected_offer_references": [
+        "65Z670RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C59, TV !C26"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19313,
+      "system_reference": "75M450RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1023",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1023",
+      "expected_name": "ტელევიზორი Toshiba 75M450RE",
+      "expected_offer_references": [
+        "75M450RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C63, TV !C30"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19314,
+      "system_reference": "85M450RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1017",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1017",
+      "expected_name": "ტელევიზორი Toshiba 85M450RE",
+      "expected_offer_references": [
+        "85M450RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C64, TV !C31"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19315,
+      "system_reference": "85Z670RE",
+      "native_sku": "TM-DG-TVA-1118-TV-1066",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1066",
+      "expected_name": "ტელევიზორი Toshiba 85Z670RE",
+      "expected_offer_references": [
+        "85Z670RE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx TV !C32"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19316,
+      "system_reference": "EOAC-12K32",
+      "native_sku": "TM-MT-BMT-1198-AC-1382",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1198-AC-1382",
+      "expected_name": "კონდიციონერი Hoffmann EOAC-12K32",
+      "expected_offer_references": [
+        "EOAC-12K32"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C67, გათბობა-გაგრილება!C3"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19317,
+      "system_reference": "EOAC-18K32",
+      "native_sku": "TM-MT-BMT-1198-AC-1383",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1198-AC-1383",
+      "expected_name": "კონდიციონერი Hoffmann EOAC-18K32",
+      "expected_offer_references": [
+        "EOAC-18K32"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C68, გათბობა-გაგრილება!C4"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19318,
+      "system_reference": "EOAC-24K32",
+      "native_sku": "TM-MT-BMT-1198-AC-1411",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1198-AC-1411",
+      "expected_name": "კონდიციონერი Hoffmann EOAC-24K32",
+      "expected_offer_references": [
+        "EOAC-24K32"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C69, გათბობა-გაგრილება!C5"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19319,
+      "system_reference": "EIAC-12K32",
+      "native_sku": "TM-MT-BMT-1198-AC-1385",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1198-AC-1385",
+      "expected_name": "კონდიციონერი Hoffmann EIAC-12K32",
+      "expected_offer_references": [
+        "EIAC-12K32"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C70, გათბობა-გაგრილება!C7"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19320,
+      "system_reference": "EIAC-18K32",
+      "native_sku": "TM-MT-BMT-1198-AC-1386",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1198-AC-1386",
+      "expected_name": "კონდიციონერი Hoffmann EIAC-18K32",
+      "expected_offer_references": [
+        "EIAC-18K32"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C71, გათბობა-გაგრილება!C8"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19321,
+      "system_reference": "CS-BZ60ZKE",
+      "native_sku": "TM-MT-BMT-1198-AC-1397",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1198-AC-1397",
+      "expected_name": "კონდიციონერი Panasonic CS-BZ60ZKE",
+      "expected_offer_references": [
+        "CS-BZ60ZKE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გათბობა-გაგრილება!C13"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19322,
+      "system_reference": "DA24CEH.NGGF",
+      "native_sku": "TM-MT-BMT-1198-AC-1399",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1198-AC-1399",
+      "expected_name": "კონდიციონერი LG DA24CEH.NGGF",
+      "expected_offer_references": [
+        "DA24CEH.NGGF"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გათბობა-გაგრილება!C35"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19324,
+      "system_reference": "FF6400GAZJ",
+      "native_sku": "TM-MT-BMT-1117-CK-0114",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-CK-0114",
+      "expected_name": "გაზქურა Hoffmann FF6400GAZJ",
+      "expected_offer_references": [
+        "FF6400GAZJ"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C74, გაზქურა-ჩასაშენებელი!C3"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19325,
+      "system_reference": "FF6400GAZD",
+      "native_sku": "TM-MT-BMT-1117-CK-0115",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-CK-0115",
+      "expected_name": "გაზქურა Hoffmann FF6400GAZD",
+      "expected_offer_references": [
+        "FF6400GAZD"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C75, გაზქურა-ჩასაშენებელი!C4"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19326,
+      "system_reference": "FF6403GAZW",
+      "native_sku": "TM-MT-BMT-1117-CK-0125",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-CK-0125",
+      "expected_name": "გაზქურა Hoffmann FF6403GAZW",
+      "expected_offer_references": [
+        "FF6403GAZW"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C76, გაზქურა-ჩასაშენებელი!C5"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19328,
+      "system_reference": "HG460G",
+      "native_sku": "TM-MT-BMT-1117-CK-0082",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-CK-0082",
+      "expected_name": "გაზქურა Hoffmann HG460G",
+      "expected_offer_references": [
+        "HG460G"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C78, გაზქურა-ჩასაშენებელი!C7"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19329,
+      "system_reference": "HG361X",
+      "native_sku": "TM-MT-BMT-1117-CK-0083",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-CK-0083",
+      "expected_name": "გაზქურა Hoffmann HG361X",
+      "expected_offer_references": [
+        "HG361X"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C79, გაზქურა-ჩასაშენებელი!C8"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19330,
+      "system_reference": "TTHD-450TB",
+      "native_sku": "TM-MT-BMT-1117-HD-0213",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-HD-0213",
+      "expected_name": "გამწოვი Hoffmann TTHD-450TB",
+      "expected_offer_references": [
+        "TTHD-450TB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C80, გაზქურა-ჩასაშენებელი!C22"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19331,
+      "system_reference": "LFC316X",
+      "native_sku": "TM-MT-BMT-1117-HD-0175",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-HD-0175",
+      "expected_name": "გამწოვი Electrolux LFC316X",
+      "expected_offer_references": [
+        "LFC316X"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C24"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19332,
+      "system_reference": "LFG525K",
+      "native_sku": "TM-MT-BMT-1117-HD-0144",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-HD-0144",
+      "expected_name": "გამწოვი Electrolux LFG525K",
+      "expected_offer_references": [
+        "LFG525K"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C27"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19334,
+      "system_reference": "FIHD-450IN",
+      "native_sku": "TM-MT-BMT-1117-HD-0212",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-HD-0212",
+      "expected_name": "გამწოვი Hoffmann FIHD-450IN",
+      "expected_offer_references": [
+        "FIHD-450IN"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C83, გაზქურა-ჩასაშენებელი!C40"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19345,
+      "system_reference": "KODEF70BZ",
+      "native_sku": "TM-MT-BMT-1117-BO-0226",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0226",
+      "expected_name": "ჩასაშენებელი ღუმელი Electrolux KODEF70BZ",
+      "expected_offer_references": [
+        "KODEF70BZ"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C78"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19346,
+      "system_reference": "EOF3H40BX",
+      "native_sku": "TM-MT-BMT-1117-BO-0160",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0160",
+      "expected_name": "ღუმელი Electrolux EOF3H40BX",
+      "expected_offer_references": [
+        "EOF3H40BX"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C84"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19347,
+      "system_reference": "OPEB2520R",
+      "native_sku": "TM-MT-BMT-1117-BO-0169",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0169",
+      "expected_name": "ღუმელი Electrolux OPEB2520R",
+      "expected_offer_references": [
+        "OPEB2520R"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C90"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19348,
+      "system_reference": "LOH3H00BK",
+      "native_sku": "TM-MT-BMT-1117-BO-0206",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0206",
+      "expected_name": "ჩასაშენებელი ღუმელი Electrolux LOH3H00BK",
+      "expected_offer_references": [
+        "LOH3H00BK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C94"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19349,
+      "system_reference": "NBR7P731SB",
+      "native_sku": "TM-MT-BMT-1117-BO-0222",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0222",
+      "expected_name": "ჩასაშენებელი ღუმელი AEG NBR7P731SB",
+      "expected_offer_references": [
+        "NBR7P731SB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C97"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19350,
+      "system_reference": "OA5CB31SM",
+      "native_sku": "TM-MT-BMT-1117-BO-0224",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0224",
+      "expected_name": "ჩასაშენებელი ღუმელი AEG OA5CB31SM",
+      "expected_offer_references": [
+        "OA5CB31SM"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C102"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19351,
+      "system_reference": "CHANTE-444",
+      "native_sku": "TM-MT-BMT-1117-BO-0213",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0213",
+      "expected_name": "ღუმელი Hoffmann CHANTE-444",
+      "expected_offer_references": [
+        "CHANTE-444"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C90, გაზქურა-ჩასაშენებელი!C109"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19352,
+      "system_reference": "NERO-333",
+      "native_sku": "TM-MT-BMT-1117-BO-0188",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0188",
+      "expected_name": "ღუმელი Hoffmann Nero-333",
+      "expected_offer_references": [
+        "NERO-333"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C91, გაზქურა-ჩასაშენებელი!C110"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19353,
+      "system_reference": "NERO-444",
+      "native_sku": "TM-MT-BMT-1117-BO-0214",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0214",
+      "expected_name": "ღუმელი Hoffmann NERO-444",
+      "expected_offer_references": [
+        "NERO-444"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C92, გაზქურა-ჩასაშენებელი!C111"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19354,
+      "system_reference": "NN-GT35HBZPE",
+      "native_sku": "TM-MT-XMT-1101-MW-0120",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-MW-0120",
+      "expected_name": "მიკროტალღური ღუმელი Panasonic NN-GT35HBZPE",
+      "expected_offer_references": [
+        "NN-GT35HBZPE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C5"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19355,
+      "system_reference": "NN-ST34NBZUE",
+      "native_sku": "TM-MT-XMT-1101-MW-0139",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-MW-0139",
+      "expected_name": "მიკროტალღური ღუმელი Panasonic NN-ST34NBZUE",
+      "expected_offer_references": [
+        "NN-ST34NBZUE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C8"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19356,
+      "system_reference": "NN-ST254MZUE",
+      "native_sku": "TM-MT-XMT-1102-MW-0125",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MW-0125",
+      "expected_name": "მიკროტალღური ღუმელი Panasonic NN-ST254MZUE",
+      "expected_offer_references": [
+        "NN-ST254MZUE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C18"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19357,
+      "system_reference": "MW3-EM20PE(BK)",
+      "native_sku": "TM-MT-XMT-1101-MW-0128",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-MW-0128",
+      "expected_name": "მიკროტალღური ღუმელი Toshiba MW3-EM20PE(BK)",
+      "expected_offer_references": [
+        "MW3-EM20PE(BK)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C22"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19358,
+      "system_reference": "MM-EM23P(BK)-CV",
+      "native_sku": "TM-MT-XMT-1101-MW-0126",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-MW-0126",
+      "expected_name": "მიკროტალღური ღუმელი Toshiba MM-EM23P(BK)-CV",
+      "expected_offer_references": [
+        "MM-EM23P(BK)-CV"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C40, მტვერს-მიკროტ!C23"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19359,
+      "system_reference": "MW3-EG25PE(BM)",
+      "native_sku": "TM-MT-XMT-1101-MW-0141",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-MW-0141",
+      "expected_name": "მიკროტალღური ღუმელი Toshiba MW3-EG25PE(BM)",
+      "expected_offer_references": [
+        "MW3-EG25PE(BM)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C41, მტვერს-მიკროტ!C25"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19360,
+      "system_reference": "G2630S",
+      "native_sku": "TM-MT-XMT-1101-MW-0144",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-MW-0144",
+      "expected_name": "მიკროტალღური ღუმელი Hoffmann G2630S",
+      "expected_offer_references": [
+        "G2630S"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C27"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19361,
+      "system_reference": "F3700 SILVER",
+      "native_sku": "TM-MT-XMT-1102-MO-0037",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MO-0037",
+      "expected_name": "მინი ღუმელი Hoffmann F3700 Silver",
+      "expected_offer_references": [
+        "F3700 SILVER"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C28"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19362,
+      "system_reference": "A9LSLIM.BCBQCIS",
+      "native_sku": "TM-MT-XMT-1101-CV-0215",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-CV-0215",
+      "expected_name": "უსადენო მტვერსასრუტი LG A9LSLIM.BCBQCIS",
+      "expected_offer_references": [
+        "A9LSLIM.BCBQCIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C35"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19363,
+      "system_reference": "MC-SBR40C946",
+      "native_sku": "TM-MT-XMT-1101-CV-0262",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-CV-0262",
+      "expected_name": "უსადენო მტვერსასრუტი Panasonic MC-SBR40C946",
+      "expected_offer_references": [
+        "MC-SBR40C946"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C36"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19365,
+      "system_reference": "FLOOR ONE SWITCH S7 STRETCH",
+      "native_sku": "TM-MT-XMT-1101-CV-0210",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-CV-0210",
+      "expected_name": "უსადენო მტვერსასრუტი Tineco Floor One Switch S7 Stretch",
+      "expected_offer_references": [
+        "FLOOR ONE SWITCH S7 STRETCH"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C38"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19366,
+      "system_reference": "TINECO S70",
+      "native_sku": "TM-MT-XMT-1101-CV-0225",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-CV-0225",
+      "expected_name": "უსადენო მტვერსასრუტი Tineco S70",
+      "expected_offer_references": [
+        "TINECO S70"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C40"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19367,
+      "system_reference": "MC-CL603G149",
+      "native_sku": "TM-MT-XMT-1101-VC-0423",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0423",
+      "expected_name": "მტვერსასრუტი Panasonic MC-CL603G149",
+      "expected_offer_references": [
+        "MC-CL603G149"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C49"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19368,
+      "system_reference": "MC-CL605K149",
+      "native_sku": "TM-MT-XMT-1101-VC-0414",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0414",
+      "expected_name": "მტვერსასრუტი Panasonic MC-CL605K149",
+      "expected_offer_references": [
+        "MC-CL605K149"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C50"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19369,
+      "system_reference": "VC5320NNTR.APRQCIS",
+      "native_sku": "TM-MT-XMT-1101-VC-0442",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0442",
+      "expected_name": "მტვერსასრუტი LG VC5320NNTR.APRQCIS",
+      "expected_offer_references": [
+        "VC5320NNTR.APRQCIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C52"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19371,
+      "system_reference": "VC73189NHTS.APSQCIS",
+      "native_sku": "TM-MT-XMT-1101-VC-0440",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0440",
+      "expected_name": "მტვერსასრუტი LG VC73189NHTS.APSQCIS",
+      "expected_offer_references": [
+        "VC73189NHTS.APSQCIS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C54"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19372,
+      "system_reference": "FC9351/01",
+      "native_sku": "TM-MT-XMT-1101-VC-0118",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0118",
+      "expected_name": "მტვერსასრუტი Philips FC9351/01",
+      "expected_offer_references": [
+        "FC9351/01"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C60"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19373,
+      "system_reference": "FC9573/01",
+      "native_sku": "TM-MT-XMT-1101-VC-0131",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0131",
+      "expected_name": "მტვერსასრუტი PHILIPS FC9573/01",
+      "expected_offer_references": [
+        "FC9573/01"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C62"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19374,
+      "system_reference": "XB2023/01",
+      "native_sku": "TM-MT-XMT-1101-VC-0387",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0387",
+      "expected_name": "მტვერსასრუტი Philips XB2023/01",
+      "expected_offer_references": [
+        "XB2023/01"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C64"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19375,
+      "system_reference": "VCC885HH3P/XEV",
+      "native_sku": "TM-MT-XMT-1101-VC-0428",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0428",
+      "expected_name": "მტვერსასრუტი Samsung VCC885HH3P/XEV",
+      "expected_offer_references": [
+        "VCC885HH3P/XEV"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C67"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19376,
+      "system_reference": "VC18M3140VN/EV",
+      "native_sku": "TM-MT-XMT-1101-VC-0427",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0427",
+      "expected_name": "მტვერსასრუტი Samsung VC18M3140VN/EV",
+      "expected_offer_references": [
+        "VC18M3140VN/EV"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C69"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19377,
+      "system_reference": "VC15K4116VR/EV",
+      "native_sku": "TM-MT-XMT-1101-VC-0360",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0360",
+      "expected_name": "მტვერსასრუტი Samsung VC15K4116VR/EV",
+      "expected_offer_references": [
+        "VC15K4116VR/EV"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C71"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19378,
+      "system_reference": "VC21K5170HG/EV",
+      "native_sku": "TM-MT-XMT-1101-VC-0435",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-VC-0435",
+      "expected_name": "მტვერსასრუტი Samsung VC21K5170HG/EV",
+      "expected_offer_references": [
+        "VC21K5170HG/EV"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C72"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19379,
+      "system_reference": "EC 685.BK",
+      "native_sku": "TM-MT-XMT-1102-CM-0013",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-CM-0013",
+      "expected_name": "ყავის აპარატი DeLonghi EC 685.BK",
+      "expected_offer_references": [
+        "EC 685.BK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C18"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19380,
+      "system_reference": "EC 685.R",
+      "native_sku": "TM-MT-XMT-1102-CM-0015",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-CM-0015",
+      "expected_name": "ყავის აპარატი DeLonghi EC 685.R",
+      "expected_offer_references": [
+        "EC 685.R"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C19"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19381,
+      "system_reference": "EC890.GR",
+      "native_sku": "TM-MT-XMT-1101-CM-0005",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-CM-0005",
+      "expected_name": "ყავის აპარატი DeLonghi EC890.GR",
+      "expected_offer_references": [
+        "EC890.GR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C22"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19382,
+      "system_reference": "ECAM220.22.GB",
+      "native_sku": "TM-MT-XMT-1101-AC-0023",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-AC-0023",
+      "expected_name": "ყავის აპარატი DeLonghi ECAM220.22.GB",
+      "expected_offer_references": [
+        "ECAM220.22.GB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C25"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19383,
+      "system_reference": "ECAM290.81.TB",
+      "native_sku": "TM-MT-XMT-1101-AC-0019",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-AC-0019",
+      "expected_name": "ყავის აპარატი DeLonghi Ecam290.81.TB",
+      "expected_offer_references": [
+        "ECAM290.81.TB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C29"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19384,
+      "system_reference": "ECAM320.61.G",
+      "native_sku": "TM-MT-XMT-1101-AC-0029",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-AC-0029",
+      "expected_name": "ყავის აპარატი DeLonghi ECAM320.61.G",
+      "expected_offer_references": [
+        "ECAM320.61.G"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C34"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19385,
+      "system_reference": "EXAM440.55.G",
+      "native_sku": "TM-MT-XMT-1101-AC-0030",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-AC-0030",
+      "expected_name": "ყავის აპარატი DeLonghi EXAM440.55.G",
+      "expected_offer_references": [
+        "EXAM440.55.G"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C43"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19386,
+      "system_reference": "ECAM450.65.S",
+      "native_sku": "TM-MT-XMT-1102-AC-0052",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-AC-0052",
+      "expected_name": "ყავის აპარატი DeLonghi ECAM450.65.S",
+      "expected_offer_references": [
+        "ECAM450.65.S"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C44"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19387,
+      "system_reference": "ECAM450.65.G",
+      "native_sku": "TM-MT-XMT-1101-AC-0034",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-AC-0034",
+      "expected_name": "ყავის აპარატი DeLonghi ECAM450.65.G",
+      "expected_offer_references": [
+        "ECAM450.65.G"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C45"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19388,
+      "system_reference": "ECAM470.85.MB",
+      "native_sku": "TM-MT-XMT-1101-AC-0050",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-AC-0050",
+      "expected_name": "ყავის აპარატი DeLonghi ECAM470.85.MB",
+      "expected_offer_references": [
+        "ECAM470.85.MB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C47"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19389,
+      "system_reference": "ECAM610.55.SB",
+      "native_sku": "TM-MT-XMT-1101-AC-0022",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-AC-0022",
+      "expected_name": "ყავის აპარატი DeLonghi ECAM610.55.SB",
+      "expected_offer_references": [
+        "ECAM610.55.SB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C51"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19390,
+      "system_reference": "EP2124/72",
+      "native_sku": "TM-MT-XMT-1101-AC-0062",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-AC-0062",
+      "expected_name": "ყავის აპარატი Philips EP2124/72",
+      "expected_offer_references": [
+        "EP2124/72"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C54"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19391,
+      "system_reference": "SD-R2520WTS",
+      "native_sku": "TM-MT-XMT-1102-BM-0031",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BM-0031",
+      "expected_name": "პურის საცხობი Panasonic SD-R2520WTS",
+      "expected_offer_references": [
+        "SD-R2520WTS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C62"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19392,
+      "system_reference": "AF180EU",
+      "native_sku": "TM-MT-XMT-1101-FH-0022",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-FH-0022",
+      "expected_name": "აეროგრილი Ninja AF180EU",
+      "expected_offer_references": [
+        "AF180EU"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C68"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19393,
+      "system_reference": "AF500EU",
+      "native_sku": "TM-MT-XMT-1102-GM-0070",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-GM-0070",
+      "expected_name": "აეროგრილი Ninja AF500EU",
+      "expected_offer_references": [
+        "AF500EU"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C70"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19394,
+      "system_reference": "SL300EU",
+      "native_sku": "TM-MT-XMT-1101-FH-0060",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-FH-0060",
+      "expected_name": "აეროგრილი Ninja SL300EU",
+      "expected_offer_references": [
+        "SL300EU"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C73"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19395,
+      "system_reference": "HF3030",
+      "native_sku": "TM-MT-XMT-1101-FH-0034",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-FH-0034",
+      "expected_name": "აეროგრილი Braun HF3030",
+      "expected_offer_references": [
+        "HF3030"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C76"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19396,
+      "system_reference": "NA555/09",
+      "native_sku": "TM-MT-XMT-1101-FH-0063",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-FH-0063",
+      "expected_name": "აეროგრილი Philips NA555/09",
+      "expected_offer_references": [
+        "NA555/09"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C81"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19397,
+      "system_reference": "NBA071B",
+      "native_sku": "TM-MT-XMT-1101-FH-0044",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-FH-0044",
+      "expected_name": "აეროგრილი NutriBullet FR INT CB NBA071B",
+      "expected_offer_references": [
+        "NBA071B"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C85"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19398,
+      "system_reference": "NBA081B",
+      "native_sku": "TM-MT-XMT-1101-FH-0031",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-FH-0031",
+      "expected_name": "აეროგრილი NutriBullet FR INT CB NBA081B AIRFRY 2850W 2DRAWERS",
+      "expected_offer_references": [
+        "NBA081B"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C86"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19399,
+      "system_reference": "NF-CC500SXE",
+      "native_sku": "TM-MT-XMT-1101-FH-0055",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-FH-0055",
+      "expected_name": "აეროგრილი Panasonic NF-CC500SXE",
+      "expected_offer_references": [
+        "NF-CC500SXE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C87"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19400,
+      "system_reference": "NF-CC600ATS",
+      "native_sku": "TM-MT-XMT-1102-GM-0069",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-GM-0069",
+      "expected_name": "აეროგრილი Panasonic NF-CC600ATS",
+      "expected_offer_references": [
+        "NF-CC600ATS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C89"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19401,
+      "system_reference": "MK622132",
+      "native_sku": "TM-MT-XMT-1102-MC-0053",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MC-0053",
+      "expected_name": "მულტისახარში Moulinex MK622132",
+      "expected_offer_references": [
+        "MK622132"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C91"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19402,
+      "system_reference": "JB3272SI",
+      "native_sku": "TM-MT-XMT-1102-BL-0090",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0090",
+      "expected_name": "სტაციონალური ბლენდერი Braun JB3272SI",
+      "expected_offer_references": [
+        "JB3272SI"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C98"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19403,
+      "system_reference": "B8370BS",
+      "native_sku": "TM-MT-XMT-1102-BL-0026",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0026",
+      "expected_name": "სტაციონალური ბლენდერი HOFFMANN B8370BS",
+      "expected_offer_references": [
+        "B8370BS"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C105"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19404,
+      "system_reference": "B8410B",
+      "native_sku": "TM-MT-XMT-1102-BL-0069",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0069",
+      "expected_name": "სტაციონალური ბლენდერი HOFFMANN B8410B",
+      "expected_offer_references": [
+        "B8410B"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C106"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19405,
+      "system_reference": "MX-CP3121KTN",
+      "native_sku": "TM-MT-XMT-1102-BL-0143",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0143",
+      "expected_name": "სტაციონალური ბლენდერი Panasonic MX-CP3121KTN",
+      "expected_offer_references": [
+        "MX-CP3121KTN"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C107"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19406,
+      "system_reference": "MX-EG5311KTQ",
+      "native_sku": "TM-MT-XMT-1102-BL-0113",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0113",
+      "expected_name": "სტაციონალური ბლენდერი Panasonic MX-EG5311KTQ",
+      "expected_offer_references": [
+        "MX-EG5311KTQ"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C110"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19407,
+      "system_reference": "MX-MG5451WTQ",
+      "native_sku": "TM-MT-XMT-1102-BL-0077",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0077",
+      "expected_name": "სტაციონალური ბლენდერი Panasonic MX-MG5451WTQ",
+      "expected_offer_references": [
+        "MX-MG5451WTQ"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C112"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19408,
+      "system_reference": "NBP003PU",
+      "native_sku": "TM-MT-XMT-1102-BL-0124",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0124",
+      "expected_name": "სტაციონალური ბლენდერი NutriBullet NBP003PU NB Portable Purple",
+      "expected_offer_references": [
+        "NBP003PU"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C114"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19409,
+      "system_reference": "NBP003LBL",
+      "native_sku": "TM-MT-XMT-1102-BL-0125",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0125",
+      "expected_name": "სტაციონალური ბლენდერი NutriBullet NBP003LBL Portable",
+      "expected_offer_references": [
+        "NBP003LBL"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C116"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19410,
+      "system_reference": "NB907MACL",
+      "native_sku": "TM-MT-XMT-1102-BL-0123",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0123",
+      "expected_name": "სტაციონალური ბლენდერი NutriBullet NB907MACL Pro 900W",
+      "expected_offer_references": [
+        "NB907MACL"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C120"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19411,
+      "system_reference": "NB907MAJD",
+      "native_sku": "TM-MT-XMT-1102-BL-0117",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0117",
+      "expected_name": "სტაციონალური ბლენდერი NutriBullet PB INT CB NB907MAJD",
+      "expected_offer_references": [
+        "NB907MAJD"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C121"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19412,
+      "system_reference": "BL46EN38",
+      "native_sku": "TM-MT-XMT-1102-BL-0127",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0127",
+      "expected_name": "სტაციონალური ბლენდერი Tefal BL46EN38",
+      "expected_offer_references": [
+        "BL46EN38"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C124"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19413,
+      "system_reference": "BL435831",
+      "native_sku": "TM-MT-XMT-1102-BL-0071",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-BL-0071",
+      "expected_name": "სტაციონალური ბლენდერი Tefal BL435831",
+      "expected_offer_references": [
+        "BL435831"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C125"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19414,
+      "system_reference": "HB643138",
+      "native_sku": "TM-MT-XMT-1102-HB-0095",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-HB-0095",
+      "expected_name": "ხელის ბლენდერი Tefal OPTICHEF HB643138",
+      "expected_offer_references": [
+        "HB643138"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C148"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19415,
+      "system_reference": "HB944138",
+      "native_sku": "TM-MT-XMT-1102-KT-0257",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0257",
+      "expected_name": "ხელის ბლენდერი Tefal HB944138",
+      "expected_offer_references": [
+        "HB944138"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C149"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19416,
+      "system_reference": "CHP80.000SI",
+      "native_sku": "TM-MT-XMT-1102-CH-0029",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-CH-0029",
+      "expected_name": "ჩოფერი Kenwood CHP80.000SI",
+      "expected_offer_references": [
+        "CHP80.000SI"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C154"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19417,
+      "system_reference": "CHP61.100WH",
+      "native_sku": "TM-MT-XMT-1102-CH-0020",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-CH-0020",
+      "expected_name": "ჩოფერი Kenwood CHP61.100WH",
+      "expected_offer_references": [
+        "CHP61.100WH"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C156"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19419,
+      "system_reference": "MK-GB3WTQ",
+      "native_sku": "TM-MT-XMT-1102-TM-0010",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-TM-0010",
+      "expected_name": "სტაციონალური მიქსერი Panasonic MK-GB3WTQ",
+      "expected_offer_references": [
+        "MK-GB3WTQ"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C177"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19420,
+      "system_reference": "HT464138",
+      "native_sku": "TM-MT-XMT-1102-HM-0041",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-HM-0041",
+      "expected_name": "სტაციონალური მიქსერი Tefal HT464138",
+      "expected_offer_references": [
+        "HT464138"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C179"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19421,
+      "system_reference": "HT654E38",
+      "native_sku": "TM-MT-XMT-1102-TM-0019",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-TM-0019",
+      "expected_name": "სტაციონალური მიქსერი Tefal HT654E38",
+      "expected_offer_references": [
+        "HT654E38"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C180"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19422,
+      "system_reference": "HT652538",
+      "native_sku": "TM-MT-XMT-1101-HM-0021",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-HM-0021",
+      "expected_name": "ხელის მიქსერი Tefal HT652538",
+      "expected_offer_references": [
+        "HT652538"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C181"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19425,
+      "system_reference": "GC7P0810",
+      "native_sku": "TM-MT-XMT-1102-GM-0079",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-GM-0079",
+      "expected_name": "ელექტრო გრილი Tefal GC7P0810",
+      "expected_offer_references": [
+        "GC7P0810"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C193"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19426,
+      "system_reference": "SM5038 SM",
+      "native_sku": "TM-MT-XMT-1102-GM-0054",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-GM-0054",
+      "expected_name": "ელექტრო გრილი Braun SM5038 SM",
+      "expected_offer_references": [
+        "SM5038 SM"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C195"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19427,
+      "system_reference": "MGW1400",
+      "native_sku": "TM-MT-XMT-1102-MG-0066",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MG-0066",
+      "expected_name": "ხორცსაკეპი Hoffmann MGW1400",
+      "expected_offer_references": [
+        "MGW1400"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C196"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19428,
+      "system_reference": "MGB1400",
+      "native_sku": "TM-MT-XMT-1102-MG-0145",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MG-0145",
+      "expected_name": "ხორცსაკეპი Hoffmann MGB1400",
+      "expected_offer_references": [
+        "MGB1400"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C197"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19429,
+      "system_reference": "MGW1800",
+      "native_sku": "TM-MT-XMT-1102-MG-0017",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MG-0017",
+      "expected_name": "ხორცსაკეპი Hoffmann MGW1800",
+      "expected_offer_references": [
+        "MGW1800"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C198"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19430,
+      "system_reference": "ME626132",
+      "native_sku": "TM-MT-XMT-1102-MG-0031",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MG-0031",
+      "expected_name": "ხორცსაკეპი Moulinex ME626132",
+      "expected_offer_references": [
+        "ME626132"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C201"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19431,
+      "system_reference": "NE109838",
+      "native_sku": "TM-MT-XMT-1101-MG-0017",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-MG-0017",
+      "expected_name": "ხორცსაკეპი Tefal NE109838",
+      "expected_offer_references": [
+        "NE109838"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C202"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19432,
+      "system_reference": "MG510",
+      "native_sku": "TM-MT-XMT-1102-MG-0023",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MG-0023",
+      "expected_name": "ხორცსაკეპი Kenwood MG510",
+      "expected_offer_references": [
+        "MG510"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C203"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19433,
+      "system_reference": "MG450",
+      "native_sku": "TM-MT-XMT-1102-MG-0019",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MG-0019",
+      "expected_name": "ხორცსაკეპი KENWOOD MG450",
+      "expected_offer_references": [
+        "MG450"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C204"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19434,
+      "system_reference": "MG515",
+      "native_sku": "TM-MT-XMT-1102-MG-0024",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MG-0024",
+      "expected_name": "ხორცსაკეპი Kenwood MG515",
+      "expected_offer_references": [
+        "MG515"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C206"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19435,
+      "system_reference": "MK-GX1700WTQ",
+      "native_sku": "TM-MT-XMT-1102-MG-0148",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-MG-0148",
+      "expected_name": "ხორცსაკეპი Panasonic MK-GX1700WTQ",
+      "expected_offer_references": [
+        "MK-GX1700WTQ"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C210"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19436,
+      "system_reference": "SJ3100WH",
+      "native_sku": "TM-MT-XMT-1102-JP-0032",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-JP-0032",
+      "expected_name": "წვენსაწური Braun SJ3100WH",
+      "expected_offer_references": [
+        "SJ3100WH"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C217"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19437,
+      "system_reference": "NBJ50300",
+      "native_sku": "TM-MT-XMT-1102-JP-0036",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-JP-0036",
+      "expected_name": "წვენსაწური NutriBullet Slow Juicer NBJ50300",
+      "expected_offer_references": [
+        "NBJ50300"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C220"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19438,
+      "system_reference": "SJM490",
+      "native_sku": "TM-MT-XMT-1102-KT-0060",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0060",
+      "expected_name": "ელექტრო ჩაიდანი Kenwood SJM490",
+      "expected_offer_references": [
+        "SJM490"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C225"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19439,
+      "system_reference": "WK1100BK",
+      "native_sku": "TM-MT-XMT-1102-KT-0232",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0232",
+      "expected_name": "ელექტრო ჩაიდანი Braun WK1100BK",
+      "expected_offer_references": [
+        "WK1100BK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C228"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19440,
+      "system_reference": "WK5205BK",
+      "native_sku": "TM-MT-XMT-1102-KT-0249",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0249",
+      "expected_name": "ელექტრო ჩაიდანი Braun WK5205BK",
+      "expected_offer_references": [
+        "WK5205BK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C234"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19441,
+      "system_reference": "KO299830",
+      "native_sku": "TM-MT-XMT-1102-KT-0149",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0149",
+      "expected_name": "ელექტრო ჩაიდანი Tefal KO299830",
+      "expected_offer_references": [
+        "KO299830"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C236"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19442,
+      "system_reference": "KO250130",
+      "native_sku": "TM-MT-XMT-1102-KT-0112",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0112",
+      "expected_name": "ელექტრო ჩაიდანი Tefal KO250130",
+      "expected_offer_references": [
+        "KO250130"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C237"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19443,
+      "system_reference": "KO250830",
+      "native_sku": "TM-MT-XMT-1102-KT-0147",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0147",
+      "expected_name": "ელექტრო ჩაიდანი Tefal KO250830",
+      "expected_offer_references": [
+        "KO250830"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C238"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19444,
+      "system_reference": "KO693110",
+      "native_sku": "TM-MT-XMT-1102-KT-0196",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0196",
+      "expected_name": "ელექტრო ჩაიდანი Tefal KO693110",
+      "expected_offer_references": [
+        "KO693110"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C239"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19445,
+      "system_reference": "KBOV2001.GR",
+      "native_sku": "TM-MT-XMT-1102-KT-0237",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0237",
+      "expected_name": "ჩაიდანი Delonghi KBOV2001.GR",
+      "expected_offer_references": [
+        "KBOV2001.GR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C243"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19446,
+      "system_reference": "KBOV2001.AZ",
+      "native_sku": "TM-MT-XMT-1102-KT-0248",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0248",
+      "expected_name": "ელექტრო ჩაიდანი DeLonghi KBOV2001.AZ",
+      "expected_offer_references": [
+        "KBOV2001.AZ"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C245"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19447,
+      "system_reference": "KBOV2001.BG",
+      "native_sku": "TM-MT-XMT-1102-KT-0199",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0199",
+      "expected_name": "ელექტრო ჩაიდანი DeLonghi KBOV2001.BG",
+      "expected_offer_references": [
+        "KBOV2001.BG"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C246"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19448,
+      "system_reference": "KT2240W",
+      "native_sku": "TM-MT-XMT-1102-KT-0253",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0253",
+      "expected_name": "ელექტრო ჩაიდანი Hoffmann KT2240W",
+      "expected_offer_references": [
+        "KT2240W"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C247"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19449,
+      "system_reference": "KT2240BK",
+      "native_sku": "TM-MT-XMT-1102-KT-0254",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1102-KT-0254",
+      "expected_name": "ელექტრო ჩაიდანი Hoffmann KT2240BK",
+      "expected_offer_references": [
+        "KT2240BK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C248"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19450,
+      "system_reference": "SI2000",
+      "native_sku": "TM-MT-XMT-1101-IR-0041",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0041",
+      "expected_name": "უთო Hoffmann SI2000",
+      "expected_offer_references": [
+        "SI2000"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C249"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19451,
+      "system_reference": "NI-S530ATV",
+      "native_sku": "TM-MT-XMT-1101-IR-0233",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0233",
+      "expected_name": "უთო Panasonic NI-S530ATV",
+      "expected_offer_references": [
+        "NI-S530ATV"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C254"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19452,
+      "system_reference": "NI-S530VTV",
+      "native_sku": "TM-MT-XMT-1101-IR-0247",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0247",
+      "expected_name": "უთო Panasonic NI-S530VTV",
+      "expected_offer_references": [
+        "NI-S530VTV"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C255"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19453,
+      "system_reference": "NI-U750ATV",
+      "native_sku": "TM-MT-XMT-1101-IR-0260",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0260",
+      "expected_name": "უთო Panasonic NI-U750ATV",
+      "expected_offer_references": [
+        "NI-U750ATV"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C256"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19454,
+      "system_reference": "SI5017GR",
+      "native_sku": "TM-MT-XMT-1101-IR-0201",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0201",
+      "expected_name": "უთო Braun SI5017GR",
+      "expected_offer_references": [
+        "SI5017GR"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C263"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19455,
+      "system_reference": "SI5088BK",
+      "native_sku": "TM-MT-XMT-1101-IR-0228",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0228",
+      "expected_name": "უთო Braun SI5088BK",
+      "expected_offer_references": [
+        "SI5088BK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C267"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19458,
+      "system_reference": "FV6812E0",
+      "native_sku": "TM-MT-XMT-1101-IR-0267",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0267",
+      "expected_name": "უთო Tefal FV6812E0",
+      "expected_offer_references": [
+        "FV6812E0"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C274"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19459,
+      "system_reference": "FV6870E0",
+      "native_sku": "TM-MT-XMT-1101-IR-0223",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0223",
+      "expected_name": "უთო Tefal FV6870E0",
+      "expected_offer_references": [
+        "FV6870E0"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C275"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19461,
+      "system_reference": "FV5770E0",
+      "native_sku": "TM-MT-XMT-1101-IR-0268",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0268",
+      "expected_name": "უთო Tefal FV5770E0",
+      "expected_offer_references": [
+        "FV5770E0"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C277"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19462,
+      "system_reference": "FV2867E0",
+      "native_sku": "TM-MT-XMT-1101-IR-0195",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0195",
+      "expected_name": "უთო Tefal FV2867E0",
+      "expected_offer_references": [
+        "FV2867E0"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C278"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19463,
+      "system_reference": "FV8066E0",
+      "native_sku": "TM-MT-XMT-1101-IR-0269",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0269",
+      "expected_name": "უთო Tefal FV8066E0",
+      "expected_offer_references": [
+        "FV8066E0"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C279"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19464,
+      "system_reference": "GS5031BL",
+      "native_sku": "TM-MT-XMT-1101-SI-0045",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-SI-0045",
+      "expected_name": "ორთქლის უთო Braun GS5031BL",
+      "expected_offer_references": [
+        "GS5031BL"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C284"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19465,
+      "system_reference": "DT9100E0",
+      "native_sku": "TM-MT-XMT-1101-SI-0057",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-SI-0057",
+      "expected_name": "ორთქლის უთო Tefal DT9100E0",
+      "expected_offer_references": [
+        "DT9100E0"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C285"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19467,
+      "system_reference": "DT2024E1",
+      "native_sku": "TM-MT-XMT-1101-SI-0036",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-SI-0036",
+      "expected_name": "ორთქლის უთო Tefal DT2024E1",
+      "expected_offer_references": [
+        "DT2024E1"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C287"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19468,
+      "system_reference": "DT2022E1",
+      "native_sku": "TM-MT-XMT-1101-SI-0032",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-SI-0032",
+      "expected_name": "ორთქლის უთო Tefal DT2022E1",
+      "expected_offer_references": [
+        "DT2022E1"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C288"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19469,
+      "system_reference": "E7HS2-8WB",
+      "native_sku": "TM-MT-XMT-1101-SI-0053",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-SI-0053",
+      "expected_name": "ორთქლის უთო Electrolux E7HS2-8WB",
+      "expected_offer_references": [
+        "E7HS2-8WB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C289"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19474,
+      "system_reference": "HD2250",
+      "native_sku": "TM-MT-XMT-1104-HD-0056",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HD-0056",
+      "expected_name": "თმის ფენი Hoffmann HD2250",
+      "expected_offer_references": [
+        "HD2250"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C303"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19475,
+      "system_reference": "BHD274/00",
+      "native_sku": "TM-MT-XMT-1104-HD-0063",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HD-0063",
+      "expected_name": "თმის ფენი Philips BHD274/00",
+      "expected_offer_references": [
+        "BHD274/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C304"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19476,
+      "system_reference": "BHD308/10",
+      "native_sku": "TM-MT-XMT-1104-HD-0064",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HD-0064",
+      "expected_name": "თმის ფენი Philips BHD308/10",
+      "expected_offer_references": [
+        "BHD308/10"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C306"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19479,
+      "system_reference": "BHS520/00",
+      "native_sku": "TM-MT-XMT-1104-HI-0088",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HI-0088",
+      "expected_name": "თმის უთო Philips BHS520/00",
+      "expected_offer_references": [
+        "BHS520/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C316"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19480,
+      "system_reference": "BHS378/00",
+      "native_sku": "TM-MT-XMT-1104-HI-0071",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HI-0071",
+      "expected_name": "თმის უთო Philips BHS378/00",
+      "expected_offer_references": [
+        "BHS378/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C321"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19481,
+      "system_reference": "MG5921/15",
+      "native_sku": "TM-MT-XMT-1104-TR-0143",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-TR-0143",
+      "expected_name": "ტრიმერი Philips MG5921/15",
+      "expected_offer_references": [
+        "MG5921/15"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C333"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19482,
+      "system_reference": "MG7921/15",
+      "native_sku": "TM-MT-XMT-1104-TR-0144",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-TR-0144",
+      "expected_name": "ტრიმერი Philips MG7921/15",
+      "expected_offer_references": [
+        "MG7921/15"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C334"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19493,
+      "system_reference": "WEOFLY VIVE 2",
+      "native_sku": "TM-DG-SMW-1106-SW-0328",
+      "expected_product_sku": "kontakt-TM-DG-SMW-1106-SW-0328",
+      "expected_name": "Weofly Vive 2",
+      "expected_offer_references": [
+        "WEOFLY VIVE 2"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx ციფრული აქსესუარები!C3"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19494,
+      "system_reference": "WEOFLY CONQUER 2",
+      "native_sku": "TM-DG-SMW-1106-SW-0329",
+      "expected_product_sku": "kontakt-TM-DG-SMW-1106-SW-0329",
+      "expected_name": "Weofly Conquer 2",
+      "expected_offer_references": [
+        "WEOFLY CONQUER 2"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx ციფრული აქსესუარები!C4"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19495,
+      "system_reference": "WEOFLY SPIRIT 2 BLACK",
+      "native_sku": "TM-DG-SMW-1106-SW-0423",
+      "expected_product_sku": "kontakt-TM-DG-SMW-1106-SW-0423",
+      "expected_name": "Weofly Spirit 2 Black",
+      "expected_offer_references": [
+        "WEOFLY SPIRIT 2 BLACK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx ციფრული აქსესუარები!C11"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19496,
+      "system_reference": "WEOFLY CURVE 2 BLACK",
+      "native_sku": "TM-DG-SMW-1106-SW-0428",
+      "expected_product_sku": "kontakt-TM-DG-SMW-1106-SW-0428",
+      "expected_name": "Weofly Curve 2 Black",
+      "expected_offer_references": [
+        "WEOFLY CURVE 2 BLACK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx ციფრული აქსესუარები!C12"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19497,
+      "system_reference": "WEOFLY EDGE 2 BLACK",
+      "native_sku": "TM-DG-SMW-1106-SW-0416",
+      "expected_product_sku": "kontakt-TM-DG-SMW-1106-SW-0416",
+      "expected_name": "Weofly Edge 2 Black",
+      "expected_offer_references": [
+        "WEOFLY EDGE 2 BLACK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx ციფრული აქსესუარები!C14"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19498,
+      "system_reference": "KIESLECT LADY WATCH ELFIN ROSE GOLD",
+      "native_sku": "TM-DG-SMW-1106-SW-0446",
+      "expected_product_sku": "kontakt-TM-DG-SMW-1106-SW-0446",
+      "expected_name": "Kieslect Lady Watch Elfin Rose Gold",
+      "expected_offer_references": [
+        "KIESLECT LADY WATCH ELFIN ROSE GOLD"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx ციფრული აქსესუარები!C27"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 19510,
+      "system_reference": "JBL TUNE 520 BT-WHITE",
+      "native_sku": "TM-DG-ACS-1109-OH-0233",
+      "expected_product_sku": "kontakt-TM-DG-ACS-1109-OH-0233",
+      "expected_name": "ყურსასმენი JBL Tune 520 BT-White",
+      "expected_offer_references": [
+        "JBL TUNE 520 BT-WHITE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx ციფრული აქსესუარები!C66"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 22334,
+      "system_reference": "65Z570SE",
+      "native_sku": "TM-DG-TVA-1118-TV-1102",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1102",
+      "expected_name": "ტელევიზორი Toshiba 65Z570SE",
+      "expected_offer_references": [
+        "65Z570SE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C60, TV !C27"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 22336,
+      "system_reference": "75Z680SE",
+      "native_sku": "TM-DG-TVA-1118-TV-1104",
+      "expected_product_sku": "kontakt-TM-DG-TVA-1118-TV-1104",
+      "expected_name": "ტელევიზორი Toshiba 75Z680SE",
+      "expected_offer_references": [
+        "75Z680SE"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C62, TV !C29"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 22337,
+      "system_reference": "LKK660220K",
+      "native_sku": "TM-MT-BMT-1117-CK-0107",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-CK-0107",
+      "expected_name": "გაზქურა Electrolux LKK660220K",
+      "expected_offer_references": [
+        "LKK660220K"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C13"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 22338,
+      "system_reference": "LKK660220X",
+      "native_sku": "TM-MT-BMT-1117-CK-0116",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-CK-0116",
+      "expected_name": "გაზქურა Electrolux LKK660220X",
+      "expected_offer_references": [
+        "LKK660220X"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C15"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 22344,
+      "system_reference": "EOD3C70TK",
+      "native_sku": "TM-MT-BMT-1117-BO-0167",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0167",
+      "expected_name": "ღუმელი Electrolux EOD3C70TK",
+      "expected_offer_references": [
+        "EOD3C70TK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C81"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 22345,
+      "system_reference": "EOF8H39H",
+      "native_sku": "TM-MT-BMT-1117-BO-0205",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-BO-0205",
+      "expected_name": "ჩასაშენებელი ღუმელი Electrolux EOF8H39H",
+      "expected_offer_references": [
+        "EOF8H39H"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C95"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 22346,
+      "system_reference": "G2591BK",
+      "native_sku": "TM-MT-XMT-1101-MW-0145",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-MW-0145",
+      "expected_name": "მიკროტალღური ღუმელი Hoffmann G2591BK",
+      "expected_offer_references": [
+        "G2591BK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx მტვერს-მიკროტ!C26"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 22348,
+      "system_reference": "WEOFLY ACTIVE 2 BLACK",
+      "native_sku": "TM-DG-SMW-1106-SW-0421",
+      "expected_product_sku": "kontakt-TM-DG-SMW-1106-SW-0421",
+      "expected_name": "Weofly Active 2 Black",
+      "expected_offer_references": [
+        "WEOFLY ACTIVE 2 BLACK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx ციფრული აქსესუარები!C8"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23792,
+      "system_reference": "LFP326FB",
+      "native_sku": "TM-MT-BMT-1117-HD-0197",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1117-HD-0197",
+      "expected_name": "ჩასაშენებელი გამწოვი Electrolux LFP326FB",
+      "expected_offer_references": [
+        "LFP326FB"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx გაზქურა-ჩასაშენებელი!C35"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23794,
+      "system_reference": "TTD5053IBK BLACK",
+      "native_sku": "TM-MT-XMT-1101-FH-0083",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-FH-0083",
+      "expected_name": "აეროგრილი Braun TTD5053IBK Black",
+      "expected_offer_references": [
+        "TTD5053IBK BLACK"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C78"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23797,
+      "system_reference": "BHD272/00",
+      "native_sku": "TM-MT-XMT-1104-HD-0106",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HD-0106",
+      "expected_name": "თმის ფენი Philips BHD272/00",
+      "expected_offer_references": [
+        "BHD272/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C305"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23798,
+      "system_reference": "BHS742/00",
+      "native_sku": "TM-MT-XMT-1104-HI-0107",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HI-0107",
+      "expected_name": "თმის უთო Philips BHS742/00",
+      "expected_offer_references": [
+        "BHS742/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C318"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23801,
+      "system_reference": "NT3650/16",
+      "native_sku": "TM-MT-XMT-1104-TR-0049",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-TR-0049",
+      "expected_name": "ტრიმერი Philips NT3650/16",
+      "expected_offer_references": [
+        "NT3650/16"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C351"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23802,
+      "system_reference": "QP6542/15",
+      "native_sku": "TM-MT-XMT-1104-TR-0139",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-TR-0139",
+      "expected_name": "ტრიმერი Philips QP6542/15",
+      "expected_offer_references": [
+        "QP6542/15"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C355"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23803,
+      "system_reference": "S1142/00",
+      "native_sku": "TM-MT-XMT-1104-SH-0151",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-SH-0151",
+      "expected_name": "წვერსაპარსი Philips S1142/00",
+      "expected_offer_references": [
+        "S1142/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C360"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23804,
+      "system_reference": "S3144/00",
+      "native_sku": "TM-MT-XMT-1104-SH-0138",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-SH-0138",
+      "expected_name": "წვერსაპარსი Philips S3144/00",
+      "expected_offer_references": [
+        "S3144/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C361"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23805,
+      "system_reference": "X3051/00",
+      "native_sku": "TM-MT-XMT-1104-SH-0154",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-SH-0154",
+      "expected_name": "წვერსაპარსი Philips-X3051/00 Men's Electric Shaver",
+      "expected_offer_references": [
+        "X3051/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C362"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23806,
+      "system_reference": "X3002/00",
+      "native_sku": "TM-MT-XMT-1104-SH-0167",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-SH-0167",
+      "expected_name": "წვერსაპარსი Philips X3002/00",
+      "expected_offer_references": [
+        "X3002/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C363"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 23808,
+      "system_reference": "X5006/00",
+      "native_sku": "TM-MT-XMT-1104-SH-0166",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-SH-0166",
+      "expected_name": "წვერსაპარსი Philips X5006/00",
+      "expected_offer_references": [
+        "X5006/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C364"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24244,
+      "system_reference": "TW-BN80C2UZ(WK)",
+      "native_sku": "TM-MT-BMT-1108-WM-0596",
+      "expected_product_sku": "kontakt-TM-MT-BMT-1108-WM-0596",
+      "expected_name": "სარეცხი მანქანა Toshiba TW-BN80C2UZ(WK)",
+      "expected_offer_references": [
+        "TW-BN80C2UZ(WK)"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx Black Friday!C21, REF-WM-DW!C84"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24245,
+      "system_reference": "NI-M250TGTW",
+      "native_sku": "TM-MT-XMT-1101-IR-0048",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1101-IR-0048",
+      "expected_name": "უთო Panasonic NI-M250TGTW",
+      "expected_offer_references": [
+        "NI-M250TGTW"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C250"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24247,
+      "system_reference": "HPS920/00 PRO",
+      "native_sku": "TM-MT-XMT-1104-HD-0069",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HD-0069",
+      "expected_name": "თმის ფენი Philips HPS920/00 Pro",
+      "expected_offer_references": [
+        "HPS920/00 PRO"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C310"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24248,
+      "system_reference": "BHS510/00",
+      "native_sku": "TM-MT-XMT-1104-HI-0099",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HI-0099",
+      "expected_name": "თმის უთო Philips BHS510/00 Hair Straightener 5000 1 X Ions",
+      "expected_offer_references": [
+        "BHS510/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C315"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24249,
+      "system_reference": "BHS752/00",
+      "native_sku": "TM-MT-XMT-1104-HI-0103",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HI-0103",
+      "expected_name": "თმის უთო Philips BHS752/00",
+      "expected_offer_references": [
+        "BHS752/00"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C319"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24251,
+      "system_reference": "BT3660/15",
+      "native_sku": "TM-MT-XMT-1104-TR-0134",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-TR-0134",
+      "expected_name": "ტრიმერი Philips BT3660/15",
+      "expected_offer_references": [
+        "BT3660/15"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C327"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24252,
+      "system_reference": "HC3510/15",
+      "native_sku": "TM-MT-XMT-1104-HC-0053",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HC-0053",
+      "expected_name": "თმის საკრეჭი Philips HC3510/15",
+      "expected_offer_references": [
+        "HC3510/15"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C336"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24253,
+      "system_reference": "HC3530/15",
+      "native_sku": "TM-MT-XMT-1104-HC-0068",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HC-0068",
+      "expected_name": "თმის საკრეჭი Philips HC3530/15",
+      "expected_offer_references": [
+        "HC3530/15"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C337"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24254,
+      "system_reference": "HC5632/15",
+      "native_sku": "TM-MT-XMT-1104-HC-0063",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HC-0063",
+      "expected_name": "თმის საკრეჭი Philips HC5632/15",
+      "expected_offer_references": [
+        "HC5632/15"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C338"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24255,
+      "system_reference": "HC5650/15",
+      "native_sku": "TM-MT-XMT-1104-HC-0057",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-HC-0057",
+      "expected_name": "თმის საკრეჭი Philips HC5650/15",
+      "expected_offer_references": [
+        "HC5650/15"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C339"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24256,
+      "system_reference": "S5885/10",
+      "native_sku": "TM-MT-XMT-1104-SH-0155",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-SH-0155",
+      "expected_name": "წვერსაპარსი Philips S5885/10 Shaver Pouch",
+      "expected_offer_references": [
+        "S5885/10"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C365"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24257,
+      "system_reference": "S5886/30",
+      "native_sku": "TM-MT-XMT-1104-SH-0140",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-SH-0140",
+      "expected_name": "წვერსაპარსი Philips S5886/30",
+      "expected_offer_references": [
+        "S5886/30"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C366"
+    },
+    {
+      "supplier_id": 8,
+      "supplier_code": "kontakt",
+      "product_id": 24258,
+      "system_reference": "S5887/10",
+      "native_sku": "TM-MT-XMT-1104-SH-0162",
+      "expected_product_sku": "kontakt-TM-MT-XMT-1104-SH-0162",
+      "expected_name": "წვერსაპარსი Philips S5887/10",
+      "expected_offer_references": [
+        "S5887/10"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "3246dac9b6aa35668025d9332c7efead1f225517e6698798a09e401e30ae7ad8",
+      "reference": "KontaktPriceList13.11.2026.xlsx წვრილი ტექნიკა!C367"
+    },
+    {
+      "supplier_id": 1,
+      "supplier_code": "zoommer",
+      "product_id": 6638,
+      "system_reference": "51438",
+      "native_sku": "ZOOM-038568",
+      "expected_product_sku": "ZOOM-038568",
+      "expected_name": "Xiaomi Redmi Buds 8 Lite Black",
+      "expected_offer_references": [
+        "51438"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "046caae024da7f7e592b1429879f68755c7a51c001b8be96f3d5d0a509a83071",
+      "reference": "Read-only catalog audit with exact Zoommer product and offer; ZoommerDriver stores returned barCode verbatim, lookup fallback is ZOOM-<externalId>."
+    },
+    {
+      "supplier_id": 1,
+      "supplier_code": "zoommer",
+      "product_id": 7328,
+      "system_reference": "51908",
+      "native_sku": "ZOOM-038858",
+      "expected_product_sku": "ZOOM-038858",
+      "expected_name": "Sony TV K-55S30E Black",
+      "expected_offer_references": [
+        "51908"
+      ],
+      "checked_at": "2026-11-16T15:45:01+00:00",
+      "proof_sha256": "046caae024da7f7e592b1429879f68755c7a51c001b8be96f3d5d0a509a83071",
+      "reference": "Read-only catalog audit with exact Zoommer product and offer; ZoommerDriver stores returned barCode verbatim, lookup fallback is ZOOM-<externalId>."
     }
   ]
 }

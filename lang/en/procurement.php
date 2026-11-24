@@ -40,6 +40,7 @@ return [
     'code' => 'Supplier code',
     'reference' => 'Supplier reference',
     'no_code' => 'Code not available',
+    'add_supplier_sku' => 'Add supplier SKU',
     'quantity' => 'Quantity',
     'copy' => [
         'withdraw' => 'Please cancel the previous request:',

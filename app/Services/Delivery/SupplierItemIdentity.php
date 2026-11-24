@@ -21,8 +21,8 @@ class SupplierItemIdentity
 
     public function resolve(OrderDeliveryItem $item, bool $includeStoredManual = true): array
     {
-        $result = ['shop_sku' => trim((string) $item->sku),
-            'system_reference' => $this->code($item->supplier_sku), 'native_sku' => null, 'provenance' => null];
+        $result = ['shop_sku' => trim((string) $item->sku), 'system_reference' => $this->code($item->supplier_sku),
+            'native_sku' => null, 'provenance' => null];
         if (! $item->exists || ! $item->supplier_id) {
             return $result;
         }
@@ -107,11 +107,15 @@ class SupplierItemIdentity
         if ($references === [] || count($references) > 20) {
             return $result;
         }
-        $verified = $this->verified($item, $references, $result['system_reference']);
+        $reference = $result['system_reference'];
+        if ($reference === null && blank($item->supplier_sku) && count($references) === 1) {
+            $reference = $references[0];
+        }
+        $verified = $this->verified($item, $references, $reference);
         if ($verified) {
             return [...$result, 'native_sku' => $verified, 'provenance' => 'delivery_verified_registry'];
         }
-        if (count($references) !== 1 || $result['system_reference'] !== $references[0]) {
+        if (count($references) !== 1 || $reference !== $references[0]) {
             return $result;
         }
         $supplier = $item->supplier;
@@ -120,8 +124,31 @@ class SupplierItemIdentity
             && $supplier->driver === 'App\\Services\\Import\\Drivers\\Allmarket\\AllmarketDriver') {
             return [...$result, 'native_sku' => $references[0], 'provenance' => 'allmarket_api_product_code'];
         }
+        // Zoommer stores the returned barCode verbatim, with ZOOM-<external ID> as a missing-barCode fallback.
+        if ((int) $supplier->id === 1 && $supplier->code === 'zoommer'
+            && $supplier->driver === 'App\\Services\\Import\\Drivers\\Zoommer\\ZoommerDriver'
+            && $result['system_reference'] === $reference && ctype_digit($reference)
+            && preg_match('/\AZOOM-[0-9]{6}\z/D', $result['shop_sku'])
+            && ltrim(substr($result['shop_sku'], 5), '0') !== ltrim($reference, '0')
+            && $this->name((string) $item->product->name) === $this->name((string) $item->name)) {
+            return [...$result, 'native_sku' => $result['shop_sku'], 'provenance' => 'zoommer_imported_barcode'];
+        }
         if (! Schema::hasTable('supplier_stocks')) {
             return $result;
+        }
+        // Elite imports only barcodes also present as article keys in its price list.
+        if ((int) $supplier->id === 3 && $supplier->code === 'elite'
+            && $supplier->driver === 'App\\Services\\Import\\Drivers\\Elite\\EliteDriver'
+            && ($supplier->config['columns']['key'] ?? null) === 'A'
+            && ($supplier->config['columns']['key_as'] ?? null) !== 'url'
+            && empty($supplier->config['columns']['key_else'])
+            && str_starts_with($result['shop_sku'], 'elite-')
+            && ($candidate = $this->code(substr($result['shop_sku'], 6))) !== null) {
+            $article = SupplierStock::where('supplier_id', $supplier->id)
+                ->where('external_id', $candidate)->value('external_id');
+            if ($this->code($article) === $candidate) {
+                return [...$result, 'native_sku' => $candidate, 'provenance' => 'elite_sheet_barcode'];
+            }
         }
         $stock = SupplierStock::where('supplier_id', $item->supplier_id)->where('external_id', $references[0])->first();
         if (! $stock || ! is_array($stock->data)) {

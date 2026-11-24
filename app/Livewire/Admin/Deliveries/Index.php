@@ -23,13 +23,10 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
-
-    protected string $paginationTheme = 'bootstrap';
+    private const HISTORY_BATCH_SIZE = 50;
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -40,6 +37,9 @@ class Index extends Component
     #[Url(except: 'all')]
     public string $status = 'all';
 
+    #[Url(except: '')]
+    public string $operator = '';
+
     #[Url(except: false)]
     public bool $allDates = false;
 
@@ -47,6 +47,9 @@ class Index extends Component
        order is still new, delivered or cancelled like any other. */
     #[Url(except: false)]
     public bool $regional = false;
+
+    #[Locked]
+    public int $historyLimit = self::HISTORY_BATCH_SIZE;
 
     #[Locked]
     public bool $courierPreview = false;
@@ -129,26 +132,40 @@ class Index extends Component
             $this->allDates = true;
             $this->status = 'all';
         }
-        $this->resetPage();
+        $this->reset('historyLimit');
     }
 
     public function updatedDate(): void
     {
         $this->validateOnly('date', ['date' => 'required|date_format:Y-m-d']);
         $this->allDates = false;
-        $this->resetPage();
+        $this->reset('historyLimit');
     }
 
     public function updatedAllDates(): void
     {
-        $this->resetPage();
+        $this->reset('historyLimit');
+    }
+
+    public function updatedOperator(): void
+    {
+        $this->staff();
+        $this->reset('historyLimit');
+    }
+
+    public function loadMoreHistory(): void
+    {
+        $this->actor();
+        if ($this->allDates) {
+            $this->historyLimit += self::HISTORY_BATCH_SIZE;
+        }
     }
 
     public function toggleRegional(): void
     {
         $this->actor();
         $this->regional = ! $this->regional;
-        $this->resetPage();
+        $this->reset('historyLimit');
     }
 
     public function setStatus(string $status): void
@@ -157,7 +174,7 @@ class Index extends Component
         abort_unless(in_array($status, ['active', 'held', 'delivered', 'cancelled', 'all'], true), 422);
         abort_if($status === 'held' && (! $user->isStaff() || $this->courierPreview), 403);
         $this->status = $status;
-        $this->resetPage();
+        $this->reset('historyLimit');
     }
 
     public function shiftDate(int $direction): void
@@ -175,19 +192,22 @@ class Index extends Component
         }
         $this->date = $date->toDateString();
         $this->allDates = false;
-        $this->resetPage();
+        $this->reset('historyLimit');
     }
 
     protected function baseQuery(bool $byRegion = true): Builder
     {
-        $this->actor();
+        $user = $this->actor();
         $term = mb_substr(trim($this->search), 0, 100);
         $digits = preg_replace('/\D/', '', $term);
 
-        return OrderDelivery::query()->visibleTo($this->actor())
+        return OrderDelivery::query()->visibleTo($user)
             ->when($this->courierPreview, fn (Builder $query) => $query->forCourierBoard())
             ->when($byRegion && $this->regional, fn (Builder $query) => $query->whereHas('order', fn ($order) => $order->where('is_regional', true)))
             ->when(! $this->allDates && $this->validDate($this->date), fn ($q) => $q->whereDate('delivery_date', $this->date))
+            ->when($this->operator !== '' && $user->isStaff() && ! $this->courierPreview, fn (Builder $query) => $query
+                ->whereHas('order.completedBy', fn (Builder $completion) => $completion
+                    ->where('order_events.user_id', (int) $this->operator)))
             ->when($term !== '', function ($q) use ($term, $digits) {
                 $q->where(function ($search) use ($term, $digits) {
                     $search->where('name', 'like', '%'.$term.'%')
@@ -352,7 +372,7 @@ class Index extends Component
             $this->status = 'all';
         }
         $this->closeModal();
-        $this->resetPage();
+        $this->reset('historyLimit');
         $this->dispatch('toast', message: __('order_restore.restored'));
     }
 
@@ -510,6 +530,14 @@ class Index extends Component
         if (! $this->validDate($this->date)) {
             $this->date = $this->manager()->nextDate();
         }
+        $operators = $isStaff
+            ? User::query()->where(fn (Builder $query) => $query
+                ->withRole(User::OPERATOR)->orWhere(fn (Builder $admins) => $admins->withRole(User::ADMIN)))
+                ->orderBy('name')->orderBy('id')->pluck('name', 'id')
+            : collect();
+        if ($this->operator !== '' && ! $operators->has($this->operator)) {
+            $this->operator = '';
+        }
         $base = $this->baseQuery();
         $counts = (clone $base)->select('status')->selectRaw('COUNT(*) AS total')->groupBy('status')->pluck('total', 'status');
         $heldCount = (clone $base)->held()->count();
@@ -521,11 +549,16 @@ class Index extends Component
             ->when($this->status === 'active', fn (Builder $query) => $query->where('status', OrderDelivery::ACTIVE)
                 ->whereNotIn('id', OrderDelivery::query()->held()->select('id')))
             ->when(in_array($this->status, ['delivered', 'cancelled'], true), fn (Builder $query) => $query->where('status', $this->status))
-            ->with(['items', 'courier:id,name', 'order.completedBy.user:id,name'])
+            ->with([
+                'items', 'courier:id,name', 'order.completedBy.user:id,name',
+                'order.events' => fn ($events) => $events->where('type', 'delivery_comment')
+                    ->with('user:id,name')->latest('id')->limit(2),
+            ])
             ->orderBy(OrderDeliveryItem::select('supplier_name')->whereColumn('order_delivery_id', 'order_deliveries.id')->where('is_active', true)->orderBy('supplier_name')->limit(1))
             ->orderBy('delivery_date')
             ->orderBy('id');
-        $deliveries = $query->paginate(20);
+        $deliveries = $query->when($this->allDates, fn (Builder $query) => $query->limit($this->historyLimit))->get();
+        $matchingCount = (int) ($this->status === 'all' ? $counts->sum() : ($counts[$this->status] ?? 0));
         $groups = [];
         foreach ($deliveries as $delivery) {
             $items = $delivery->items->sortBy(fn ($item) => mb_strtolower($item->supplier_name.'|'.$item->warehouse));
@@ -541,7 +574,7 @@ class Index extends Component
             $groups[$group][] = ['delivery' => $delivery, 'items' => $items];
         }
         uksort($groups, fn ($a, $b) => strnatcasecmp($a, $b));
-        $ordinal = $deliveries->firstItem() ?? 1;
+        $ordinal = 1;
         foreach ($groups as $group => $entries) {
             foreach (array_keys($entries) as $index) {
                 $groups[$group][$index]['ordinal'] = $ordinal++;
@@ -558,17 +591,17 @@ class Index extends Component
         $events = $selected && $this->modal === 'history'
             ? OrderEvent::where('order_id', $selected->order_id)->where('type', 'like', 'delivery_%')->with('user:id,name')->latest('id')->limit(100)->get()
             : collect();
-        $comments = OrderEvent::whereIn('order_id', $deliveries->pluck('order_id'))->where('type', 'delivery_comment')
-            ->with('user:id,name')->latest('id')->limit(100)->get()->groupBy('order_id');
-
         return view('livewire.admin.deliveries.index', [
             'deliveries' => $deliveries, 'groups' => $groups, 'counts' => $counts, 'regionalCount' => $regionalCount,
-            'selectedDelivery' => $selected, 'events' => $events, 'comments' => $comments,
+            'matchingCount' => $matchingCount,
+            'hasMoreHistory' => $this->allDates && $deliveries->count() < $matchingCount,
+            'selectedDelivery' => $selected, 'events' => $events,
             'isStaff' => $isStaff, 'isOwner' => $user->isAdmin() && ! $this->courierPreview,
             'isPreview' => $this->courierPreview,
             'weekdays' => $this->manager()->weekdays(),
             'suppliers' => $isStaff ? Supplier::orderBy('name')->get(['id', 'name']) : collect(),
             'couriers' => $isStaff ? User::withRole(User::COURIER)->orderBy('name')->get(['id', 'name']) : collect(),
+            'operators' => $operators,
             'methods' => PaymentMethod::withTranslation()->get()->keyBy('code'),
         ])->layout($isStaff ? 'layouts.admin' : 'layouts.courier', [
             'title' => __('delivery.title'), 'courierPreview' => $this->courierPreview,

@@ -150,7 +150,13 @@
                                     @endphp
                                     <tr wire:key="procurement-model-{{ $summary['key'] ?? hash('sha256', $summary['model'].'|'.$summary['code']) }}">
                                         <td><div class="pr-model">{{ $summary['model'] }}</div><div class="pr-summary-status"><span class="pr-badge pr-badge-{{ $summaryStatus }}">{{ __('procurement.statuses.'.$summaryStatus) }}</span></div></td>
-                                        <td class="pr-code">@if (filled($summary['code'] ?? null)){{ $summary['code'] }}@if (($summary['code_label'] ?? '') === 'reference')<small class="d-block pr-muted">{{ __('procurement.reference') }}</small>@endif @else<span class="small pr-muted">{{ __('procurement.no_code') }}</span>@endif</td>
+                                        <td class="pr-code">
+                                            @if (filled($summary['code'] ?? null))
+                                                {{ $summary['code'] }}
+                                            @else
+                                                <span class="small pr-muted">{{ __('procurement.no_code') }}</span>
+                                            @endif
+                                        </td>
                                         <td class="pr-quantity"><span class="pr-qty">{{ $summary['qty'] }}</span> <small>{{ __('procurement.units') }}</small></td>
                                         <td class="pr-order-actions">@if (($summary['order_manifest'] ?? []) !== [])<button type="button" class="btn btn-sm btn-primary" wire:click="markModelOrdered(@js($summary['order_manifest']))" wire:loading.attr="disabled">{{ __('procurement.mark_ordered') }}</button>@endif</td>
                                     </tr>
@@ -175,12 +181,32 @@
                                         $displayStatus = ($row['handled'] ?? false) ? 'resolved' : $row['status'];
                                     @endphp
                                     <div class="pr-line" wire:key="procurement-row-{{ $row['key'] }}">
-                                        <div class="pr-line-head"><div><span class="pr-model">{{ $row['model'] }}</span> <strong>× {{ $row['qty'] }}</strong>@if (filled($row['code'] ?? null))<div class="small pr-muted">{{ ($row['code_label'] ?? '') === 'reference' ? __('procurement.reference') : __('procurement.code') }}: {{ $row['code'] }}</div>@endif</div><span class="pr-badge pr-badge-{{ $displayStatus }}">{{ __('procurement.statuses.'.$displayStatus) }}</span></div>
+                                        <div class="pr-line-head">
+                                            <div>
+                                                <span class="pr-model">{{ $row['model'] }}</span> <strong>× {{ $row['qty'] }}</strong>
+                                                @if (filled($row['code'] ?? null))
+                                                    <div class="small pr-muted">{{ __('procurement.code') }}: {{ $row['code'] }}</div>
+                                                @else
+                                                    <div class="small pr-muted">{{ __('procurement.no_code') }}</div>
+                                                @endif
+                                            </div>
+                                            <span class="pr-badge pr-badge-{{ $displayStatus }}">{{ __('procurement.statuses.'.$displayStatus) }}</span>
+                                        </div>
                                         @if (! ($row['available'] ?? true))<p class="small text-warning mt-50 mb-0">{{ __('procurement.unavailable') }}</p>@endif
                                         @foreach ($row['orders'] ?? [] as $order)<div class="pr-order"><span><strong>{{ $order['number'] }}</strong></span><span>{{ $order['name'] ?? '' }}</span><span>{{ $order['phone'] ?? '' }}</span><span>{{ $order['date'] ?? '' }}</span></div>@endforeach
                                         @if (filled($row['note'] ?? null))<p class="pr-note">{{ $row['note'] }}</p>@endif
                                         @if (($row['issue_qty'] ?? 0) > 0)<p class="small text-danger mt-50 mb-0">{{ __('procurement.issue_qty') }}: {{ $row['issue_qty'] }}</p>@endif
-                                        <div class="pr-line-actions">@if (($row['available'] ?? false) && $row['status'] === 'unsent')<button type="button" class="btn btn-sm btn-primary" wire:click="markRowOrdered('{{ $row['key'] }}', '{{ $row['expected_hash'] }}')" wire:loading.attr="disabled">{{ __('procurement.mark_ordered') }}</button>@endif<button type="button" class="btn btn-sm btn-outline-secondary" wire:click="editRow('{{ $row['key'] }}')">{{ __('procurement.edit') }}</button>@if (($row['available'] ?? true) && ($row['copy_text'] ?? '') !== '')<button type="button" class="btn btn-sm btn-outline-primary" x-on:click="await copyReview(await $wire.reviewRow(@js($row['key'])))">{{ __('procurement.copy_row') }}</button>@endif</div>
+                                        <div class="pr-line-actions">
+                                            @if (($row['available'] ?? false) && $row['status'] === 'unsent')
+                                                <button type="button" class="btn btn-sm btn-primary" wire:click="markRowOrdered('{{ $row['key'] }}', '{{ $row['expected_hash'] }}')" wire:loading.attr="disabled">{{ __('procurement.mark_ordered') }}</button>
+                                            @endif
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="editRow('{{ $row['key'] }}')">
+                                                {{ __('procurement.'.(blank($row['code'] ?? null) && filled($row['supplier_id'] ?? null) ? 'add_supplier_sku' : 'edit')) }}
+                                            </button>
+                                            @if (($row['available'] ?? true) && ($row['copy_text'] ?? '') !== '')
+                                                <button type="button" class="btn btn-sm btn-outline-primary" x-on:click="await copyReview(await $wire.reviewRow(@js($row['key'])))">{{ __('procurement.copy_row') }}</button>
+                                            @endif
+                                        </div>
                                         @php
                                             $postalState = $postalItems[$row['item_id']] ?? null;
                                         @endphp

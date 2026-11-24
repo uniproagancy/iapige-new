@@ -11,6 +11,7 @@
         .delivery-board .db-toolbar{border:1px solid var(--delivery-border);border-radius:14px;padding:16px;background:#283046;margin-bottom:14px}
         .delivery-board .db-toolbar label{font-size:12px;color:var(--delivery-muted);margin-bottom:6px}
         .delivery-board .db-search-row{display:grid;grid-template-columns:minmax(220px,1fr) minmax(200px,270px) auto;gap:16px;align-items:start}
+        .delivery-board .db-operator-filter{max-width:270px;margin-top:16px}
         .delivery-board .db-date{display:flex;align-items:stretch;gap:6px}
         .delivery-board .db-date .form-control{min-width:0}
         .delivery-board .form-control,.delivery-board .form-select{min-height:42px}
@@ -151,6 +152,20 @@
                 </label>
             </div>
         </div>
+        @if($isStaff && isset($operators))
+            <div class="db-operator-filter">
+                <label for="delivery-operator">{{ __('delivery.operator') }}</label>
+                <select id="delivery-operator" class="form-select" wire:model.live="operator">
+                    <option value="">{{ __('delivery.all_operators') }}</option>
+                    <option value="{{ auth()->id() }}">{{ __('delivery.my_orders') }}</option>
+                    @foreach($operators as $operatorId => $operatorName)
+                        @if((int) $operatorId !== (int) auth()->id())
+                            <option value="{{ $operatorId }}">{{ $operatorName }}</option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+        @endif
         <div class="db-tabs" role="group" aria-label="{{ __('delivery.title') }}">
             @foreach($isStaff ? ['all', 'active', 'held', 'delivered', 'cancelled'] : ['all', 'active', 'delivered', 'cancelled'] as $tab)
                 <button type="button" class="db-tab {{ $tab === 'held' ? 'db-tab-held' : '' }} {{ $status === $tab ? 'is-selected' : '' }}" wire:click="setStatus('{{ $tab }}')" aria-pressed="{{ $status === $tab ? 'true' : 'false' }}">
@@ -171,10 +186,12 @@
         <span class="db-live">{{ __('delivery.live') }}</span>
     </div>
 
-    @if($deliveries->isNotEmpty())
+    @if($deliveries->isNotEmpty() || ($operator ?? '') !== '')
         <div class="db-meta-bar">
-            <strong>{{ __('delivery.orders_count', ['count' => $deliveries->total()]) }}</strong>
-            <span>{{ __('delivery.page_total') }}: <strong>{{ money($deliveries->sum('total')) }}</strong></span>
+            <strong>{{ __('delivery.orders_count', ['count' => $matchingCount ?? $deliveries->total()]) }}</strong>
+            @if($deliveries->isNotEmpty())
+                <span>{{ __('delivery.page_total') }}: <strong>{{ money($deliveries->sum('total')) }}</strong></span>
+            @endif
         </div>
     @endif
 
@@ -190,7 +207,9 @@
                     $isHeld = $delivery->isHeld();
                     $isPickedUp = $delivery->status === 'active' && $delivery->isPickedUp();
                     $visibleStatus = $isHeld ? 'held' : ($isPickedUp ? 'picked_up' : $delivery->status);
-                    $orderComments = $comments->get($delivery->order_id, collect());
+                    $orderComments = isset($comments)
+                        ? $comments->get($delivery->order_id, collect())
+                        : ($delivery->order?->events ?? collect());
                 @endphp
                 <article class="db-order is-{{ $delivery->status }} {{ $isHeld ? 'is-held' : ($isPickedUp ? 'is-picked-up' : '') }}" wire:key="delivery-{{ $delivery->id }}">
                     <div class="db-order-top">
@@ -369,7 +388,13 @@
         </div>
     @endforelse
 
-    <div class="mt-2">{{ $deliveries->links() }}</div>
+    @if($hasMoreHistory ?? false)
+        <div class="d-flex align-items-center gap-1 flex-wrap mt-2">
+            <span class="db-muted" role="status">{{ __('delivery.visible_orders', ['shown' => $deliveries->count(), 'total' => $matchingCount]) }}</span>
+            <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="loadMoreHistory"
+                wire:loading.attr="disabled" wire:target="loadMoreHistory">{{ __('delivery.load_more') }}</button>
+        </div>
+    @endif
 
     @if($modal)
         @php

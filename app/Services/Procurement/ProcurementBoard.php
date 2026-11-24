@@ -244,6 +244,10 @@ class ProcurementBoard
             }
             $record = $this->record($itemId, $record, $actor);
             $record->source_snapshot ??= $snapshot;
+            if (blank($record->native_sku) && filled($snapshot['native_sku'])
+                && array_key_exists('native_sku', $values) && trim((string) $values['native_sku']) === $snapshot['native_sku']) {
+                unset($values['native_sku']);
+            }
             $before = $record->only(['status', 'note', 'native_sku', 'issue_qty']);
             $commitmentRecorded = false;
             $nativeChanged = array_key_exists('native_sku', $values)
@@ -415,7 +419,18 @@ class ProcurementBoard
 
     private function same(array $a, array $b): bool
     {
-        return hash_equals($this->hash($this->material($a)), $this->hash($this->material($b)));
+        $before = $this->material($a);
+        $current = $this->material($b);
+        // A later catalog match can provide the code for an item already ordered by its model.
+        $autoSources = ['warranty_verified_registry', 'delivery_verified_registry', 'zoommer_imported_barcode',
+            'elite_sheet_barcode', 'allmarket_api_product_code', 'alta_b2b_item', 'magitoys_sheet_code',
+            'midea_sheet_barcode', 'ingco_sheet_model', 'alneo_sheet_article', 'metromart_sheet_model', 'elitlight_sheet_article'];
+        if (! filled($a['native_sku'] ?? null) && filled($b['native_sku'] ?? null)
+            && in_array($b['native_provenance'] ?? null, $autoSources, true)) {
+            $before['native_sku'] = $current['native_sku'];
+        }
+
+        return hash_equals($this->hash($before), $this->hash($current));
     }
 
     private function effectiveStatus(array $snapshot, ?ProcurementItem $record): string
