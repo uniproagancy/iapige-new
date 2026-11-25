@@ -61,5 +61,7 @@ return [
     'completed_by' => 'Completed by',
     'completed_comment' => 'Comment',
     'completed_open' => 'Open in admin',
+    'completed_log_sent' => 'Completion email sent: :to',
+    'completed_log_failed' => 'Completion email failed (:to): :error',
 
 ];

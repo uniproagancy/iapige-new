@@ -61,5 +61,7 @@ return [
     'completed_by' => 'დაასრულა',
     'completed_comment' => 'კომენტარი',
     'completed_open' => 'ადმინში გახსნა',
+    'completed_log_sent' => 'დასრულების წერილი გაიგზავნა: :to',
+    'completed_log_failed' => 'დასრულების წერილი ვერ გაიგზავნა (:to): :error',
 
 ];

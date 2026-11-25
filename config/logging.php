@@ -125,6 +125,13 @@ return [
             'level' => 'debug',
             'days' => 30,
         ],
+
+        'mail' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/mail.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
     ],
 
 ];

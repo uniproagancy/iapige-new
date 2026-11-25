@@ -55,12 +55,45 @@ class OrderCompletedNotice extends Mailable
             try {
                 Mail::to($recipients)->send(new self($order, $by));
             } catch (\Throwable $e) {
-                Log::error('order completed mail failed', [
-                    'order' => $order->number,
-                    'error' => $e->getMessage(),
-                ]);
+                self::record($order, $recipients, $e);
+
+                return;
             }
+
+            self::record($order, $recipients);
         })->afterResponse();
+    }
+
+    /* Written to logs/mail.log and to the order's own history, so whoever
+       completed it can see on the order page whether the mail went out.
+       "Sent" means the mail server accepted it, not that it was read. */
+    protected static function record(Order $order, array $recipients, ?\Throwable $error = null): void
+    {
+        $to = implode(', ', $recipients);
+
+        if ($error) {
+            Log::channel('mail')->error('order completed mail failed', [
+                'order' => $order->number,
+                'to' => $recipients,
+                'error' => $error->getMessage(),
+            ]);
+        } else {
+            Log::channel('mail')->info('order completed mail sent', [
+                'order' => $order->number,
+                'to' => $recipients,
+            ]);
+        }
+
+        try {
+            $order->events()->create([
+                'type' => 'note',
+                'note' => $error
+                    ? __('mail.completed_log_failed', ['to' => $to, 'error' => mb_substr($error->getMessage(), 0, 200)])
+                    : __('mail.completed_log_sent', ['to' => $to]),
+            ]);
+        } catch (\Throwable) {
+            // The log line above already holds the outcome.
+        }
     }
 
     public function envelope(): Envelope
