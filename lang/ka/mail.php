@@ -66,7 +66,7 @@ return [
     'reason_no_host' => 'სერვერის .env-ში MAIL_HOST ცარიელია',
     'reason_log_mailer' => 'MAIL_MAILER=log — წერილი მხოლოდ ლოგში იწერება, არ იგზავნება',
     'reason_bad_host' => 'MAIL_HOST-ის მისამართი ვერ მოიძებნა — შეამოწმე, სწორადაა თუ არა დაწერილი',
-    'reason_auth' => 'ელფოსტის სერვერმა მომხმარებელი ან პაროლი არ მიიღო (MAIL_USERNAME / MAIL_PASSWORD; Gmail-ს App password სჭირდება)',
+    'reason_auth' => 'ელფოსტის სერვერმა მომხმარებელი ან პაროლი არ მიიღო — შეამოწმე MAIL_USERNAME და MAIL_PASSWORD (პაროლი .env-ში ბრჭყალებში ჩასვი)',
     'reason_port' => 'სერვერთან კავშირი ვერ დამყარდა — შეამოწმე MAIL_PORT (465 ან 587) ან ჰოსტინგი ხომ არ ბლოკავს',
     'reason_tls' => 'დაშიფვრის შეცდომა — 465-ზე MAIL_SCHEME=smtps, 587-ზე MAIL_SCHEME=null',
     'reason_sender' => 'სერვერმა გამგზავნი არ მიიღო — MAIL_FROM_ADDRESS იგივე უნდა იყოს, რაც MAIL_USERNAME',

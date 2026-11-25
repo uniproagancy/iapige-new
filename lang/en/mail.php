@@ -66,7 +66,7 @@ return [
     'reason_no_host' => 'MAIL_HOST is empty in the server .env',
     'reason_log_mailer' => 'MAIL_MAILER=log — mail is only written to the log, never sent',
     'reason_bad_host' => 'The MAIL_HOST address could not be found — check its spelling',
-    'reason_auth' => 'The mail server refused the username or password (MAIL_USERNAME / MAIL_PASSWORD; Gmail needs an App password)',
+    'reason_auth' => 'The mail server refused the username or password — check MAIL_USERNAME and MAIL_PASSWORD (quote the password in .env)',
     'reason_port' => 'Could not connect to the server — check MAIL_PORT (465 or 587) or whether the host blocks it',
     'reason_tls' => 'Encryption error — use MAIL_SCHEME=smtps on 465, MAIL_SCHEME=null on 587',
     'reason_sender' => 'The server refused the sender — MAIL_FROM_ADDRESS should match MAIL_USERNAME',
