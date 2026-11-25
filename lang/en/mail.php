@@ -45,4 +45,21 @@ return [
     'status_title_returned' => 'Order returned',
     'status_text_returned' => ':name, order :number has been recorded as returned. Contact us on :phone about the refund.',
 
+    'completed_subject' => 'Completed: :number — :total',
+    'completed_title' => 'Order :number completed',
+    'completed_text' => 'The order was marked completed in the admin. Details below.',
+    'completed_customer' => 'Customer',
+    'completed_phone' => 'Phone',
+    'completed_email' => 'Email',
+    'completed_delivery' => 'Delivery',
+    'completed_address' => 'Address',
+    'completed_payment' => 'Payment',
+    'completed_paid' => 'Paid',
+    'completed_paid_yes' => 'Yes',
+    'completed_paid_no' => 'No',
+    'completed_placed_at' => 'Placed',
+    'completed_by' => 'Completed by',
+    'completed_comment' => 'Comment',
+    'completed_open' => 'Open in admin',
+
 ];

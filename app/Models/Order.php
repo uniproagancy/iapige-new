@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Mail\OrderCompletedNotice;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -134,6 +135,14 @@ class Order extends Model
         static::created(function (self $order) {
             if (str_starts_with((string) $order->number, self::TEMPORARY)) {
                 $order->forceFill(['number' => $order->buildNumber()])->saveQuietly();
+            }
+        });
+
+        /* Here rather than in the admin's status buttons, so every way an
+           order becomes completed sends the same mail. */
+        static::updated(function (self $order) {
+            if ($order->wasChanged('status') && $order->status === self::COMPLETED) {
+                OrderCompletedNotice::dispatchFor($order);
             }
         });
     }

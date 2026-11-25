@@ -45,4 +45,21 @@ return [
     'status_title_returned' => 'შეკვეთა დაბრუნდა',
     'status_text_returned' => ':name, შეკვეთა :number დაბრუნებულად დაფიქსირდა. თანხის დაბრუნებაზე დაგვიკავშირდი :phone.',
 
+    'completed_subject' => 'დასრულდა: :number — :total',
+    'completed_title' => 'შეკვეთა :number დასრულდა',
+    'completed_text' => 'შეკვეთა ადმინში „დასრულებულზე“ გადავიდა. დეტალები ქვემოთაა.',
+    'completed_customer' => 'მომხმარებელი',
+    'completed_phone' => 'ტელეფონი',
+    'completed_email' => 'ელფოსტა',
+    'completed_delivery' => 'მიწოდება',
+    'completed_address' => 'მისამართი',
+    'completed_payment' => 'გადახდა',
+    'completed_paid' => 'გადახდილია',
+    'completed_paid_yes' => 'კი',
+    'completed_paid_no' => 'არა',
+    'completed_placed_at' => 'შეკვეთის დრო',
+    'completed_by' => 'დაასრულა',
+    'completed_comment' => 'კომენტარი',
+    'completed_open' => 'ადმინში გახსნა',
+
 ];

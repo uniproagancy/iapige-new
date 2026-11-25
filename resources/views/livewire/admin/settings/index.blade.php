@@ -23,6 +23,10 @@
             $text('shop_instalment_months', __('admin.set_shop_instalment_months'), 'number', ['col' => 4]),
             $text('shop_invoice_valid_days', __('admin.set_shop_invoice_valid_days'), 'number', ['col' => 4]),
             $text('shop_min_order', __('admin.set_shop_min_order'), 'number', ['col' => 4]),
+            $text('shop_completed_emails', __('admin.set_shop_completed_emails'), 'text', [
+                'col' => 12,
+                'hint' => __('admin.set_completed_emails_hint'),
+            ]),
         ],
         __('admin.set_group_company') => [
             $text('shop_company_name', __('admin.set_shop_company_name'), 'text', ['col' => 6]),

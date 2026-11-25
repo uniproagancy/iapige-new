@@ -10,6 +10,10 @@ return [
        through, which is where the shop starts. */
     'min_order' => (float) env('SHOP_MIN_ORDER', 0),
 
+    /* Who gets the shop's copy of an order once it is completed; set from
+       Settings, several addresses separated by commas. Empty sends nothing. */
+    'completed_emails' => env('SHOP_COMPLETED_EMAILS', ''),
+
     /* How long the shop keeps asking a provider about an unsettled payment.
        An instalment can sit with a branch or a video review for days, so two
        days was short enough to leave real orders unpaid. */

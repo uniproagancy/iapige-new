@@ -37,6 +37,15 @@ class Index extends Component
             'values.smsoffice_redirect_to' => ['nullable', 'string', 'max:40'],
             'values.shop_dial_scheme' => ['required', 'in:tel,callto,sip,zoiper'],
             'values.shop_phone_country' => ['required', 'string', 'max:5'],
+            'values.shop_completed_emails' => ['nullable', 'string', 'max:1000', function ($attribute, $value, $fail) {
+                foreach (preg_split('/[\s,;]+/', (string) $value, -1, PREG_SPLIT_NO_EMPTY) as $email) {
+                    if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $fail(__('admin.set_completed_emails_invalid', ['email' => $email]));
+
+                        return;
+                    }
+                }
+            }],
         ], [], $this->labels());
 
         foreach (array_keys(Setting::MAP) as $key) {

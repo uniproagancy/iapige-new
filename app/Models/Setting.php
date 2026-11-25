@@ -33,6 +33,8 @@ class Setting extends Model
         'smsoffice.sender' => 'string',
         'smsoffice.redirect_to' => 'string',
 
+        'shop.completed_emails' => 'string',
+
         'shop.dial_scheme' => 'string',
         'shop.phone_country' => 'string',
     ];
