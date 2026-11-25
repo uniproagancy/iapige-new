@@ -62,6 +62,14 @@ return [
     'completed_comment' => 'კომენტარი',
     'completed_open' => 'ადმინში გახსნა',
     'completed_log_sent' => 'დასრულების წერილი გაიგზავნა: :to',
-    'completed_log_failed' => 'დასრულების წერილი ვერ გაიგზავნა (:to): :error',
+    'completed_log_failed' => 'დასრულების წერილი ვერ გაიგზავნა (:to). მიზეზი: :reason — :error',
+    'reason_no_host' => 'სერვერის .env-ში MAIL_HOST ცარიელია',
+    'reason_log_mailer' => 'MAIL_MAILER=log — წერილი მხოლოდ ლოგში იწერება, არ იგზავნება',
+    'reason_bad_host' => 'MAIL_HOST-ის მისამართი ვერ მოიძებნა — შეამოწმე, სწორადაა თუ არა დაწერილი',
+    'reason_auth' => 'ელფოსტის სერვერმა მომხმარებელი ან პაროლი არ მიიღო (MAIL_USERNAME / MAIL_PASSWORD; Gmail-ს App password სჭირდება)',
+    'reason_port' => 'სერვერთან კავშირი ვერ დამყარდა — შეამოწმე MAIL_PORT (465 ან 587) ან ჰოსტინგი ხომ არ ბლოკავს',
+    'reason_tls' => 'დაშიფვრის შეცდომა — 465-ზე MAIL_SCHEME=smtps, 587-ზე MAIL_SCHEME=null',
+    'reason_sender' => 'სერვერმა გამგზავნი არ მიიღო — MAIL_FROM_ADDRESS იგივე უნდა იყოს, რაც MAIL_USERNAME',
+    'reason_unknown' => 'უცნობი მიზეზი — დეტალები storage/logs/mail ლოგშია',
 
 ];

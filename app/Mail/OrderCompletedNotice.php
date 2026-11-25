@@ -75,7 +75,10 @@ class OrderCompletedNotice extends Mailable
             Log::channel('mail')->error('order completed mail failed', [
                 'order' => $order->number,
                 'to' => $recipients,
-                'error' => $error->getMessage(),
+                'reason' => self::reason($error),
+                'error' => get_class($error).': '.$error->getMessage(),
+                'previous' => $error->getPrevious()?->getMessage(),
+                'mailer' => self::settings(),
             ]);
         } else {
             Log::channel('mail')->info('order completed mail sent', [
@@ -88,12 +91,53 @@ class OrderCompletedNotice extends Mailable
             $order->events()->create([
                 'type' => 'note',
                 'note' => $error
-                    ? __('mail.completed_log_failed', ['to' => $to, 'error' => mb_substr($error->getMessage(), 0, 200)])
+                    ? __('mail.completed_log_failed', [
+                        'to' => $to,
+                        'reason' => self::reason($error),
+                        'error' => mb_substr($error->getMessage(), 0, 200),
+                    ])
                     : __('mail.completed_log_sent', ['to' => $to]),
             ]);
         } catch (\Throwable) {
             // The log line above already holds the outcome.
         }
+    }
+
+    /* What the mailer was set to when it failed -- never the password, only
+       whether there is one -- so a bad .env shows in the log itself. */
+    protected static function settings(): array
+    {
+        $mailer = (string) config('mail.default');
+        $config = (array) config('mail.mailers.'.$mailer, []);
+
+        return [
+            'mailer' => $mailer,
+            'host' => $config['host'] ?? null,
+            'port' => $config['port'] ?? null,
+            'scheme' => $config['scheme'] ?? null,
+            'username' => filled($config['username'] ?? null) ? 'set' : 'empty',
+            'password' => filled($config['password'] ?? null) ? 'set' : 'empty',
+            'from' => config('mail.from.address'),
+        ];
+    }
+
+    /* The mail server's own words are for a developer; the operator who
+       completed the order gets which .env line to look at. */
+    protected static function reason(\Throwable $error): string
+    {
+        $config = self::settings();
+        $message = mb_strtolower($error->getMessage().' '.$error->getPrevious()?->getMessage());
+
+        return match (true) {
+            $config['mailer'] === 'smtp' && blank($config['host']) => __('mail.reason_no_host'),
+            $config['mailer'] === 'log' => __('mail.reason_log_mailer'),
+            str_contains($message, 'getaddrinfo') || str_contains($message, 'name or service not known') => __('mail.reason_bad_host'),
+            str_contains($message, '535') || str_contains($message, 'authentication') || str_contains($message, 'username and password') => __('mail.reason_auth'),
+            str_contains($message, 'timed out') || str_contains($message, 'refused') => __('mail.reason_port'),
+            str_contains($message, 'ssl') || str_contains($message, 'tls') || str_contains($message, 'certificate') => __('mail.reason_tls'),
+            str_contains($message, '550') || str_contains($message, '553') || str_contains($message, 'sender') => __('mail.reason_sender'),
+            default => __('mail.reason_unknown'),
+        };
     }
 
     public function envelope(): Envelope

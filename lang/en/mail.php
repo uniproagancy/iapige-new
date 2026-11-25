@@ -62,6 +62,14 @@ return [
     'completed_comment' => 'Comment',
     'completed_open' => 'Open in admin',
     'completed_log_sent' => 'Completion email sent: :to',
-    'completed_log_failed' => 'Completion email failed (:to): :error',
+    'completed_log_failed' => 'Completion email failed (:to). Reason: :reason — :error',
+    'reason_no_host' => 'MAIL_HOST is empty in the server .env',
+    'reason_log_mailer' => 'MAIL_MAILER=log — mail is only written to the log, never sent',
+    'reason_bad_host' => 'The MAIL_HOST address could not be found — check its spelling',
+    'reason_auth' => 'The mail server refused the username or password (MAIL_USERNAME / MAIL_PASSWORD; Gmail needs an App password)',
+    'reason_port' => 'Could not connect to the server — check MAIL_PORT (465 or 587) or whether the host blocks it',
+    'reason_tls' => 'Encryption error — use MAIL_SCHEME=smtps on 465, MAIL_SCHEME=null on 587',
+    'reason_sender' => 'The server refused the sender — MAIL_FROM_ADDRESS should match MAIL_USERNAME',
+    'reason_unknown' => 'Unknown reason — details are in the storage/logs/mail log',
 
 ];
