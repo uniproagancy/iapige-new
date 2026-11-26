@@ -39,6 +39,8 @@ Route::group([
     'middleware' => ['localeSessionRedirect', 'localizationRedirect'],
 ], function () {
 
+    require __DIR__.'/sales-chat.php';
+
     Livewire::setUpdateRoute(fn ($handle, $path) => Route::post($path, $handle));
 
     Route::get('/', Home::class)->name('home');
@@ -128,6 +130,8 @@ Route::middleware(['auth', 'can:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        require __DIR__.'/sales-chat-staff.php';
+
         /* The dashboard sends an operator on to the orders. */
         Route::get('/', Admin\Dashboard::class)->name('dashboard');
 

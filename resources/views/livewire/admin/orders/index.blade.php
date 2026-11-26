@@ -47,6 +47,16 @@
     </style>
     @error('paymentBank') <div class="alert alert-danger p-1" role="alert">{{ $message }}</div> @enderror
     @error('transferPayment') <div class="alert alert-danger p-1" role="alert">{{ $message }}</div> @enderror
+    @if (app(\App\Services\SalesChat\SalesChatSettings::class)->enabled())
+        <div class="d-flex flex-wrap gap-1 mb-2">
+            <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.sales-chat.index') }}">
+                {{ __('sales_chat_admin.inbox') }}
+            </a>
+            <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.sales-chat.leads') }}">
+                {{ __('sales_chat_admin.leads') }}
+            </a>
+        </div>
+    @endif
     <div class="d-flex flex-wrap gap-1 mb-2">
         {{-- the day's list: everything not yet finished --}}
         <button type="button"

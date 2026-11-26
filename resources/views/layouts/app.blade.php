@@ -94,6 +94,9 @@
 @isset($pageJs)
     @vite("resources/js/pages/{$pageJs}.js")
 @endisset
+@if (app(\App\Services\SalesChat\SalesChatSettings::class)->enabled())
+    @include('sales-chat.widget')
+@else
 <script type="text/javascript">
     var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
     function loadTawk() {
@@ -108,5 +111,6 @@
     window.addEventListener('mousemove', loadTawk, { once: true });
     window.addEventListener('touchstart', loadTawk, { once: true });
 </script>
+@endif
 </body>
 </html>

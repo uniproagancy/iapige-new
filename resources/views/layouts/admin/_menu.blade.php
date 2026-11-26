@@ -142,6 +142,8 @@
                     </li>
                 @endif
 
+                @include('admin.sales-chat.nav')
+
                 {{-- an operator's way to the quick price and stock edit --}}
                 @cannot('owner')
                     <li class="nav-item {{ $on('admin.products') }}">

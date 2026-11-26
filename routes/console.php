@@ -1,8 +1,10 @@
 <?php
 
 use App\Services\Import\JsonImportSource;
+use App\Services\SalesChat\SalesChatPresence;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -32,3 +34,11 @@ Schedule::call(fn () => app(JsonImportSource::class)->purgeExpired(100))
     ->withoutOverlapping(10);
 
 Schedule::command('social:run')->everyMinute()->withoutOverlapping(10)->appendOutputTo(storage_path('logs/social-publishing.log'));
+
+Artisan::command('sales-chat:prune-presence', function (): void {
+    if (Schema::hasTable('sales_chat_visitors')) {
+        app(SalesChatPresence::class)->prune();
+    }
+});
+
+Schedule::command('sales-chat:prune-presence')->everyFiveMinutes();

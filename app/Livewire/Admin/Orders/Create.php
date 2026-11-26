@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Orders;
 
+use App\Models\CallbackRequest;
 use App\Models\DeliveryCity;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\SalesChatConversation;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Services\Delivery\DeliveryCalculator;
@@ -13,6 +15,8 @@ use App\Services\Orders\OrderLines;
 use App\Support\Catalog;
 use App\Support\Figure;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use RuntimeException;
@@ -59,17 +63,57 @@ class Create extends Component
     #[Url(as: 'user', except: null)]
     public ?int $forUser = null;
 
+    #[Locked]
+    public ?int $chatLeadId = null;
+
     public function mount(): void
     {
-        if ($this->forUser) {
-            $this->useCustomer($this->forUser);
-        }
+        $query = request()->query();
+        if (array_key_exists('chat_lead', $query)) {
+            $id = filter_var($query['chat_lead'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            abort_if($id === false, 404);
+            $this->chatLeadId = $id;
+            $lead = $this->chatLead();
 
-        if ($this->productId && Product::whereKey($this->productId)->exists()) {
-            $this->qty[$this->productId] = 1;
+            if ($lead->order_id !== null) {
+                $this->redirect(route('admin.orders.show', Order::findOrFail($lead->order_id)), navigate: true);
+
+                return;
+            }
+
+            $this->userId = $lead->user_id;
+            $name = trim($lead->name);
+            $this->name = in_array($name, [__('sales_chat.guest', [], 'ka'), __('sales_chat.guest', [], 'en')], true) ? '' : $name;
+            $this->phone = $lead->phone;
+            if ($lead->product_id && $this->isSellableProduct($lead->product_id)) {
+                $this->qty[$lead->product_id] = max(1, min(99, $lead->quantity ?? 1));
+            }
+        } else {
+            if ($this->forUser) {
+                $this->useCustomer($this->forUser);
+            }
+
+            if ($this->productId && Product::whereKey($this->productId)->exists()) {
+                $this->qty[$this->productId] = 1;
+            }
         }
 
         $this->payment = $this->payment ?: (string) (PaymentMethod::active()->value('code') ?? 'cash');
+    }
+
+    protected function chatLead(bool $forUpdate = false): CallbackRequest
+    {
+        Gate::authorize('admin');
+
+        $conversation = SalesChatConversation::query()
+            ->where('callback_request_id', $this->chatLeadId)
+            ->whereNotNull('contact_consent_at')
+            ->when($forUpdate, fn ($query) => $query->lockForUpdate())
+            ->firstOrFail();
+
+        return $conversation->lead()->where('page', 'sales-chat')
+            ->when($forUpdate, fn ($query) => $query->lockForUpdate())
+            ->firstOrFail();
     }
 
     public function next(): void
@@ -205,13 +249,7 @@ class Create extends Component
 
     public function add(int $id): void
     {
-
-        $sellable = Product::whereKey($id)
-            ->where('status', Product::STATUS_ACTIVE)
-            ->where('is_preorder', false)
-            ->exists();
-
-        if (! $sellable) {
+        if (! $this->isSellableProduct($id)) {
             $this->dispatch('toast', type: 'error', message: __('admin.product_not_sellable'));
 
             return;
@@ -220,6 +258,14 @@ class Create extends Component
         $this->qty[$id] = ($this->qty[$id] ?? 0) + 1;
         $this->productSearch = '';
         $this->resetErrorBag('qty');
+    }
+
+    protected function isSellableProduct(int $id): bool
+    {
+        return Product::whereKey($id)
+            ->where('status', Product::STATUS_ACTIVE)
+            ->where('is_preorder', false)
+            ->exists();
     }
 
     public function increment(int $id): void
@@ -346,7 +392,23 @@ class Create extends Component
         }
 
         try {
-            $order = DB::transaction(fn () => $this->write($wanted));
+            $order = DB::transaction(function () use ($wanted): Order {
+                $lead = $this->chatLeadId !== null ? $this->chatLead(forUpdate: true) : null;
+                if ($lead?->order_id !== null) {
+                    return Order::findOrFail($lead->order_id);
+                }
+
+                $order = $this->write($wanted);
+                if ($lead) {
+                    $lead->order_id = $order->id;
+                    if ($lead->status === CallbackRequest::NEW) {
+                        $lead->status = CallbackRequest::CLOSED;
+                    }
+                    $lead->save();
+                }
+
+                return $order;
+            });
         } catch (RuntimeException $e) {
             $this->step = 'items';
             $this->dispatch('toast', type: 'error', message: $e->getMessage());

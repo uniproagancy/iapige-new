@@ -6,6 +6,7 @@ use App\Livewire\Concerns\SendsToBank;
 use App\Models\Order;
 use App\Services\Facebook\Pixel;
 use App\Services\Orders\QuickOrder;
+use App\Services\SalesChat\SalesChatSettings;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -58,6 +59,12 @@ class CallbackForm extends Component
         $this->quantity = max(1, min(99, $quantity));
         $this->monthly = $monthly;
         $this->submissionKey = (string) Str::uuid();
+        if (app(SalesChatSettings::class)->enabled() && request()->query('sales_chat_payment') === 'installment' && $this->productId) {
+            $summary = $this->summary();
+            if ($summary['available'] && app(QuickOrder::class)->groups($summary['total'])['installment']->isNotEmpty()) {
+                $this->paymentCategory = 'installment';
+            }
+        }
         if ($user = Auth::user()) {
             $this->name = (string) $user->name;
             $this->phone = (string) ($user->phone ?? '');
