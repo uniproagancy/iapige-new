@@ -1,0 +1,254 @@
+diff --git a/app/Livewire/Admin/Orders/Create.php b/app/Livewire/Admin/Orders/Create.php
+--- a/app/Livewire/Admin/Orders/Create.php
++++ b/app/Livewire/Admin/Orders/Create.php
+@@ -2,10 +2,12 @@
+ 
+ namespace App\Livewire\Admin\Orders;
+ 
++use App\Models\CallbackRequest;
+ use App\Models\DeliveryCity;
+ use App\Models\Order;
+ use App\Models\PaymentMethod;
+ use App\Models\Product;
++use App\Models\SalesChatConversation;
+ use App\Models\User;
+ use App\Models\UserAddress;
+ use App\Services\Delivery\DeliveryCalculator;
+@@ -13,6 +15,8 @@
+ use App\Support\Catalog;
+ use App\Support\Figure;
+ use Illuminate\Support\Facades\DB;
++use Illuminate\Support\Facades\Gate;
++use Livewire\Attributes\Locked;
+ use Livewire\Attributes\Url;
+ use Livewire\Component;
+ use RuntimeException;
+@@ -59,17 +63,57 @@
+     #[Url(as: 'user', except: null)]
+     public ?int $forUser = null;
+ 
++    #[Locked]
++    public ?int $chatLeadId = null;
++
+     public function mount(): void
+     {
+-        if ($this->forUser) {
+-            $this->useCustomer($this->forUser);
+-        }
+-
+-        if ($this->productId && Product::whereKey($this->productId)->exists()) {
+-            $this->qty[$this->productId] = 1;
++        $query = request()->query();
++        if (array_key_exists('chat_lead', $query)) {
++            $id = filter_var($query['chat_lead'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
++            abort_if($id === false, 404);
++            $this->chatLeadId = $id;
++            $lead = $this->chatLead();
++
++            if ($lead->order_id !== null) {
++                $this->redirect(route('admin.orders.show', Order::findOrFail($lead->order_id)), navigate: true);
++
++                return;
++            }
++
++            $this->userId = $lead->user_id;
++            $name = trim($lead->name);
++            $this->name = in_array($name, [__('sales_chat.guest', [], 'ka'), __('sales_chat.guest', [], 'en')], true) ? '' : $name;
++            $this->phone = $lead->phone;
++            if ($lead->product_id && $this->isSellableProduct($lead->product_id)) {
++                $this->qty[$lead->product_id] = max(1, min(99, $lead->quantity ?? 1));
++            }
++        } else {
++            if ($this->forUser) {
++                $this->useCustomer($this->forUser);
++            }
++
++            if ($this->productId && Product::whereKey($this->productId)->exists()) {
++                $this->qty[$this->productId] = 1;
++            }
+         }
+ 
+         $this->payment = $this->payment ?: (string) (PaymentMethod::active()->value('code') ?? 'cash');
++    }
++
++    protected function chatLead(bool $forUpdate = false): CallbackRequest
++    {
++        Gate::authorize('admin');
++
++        $conversation = SalesChatConversation::query()
++            ->where('callback_request_id', $this->chatLeadId)
++            ->whereNotNull('contact_consent_at')
++            ->when($forUpdate, fn ($query) => $query->lockForUpdate())
++            ->firstOrFail();
++
++        return $conversation->lead()->where('page', 'sales-chat')
++            ->when($forUpdate, fn ($query) => $query->lockForUpdate())
++            ->firstOrFail();
+     }
+ 
+     public function next(): void
+@@ -205,21 +249,23 @@
+ 
+     public function add(int $id): void
+     {
+-
+-        $sellable = Product::whereKey($id)
++        if (! $this->isSellableProduct($id)) {
++            $this->dispatch('toast', type: 'error', message: __('admin.product_not_sellable'));
++
++            return;
++        }
++
++        $this->qty[$id] = ($this->qty[$id] ?? 0) + 1;
++        $this->productSearch = '';
++        $this->resetErrorBag('qty');
++    }
++
++    protected function isSellableProduct(int $id): bool
++    {
++        return Product::whereKey($id)
+             ->where('status', Product::STATUS_ACTIVE)
+             ->where('is_preorder', false)
+             ->exists();
+-
+-        if (! $sellable) {
+-            $this->dispatch('toast', type: 'error', message: __('admin.product_not_sellable'));
+-
+-            return;
+-        }
+-
+-        $this->qty[$id] = ($this->qty[$id] ?? 0) + 1;
+-        $this->productSearch = '';
+-        $this->resetErrorBag('qty');
+     }
+ 
+     public function increment(int $id): void
+@@ -346,7 +392,23 @@
+         }
+ 
+         try {
+-            $order = DB::transaction(fn () => $this->write($wanted));
++            $order = DB::transaction(function () use ($wanted): Order {
++                $lead = $this->chatLeadId !== null ? $this->chatLead(forUpdate: true) : null;
++                if ($lead?->order_id !== null) {
++                    return Order::findOrFail($lead->order_id);
++                }
++
++                $order = $this->write($wanted);
++                if ($lead) {
++                    $lead->order_id = $order->id;
++                    if ($lead->status === CallbackRequest::NEW) {
++                        $lead->status = CallbackRequest::CLOSED;
++                    }
++                    $lead->save();
++                }
++
++                return $order;
++            });
+         } catch (RuntimeException $e) {
+             $this->step = 'items';
+             $this->dispatch('toast', type: 'error', message: $e->getMessage());
+diff --git a/app/Livewire/Forms/CallbackForm.php b/app/Livewire/Forms/CallbackForm.php
+--- a/app/Livewire/Forms/CallbackForm.php
++++ b/app/Livewire/Forms/CallbackForm.php
+@@ -58,6 +58,12 @@
+         $this->quantity = max(1, min(99, $quantity));
+         $this->monthly = $monthly;
+         $this->submissionKey = (string) Str::uuid();
++        if (app(\App\Services\SalesChat\SalesChatSettings::class)->enabled() && request()->query('sales_chat_payment') === 'installment' && $this->productId) {
++            $summary = $this->summary();
++            if ($summary['available'] && app(QuickOrder::class)->groups($summary['total'])['installment']->isNotEmpty()) {
++                $this->paymentCategory = 'installment';
++            }
++        }
+         if ($user = Auth::user()) {
+             $this->name = (string) $user->name;
+             $this->phone = (string) ($user->phone ?? '');
+diff --git a/resources/views/layouts/admin/_menu.blade.php b/resources/views/layouts/admin/_menu.blade.php
+--- a/resources/views/layouts/admin/_menu.blade.php
++++ b/resources/views/layouts/admin/_menu.blade.php
+@@ -142,6 +142,8 @@
+                     </li>
+                 @endif
+ 
++                @include('admin.sales-chat.nav')
++
+                 {{-- an operator's way to the quick price and stock edit --}}
+                 @cannot('owner')
+                     <li class="nav-item {{ $on('admin.products') }}">
+diff --git a/resources/views/layouts/app.blade.php b/resources/views/layouts/app.blade.php
+--- a/resources/views/layouts/app.blade.php
++++ b/resources/views/layouts/app.blade.php
+@@ -94,6 +94,9 @@
+ @isset($pageJs)
+     @vite("resources/js/pages/{$pageJs}.js")
+ @endisset
++@if (app(\App\Services\SalesChat\SalesChatSettings::class)->enabled())
++    @include('sales-chat.widget')
++@else
+ <script type="text/javascript">
+     var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+     function loadTawk() {
+@@ -108,5 +111,6 @@
+     window.addEventListener('mousemove', loadTawk, { once: true });
+     window.addEventListener('touchstart', loadTawk, { once: true });
+ </script>
++@endif
+ </body>
+ </html>
+diff --git a/resources/views/livewire/admin/orders/index.blade.php b/resources/views/livewire/admin/orders/index.blade.php
+--- a/resources/views/livewire/admin/orders/index.blade.php
++++ b/resources/views/livewire/admin/orders/index.blade.php
+@@ -47,6 +47,16 @@
+     </style>
+     @error('paymentBank') <div class="alert alert-danger p-1" role="alert">{{ $message }}</div> @enderror
+     @error('transferPayment') <div class="alert alert-danger p-1" role="alert">{{ $message }}</div> @enderror
++    @if (app(\App\Services\SalesChat\SalesChatSettings::class)->enabled())
++        <div class="d-flex flex-wrap gap-1 mb-2">
++            <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.sales-chat.index') }}">
++                {{ __('sales_chat_admin.inbox') }}
++            </a>
++            <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.sales-chat.leads') }}">
++                {{ __('sales_chat_admin.leads') }}
++            </a>
++        </div>
++    @endif
+     <div class="d-flex flex-wrap gap-1 mb-2">
+         {{-- the day's list: everything not yet finished --}}
+         <button type="button"
+diff --git a/routes/console.php b/routes/console.php
+--- a/routes/console.php
++++ b/routes/console.php
+@@ -32,3 +32,11 @@
+     ->withoutOverlapping(10);
+ 
+ Schedule::command('social:run')->everyMinute()->withoutOverlapping(10)->appendOutputTo(storage_path('logs/social-publishing.log'));
++
++Artisan::command('sales-chat:prune-presence', function (): void {
++    if (\Illuminate\Support\Facades\Schema::hasTable('sales_chat_visitors')) {
++        app(\App\Services\SalesChat\SalesChatPresence::class)->prune();
++    }
++});
++
++Schedule::command('sales-chat:prune-presence')->everyFiveMinutes();
+diff --git a/routes/web.php b/routes/web.php
+--- a/routes/web.php
++++ b/routes/web.php
+@@ -39,6 +39,8 @@
+     'middleware' => ['localeSessionRedirect', 'localizationRedirect'],
+ ], function () {
+ 
++    require __DIR__.'/sales-chat.php';
++
+     Livewire::setUpdateRoute(fn ($handle, $path) => Route::post($path, $handle));
+ 
+     Route::get('/', Home::class)->name('home');
+@@ -128,6 +130,8 @@
+     ->prefix('admin')
+     ->name('admin.')
+     ->group(function () {
++        require __DIR__.'/sales-chat-staff.php';
++
+         /* The dashboard sends an operator on to the orders. */
+         Route::get('/', Admin\Dashboard::class)->name('dashboard');
+ 

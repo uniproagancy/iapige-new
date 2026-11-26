@@ -3,6 +3,7 @@
 
 @php
     $chatProductSlug = request()->routeIs('product') ? request()->route('slug') : null;
+    $chatCategorySlug = request()->routeIs('catalog') ? request()->route('slug') : null;
     $chatSection = match (true) {
         request()->routeIs('product') && is_string($chatProductSlug) => 'product',
         request()->routeIs('catalog') => 'catalog',
@@ -23,6 +24,9 @@
     data-chat-invite-close="{{ __('sales_chat_invite.close') }}"
     @if (is_string($chatProductSlug) && preg_match('/\A[\pL\pN][\pL\pN._~-]{0,254}\z/u', $chatProductSlug))
         data-product-slug="{{ $chatProductSlug }}"
+    @endif
+    @if (is_string($chatCategorySlug) && preg_match('/\A[\pL\pN][\pL\pN._~-]{0,189}\z/u', $chatCategorySlug))
+        data-category-slug="{{ $chatCategorySlug }}"
     @endif
     data-copy="{{ json_encode(trans('sales_chat.widget') + [
         'phone_error' => __('sales_chat.phone_invalid'),
@@ -88,6 +92,6 @@
     </section>
 </div>
 
-<script src="{{ asset('sales-chat-widget-20261124-ux2.js') }}" defer></script>
+<script src="{{ asset('sales-chat-widget-20261125-catalog.js') }}" defer></script>
 <script src="{{ asset('sales-chat-presence-20261124.js') }}" defer></script>
 <script src="{{ asset('sales-chat-invite-20261124.js') }}" defer></script>

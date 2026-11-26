@@ -37,6 +37,7 @@
                             @if ($selected->assignee)
                                 <div class="small chat-meta">{{ __('sales_chat_admin.handled_by', ['name' => $selected->assignee->name]) }}</div>
                             @endif
+                            <div class="small chat-meta" id="sales-chat-opened-by" @if (!$selected->reader_name) hidden @endif>{{ $selected->reader_name ? __('sales_chat_admin.opened_by', ['name' => $selected->reader_name]) : '' }}</div>
                         </div>
                         @if (!$selected->assigned_to)
                             <form method="POST" action="{{ route('admin.sales-chat.claim', $selected) }}">
@@ -188,6 +189,8 @@
             (() => {
                 const queue = document.getElementById('sales-chat-queue');
                 const selectedLead = document.getElementById('sales-chat-selected-lead');
+                const reader = document.getElementById('sales-chat-opened-by');
+                const navUnread = document.querySelector('[data-sales-chat-unread]');
                 const soundButton = document.getElementById('sales-chat-sound');
                 const soundState = document.getElementById('sales-chat-sound-state');
                 const soundError = document.getElementById('sales-chat-sound-error');
@@ -296,12 +299,12 @@
                 });
 
                 async function refresh() {
-                    if (refreshing || (!soundEnabled && (document.hidden || queue.contains(document.activeElement)))) return;
+                    if (refreshing || (!soundEnabled && document.hidden)) return;
                     refreshing = true;
                     try {
                         const response = await fetch(queue.dataset.queueUrl, {headers: {Accept: 'application/json'}, cache: 'no-store'});
                         if (!response.ok) return;
-                        const {html, leadHtml, latestVisitorId: incoming} = await response.json();
+                        const {html, leadHtml, openedBy, total_unread_count: totalUnread, latestVisitorId: incoming} = await response.json();
                         const nextVisitorId = Number(incoming);
                         if (Number.isSafeInteger(nextVisitorId) && nextVisitorId > latestVisitorId) {
                             latestVisitorId = nextVisitorId;
@@ -310,10 +313,26 @@
                                 playSound();
                             }
                         }
-                        if (typeof html === 'string' && html.trim() !== rendered
-                            && !document.hidden && !queue.contains(document.activeElement)) {
+                        if (!document.hidden && typeof html === 'string' && html.trim() !== rendered) {
+                            const focused = document.activeElement;
+                            const href = queue.contains(focused) ? focused.getAttribute('href') : null;
+                            const scrollTop = queue.querySelector('.chat-queue__list')?.scrollTop ?? 0;
                             rendered = html.trim();
                             queue.innerHTML = rendered;
+                            const list = queue.querySelector('.chat-queue__list');
+                            if (list) list.scrollTop = scrollTop;
+                            if (href !== null) {
+                                const replacement = [...queue.querySelectorAll('a')].find(link => link.getAttribute('href') === href);
+                                (replacement ?? queue.querySelector('.chat-queue__filter[aria-current="true"]'))?.focus({preventScroll: true});
+                            }
+                        }
+                        if (reader && typeof openedBy === 'string' && reader.textContent !== openedBy) {
+                            reader.textContent = openedBy;
+                            reader.hidden = openedBy === '';
+                        }
+                        if (navUnread && Number.isSafeInteger(totalUnread)) {
+                            navUnread.textContent = totalUnread;
+                            navUnread.classList.toggle('d-none', totalUnread === 0);
                         }
                         if (selectedLead && typeof leadHtml === 'string' && leadHtml.trim() !== renderedLead
                             && !document.hidden && !selectedLead.contains(document.activeElement)) {

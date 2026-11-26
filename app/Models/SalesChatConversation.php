@@ -54,18 +54,39 @@ class SalesChatConversation extends Model
             ->orWhereNotNull('callback_request_id'));
     }
 
-    public function scopeUnreadFor(Builder $query, int $staffId): Builder
+    public function scopeUnreadFor(Builder $query): Builder
     {
-        return $query->whereHas('messages', fn (Builder $messages) => $messages->unreadForStaff($staffId));
+        return $query->whereHas('messages', fn (Builder $messages) => $messages->unreadForStaff());
+    }
+
+    public function scopeWithReaderName(Builder $query): Builder
+    {
+        return $query->addSelect(['reader_name' => DB::table('sales_chat_reads')
+            ->join('users', 'users.id', '=', 'sales_chat_reads.user_id')
+            ->select('users.name')
+            ->whereColumn('sales_chat_reads.conversation_id', 'sales_chat_conversations.id')
+            ->orderByDesc('sales_chat_reads.last_read_message_id')
+            ->orderBy('sales_chat_reads.user_id')
+            ->limit(1)]);
     }
 
     public function acknowledgeMessages(int $staffId, int $lastMessageId): void
     {
-        $marker = ['conversation_id' => $this->id, 'user_id' => $staffId];
-        DB::table('sales_chat_reads')->insertOrIgnore($marker + ['last_read_message_id' => $lastMessageId]);
-        DB::table('sales_chat_reads')->where($marker)
-            ->where('last_read_message_id', '<', $lastMessageId)
-            ->update(['last_read_message_id' => $lastMessageId]);
+        DB::transaction(function () use ($staffId, $lastMessageId): void {
+            $conversation = static::query()->lockForUpdate()->findOrFail($this->id);
+            $incomingId = (int) $conversation->messages()->inboxIncoming()->where('id', '<=', $lastMessageId)->max('id');
+            $receipts = DB::table('sales_chat_reads')->where('conversation_id', $conversation->id);
+
+            // A second staff member opening the same messages must not replace the reader.
+            if ($incomingId <= (int) $receipts->max('last_read_message_id')) {
+                return;
+            }
+
+            $receipts->updateOrInsert(
+                ['conversation_id' => $conversation->id, 'user_id' => $staffId],
+                ['last_read_message_id' => $incomingId],
+            );
+        }, 3);
     }
 
     public function canReply(User $user): bool

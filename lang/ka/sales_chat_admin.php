@@ -19,6 +19,7 @@ return [
     'sound_error' => 'ხმა ვერ ჩაირთო. სცადეთ ხელახლა.',
     'waiting' => 'ოპერატორს ელოდება',
     'handled_by' => 'ოპერატორი — :name',
+    'opened_by' => 'გახსნა :name',
     'lead_badge' => 'ლიდი',
     'lead_waiting_for_call' => 'ლიდი — ელოდება ზარს',
     'filters_label' => 'საუბრის ფილტრები',

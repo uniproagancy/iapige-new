@@ -86,7 +86,9 @@ class StaffController implements HasMiddleware
         return response()->json([
             'html' => view('admin.sales-chat.queue', $data)->render(),
             'leadHtml' => $selected ? view('admin.sales-chat.lead', $data + ['selected' => $selected])->render() : '',
+            'openedBy' => $selected?->reader_name ? __('sales_chat_admin.opened_by', ['name' => $selected->reader_name]) : '',
             'unread_count' => $data['unreadCount'],
+            'total_unread_count' => $leadsOnly ? $this->visibleConversations(false)->unreadFor()->count() : $data['unreadCount'],
             'latestVisitorId' => $data['latestVisitorId'],
         ]);
     }
@@ -99,7 +101,7 @@ class StaffController implements HasMiddleware
 
     private function selectedConversation(Builder $inbox): Builder
     {
-        return (clone $inbox)->with(['lead.product', 'lead.handler:id,name', 'assignee:id,name']);
+        return (clone $inbox)->withReaderName()->with(['lead.product', 'lead.handler:id,name', 'assignee:id,name']);
     }
 
     private function filters(Request $request): array
@@ -120,14 +122,15 @@ class StaffController implements HasMiddleware
     private function queueData(Builder $inbox, int $staffId, bool $leadsOnly, array $filters): array
     {
         $inboxRoute = $leadsOnly ? 'admin.sales-chat.leads' : 'admin.sales-chat.index';
-        $unreadCount = (clone $inbox)->unreadFor($staffId)->count();
+        $unreadCount = (clone $inbox)->unreadFor()->count();
         $conversations = $inbox->with([
             'assignee:id,name', 'latestMessage.staffUser:id,name',
             'lead:id,status,name,order_id,handled_by,handled_at', 'lead.handler:id,name',
         ])
+            ->withReaderName()
             ->withMax('messages as latest_message_id', 'id')
-            ->withExists(['messages as has_unread' => fn (Builder $messages) => $messages->unreadForStaff($staffId)])
-            ->when($filters['filter'] === 'unread', fn (Builder $query) => $query->unreadFor($staffId))
+            ->withExists(['messages as has_unread' => fn (Builder $messages) => $messages->unreadForStaff()])
+            ->when($filters['filter'] === 'unread', fn (Builder $query) => $query->unreadFor())
             ->when($filters['filter'] === 'mine', fn (Builder $query) => $query->where('assigned_to', $staffId))
             ->orderByDesc('latest_message_id')
             ->latest('created_at')

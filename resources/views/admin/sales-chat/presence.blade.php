@@ -21,6 +21,68 @@
             </div>
         </section>
 
+        <section class="card presence-history mb-2" aria-labelledby="presence-history-label">
+            @php($displayDate = static fn (string $date) => \Illuminate\Support\Carbon::parse($date)->format('d.m.Y'))
+            <div class="card-body presence-history__body">
+                <div>
+                    <h2 class="h5 mb-50" id="presence-history-label">{{ __('sales_chat_presence.history.title') }}</h2>
+                    <p class="text-muted small mb-1">
+                        <time datetime="{{ $history['from'] }}">{{ $displayDate($history['from']) }}</time>
+                        @if ($history['from'] !== $history['to'])
+                            <span aria-hidden="true">–</span>
+                            <time datetime="{{ $history['to'] }}">{{ $displayDate($history['to']) }}</time>
+                        @endif
+                    </p>
+                    <strong class="presence-total mb-50" data-history-total>
+                        {{ $history['uniqueCount'] === null ? '—' : number_format($history['uniqueCount'], 0, '.', ' ') }}
+                    </strong>
+                    <p class="mb-0" data-history-unique-label>{{ __('sales_chat_presence.history.unique') }}</p>
+                </div>
+
+                <div class="presence-history__controls">
+                    <nav class="presence-history__presets" aria-label="{{ __('sales_chat_presence.history.period') }}">
+                        @foreach (['today', 'week', 'month'] as $period)
+                            <a
+                                @class(['btn btn-sm', 'btn-primary' => $history['period'] === $period, 'btn-outline-primary' => $history['period'] !== $period])
+                                href="{{ route('admin.sales-chat.presence.show', ['period' => $period]) }}"
+                                @if ($history['period'] === $period) aria-current="page" @endif
+                            >{{ __('sales_chat_presence.history.'.$period) }}</a>
+                        @endforeach
+                    </nav>
+                    <form class="presence-history__dates" method="GET" action="{{ route('admin.sales-chat.presence.show') }}">
+                        <input type="hidden" name="period" value="custom">
+                        <div>
+                            <label for="presence-history-from" class="form-label">{{ __('sales_chat_presence.history.from') }}</label>
+                            <input type="date" class="form-control form-control-sm" id="presence-history-from" name="from"
+                                value="{{ $history['from'] }}" max="{{ $history['today'] }}" required>
+                        </div>
+                        <div>
+                            <label for="presence-history-to" class="form-label">{{ __('sales_chat_presence.history.to') }}</label>
+                            <input type="date" class="form-control form-control-sm" id="presence-history-to" name="to"
+                                value="{{ $history['to'] }}" max="{{ $history['today'] }}" required>
+                        </div>
+                        <button class="btn btn-sm {{ $history['period'] === 'custom' ? 'btn-primary' : 'btn-outline-primary' }}" type="submit">
+                            {{ __('sales_chat_presence.history.apply') }}
+                        </button>
+                    </form>
+                    @if ($history['error'] ?? null)
+                        <p class="text-warning mb-0" role="alert">{{ $history['error'] }}</p>
+                    @endif
+                </div>
+
+                <div class="presence-history__note small text-muted">
+                    @if ($history['trackedFrom'] === null)
+                        <p class="mb-25" data-history-coverage>{{ __('sales_chat_presence.history.untracked') }}</p>
+                    @elseif ($history['uniqueCount'] === null)
+                        <p class="mb-25" data-history-coverage>{{ __('sales_chat_presence.history.unavailable', ['date' => $displayDate($history['trackedFrom'])]) }}</p>
+                    @elseif (! $history['complete'])
+                        <p class="mb-25" data-history-coverage>{{ __('sales_chat_presence.history.partial', ['date' => $displayDate($history['trackedFrom'])]) }}</p>
+                    @endif
+                    <p class="mb-0">{{ __('sales_chat_presence.history.how_counted') }}</p>
+                </div>
+            </div>
+        </section>
+
         <div class="presence-columns mb-2">
             <section class="card mb-0" aria-labelledby="presence-products-label">
                 <div class="card-body">
@@ -60,6 +122,20 @@
             .presence-summary__body { padding-block: 1.3rem }
             .presence-summary__side { text-align: end }
             .presence-total { display: block; line-height: 1; font-size: clamp(2.3rem, 7vw, 3.3rem); font-variant-numeric: tabular-nums }
+            .presence-history { border-inline-start: 4px solid #7367f0 }
+            .presence-history__body {
+                display: grid; align-items: center; gap: 1rem 1.5rem;
+                grid-template-columns: minmax(12rem, 1fr) minmax(0, max-content);
+            }
+            .presence-history__controls { min-width: 0; display: grid; gap: .9rem }
+            .presence-history__presets { display: flex; flex-wrap: wrap; gap: .5rem }
+            .presence-history__dates { display: grid; align-items: end; gap: .5rem; grid-template-columns: repeat(2, minmax(0, 1fr)) auto }
+            .presence-history__dates .form-control { width: 100%; min-width: 0 }
+            .dark-layout .presence-history__dates .form-control { color-scheme: dark }
+            .presence-history__note {
+                grid-column: 1 / -1; padding-top: .75rem;
+                border-top: 1px solid var(--bs-border-color, rgba(128, 128, 128, .28));
+            }
             .presence-status { font-weight: 600 }
             .presence-status::before {
                 display: inline-block; width: .63rem; height: .63rem; margin-inline-end: .45rem; border-radius: 50%;
@@ -77,8 +153,12 @@
             .presence-visitor__time { flex-shrink: 0; font-size: .8rem; font-variant-numeric: tabular-nums }
             .sales-presence [hidden] { display: none !important }
             @media (max-width: 767px) {
-                .presence-columns { grid-template-columns: minmax(0, 1fr) }
+                .presence-columns, .presence-history__body { grid-template-columns: minmax(0, 1fr) }
                 .presence-summary__side { text-align: start }
+            }
+            @media (max-width: 410px) {
+                .presence-history__dates { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+                .presence-history__dates button { grid-column: 1 / -1; justify-self: start }
             }
         </style>
     @endpush

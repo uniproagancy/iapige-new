@@ -1,10 +1,10 @@
 @can('admin')
     @if (app(\App\Services\SalesChat\SalesChatSettings::class)->enabled())
-        @php($salesChatUnread = \App\Models\SalesChatConversation::inInbox()->unreadFor((int) auth()->id())->count())
+        @php($salesChatUnread = \App\Models\SalesChatConversation::inInbox()->unreadFor()->count())
         <li class="nav-item {{ $on('admin.sales-chat.index', 'admin.sales-chat.leads') }}">
             <a class="nav-link d-flex align-items-center" href="{{ route('admin.sales-chat.index') }}">
                 {!! $icon('phone') !!}<span>{{ __('sales_chat_admin.title') }}</span>
-                {!! $pill($salesChatUnread, 'warning') !!}
+                <span class="badge rounded-pill badge-light-warning ms-50{{ $salesChatUnread ? '' : ' d-none' }}" data-sales-chat-unread>{{ $salesChatUnread }}</span>
             </a>
         </li>
     @endif

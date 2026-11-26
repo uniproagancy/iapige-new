@@ -19,6 +19,7 @@ return [
     'sound_error' => 'Could not enable sound. Try again.',
     'waiting' => 'Waiting for an operator',
     'handled_by' => 'Operator — :name',
+    'opened_by' => 'Opened by :name',
     'lead_badge' => 'Lead',
     'lead_waiting_for_call' => 'Lead — awaiting callback',
     'filters_label' => 'Conversation filters',

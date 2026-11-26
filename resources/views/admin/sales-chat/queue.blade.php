@@ -36,10 +36,13 @@
                     </div>
                     <time class="chat-meta small" datetime="{{ $displayTime->toIso8601String() }}">{{ $displayTime->format('d.m H:i') }}</time>
                 </div>
-                @if ($conversation->has_unread || $conversation->assignee || $conversation->callback_request_id)
+                @if ($conversation->has_unread || $conversation->reader_name || $conversation->assignee || $conversation->callback_request_id)
                     <div class="d-flex flex-wrap gap-50 mt-50">
                         @if ($conversation->has_unread)
                             <span class="badge chat-badge--unread">{{ __('sales_chat_admin.filters.unread') }}</span>
+                        @endif
+                        @if ($conversation->reader_name)
+                            <span class="chat-meta small align-self-center">{{ __('sales_chat_admin.opened_by', ['name' => $conversation->reader_name]) }}</span>
                         @endif
                         @if ($conversation->assignee)
                             <span class="badge chat-badge--operator">{{ $conversation->assignee->name }}</span>

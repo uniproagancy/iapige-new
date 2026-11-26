@@ -58,15 +58,26 @@ class SalesChatMessage extends Model
         return count($parts) === 2 ? ['number' => $number, 'before' => $parts[0], 'after' => $parts[1]] : null;
     }
 
-    public function scopeUnreadForStaff(Builder $query, int $staffId): Builder
+    public function scopeInboxIncoming(Builder $query): Builder
     {
         return $query->where(fn (Builder $message) => $message
-            ->where('sales_chat_messages.role', '!=', self::OPERATOR)
-            ->orWhereNull('sales_chat_messages.staff_user_id')
-            ->orWhere('sales_chat_messages.staff_user_id', '!=', $staffId))
+            ->where('sales_chat_messages.role', self::VISITOR)
+            ->orWhere(fn (Builder $callback) => $callback
+                ->where('sales_chat_messages.role', self::ASSISTANT)
+                ->whereHas('conversation', fn (Builder $conversation) => $conversation->whereNotNull('callback_request_id'))
+                ->where(fn (Builder $confirmation) => $confirmation
+                    ->whereNotNull('sales_chat_messages.callback_request_id')
+                    ->orWhereIn('sales_chat_messages.body', [
+                        __('sales_chat_terms.callback_received', [], 'ka'),
+                        __('sales_chat_terms.callback_received', [], 'en'),
+                    ]))));
+    }
+
+    public function scopeUnreadForStaff(Builder $query): Builder
+    {
+        return $query->inboxIncoming()
             ->whereNotExists(fn ($read) => $read->selectRaw('1')->from('sales_chat_reads')
                 ->whereColumn('sales_chat_reads.conversation_id', 'sales_chat_messages.conversation_id')
-                ->where('sales_chat_reads.user_id', $staffId)
                 ->whereColumn('sales_chat_reads.last_read_message_id', '>=', 'sales_chat_messages.id'));
     }
 }

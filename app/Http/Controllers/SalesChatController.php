@@ -26,6 +26,7 @@ class SalesChatController extends Controller
             'message' => ['required', 'string', 'max:1200'],
             'client_message_id' => ['required', 'uuid'],
             'product_slug' => ['nullable', 'string', 'max:190', 'regex:/^[\p{L}\p{N}][\p{L}\p{N}._~-]*$/uD'],
+            'category_slug' => ['nullable', 'string', 'max:190', 'regex:/^[\p{L}\p{N}][\p{L}\p{N}._~-]*$/uD'],
         ]);
         $conversation = $this->conversation($request);
         $phone = $contact->phoneIn($input['message']);
@@ -95,16 +96,24 @@ class SalesChatController extends Controller
                 ->latest('id')->limit(10)->get(['role', 'body', 'cards'])->reverse()->values()
                 ->map(function (SalesChatMessage $message): array {
                     $turn = ['role' => $message->role, 'body' => $this->redact($message->redactedBody())];
-                    $products = collect($message->cards)->where('type', 'product')
-                        ->map(fn (array $card): array => ['id' => $card['id'], 'name' => $card['name']])
-                        ->take(5)->values()->all();
-                    if ($products !== []) {
-                        $turn['products'] = $products;
+                    foreach (['product' => 'products', 'category' => 'categories'] as $type => $field) {
+                        $cards = collect($message->cards)->where('type', $type)
+                            ->filter(fn ($card) => is_int($card['id'] ?? null) && is_string($card['name'] ?? null))
+                            ->map(fn (array $card): array => ['id' => $card['id'], 'name' => $card['name']])
+                            ->take(5)->values()->all();
+                        if ($cards !== []) {
+                            $turn[$field] = $cards;
+                        }
                     }
 
                     return $turn;
                 })->all();
-            $answer = $assistant->answer($history, $input['product_slug'] ?? null);
+            $answer = $assistant->answer(
+                $history,
+                $input['product_slug'] ?? null,
+                $input['category_slug'] ?? null,
+                $conversation->callback_request_id !== null,
+            );
             DB::transaction(function () use ($conversation, $visitor, $answer): void {
                 $chat = SalesChatConversation::lockForUpdate()->findOrFail($conversation->id);
                 if ($this->mode($chat) !== 'assistant' || $chat->messages()->where('id', '>', $visitor->id)->exists()) {
@@ -147,7 +156,11 @@ class SalesChatController extends Controller
                 throw ValidationException::withMessages(['product_id' => __('sales_chat.product_unavailable')]);
             }
             $contact->create($chat, $phone, $name, $request->user()?->id, $product);
-            $chat->messages()->create(['role' => SalesChatMessage::ASSISTANT, 'body' => __('sales_chat_terms.callback_received')]);
+            $confirmation = $chat->messages()->create([
+                'role' => SalesChatMessage::ASSISTANT,
+                'body' => __('sales_chat_terms.callback_received'),
+            ]);
+            $confirmation->forceFill(['callback_request_id' => $chat->callback_request_id])->save();
         });
 
         return $this->response($conversation->refresh());
