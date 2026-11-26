@@ -726,4 +726,6 @@ return [
     'alta_stock_link_rotate' => 'ბმულის შეცვლა',
     'alta_stock_link_rotate_confirm' => 'ძველი ბმული გაუქმდება. ახალი ბმული ხელახლა უნდა ჩასვათ გაფართოებებში. შევცვალო?',
     'alta_stock_link_created' => 'სიის ახალი ბმული მზადაა',
+    'alta_item_missing' => 'ჩაწერე Alta-ს კოდი ან sku: ?sku=alta-171840',
+    'alta_item_no_supplier' => 'Alta მომწოდებელი ბაზაში ვერ მოიძებნა.',
 ];

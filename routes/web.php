@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AltaBrowserController;
+use App\Http\Controllers\AltaItemController;
 use App\Http\Controllers\AltaStockFeedController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BogInstallmentController;
@@ -184,6 +185,7 @@ Route::middleware(['auth', 'can:admin'])
             Route::get('/alta-browser/feed', [AltaBrowserController::class, 'feed'])->middleware('throttle:6,1')->name('alta-browser.feed');
             Route::post('/alta-browser/product', [AltaBrowserController::class, 'store'])->middleware('throttle:30,1')->name('alta-browser.product');
             Route::get('/alta-browser/status', [AltaBrowserController::class, 'status'])->middleware('throttle:60,1')->name('alta-browser.status');
+            Route::get('/alta/item', AltaItemController::class)->middleware('throttle:30,1')->name('alta.item');
             Route::get('/suppliers', Admin\Suppliers\Index::class)->name('suppliers');
             Route::get('/settings', Admin\Settings\Index::class)->name('settings');
             Route::get('/users', Admin\Users\Index::class)->name('users');

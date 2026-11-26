@@ -726,4 +726,6 @@ Run it anyway?',
     'alta_stock_link_rotate' => 'Replace link',
     'alta_stock_link_rotate_confirm' => 'The old link will stop working. You will need to paste the new link into the extensions. Replace it?',
     'alta_stock_link_created' => 'The new list link is ready',
+    'alta_item_missing' => 'Give an Alta code or sku: ?sku=alta-171840',
+    'alta_item_no_supplier' => 'The Alta supplier is not in the database.',
 ];
